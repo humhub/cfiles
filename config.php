@@ -9,7 +9,7 @@ return [
     'namespace' => 'humhub\modules\cfiles',
     'events' => array(
         array('class' => Menu::className(), 'event' => Menu::EVENT_INIT, 'callback' => array('humhub\modules\cfiles\Events', 'onSpaceMenuInit')),
-        array('class' => ProfileMenu::className(), 'event' => ProfileMenu::EVENT_INIT, 'callback' => array('humhub\modules\cfiles\Events', 'onProfileMenuInit')),
+        //array('class' => ProfileMenu::className(), 'event' => ProfileMenu::EVENT_INIT, 'callback' => array('humhub\modules\cfiles\Events', 'onProfileMenuInit')),
     ),
 ];
 ?>
