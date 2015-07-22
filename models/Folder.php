@@ -96,7 +96,7 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
 
     public function getIconClass()
     {
-        return 'folder';
+        return 'fa-folder';
     }
 
     public function getTitle()

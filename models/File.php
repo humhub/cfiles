@@ -70,7 +70,30 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
 
     public function getIconClass()
     {
-        return 'music';
+        $ext = strtolower($this->baseFile->getExtension());
+
+        if (in_array($ext, ['html', 'cmd', 'bat', 'xml'])) {
+            return 'fa-file-code-o';
+        } elseif (in_array($ext, ['zip', 'rar', 'gz', 'tar'])) {
+            return "fa-archive-o";
+        } elseif (in_array($ext, ['mp3', 'wav'])) {
+            return "fa-file-audio-o";
+        } elseif (in_array($ext, ['xls', 'xlsx'])) {
+            return "fa-file-excel-o";
+        } elseif (in_array($ext, ['jpg', 'gif', 'bmp', 'svg', 'tiff'])) {
+            return "fa-file-image-o";
+        } elseif (in_array($ext, ['pdf'])) {
+            return "fa-file-pdf-o";
+        } elseif (in_array($ext, ['ppt', 'pptx'])) {
+            return "fa-file-powerpoint-o";
+        } elseif (in_array($ext, ['txt', 'log', 'md'])) {
+            return "fa-file-text-o";
+        } elseif (in_array($ext, ['mp4', 'mpeg', 'swf'])) {
+            return "fa-file-video-o";
+        } elseif (in_array($ext, ['doc', 'docx'])) {
+            return "fa-file-word-o";
+        }
+        return 'fa-file-o';
     }
 
     public function getTitle()

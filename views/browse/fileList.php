@@ -31,7 +31,7 @@ use yii\helpers\Html;
                 <td class="text-muted text-right">
                     <?php echo Html::checkbox('selected[]', false, ['value' => $item->getItemId(), 'class' => 'multiselect']); ?>
                 </td>   
-                <td class="text-left" data-sort-value="icon examples"><i class="fa fa-<?php echo $item->getIconClass(); ?> fa-fw"></i>&nbsp;
+                <td class="text-left" data-sort-value="icon examples"><i class="fa <?php echo $item->getIconClass(); ?> fa-fw"></i>&nbsp;
                     <a href="<?php echo $item->getUrl(); ?>">
                         <?php echo Html::encode($item->getTitle()); ?>
                     </a>
