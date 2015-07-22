@@ -1,0 +1,10 @@
+{
+    "id": "cfiles",
+    "name": "Files",
+    "description": "File area for spaces/users.",
+    "keywords": ["files"],
+    "version": "0.1.0",
+    "humhub": {
+        "minVersion": "0.20"
+    }
+}
