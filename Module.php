@@ -3,43 +3,21 @@
 namespace humhub\modules\cfiles;
 
 use Yii;
+use humhub\modules\space\models\Space;
+use humhub\modules\content\components\ContentContainerModule;
 
-class Module extends \humhub\components\Module
+class Module extends ContentContainerModule
 {
 
-    public function behaviors()
+    /**
+     * @inheritdoc
+     */
+    public function getContentContainerTypes()
     {
         return [
-            //   \humhub\modules\user\behaviors\UserModule::className(),
-            \humhub\modules\space\behaviors\SpaceModule::className(),
+            Space::className(),
         ];
     }
-
-    /*
-      public function disable()
-      {
-      if (parent::disable()) {
-
-      foreach (WikiPage::model()->findAll() as $page) {
-      $page->delete();
-      }
-
-      return true;
-      }
-
-      return false;
-      }
-
-      public function getSpaceModuleDescription()
-      {
-      return Yii::t('WikiModule.base', 'Adds a wiki to this space.');
-      }
-
-      public function getUserModuleDescription()
-      {
-      return Yii::t('WikiModule.base', 'Adds a wiki to your profile.');
-      }
-     */
 
     public function getItemById($itemId)
     {
