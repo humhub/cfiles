@@ -31,9 +31,9 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
                         </span>
                     </li>
                     <li class="nav-divider"></li>
-                    <li><?php echo Html::a('Add directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), ['data-toggle' => 'modal', 'data-target' => '#globalModal']); ?></li>
+                    <li><?php echo Html::a('Add directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array'data-target' => '#globalModal')); ?></li>
                     <?php if ($folderId !== 0) : ?>
-                        <li><?php echo Html::a('Edit directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), ['data-toggle' => 'modal', 'data-target' => '#globalModal']); ?></li>
+                        <li><?php echo Html::a('Edit directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), array('data-target' => '#globalModal')); ?></li>
                     <?php endif; ?>
                     <li>
 
@@ -57,7 +57,7 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
                     <li><?php echo Html::a("Move (<span class='chkCnt'></span>)", '', ['class' => 'selectedOnly']); ?></li>
                     -->
                 </ul>
-            </div>            
+            </div>
         </div>
     </div>
 </div>
