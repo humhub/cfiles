@@ -1,8 +1,8 @@
 <?php
-
 namespace humhub\modules\cfiles\models;
 
 use Yii;
+use humhub\modules\user\models\User;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -32,7 +32,12 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
     public function rules()
     {
         return [
-            [['folder_id'], 'integer']
+            [
+                [
+                    'folder_id'
+                ],
+                'integer'
+            ]
         ];
     }
 
@@ -43,14 +48,18 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
     {
         return [
             'id' => 'ID',
-            'folder_id' => 'Folder ID',
+            'folder_id' => 'Folder ID'
         ];
     }
 
     public function getBaseFile()
     {
-        $query = $this->hasOne(\humhub\modules\file\models\File::className(), ['object_id' => 'id']);
-        $query->andWhere(['file.object_model' => self::className()]);
+        $query = $this->hasOne(\humhub\modules\file\models\File::className(), [
+            'object_id' => 'id'
+        ]);
+        $query->andWhere([
+            'file.object_model' => self::className()
+        ]);
         return $query;
     }
 
@@ -59,7 +68,7 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
         if ($this->folder_id == "") {
             $this->folder_id = 0;
         }
-
+        
         return parent::beforeSave($insert);
     }
 
@@ -71,26 +80,64 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
     public function getIconClass()
     {
         $ext = strtolower($this->baseFile->getExtension());
-
-        if (in_array($ext, ['html', 'cmd', 'bat', 'xml'])) {
+        
+        if (in_array($ext, [
+            'html',
+            'cmd',
+            'bat',
+            'xml'
+        ])) {
             return 'fa-file-code-o';
-        } elseif (in_array($ext, ['zip', 'rar', 'gz', 'tar'])) {
+        } elseif (in_array($ext, [
+            'zip',
+            'rar',
+            'gz',
+            'tar'
+        ])) {
             return "fa-archive-o";
-        } elseif (in_array($ext, ['mp3', 'wav'])) {
+        } elseif (in_array($ext, [
+            'mp3',
+            'wav'
+        ])) {
             return "fa-file-audio-o";
-        } elseif (in_array($ext, ['xls', 'xlsx'])) {
+        } elseif (in_array($ext, [
+            'xls',
+            'xlsx'
+        ])) {
             return "fa-file-excel-o";
-        } elseif (in_array($ext, ['jpg', 'gif', 'bmp', 'svg', 'tiff'])) {
+        } elseif (in_array($ext, [
+            'jpg',
+            'gif',
+            'bmp',
+            'svg',
+            'tiff'
+        ])) {
             return "fa-file-image-o";
-        } elseif (in_array($ext, ['pdf'])) {
+        } elseif (in_array($ext, [
+            'pdf'
+        ])) {
             return "fa-file-pdf-o";
-        } elseif (in_array($ext, ['ppt', 'pptx'])) {
+        } elseif (in_array($ext, [
+            'ppt',
+            'pptx'
+        ])) {
             return "fa-file-powerpoint-o";
-        } elseif (in_array($ext, ['txt', 'log', 'md'])) {
+        } elseif (in_array($ext, [
+            'txt',
+            'log',
+            'md'
+        ])) {
             return "fa-file-text-o";
-        } elseif (in_array($ext, ['mp4', 'mpeg', 'swf'])) {
+        } elseif (in_array($ext, [
+            'mp4',
+            'mpeg',
+            'swf'
+        ])) {
             return "fa-file-video-o";
-        } elseif (in_array($ext, ['doc', 'docx'])) {
+        } elseif (in_array($ext, [
+            'doc',
+            'docx'
+        ])) {
             return "fa-file-word-o";
         }
         return 'fa-file-o';
@@ -111,4 +158,10 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
         return $this->baseFile->getUrl();
     }
 
+    public function getCreator()
+    {
+        return User::findOne([
+            'id' => $this->baseFile->created_by
+        ]);
+    }
 }

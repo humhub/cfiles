@@ -1,8 +1,10 @@
 <?php
-
 namespace humhub\modules\cfiles\models;
 
 use Yii;
+use humhub\modules\user\models\User;
+use humhub\modules\content\components\ContentActiveRecord;
+use humhub\modules\content\models\Content;
 
 /**
  * This is the model class for table "cfiles_folder".
@@ -33,9 +35,25 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
     public function rules()
     {
         return [
-            [['parent_folder_id'], 'integer'],
-            [['title'], 'required'],
-            [['title'], 'string', 'max' => 255]
+            [
+                [
+                    'parent_folder_id'
+                ],
+                'integer'
+            ],
+            [
+                [
+                    'title'
+                ],
+                'required'
+            ],
+            [
+                [
+                    'title'
+                ],
+                'string',
+                'max' => 255
+            ]
         ];
     }
 
@@ -47,7 +65,7 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
         return [
             'id' => 'ID',
             'parent_folder_id' => 'Parent Folder ID',
-            'title' => 'Title',
+            'title' => 'Title'
         ];
     }
 
@@ -56,24 +74,30 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
         if ($this->parent_folder_id == "") {
             $this->parent_folder_id = 0;
         }
-
+        
         return parent::beforeSave($insert);
     }
 
     public function getParentFolder()
     {
-        $query = $this->hasOne(self::className(), ['id' => 'parent_folder_id']);
+        $query = $this->hasOne(self::className(), [
+            'id' => 'parent_folder_id'
+        ]);
         return $query;
     }
 
     public function getFiles()
     {
-        return $this->hasMany(File::className(), ['folder_id' => 'id']);
+        return $this->hasMany(File::className(), [
+            'folder_id' => 'id'
+        ]);
     }
 
     public function getFolders()
     {
-        return $this->hasMany(Folder::className(), ['parent_folder_id' => 'id']);
+        return $this->hasMany(Folder::className(), [
+            'parent_folder_id' => 'id'
+        ]);
     }
 
     public function beforeDelete()
@@ -81,11 +105,11 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
         foreach ($this->folders as $folder) {
             $folder->delete();
         }
-
+        
         foreach ($this->files as $file) {
             $file->delete();
         }
-
+        
         return parent::beforeDelete();
     }
 
@@ -111,7 +135,19 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
 
     public function getUrl()
     {
-        return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id]);
+        return $this->content->container->createUrl('/cfiles/browse/index', [
+            'fid' => $this->id
+        ]);
     }
 
+    public function getCreator()
+    {
+        $content = Content::findOne([
+            'object_model' => $this->className(),
+            'object_id' => $this->id
+        ]);
+        return User::findOne([
+            'id' => $content->created_by
+        ]);
+    }
 }
