@@ -4,3 +4,6 @@ nbproject
 .gitmodules
 /composer.lock
 
+/.buildpath
+/.project
+/.settings/
