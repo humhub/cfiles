@@ -1,12 +1,15 @@
 <?php
-
 use yii\helpers\Url;
 use yii\helpers\Html;
 
 \humhub\modules\cfiles\Assets::register($this);
-$this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/browse/upload', ['fid' => $folderId]));
+$this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/browse/upload', [
+    'fid' => $folderId
+]));
 $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/browse/delete'));
-$this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => '--folderId--']));
+$this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', [
+    'id' => '--folderId--'
+]));
 ?>
 <?php echo Html::beginForm(); ?>
 <div class="panel panel-default">
@@ -18,20 +21,19 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
             </div>
             <div class="col-lg-2 col-md-3 col-sm-3">
 
-                <div id="progress" class="progress" style="display:none">
+                <div id="progress" class="progress"
+                    style="display: none">
                     <div class="progress-bar progress-bar-success"></div>
                 </div>
 
                 <ul class="nav nav-pills nav-stacked">
-                    <li>
-                        <span class="fileinput-button btn btn-success">
-                            <i class="glyphicon glyphicon-plus"></i>
-                            <strong>Add file(s)</strong>
-                            <input id="fileupload" type="file" name="files[]" multiple>
-                        </span>
-                    </li>
+                    <li><span class="fileinput-button btn btn-success">
+                            <i class="glyphicon glyphicon-plus"></i> <strong>Add
+                                file(s)</strong> <input id="fileupload"
+                            type="file" name="files[]" multiple>
+                    </span></li>
                     <li class="nav-divider"></li>
-                    <li><?php echo Html::a('Add directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array'data-target' => '#globalModal')); ?></li>
+                    <li><?php echo Html::a('Add directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array('data-target' => '#globalModal')); ?></li>
                     <?php if ($folderId !== 0) : ?>
                         <li><?php echo Html::a('Edit directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), array('data-target' => '#globalModal')); ?></li>
                     <?php endif; ?>
@@ -44,11 +46,11 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
                             'ajaxOptions' => [
                                 'type' => 'POST',
                                 'success' => new yii\web\JsExpression('function(html){ $("#fileList").html(html); }'),
-                                'url' => $contentContainer->createUrl('/cfiles/browse/delete'),
+                                'url' => $contentContainer->createUrl('/cfiles/browse/delete')
                             ],
                             'htmlOptions' => [
                                 'class' => 'selectedOnly',
-                                'style' => 'display:none',
+                                'style' => 'display:none'
                             ]
                         ]);
                         ?>
@@ -64,14 +66,16 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
 <?php echo Html::endForm(); ?>
 
 
-<ul id="contextMenuFolder" class="contextMenu dropdown-menu" role="menu" style="display:none" >
+<ul id="contextMenuFolder" class="contextMenu dropdown-menu" role="menu"
+    style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'>Open</a></li>
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='edit'>Edit</a></li>
     <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
 </ul>
 
-<ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu" style="display:none" >
+<ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu"
+    style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
