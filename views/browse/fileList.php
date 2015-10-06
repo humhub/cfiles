@@ -11,6 +11,10 @@ use yii\helpers\Html;
     <?php endforeach; ?>
 </ol>
 
+<ul id="errorList">
+
+</ul>
+
 <div class="table-responsive">
     <table id="bs-table" class="table table-hover">
         <?php if(sizeof($items) > 0) : ?>
@@ -48,16 +52,18 @@ use yii\helpers\Html;
                         <?php echo Yii::$app->formatter->asShortSize($item->getSize(), 1); ?>
                     <?php endif; ?>
                 </td>
-            <td class="text-right" data-sort-value="" title="">
-                    <?php echo $item->creator->username?>
-                </td>
+            <td class="text-right" data-sort-value="" title=""><a
+                href="<?php echo $item->creator->createUrl(); ?>">
+                        <?php echo $item->creator->username?>
+                    </a></td>
+
+            </td>
             <td class="text-right" data-sort-value="" title="">
                     <?php echo \humhub\widgets\TimeAgo::widget(['timestamp' => $item->content->created_at]); ?>
                 </td>
         </tr>
         <?php
-            
-endforeach
+            endforeach
             ;
          else :
             ?>

@@ -16,6 +16,10 @@
     cursor: pointer;
 }
 
+.filedelete-button {
+    cursor: pointer;
+}
+
 .selectedOnly {
     display: none;
 }

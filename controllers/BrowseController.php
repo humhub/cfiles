@@ -25,7 +25,9 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
 
     public $hideSidebar = true;
 
-    public $files;
+    public $files = array();
+
+    public $errorMessages = array();
 
     public function actionIndex()
     {
@@ -45,10 +47,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     public function actionUpload()
     {
         Yii::$app->response->format = 'json';
-        
-        $files = array();
         foreach (UploadedFile::getInstancesByName('files') as $cFile) {
-            
             $humhubFile = new \humhub\modules\file\models\File();
             $humhubFile->setUploadedFile($cFile);
             if ($humhubFile->validate() && $humhubFile->save()) {
@@ -65,20 +64,29 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                     $humhubFile->object_model = $file->className();
                     $humhubFile->object_id = $file->id;
                     $humhubFile->save();
-                    $files[] = array_merge($humhubFile->getInfoArray(), [
-                        'fileList' => $this->renderFileList(),
-                        'creator' => $file->creator->username
+                    $this->files[] = array_merge($humhubFile->getInfoArray(), [
+                        'fileList' => $this->renderFileList()
                     ]);
                 } else {
-                    throw new HttpException(500, "Could not save CFile");
+                    $errorMessage = "";
+                    $counter = 0;
+                    foreach ($file->errors as $key => $message) {
+                        $errorMessage .= ($counter ++ ? ' | ' : '') . $message[0];
+                    }
+                    throw new HttpException(500, "$humhubFile->filename: " . 'Could not save File. ' . $errorMessage);
                 }
             } else {
-                throw new HttpException(500, "Could not save File");
+                $errorMessage = "";
+                $counter = 0;
+                foreach ($humhubFile->errors as $key => $message) {
+                    $errorMessage .= ($counter ++ ? ' | ' : '') . $message[0];
+                }
+                throw new HttpException(500, "$humhubFile->filename: " . 'Could not save File. ' . $errorMessage);
             }
         }
         
         return [
-            'files' => $files
+            'files' => $this->files
         ];
     }
 
@@ -162,7 +170,8 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         return $this->renderAjax('fileList', [
             'items' => array_merge($foldersQuery->all(), $filesQuery->all()),
             'contentContainer' => $this->contentContainer,
-            'crumb' => $this->generateCrumb()
+            'crumb' => $this->generateCrumb(),
+            'errorMessages' => $this->errorMessages
         ]);
     }
 

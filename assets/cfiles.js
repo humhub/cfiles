@@ -92,9 +92,18 @@ $(function () {
         url: cfilesUploadUrl,
         dataType: 'json',
         done: function (e, data) {
+        	console.log(data);
             $.each(data.result.files, function (index, file) {
                 $('#fileList').html(file.fileList);
+            	$('#errorList').html($('#errorListHidden').html());
             });
+        },
+        fail: function (e, data) {
+           	$('#errorListHidden').append('<li>'+data.jqXHR.responseJSON.message+'</li>');
+           	$('#errorList').html($('#errorListHidden').html());
+        },
+        start: function (e, data) {
+           	$('#errorListHidden').empty();
         },
         progressall: function (e, data) {
             var progress = parseInt(data.loaded / data.total * 100, 10);
@@ -176,4 +185,3 @@ $(function () {
 
     };
 })(jQuery, window);
-

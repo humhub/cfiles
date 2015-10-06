@@ -49,7 +49,7 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
                                 'url' => $contentContainer->createUrl('/cfiles/browse/delete')
                             ],
                             'htmlOptions' => [
-                                'class' => 'selectedOnly',
+                                'class' => 'selectedOnly filedelete-button',
                                 'style' => 'display:none'
                             ]
                         ]);
@@ -80,3 +80,8 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
 </ul>
+
+<div id="errorContainer" style="display: none">
+    <ul id="errorListHidden">
+    </ul>
+</div>
