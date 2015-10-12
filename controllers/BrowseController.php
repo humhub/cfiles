@@ -48,16 +48,34 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     {
         Yii::$app->response->format = 'json';
         foreach (UploadedFile::getInstancesByName('files') as $cFile) {
-            $humhubFile = new \humhub\modules\file\models\File();
+            
+            $folder = $this->getCurrentFolder();
+            $folder_id = empty($folder) ? 0 : $folder->id;
+            
+            $filesQuery = File::find()->joinWith('baseFile')
+                ->readable()
+                ->andWhere([
+                'title' => $cFile->name,
+                'parent_folder_id' => $folder_id
+            ]);
+            
+            $file = $filesQuery->one();
+            
+            if (empty($file)) {
+                $file = new File();
+                $humhubFile = new \humhub\modules\file\models\File();
+            } else {
+                $humhubFile = $file->baseFile;
+            }
+            
             $humhubFile->setUploadedFile($cFile);
             if ($humhubFile->validate() && $humhubFile->save()) {
                 
-                $file = new File();
                 $file->content->container = $this->contentContainer;
                 
                 $folder = $this->getCurrentFolder();
                 if ($folder !== null) {
-                    $file->folder_id = $folder->id;
+                    $file->parent_folder_id = $folder->id;
                 }
                 
                 if ($file->save()) {
@@ -92,31 +110,46 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
 
     public function actionEditFolder()
     {
+        // fid indicates the current parent folder id
         $currentFolderId = 0;
         $currentFolder = $this->getCurrentFolder();
         if ($currentFolder !== null) {
             $currentFolderId = $currentFolder->id;
-        }
-        
+        }   
+        // id is set if a folder should be edited     
         $id = (int) Yii::$app->request->get('id');
-        $folder = Folder::find()->contentContainer($this->contentContainer)
+        // the parend folder id
+        $pid = (int) Yii::$app->request->get('pid');
+        // the new / edited folders title
+        $title = trim(Yii::$app->request->post('Folder')['title']);
+        Yii::$app->request->post('Folder')['title'] = $title;
+        // if the folder exists, should it be overwritten?
+        $mode = (string) Yii::$app->request->get('mode');
+        
+        // check if a folder for the given id exists
+        $query = Folder::find()->contentContainer($this->contentContainer)
             ->readable()
             ->where([
             'cfiles_folder.id' => $id
-        ])
-            ->one();
-        if ($folder === null) {
+        ]);
+        $folder = $query->one();
+        
+        // if not a folder has to be created
+        if (empty($folder)) {
+            // create a new folder
             $folder = new Folder();
             $folder->content->container = $this->contentContainer;
             $folder->parent_folder_id = $currentFolderId;
         }
         
+        // try to save the current folder
         if ($folder->load(Yii::$app->request->post()) && $folder->validate() && $folder->save()) {
             return $this->htmlRedirect($this->contentContainer->createUrl('index', [
                 'fid' => $folder->id
             ]));
         }
         
+        // if it could not be saved successfully, or the formular was empty, render the edit folder modal
         return $this->renderAjax('editFolder', [
             'folder' => $folder,
             'contentContainer' => $this->contentContainer,
@@ -153,14 +186,14 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         
         if ($folder === null) {
             $filesQuery->andWhere([
-                'cfiles_file.folder_id' => 0
+                'cfiles_file.parent_folder_id' => 0
             ]);
             $foldersQuery->andWhere([
                 'cfiles_folder.parent_folder_id' => 0
             ]);
         } else {
             $filesQuery->andWhere([
-                'cfiles_file.folder_id' => $folder->id
+                'cfiles_file.parent_folder_id' => $folder->id
             ]);
             $foldersQuery->andWhere([
                 'cfiles_folder.parent_folder_id' => $folder->id

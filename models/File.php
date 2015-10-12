@@ -8,15 +8,10 @@ use humhub\modules\user\models\User;
  * This is the model class for table "cfiles_file".
  *
  * @property integer $id
- * @property integer $folder_id
+ * @property integer $parent_folder_id
  */
-class File extends \humhub\modules\content\components\ContentActiveRecord implements \humhub\modules\cfiles\ItemInterface
+class File extends FileSystemItem
 {
-
-    /**
-     * @inheritdoc
-     */
-    public $autoAddToWall = false;
 
     /**
      * @inheritdoc
@@ -34,10 +29,10 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
         return [
             [
                 [
-                    'folder_id'
+                    'parent_folder_id'
                 ],
                 'integer'
-            ]
+            ], 
         ];
     }
 
@@ -48,29 +43,11 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
     {
         return [
             'id' => 'ID',
-            'folder_id' => 'Folder ID'
+            'parent_folder_id' => 'Folder ID'
         ];
     }
 
-    public function getBaseFile()
-    {
-        $query = $this->hasOne(\humhub\modules\file\models\File::className(), [
-            'object_id' => 'id'
-        ]);
-        $query->andWhere([
-            'file.object_model' => self::className()
-        ]);
-        return $query;
-    }
 
-    public function beforeSave($insert)
-    {
-        if ($this->folder_id == "") {
-            $this->folder_id = 0;
-        }
-        
-        return parent::beforeSave($insert);
-    }
 
     public function getItemId()
     {
@@ -163,5 +140,16 @@ class File extends \humhub\modules\content\components\ContentActiveRecord implem
         return User::findOne([
             'id' => $this->baseFile->created_by
         ]);
+    }
+    
+    public function getBaseFile()
+    {
+        $query = $this->hasOne(\humhub\modules\file\models\File::className(), [
+            'object_id' => 'id'
+            ]);
+        $query->andWhere([
+            'file.object_model' => self::className()
+            ]);
+        return $query;
     }
 }

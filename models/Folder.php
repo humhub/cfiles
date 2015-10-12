@@ -13,13 +13,8 @@ use humhub\modules\content\models\Content;
  * @property integer $parent_folder_id
  * @property string $title
  */
-class Folder extends \humhub\modules\content\components\ContentActiveRecord implements \humhub\modules\cfiles\ItemInterface
+class Folder extends FileSystemItem
 {
-
-    /**
-     * @inheritdoc
-     */
-    public $autoAddToWall = false;
 
     /**
      * @inheritdoc
@@ -53,7 +48,15 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
                 ],
                 'string',
                 'max' => 255
-            ]
+            ],
+            [
+                'title',
+                'exists'
+            ],
+            [
+            'title',
+            'noSpaces'
+            ],
         ];
     }
 
@@ -69,27 +72,10 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
         ];
     }
 
-    public function beforeSave($insert)
-    {
-        if ($this->parent_folder_id == "") {
-            $this->parent_folder_id = 0;
-        }
-        
-        return parent::beforeSave($insert);
-    }
-
-    public function getParentFolder()
-    {
-        $query = $this->hasOne(self::className(), [
-            'id' => 'parent_folder_id'
-        ]);
-        return $query;
-    }
-
     public function getFiles()
     {
         return $this->hasMany(File::className(), [
-            'folder_id' => 'id'
+            'parent_folder_id' => 'id'
         ]);
     }
 
@@ -149,5 +135,24 @@ class Folder extends \humhub\modules\content\components\ContentActiveRecord impl
         return User::findOne([
             'id' => $content->created_by
         ]);
+    }
+
+    public function exists($attribute, $params)
+    {
+        // check if a similar folder with the same name and parent folder exists
+        $folder = Folder::findOne([
+            'title' => $this->$attribute,
+            'parent_folder_id' => $this->parent_folder_id
+        ]);
+        
+        if (! empty($folder)) {
+            $this->addError($attribute, 'A folder with this name already exists.');
+        }
+    }
+    
+    public function noSpaces($attribute, $params) {
+        if (trim($this->$attribute) !== $this->$attribute) {
+            $this->addError($attribute, 'Should not start or end with blank space.');
+        }
     }
 }

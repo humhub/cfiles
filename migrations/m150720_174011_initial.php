@@ -9,7 +9,7 @@ class m150720_174011_initial extends Migration
     {
         $this->createTable('cfiles_file', array(
             'id' => 'pk',
-            'folder_id' => 'int(11) NULL'
+            'parent_folder_id' => 'int(11) NULL'
         ), '');
         
         $this->createTable('cfiles_folder', array(
