@@ -47,33 +47,43 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     public function actionUpload()
     {
         Yii::$app->response->format = 'json';
+        
+        $response = [];
+        
         foreach (UploadedFile::getInstancesByName('files') as $cFile) {
             
             $folder = $this->getCurrentFolder();
-            $folder_id = empty($folder) ? 0 : $folder->id;
+            $currentFolderId = empty($folder) ? 0 : $folder->id;
             
+            // check if the file already exists in this dir
             $filesQuery = File::find()->joinWith('baseFile')
                 ->readable()
                 ->andWhere([
                 'title' => $cFile->name,
-                'parent_folder_id' => $folder_id
+                'parent_folder_id' => $currentFolderId
             ]);
-            
             $file = $filesQuery->one();
             
+            // if not, initialize new File
             if (empty($file)) {
                 $file = new File();
                 $humhubFile = new \humhub\modules\file\models\File();
-            } else {
+            }             // else replace the existing file
+            else {
                 $humhubFile = $file->baseFile;
+                // logging file replacement
+                $response['logmessages'][] = Yii::t('CfilesModule.views_browse_index', 'Info: %title% was replaced by a newer version.', [
+                    '%title%' => $file->title
+                ]);
+                $response['log'] = true;
             }
             
             $humhubFile->setUploadedFile($cFile);
-            if ($humhubFile->validate() && $humhubFile->save()) {
+            if ($humhubFile->save()) {
                 
                 $file->content->container = $this->contentContainer;
-                
                 $folder = $this->getCurrentFolder();
+                
                 if ($folder !== null) {
                     $file->parent_folder_id = $folder->id;
                 }
@@ -86,26 +96,33 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                         'fileList' => $this->renderFileList()
                     ]);
                 } else {
-                    $errorMessage = "";
-                    $counter = 0;
+                    $count = 0;
+                    $messages = "";
+                    // show multiple occurred errors
                     foreach ($file->errors as $key => $message) {
-                        $errorMessage .= ($counter ++ ? ' | ' : '') . $message[0];
+                        $messages .= ($count ++ ? ' | ' : '') . $message[0];
                     }
-                    throw new HttpException(500, "$humhubFile->filename: " . 'Could not save File. ' . $errorMessage);
+                    $response['logmessages'][] = Yii::t('CfilesModule.views_browse_index', 'Error: Could not save file %title%. ', [
+                        '%title%' => $file->title
+                    ]) . $messages;
+                    $response['log'] = true;
                 }
             } else {
-                $errorMessage = "";
-                $counter = 0;
+                $count = 0;
+                $messages = "";
+                // show multiple occurred errors
                 foreach ($humhubFile->errors as $key => $message) {
-                    $errorMessage .= ($counter ++ ? ' | ' : '') . $message[0];
+                    $messages .= ($count ++ ? ' | ' : '') . $message[0];
                 }
-                throw new HttpException(500, "$humhubFile->filename: " . 'Could not save File. ' . $errorMessage);
+                $response['logmessages'][] = Yii::t('CfilesModule.views_browse_index', 'Error: Could not save file %title%. ', [
+                    '%title%' => $humhubFile->filename
+                ]) . $messages;
+                $response['log'] = true;
             }
         }
         
-        return [
-            'files' => $this->files
-        ];
+        $response['files'] = $this->files;
+        return $response;
     }
 
     public function actionEditFolder()
@@ -115,8 +132,8 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         $currentFolder = $this->getCurrentFolder();
         if ($currentFolder !== null) {
             $currentFolderId = $currentFolder->id;
-        }   
-        // id is set if a folder should be edited     
+        }
+        // id is set if a folder should be edited
         $id = (int) Yii::$app->request->get('id');
         // the parend folder id
         $pid = (int) Yii::$app->request->get('pid');

@@ -81,7 +81,17 @@ function initFileList() {
             }
         }
     });
+}
 
+function updateLog(messages) {
+	if($.isArray(messages)) {
+		$.each(messages, function(index, message) {
+			$('#hiddenLog').append('<li>'+message+'</li>');
+		});	
+	} else {
+		$('#hiddenLog').append('<li>'+messages+'</li>');
+	}
+   	$('#log').html($('#hiddenLog').html());
 }
 
 $(function () {
@@ -93,17 +103,20 @@ $(function () {
         dataType: 'json',
         done: function (e, data) {
         	console.log(data);
+        	console.log(jQuery('#globalModal'));
             $.each(data.result.files, function (index, file) {
                 $('#fileList').html(file.fileList);
-            	$('#errorList').html($('#errorListHidden').html());
             });
+            if(data.result.log) {
+            	updateLog(data.result.logmessages);
+            }            	
         },
         fail: function (e, data) {
-           	$('#errorListHidden').append('<li>'+data.jqXHR.responseJSON.message+'</li>');
-           	$('#errorList').html($('#errorListHidden').html());
+        	console.log(jQuery('#globalModal'));
+        	updateLog(data.jqXHR.responseJSON.message);
         },
         start: function (e, data) {
-           	$('#errorListHidden').empty();
+           	$('#hiddenLog').empty();
         },
         progressall: function (e, data) {
             var progress = parseInt(data.loaded / data.total * 100, 10);

@@ -11,7 +11,7 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
     'id' => '--folderId--'
 ]));
 ?>
-<?php echo Html::beginForm(); ?>
+<?php echo Html::beginForm(null, null, ['data-target' => '#globalModal']); ?>
 <div class="panel panel-default">
 
     <div class="panel-body">
@@ -81,7 +81,7 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
     <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
 </ul>
 
-<div id="errorContainer" style="display: none">
-    <ul id="errorListHidden">
+<div id="logContainer" style="display: none">
+    <ul id="hiddenLog">
     </ul>
 </div>

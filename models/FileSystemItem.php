@@ -45,13 +45,13 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         return $query;
     }
     
-//     public function beforeValidate() {
-//         if($this->exists()) {
-//             $this->addError($this->id, 'An item with the same name already exists.');
-//         }
-//     }
-    
-    public function exists () {
+    // public function beforeValidate() {
+    // if($this->exists()) {
+    // $this->addError($this->id, 'An item with the same name already exists.');
+    // }
+    // }
+    public function exists()
+    {
         return true;
     }
 }

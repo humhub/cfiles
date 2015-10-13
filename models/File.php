@@ -32,7 +32,7 @@ class File extends FileSystemItem
                     'parent_folder_id'
                 ],
                 'integer'
-            ], 
+            ]
         ];
     }
 
@@ -46,8 +46,6 @@ class File extends FileSystemItem
             'parent_folder_id' => 'Folder ID'
         ];
     }
-
-
 
     public function getItemId()
     {
@@ -141,15 +139,15 @@ class File extends FileSystemItem
             'id' => $this->baseFile->created_by
         ]);
     }
-    
+
     public function getBaseFile()
     {
         $query = $this->hasOne(\humhub\modules\file\models\File::className(), [
             'object_id' => 'id'
-            ]);
+        ]);
         $query->andWhere([
             'file.object_model' => self::className()
-            ]);
+        ]);
         return $query;
     }
 }

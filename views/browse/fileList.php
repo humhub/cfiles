@@ -11,7 +11,7 @@ use yii\helpers\Html;
     <?php endforeach; ?>
 </ol>
 
-<ul id="errorList">
+<ul id="log">
 
 </ul>
 
@@ -24,7 +24,7 @@ use yii\helpers\Html;
                 <th class="col-sm-5 text-left" data-sort="string">Name</th>
                 <th class="col-sm-2 text-right" data-sort="int">Size</th>
                 <th class="col-sm-2 text-right" data-sort="string">Creator</th>
-                <th class="col-sm-3 text-right" data-sort="int">Created</th>
+                <th class="col-sm-3 text-right" data-sort="int">Updated</th>
             </tr>
         </thead>
         <tfoot>
@@ -59,7 +59,7 @@ use yii\helpers\Html;
 
             </td>
             <td class="text-right" data-sort-value="" title="">
-                    <?php echo \humhub\widgets\TimeAgo::widget(['timestamp' => $item->content->created_at]); ?>
+                    <?php echo \humhub\widgets\TimeAgo::widget(['timestamp' => $item->content->updated_at]); ?>
                 </td>
         </tr>
         <?php

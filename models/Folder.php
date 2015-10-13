@@ -54,9 +54,9 @@ class Folder extends FileSystemItem
                 'exists'
             ],
             [
-            'title',
-            'noSpaces'
-            ],
+                'title',
+                'noSpaces'
+            ]
         ];
     }
 
@@ -149,8 +149,9 @@ class Folder extends FileSystemItem
             $this->addError($attribute, 'A folder with this name already exists.');
         }
     }
-    
-    public function noSpaces($attribute, $params) {
+
+    public function noSpaces($attribute, $params)
+    {
         if (trim($this->$attribute) !== $this->$attribute) {
             $this->addError($attribute, 'Should not start or end with blank space.');
         }
