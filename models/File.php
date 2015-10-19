@@ -150,4 +150,27 @@ class File extends FileSystemItem
         ]);
         return $query;
     }
+
+    public static function getPathFromId($id, $parentFolderPath = false, $separator = '/')
+    {
+        if ($id == 0) {
+            return $separator;
+        }
+        $item = File::findOne([
+            'id' => $id
+        ]);
+        
+        if (empty($item)) {
+            return null;
+        }
+        $tempFolder = $item->parentFolder;
+        $path = $separator;
+        if(!$parentFolderPath) {
+            $path .= $item->title; 
+        }
+        while (! empty($tempFolder)) {
+            $path = $separator . $tempFolder->title . $path;
+        }
+        return $path;
+    }
 }

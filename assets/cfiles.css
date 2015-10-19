@@ -20,6 +20,10 @@
     cursor: pointer;
 }
 
+.filemove-button {
+    cursor: pointer;
+}
+
 .selectedOnly {
     display: none;
 }

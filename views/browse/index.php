@@ -2,7 +2,7 @@
 use yii\helpers\Url;
 use yii\helpers\Html;
 
-\humhub\modules\cfiles\Assets::register($this);
+$bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/browse/upload', [
     'fid' => $folderId
 ]));
@@ -38,7 +38,6 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
                         <li><?php echo Html::a('Edit directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), array('data-target' => '#globalModal')); ?></li>
                     <?php endif; ?>
                     <li>
-
                         <?php
                         echo \humhub\widgets\AjaxButton::widget([
                             'label' => "Delete (<span class='chkCnt'></span>)",
@@ -55,9 +54,7 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
                         ]);
                         ?>
                     </li>
-                    <!--
-                    <li><?php echo Html::a("Move (<span class='chkCnt'></span>)", '', ['class' => 'selectedOnly']); ?></li>
-                    -->
+                    <li><?php echo Html::a("Move (<span class='chkCnt'></span>)", $contentContainer->createUrl('/cfiles/browse/move-files'), ['class' => "selectedOnly filemove-button", 'style' => 'display:none;', 'data-target' => '#globalModal']); ?></li>
                 </ul>
             </div>
         </div>

@@ -174,6 +174,33 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         ]);
     }
 
+    public function actionMoveFiles()
+    {
+        $folder = $this->getCurrentFolder();
+        $currentFolderId = empty($folder) ? 0 : $folder->id;
+        
+        $selectedItems = Yii::$app->request->post('selected');
+        
+        if (empty(Yii::$app->request->post('destfid'))) {
+            // render modal if no destination folder is specified
+            return $this->renderAjax('moveFiles', [
+                'folders' => $this->getFolderList(),
+                'contentContainer' => $this->contentContainer,
+                'currentFolderId' => $currentFolderId
+            ]);
+        }
+        
+        if (is_array($selectedItems)) {
+            foreach ($selectedItems as $itemId) {
+                $item = $this->module->getItemById($itemId);
+                if ($item !== null) {
+                    $item->delete();
+                }
+            }
+        }
+        return $this->renderFileList();
+    }
+
     public function actionDelete()
     {
         $selectedItems = Yii::$app->request->post('selected');
@@ -273,5 +300,28 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         }
         
         return $crumb;
+    }
+
+    private function getFolderList($parentId = 0)
+    {
+        $dirstruc = [];
+        $folders = Folder::find()->contentContainer($this->contentContainer)
+            ->readable()
+            ->where([
+            'cfiles_folder.parent_folder_id' => $parentId
+        ])
+            ->all();
+        foreach ($folders as $folder) {
+//             echo '<pre>';
+//             print_r($folder->id);
+//             print_r($folder->title);
+//             echo '</pre>';
+            $dirstruc[] = [
+                'folder' => $folder,
+                'subfolders' => $this->getFolderlist($folder->id)
+            ];
+        }
+        
+        return $dirstruc;
     }
 }

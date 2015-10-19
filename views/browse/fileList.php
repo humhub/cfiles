@@ -35,7 +35,8 @@ use yii\helpers\Html;
         <?php foreach ($items as $item) : ?>
             <tr data-type="folder"
             data-id="<?php echo $item->getItemId(); ?>"
-            data-url="<?php echo $item->getUrl(); ?>">
+            data-url="<?php echo $item->getUrl(); ?>"
+            class="draggable droppable">
             <td class="text-muted text-right">
                     <?php echo Html::checkbox('selected[]', false, ['value' => $item->getItemId(), 'class' => 'multiselect']); ?>
                 </td>

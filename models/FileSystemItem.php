@@ -17,6 +17,8 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
      */
     public $autoAddToWall = false;
 
+    public $path = null;
+
     public function beforeSave($insert)
     {
         if ($this->parent_folder_id == "") {
@@ -43,15 +45,5 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
             'file.object_model' => self::className()
         ]);
         return $query;
-    }
-    
-    // public function beforeValidate() {
-    // if($this->exists()) {
-    // $this->addError($this->id, 'An item with the same name already exists.');
-    // }
-    // }
-    public function exists()
-    {
-        return true;
     }
 }

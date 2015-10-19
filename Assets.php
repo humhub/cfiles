@@ -17,12 +17,15 @@ class Assets extends AssetBundle
     ];
 
     public $css = [
-        'cfiles.css'
+        'cfiles.css',
+        'directorylist.css'
     ];
 
     public $js = [
-        'cfiles.js'
-    ];
+        'cfiles.js',
+        'directorylist.js'
+    ]
+    ;
 
     public function init()
     {

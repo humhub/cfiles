@@ -16,6 +16,8 @@ use humhub\modules\content\models\Content;
 class Folder extends FileSystemItem
 {
 
+    public $path = "";
+
     /**
      * @inheritdoc
      */
@@ -155,5 +157,60 @@ class Folder extends FileSystemItem
         if (trim($this->$attribute) !== $this->$attribute) {
             $this->addError($attribute, 'Should not start or end with blank space.');
         }
+    }
+
+    public static function getPathFromId($id, $parentFolderPath = false, $separator = '/')
+    {
+        if ($id == 0) {
+            return $separator;
+        }
+        $item = Folder::findOne([
+            'id' => $id
+        ]);
+        if (empty($item)) {
+            return null;
+        }
+        $tempFolder = $item->parentFolder;
+        $path = $separator;
+        if (! $parentFolderPath) {
+            $path .= $item->title;
+        }
+        while (! empty($tempFolder)) {
+            $path = $separator . $tempFolder->title . $path;
+        }
+        return $path;
+    }
+
+    public static function getIdFromPath($path, $contentContainer, $separator = '/')
+    {
+        $titles = array_reverse(explode($separator, $path));
+        
+        if (sizeof($titles) <= 0) {
+            return null;
+        }
+        
+        $folders = Folder::find()->contentContainer($contentContainer)
+            ->readable()
+            ->where([
+            'title' => $titles[0]
+        ])
+            ->all();
+        if (sizeof($folders) <= 0) {
+            return null;
+        }
+        unset($titles[0]);
+        
+        foreach ($titles as $index => $title) {
+            if (sizeof($folders) <= 0) {
+                return null;
+            }
+        }
+        
+        $query = $this->hasOne(\humhub\modules\content\models\Content::className(), [
+            'object_id' => 'id'
+        ]);
+        $query->andWhere([
+            'file.object_model' => self::className()
+        ]);
     }
 }
