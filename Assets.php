@@ -24,8 +24,7 @@ class Assets extends AssetBundle
     public $js = [
         'cfiles.js',
         'directorylist.js'
-    ]
-    ;
+    ];
 
     public function init()
     {

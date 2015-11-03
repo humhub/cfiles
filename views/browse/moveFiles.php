@@ -4,22 +4,20 @@ use humhub\compat\CActiveForm;
 
 $this->registerJs('initDirectoryList();', \yii\web\View::POS_END);
 
-function renderFolder($folder) {
-    echo "<li><span class='selectable' id='".$folder['folder']->id."'>".$folder['folder']->title."</span>";
-    if(!empty($folder['subfolders'])) {
+function renderFolder($folder)
+{
+    echo "<li><span class='selectable' id='" . $folder['folder']->id . "'>" . $folder['folder']->title . "</span>";
+    if (! empty($folder['subfolders'])) {
         echo "<ul>";
-        foreach($folder['subfolders'] as $subfolder) {
-          renderFolder($subfolder);
+        foreach ($folder['subfolders'] as $subfolder) {
+            renderFolder($subfolder);
         }
         echo "</ul>";
     }
     echo "</li>";
 }
+
 ?>
-
-</script>
-<div id="destIdContainer" style="display: none;"></div>
-
 <div class="modal-dialog modal-dialog-small animated fadeIn">
     <div class="modal-content">
         <?php $form = CActiveForm::begin(); ?>
@@ -32,16 +30,43 @@ function renderFolder($folder) {
         </div>
 
         <div class="modal-body">
+            <?php
+            
+            if (! empty($errorMsgs)) :
+                echo "<ul>";
+                foreach ($errorMsgs as $error) :
+                    echo "<li>$error</li>";
+                endforeach
+                ;
+                echo "</ul>";
+            
+            
+            endif;
+            ?>
             <br />
             <div class="directory-list">
                 <div class="selectable" id="0">/ (root)</div>
                 <ul>
-                <?php foreach ($folders as $dir) :
+                <?php
+                
+                foreach ($folders as $dir) :
                     renderFolder($dir);
-                endforeach; ?>
+                endforeach
+                ;
+                ?>
                 </ul>
             </div>
 
+            <input id="input-hidden-selectedFolder" type="hidden"
+                name="destfid" value="" />
+            
+            <?php
+            if (is_array($selectedItems)) {
+                foreach ($selectedItems as $index => $item) {
+                    echo "<input class='input-hidden-selectedItem' type='hidden' name='selected[]' value='$item'/>";
+                }
+            }
+            ?>
             <div class="modal-footer">
             <?php
             echo \humhub\widgets\AjaxButton::widget([
@@ -50,9 +75,7 @@ function renderFolder($folder) {
                     'type' => 'POST',
                     'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
                     'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'),
-                    'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [
-                        'fid' => $currentFolderId,
-                    ])
+                    'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [])
                 ],
                 'htmlOptions' => [
                     'class' => 'btn btn-primary'
@@ -65,5 +88,5 @@ function renderFolder($folder) {
             </div>
         <?php CActiveForm::end()?>
     </div>
-  </div>
+    </div>
 </div>

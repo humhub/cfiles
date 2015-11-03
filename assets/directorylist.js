@@ -1,15 +1,14 @@
 function initDirectoryList() {
 	$('.directory-list li:last-child').addClass('last-child');
 	$('.directory-list ul ul').hide();
-	
+
 	// handle selecting folders
-	$('.directory-list .selectable').click(
-			function() {
-				$('.directory-list .selectedFolder').removeClass(
-						'selectedFolder');
-				$(this).addClass('selectedFolder');
-			});
-	
+	$('.directory-list .selectable').click(function() {
+		$('.directory-list .selectedFolder').removeClass('selectedFolder');
+		$(this).addClass('selectedFolder');
+		$('#input-hidden-selectedFolder').val($(this).attr('id'));
+	});
+
 	// handle open close subfolders
 	$('.directory-list li:has(ul)').addClass('hassub').find('>span, >a').click(
 			function() {

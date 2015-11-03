@@ -57,6 +57,7 @@ function initFileList() {
 					// Id of Folder / File
 					itemRealId = $temp[1];
 
+					console.log(action);
 					if (action == 'delete') {
 						$.ajax({
 							url : cfilesDeleteUrl,
@@ -76,12 +77,16 @@ function initFileList() {
 					} else if (action == 'download') {
 						url = invokedOn.closest('tr').data('url');
 						document.location.href = url;
-					} else if (action == 'move') {
-						$('#globalModal').modal(
-								{
-									remote : cfilesMoveUrl.replace(
-											'--folderId--', itemRealId)
-								});
+					} else if (action == 'move-files') {
+						$.ajax({
+							url : cfilesMoveUrl,
+							type : 'POST',
+							data : {
+								'selected[]' : itemId,
+							},
+						}).done(function(html) {
+							$("#fileList").html(html);
+						});
 					} else {
 						alert("Unkown action " + action);
 					}
@@ -100,7 +105,8 @@ function updateLog(messages) {
 	$('#log').html($('#hiddenLog').html());
 }
 
-$(function() {	
+$(function() {
+	
 	/**
 	 * Install uploader
 	 */
@@ -108,8 +114,6 @@ $(function() {
 		url : cfilesUploadUrl,
 		dataType : 'json',
 		done : function(e, data) {
-			console.log(data);
-			console.log(jQuery('#globalModal'));
 			$.each(data.result.files, function(index, file) {
 				$('#fileList').html(file.fileList);
 			});
@@ -135,13 +139,14 @@ $(function() {
 		}
 	}).prop('disabled', !$.support.fileInput).parent().addClass(
 			$.support.fileInput ? undefined : 'disabled');
+
 });
 
 /**
  * Context Menu
  */
 (function($, window) {
-	
+
 	$.fn.contextMenu = function(settings) {
 
 		return this.each(function() {

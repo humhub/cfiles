@@ -28,10 +28,12 @@ class File extends FileSystemItem
     {
         return [
             [
-                [
-                    'parent_folder_id'
-                ],
+                'parent_folder_id',
                 'integer'
+            ],
+            [
+                'parent_folder_id',
+                'validateParentFolderId'
             ]
         ];
     }
@@ -54,8 +56,11 @@ class File extends FileSystemItem
 
     public function getIconClass()
     {
-        $ext = strtolower($this->baseFile->getExtension());
-        
+        return File::getIconClassByExt(strtolower($this->baseFile->getExtension()));
+    }
+
+    public static function getIconClassByExt($ext)
+    {
         if (in_array($ext, [
             'html',
             'cmd',
@@ -135,8 +140,13 @@ class File extends FileSystemItem
 
     public function getCreator()
     {
+        return File::getCreatorById($this->baseFile->created_by);
+    }
+
+    public static function getCreatorById($id)
+    {
         return User::findOne([
-            'id' => $this->baseFile->created_by
+            'id' => $id
         ]);
     }
 
@@ -165,12 +175,17 @@ class File extends FileSystemItem
         }
         $tempFolder = $item->parentFolder;
         $path = $separator;
-        if(!$parentFolderPath) {
-            $path .= $item->title; 
+        if (! $parentFolderPath) {
+            $path .= $item->title;
         }
         while (! empty($tempFolder)) {
             $path = $separator . $tempFolder->title . $path;
         }
         return $path;
+    }
+
+    public function validateParentFolderId($attribute, $params)
+    {
+        parent::validateParentFolderId($attribute, $params);
     }
 }

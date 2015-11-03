@@ -46,4 +46,30 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         ]);
         return $query;
     }
+
+    public function validateParentFolderId($attribute, $params)
+    {
+        $parent = Folder::findOne([
+            'id' => $this->$attribute
+        ]);
+        
+        if ($this->$attribute != 0 && ! ($parent instanceof Folder)) {
+            $this->addError($attribute, Yii::t('CfilesModule.views_browse_index', 'Please select a valid destination folder for %title%.', [
+                '%title%' => $this->title
+            ]));
+        }
+        
+        // check if one of the parents is oneself to avoid circles
+        while (! empty($parent)) {
+            if ($this->id == $parent->id) {
+                $this->addError($attribute, Yii::t('CfilesModule.views_browse_index', 'Please select a valid destination folder for %title%.', [
+                    '%title%' => $this->title
+                ]));
+                break;
+            }
+            $parent = Folder::findOne([
+                'id' => $parent->parent_folder_id
+            ]);
+        }
+    }
 }

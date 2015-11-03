@@ -12,6 +12,8 @@ use yii\web\HttpException;
 use yii\web\UploadedFile;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\content\models\Content;
+use humhub\modules\content\components\ContentActiveRecord;
 
 /**
  * Description of BrowseController
@@ -176,17 +178,23 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
 
     public function actionMoveFiles()
     {
+        // echo '<pre>';
+        // print_r('check');
+        // echo '</pre>';
         $folder = $this->getCurrentFolder();
         $currentFolderId = empty($folder) ? 0 : $folder->id;
         
         $selectedItems = Yii::$app->request->post('selected');
+        $destFolderId = Yii::$app->request->post('destfid');
+        $init = Yii::$app->request->get('init');
+        $errorMsgs = [];
         
-        if (empty(Yii::$app->request->post('destfid'))) {
+        if ($init) {
             // render modal if no destination folder is specified
             return $this->renderAjax('moveFiles', [
                 'folders' => $this->getFolderList(),
                 'contentContainer' => $this->contentContainer,
-                'currentFolderId' => $currentFolderId
+                'selectedItems' => $selectedItems
             ]);
         }
         
@@ -194,11 +202,39 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             foreach ($selectedItems as $itemId) {
                 $item = $this->module->getItemById($itemId);
                 if ($item !== null) {
-                    $item->delete();
+                    if ($item->parent_folder_id == $destFolderId) {
+                        $errorMsgs[] = Yii::t('CfilesModule.views_browse_index', 'Moving to the same folder is not valid. Choose a valid parent folder for %title%.', [
+                            '%title%' => $item->title
+                        ]);
+                        continue;
+                    }
+                    $item->setAttribute('parent_folder_id', $destFolderId);
+                    $item->save();
+                    if (! empty($item->errors)) {
+                        // echo '<pre>';
+                        // print_r($item->errors);
+                        // echo '</pre>';
+                        foreach ($item->errors as $key => $error) {
+                            $errorMsgs[] = $item->errors[$key][0];
+                        }
+                    }
                 }
             }
         }
-        return $this->renderFileList();
+        
+        // render modal if no destination folder is specified
+        if (! empty($errorMsgs)) {
+            return $this->renderAjax('moveFiles', [
+                'errorMsgs' => $errorMsgs,
+                'folders' => $this->getFolderList(),
+                'contentContainer' => $this->contentContainer,
+                'selectedItems' => $selectedItems
+            ]);
+        }
+        
+        return $this->htmlRedirect($this->contentContainer->createUrl('index', [
+            'fid' => $destFolderId
+        ]));
     }
 
     public function actionDelete()
@@ -215,6 +251,14 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         return $this->renderFileList();
     }
 
+    public function actionAllPostedFiles()
+    {
+        return $this->render('allPostedFiles', [
+            'contentContainer' => $this->contentContainer,
+            'items' => $this->getAllPostedFiles()
+        ]);
+    }
+
     /**
      * Returns file list
      *
@@ -227,7 +271,6 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             ->contentContainer($this->contentContainer)
             ->readable();
         $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
-        
         if ($folder === null) {
             $filesQuery->andWhere([
                 'cfiles_file.parent_folder_id' => 0
@@ -248,7 +291,8 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             'items' => array_merge($foldersQuery->all(), $filesQuery->all()),
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
-            'errorMessages' => $this->errorMessages
+            'errorMessages' => $this->errorMessages,
+            'folderId' => $folder === null ? 0 : $folder->id
         ]);
     }
 
@@ -312,10 +356,6 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         ])
             ->all();
         foreach ($folders as $folder) {
-//             echo '<pre>';
-//             print_r($folder->id);
-//             print_r($folder->title);
-//             echo '</pre>';
             $dirstruc[] = [
                 'folder' => $folder,
                 'subfolders' => $this->getFolderlist($folder->id)
@@ -323,5 +363,23 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         }
         
         return $dirstruc;
+    }
+
+    private function getAllPostedFiles()
+    {
+        $query = \humhub\modules\file\models\File::find();
+        $query->join('LEFT JOIN', 'content', 'file.object_model=content.object_model AND file.object_id=content.object_id');
+        $query->andWhere([
+            'content.space_id' => $this->contentContainer->id
+        ]);
+        $query->andWhere([
+            '<>',
+            'file.object_model',
+            File::className()
+        ]);
+        $query->orderBy([
+            'file.updated_at' => SORT_DESC
+        ]);
+        return $query->all();
     }
 }

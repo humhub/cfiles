@@ -33,21 +33,19 @@ class Folder extends FileSystemItem
     {
         return [
             [
-                [
-                    'parent_folder_id'
-                ],
+                'parent_folder_id',
                 'integer'
             ],
             [
-                [
-                    'title'
-                ],
+                'parent_folder_id',
+                'validateParentFolderId'
+            ],
+            [
+                'title',
                 'required'
             ],
             [
-                [
-                    'title'
-                ],
+                'title',
                 'string',
                 'max' => 255
             ],
@@ -212,5 +210,10 @@ class Folder extends FileSystemItem
         $query->andWhere([
             'file.object_model' => self::className()
         ]);
+    }
+
+    public function validateParentFolderId($attribute, $params)
+    {
+        parent::validateParentFolderId($attribute, $params);
     }
 }

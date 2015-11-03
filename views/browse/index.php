@@ -10,6 +10,7 @@ $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/br
 $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', [
     'id' => '--folderId--'
 ]));
+$this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/browse/move-files'));
 ?>
 <?php echo Html::beginForm(null, null, ['data-target' => '#globalModal']); ?>
 <div class="panel panel-default">
@@ -54,7 +55,38 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
                         ]);
                         ?>
                     </li>
-                    <li><?php echo Html::a("Move (<span class='chkCnt'></span>)", $contentContainer->createUrl('/cfiles/browse/move-files'), ['class' => "selectedOnly filemove-button", 'style' => 'display:none;', 'data-target' => '#globalModal']); ?></li>
+                    <li>
+                        <?php
+                        echo \humhub\widgets\AjaxButton::widget([
+                            'label' => "Move (<span class='chkCnt'></span>)",
+                            'tag' => 'a',
+                            'ajaxOptions' => [
+                                'type' => 'POST',
+                                'beforeSend' => new yii\web\JsExpression('function(){ alert("hi"); }'),
+                                // 'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'),
+                                'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [
+                                    'init' => 1
+                                ])
+                            ],
+                            'htmlOptions' => [
+                                'class' => 'selectedOnly filemove-button',
+                                'style' => 'display:none',
+                                'data-target' => '#globalModal'
+                            ]
+                        ]);
+                        ?>
+                        <!--<?php
+                        
+                        echo Html::a("Move (<span class='chkCnt'></span>)", $contentContainer->createUrl('/cfiles/browse/move-files', [
+                            'init' => 1
+                        ]), array(
+                            'data-target' => '#globalModal',
+                            'class' => 'selectedOnly filemove-button',
+                            'style' => 'display:none',
+                            'data-target' => '#globalModal'
+                        ));
+                        ?>-->
+                    </li>
                 </ul>
             </div>
         </div>
