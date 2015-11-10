@@ -62,16 +62,14 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             'tag' => 'a',
                             'ajaxOptions' => [
                                 'type' => 'POST',
-                                'beforeSend' => new yii\web\JsExpression('function(){ alert("hi"); }'),
-                                // 'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'),
+                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show");}'),
                                 'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [
                                     'init' => 1
                                 ])
                             ],
                             'htmlOptions' => [
                                 'class' => 'selectedOnly filemove-button',
-                                'style' => 'display:none',
-                                'data-target' => '#globalModal'
+                                'style' => 'display:none'
                             ]
                         ]);
                         ?>
