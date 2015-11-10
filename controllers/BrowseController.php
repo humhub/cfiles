@@ -178,13 +178,11 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
 
     public function actionMoveFiles()
     {
-        // echo '<pre>';
-        // print_r('check');
-        // echo '</pre>';
         $folder = $this->getCurrentFolder();
         $currentFolderId = empty($folder) ? 0 : $folder->id;
         
         $selectedItems = Yii::$app->request->post('selected');
+        $selectedDatabaseItems = [];
         $destFolderId = Yii::$app->request->post('destfid');
         $init = Yii::$app->request->get('init');
         $errorMsgs = [];
@@ -198,7 +196,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             ]);
         }
         
-        if (is_array($selectedItems)) {
+        if (is_array($selectedItems) && !empty($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = $this->module->getItemById($itemId);
                 if ($item !== null) {
@@ -208,21 +206,21 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                         ]);
                         continue;
                     }
+                    $selectedDatabaseItems[] = $item;
                     $item->setAttribute('parent_folder_id', $destFolderId);
-                    $item->save();
+                    $item->validate();
                     if (! empty($item->errors)) {
-                        // echo '<pre>';
-                        // print_r($item->errors);
-                        // echo '</pre>';
                         foreach ($item->errors as $key => $error) {
                             $errorMsgs[] = $item->errors[$key][0];
                         }
                     }
                 }
             }
+        } else {
+            $errorMsgs[] = Yii::t('CfilesModule.views_browse_index', 'No valid items were selected to move.');
         }
-        
-        // render modal if no destination folder is specified
+       
+        // render modal if errors occurred
         if (! empty($errorMsgs)) {
             return $this->renderAjax('moveFiles', [
                 'errorMsgs' => $errorMsgs,
@@ -230,11 +228,15 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 'contentContainer' => $this->contentContainer,
                 'selectedItems' => $selectedItems
             ]);
-        }
-        
-        return $this->htmlRedirect($this->contentContainer->createUrl('index', [
-            'fid' => $destFolderId
-        ]));
+        } else {
+            // items are only then saved, if no error occurred. Else, the move transaction is canceled.
+            foreach ($selectedDatabaseItems as $item) {
+                $item->save();
+            }
+            return $this->htmlRedirect($this->contentContainer->createUrl('index', [
+                'fid' => $destFolderId
+                ]));
+        }        
     }
 
     public function actionDelete()
