@@ -88,11 +88,13 @@ function initFileList() {
 						});
 						break;
 					case 'edit':
-						$('#globalModal').modal(
-								{
-									remote : cfilesEditFolderUrl.replace(
-											'--folderId--', itemRealId)
-								});
+						$.ajax({
+							url : cfilesEditFolderUrl.replace('--folderId--', itemRealId),
+							type : 'GET',
+						}).done(function(html) {
+							$("#globalModal").html(html);
+							$("#globalModal").modal("show");
+						});
 						break;
 					case 'download':
 						url = invokedOn.closest('tr').data('url');
