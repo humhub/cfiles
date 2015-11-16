@@ -74,7 +74,7 @@ class File extends FileSystemItem
             'gz',
             'tar'
         ])) {
-            return "fa-archive-o";
+            return "fa-file-archive-o";
         } elseif (in_array($ext, [
             'mp3',
             'wav'

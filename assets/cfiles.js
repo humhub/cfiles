@@ -51,6 +51,8 @@ function initFileList() {
 						return '#contextMenuAllPostedFiles';
 					case "folder":
 						return '#contextMenuFolder';
+					case "image":
+						return '#contextMenuImage';
 					default:
 						return '#contextMenuFile';
 					}
@@ -60,11 +62,9 @@ function initFileList() {
 					action = selectedMenu.data('action');
 					// file or folder
 					itemType = invokedOn.closest('tr').data('type');
-					;
 					// e.g. file-53
 					itemId = invokedOn.closest('tr').data('id');
 					parentId = jQuery.urlParam('fid') === null ? 0 : jQuery.urlParam('fid');
-					console.log(parentId);
 					// default if the id is not specified
 					itemRealId = undefined;
 					if (jQuery.type(itemId) === "string") {
@@ -112,6 +112,10 @@ function initFileList() {
 							selectDirectory(parentId);
 						});
 						break;
+					case 'show':
+						previewLink = invokedOn.closest('tr').find('.preview-link');
+						previewLink.trigger("click");
+						break;
 					default:
 						alert("Unkown action " + action);
 						break;
@@ -148,7 +152,6 @@ $(function() {
 			}
 		},
 		fail : function(e, data) {
-			console.log(jQuery('#globalModal'));
 			updateLog(data.jqXHR.responseJSON.message);
 		},
 		start : function(e, data) {

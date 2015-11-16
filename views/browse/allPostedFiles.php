@@ -1,4 +1,11 @@
-<?php use yii\helpers\Url; use yii\helpers\Html; use humhub\modules\cfiles\models\File; $bundle=\ humhub\modules\cfiles\Assets::register($this); ?>
+<?php 
+use yii\helpers\Url; use yii\helpers\Html; use humhub\modules\cfiles\models\File;  
+$bundle = \humhub\modules\cfiles\Assets::register($this);
+$this->registerJsVar('cfilesUploadUrl', "unused");
+$this->registerJsVar('cfilesDeleteUrl', "unused");
+$this->registerJsVar('cfilesEditFolderUrl', "unused");
+$this->registerJsVar('cfilesMoveUrl', "unused");
+?>
 <div class="panel panel-default">
     <div class="panel-body">
         <div class="row">
@@ -44,15 +51,19 @@
                             </tr>
                         </tfoot>
                         <?php foreach ($items as $item) : ?>
-                        <tr data-type="folder"
-                            data-id="<?php //echo $item->getItemId(); ?>"
+                        <tr data-type="<?php echo File::getItemTypeByExt($item->getExtension());?>"
                             data-url="<?php echo $item->getUrl(); ?>">
                             <td class="text-left"
                                 data-sort-value="icon examples"><i
                                 class="fa <?php echo File::getIconClassByExt($item->getExtension()); ?> fa-fw"></i>&nbsp;
+                                <?php if (File::getItemTypeByExt($item->getExtension()) === "image") : ?>
+                                <a class="preview-link" data-toggle="lightbox" href="<?php echo $item->getUrl(); ?>#.jpeg" data-footer='<button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item->file_name); ?></a>
+                                <?php else : ?>
                                 <a href="<?php echo $item->getUrl(); ?>">
                                     <?php echo Html::encode($item->file_name); ?>
-                                </a></td>
+                                </a>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-right"
                                 data-sort-value="<?php echo $item->size; ?>">
                                 <?php if ($item->size == 0): ?> &mdash;
@@ -86,3 +97,21 @@
         </div>
     </div>
 </div>
+
+<ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu"
+    style="display: none">
+    <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
+</ul>
+
+<ul id="contextMenuImage" class="contextMenu dropdown-menu" role="menu"
+    style="display: none">
+    <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a tabindex="-1" href="#" data-action='show'>Show</a></li>
+</ul>
+
+<script>
+    $(function() {
+        initFileList();
+    });
+</script>

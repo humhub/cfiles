@@ -115,6 +115,15 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
     <li><a tabindex="-1" href="#" data-action='move-files'>Move file</a></li>
 </ul>
 
+<ul id="contextMenuImage" class="contextMenu dropdown-menu" role="menu"
+    style="display: none">
+    <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a tabindex="-1" href="#" data-action='show'>Show</a></li>
+    <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
+    <li><a tabindex="-1" href="#" data-action='move-files'>Move file</a></li>
+</ul>
+
 <ul id="contextMenuAllPostedFiles" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'>Open</a></li>
