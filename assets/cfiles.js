@@ -17,6 +17,16 @@ function showHideBtns() {
 	}
 }
 
+jQuery.urlParam = function(name){
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null){
+       return null;
+    }
+    else{
+       return results[1] || 0;
+    }
+}
+
 /**
  * Inits File List after it's loaded/reloaded
  * 
@@ -35,30 +45,38 @@ function initFileList() {
 	$("#bs-table tr").contextMenu(
 			{
 				getMenuSelector : function(invokedOn, settings) {
-					itemId = invokedOn.closest('tr').data('id');
-					if (itemId.indexOf("folder-") != -1) {
+					itemId = invokedOn.closest('tr').data('type');
+					switch (itemId) {
+					case "all-posted-files":
+						return '#contextMenuAllPostedFiles';
+					case "folder":
 						return '#contextMenuFolder';
-					} else {
+					default:
 						return '#contextMenuFile';
 					}
-
 				},
 				menuSelected : function(invokedOn, selectedMenu) {
-					action = selectedMenu.data('action');
 
+					action = selectedMenu.data('action');
+					// file or folder
+					itemType = invokedOn.closest('tr').data('type');
+					;
 					// e.g. file-53
 					itemId = invokedOn.closest('tr').data('id');
+					parentId = jQuery.urlParam('fid') === null ? 0 : jQuery.urlParam('fid');
+					console.log(parentId);
+					// default if the id is not specified
+					itemRealId = undefined;
+					if (jQuery.type(itemId) === "string") {
+						$temp = itemId.split("\-");
+						// id of file or folder
+						if ($temp.length >= 2) {
+							itemRealId = $temp[1];
+						}
+					}
 
-					$temp = itemId.split("\-");
-
-					// file or folder
-					itemType = $temp[0];
-
-					// Id of Folder / File
-					itemRealId = $temp[1];
-
-					console.log(action);
-					if (action == 'delete') {
+					switch (action) {
+					case 'delete':
 						$.ajax({
 							url : cfilesDeleteUrl,
 							type : 'POST',
@@ -68,16 +86,19 @@ function initFileList() {
 						}).done(function(html) {
 							$("#fileList").html(html);
 						});
-					} else if (action == 'edit' && itemType == 'folder') {
+						break;
+					case 'edit':
 						$('#globalModal').modal(
 								{
 									remote : cfilesEditFolderUrl.replace(
 											'--folderId--', itemRealId)
 								});
-					} else if (action == 'download') {
+						break;
+					case 'download':
 						url = invokedOn.closest('tr').data('url');
 						document.location.href = url;
-					} else if (action == 'move-files') {
+						break;
+					case 'move-files':
 						$.ajax({
 							url : cfilesMoveUrl,
 							type : 'POST',
@@ -85,10 +106,15 @@ function initFileList() {
 								'selected[]' : itemId,
 							},
 						}).done(function(html) {
-							$("#fileList").html(html);
+							$("#globalModal").html(html);
+							$("#globalModal").modal("show");
+							openDirectory(parentId);
+							selectDirectory(parentId);
 						});
-					} else {
+						break;
+					default:
 						alert("Unkown action " + action);
+						break;
 					}
 				}
 			});
@@ -106,7 +132,7 @@ function updateLog(messages) {
 }
 
 $(function() {
-	
+
 	/**
 	 * Install uploader
 	 */

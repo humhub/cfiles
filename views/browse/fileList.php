@@ -32,7 +32,7 @@
             </tr>
         </tfoot>
         <?php if ($folderId==0 ) : ?>
-        <tr data-type="folder"
+        <tr data-type="all-posted-files"
             data-url="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
             <td></td>
             <td class="text-left"><i class="fa fa-folder fa-fw"></i>&nbsp;
@@ -46,7 +46,7 @@
         </tr>
         <?php endif; ?>
         <?php foreach ($items as $item) : ?>
-        <tr data-type="folder"
+        <tr data-type="<?php echo $item->getItemType(); ?>"
             data-id="<?php echo $item->getItemId(); ?>"
             data-url="<?php echo $item->getUrl(); ?>">
             <td class="text-muted text-right">

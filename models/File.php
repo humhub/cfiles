@@ -122,7 +122,74 @@ class File extends FileSystemItem
         }
         return 'fa-file-o';
     }
-
+    
+    public function getItemType() {
+        return File::getItemTypeByExt(strtolower($this->baseFile->getExtension()));
+    }
+    
+    public static function getItemTypeByExt($ext) {
+        if (in_array($ext, [
+            'html',
+            'cmd',
+            'bat',
+            'xml'
+        ])) {
+            return 'code';
+        } elseif (in_array($ext, [
+            'zip',
+            'rar',
+            'gz',
+            'tar'
+        ])) {
+            return "archive";
+        } elseif (in_array($ext, [
+            'mp3',
+            'wav'
+        ])) {
+            return "audio";
+        } elseif (in_array($ext, [
+            'xls',
+            'xlsx'
+        ])) {
+            return "excel";
+        } elseif (in_array($ext, [
+            'jpg',
+            'gif',
+            'bmp',
+            'svg',
+            'tiff'
+        ])) {
+            return "image";
+        } elseif (in_array($ext, [
+            'pdf'
+        ])) {
+            return "pdf";
+        } elseif (in_array($ext, [
+            'ppt',
+            'pptx'
+        ])) {
+            return "powerpoint";
+        } elseif (in_array($ext, [
+            'txt',
+            'log',
+            'md'
+        ])) {
+            return "text";
+        } elseif (in_array($ext, [
+            'mp4',
+            'mpeg',
+            'swf'
+        ])) {
+            return "video";
+        } elseif (in_array($ext, [
+            'doc',
+            'docx'
+        ])) {
+            return "word";
+        }
+        return 'unknown';
+    }
+    
     public function getTitle()
     {
         return $this->baseFile->file_name;

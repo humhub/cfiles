@@ -10,6 +10,11 @@ $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/br
 $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', [
     'id' => '--folderId--'
 ]));
+
+$this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/browse/move-files', [
+    'init' => 1
+    ]));
+
 ?>
 <?php echo Html::beginForm(null, null, ['data-target' => '#globalModal']); ?>
 <div class="panel panel-default">
@@ -99,6 +104,7 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='edit'>Edit</a></li>
     <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
+    <li><a tabindex="-1" href="#" data-action='move-files'>Move file</a></li>
 </ul>
 
 <ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu"
@@ -106,6 +112,12 @@ $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfile
     <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
+    <li><a tabindex="-1" href="#" data-action='move-files'>Move file</a></li>
+</ul>
+
+<ul id="contextMenuAllPostedFiles" class="contextMenu dropdown-menu" role="menu"
+    style="display: none">
+    <li><a tabindex="-1" href="#" data-action='download'>Open</a></li>
 </ul>
 
 <div id="logContainer" style="display: none">

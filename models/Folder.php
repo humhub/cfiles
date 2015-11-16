@@ -26,6 +26,10 @@ class Folder extends FileSystemItem
         return 'cfiles_folder';
     }
 
+    public function getItemType() {
+        return 'folder';
+    }
+    
     /**
      * @inheritdoc
      */
