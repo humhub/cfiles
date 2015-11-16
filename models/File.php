@@ -90,7 +90,8 @@ class File extends FileSystemItem
             'gif',
             'bmp',
             'svg',
-            'tiff'
+            'tiff',
+            'png'
         ])) {
             return "fa-file-image-o";
         } elseif (in_array($ext, [
@@ -157,7 +158,8 @@ class File extends FileSystemItem
             'gif',
             'bmp',
             'svg',
-            'tiff'
+            'tiff',
+            'png'
         ])) {
             return "image";
         } elseif (in_array($ext, [
