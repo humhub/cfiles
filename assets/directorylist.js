@@ -23,3 +23,18 @@ function initDirectoryList() {
 				}
 			});
 }
+
+function openDirectory($id = 0) {
+	folder = $('#' + $id).parent();
+	do {
+		folder.addClass('expand');
+		folder.find('>ul').slideDown('100');
+		folder = folder.parent().closest('li');
+	} while (folder.hasClass('hassub'))
+}
+
+function selectDirectory($id = 0) {
+	item = $('#' + $id);
+	item.addClass('selectedFolder');
+	$('#input-hidden-selectedFolder').val($id);
+}

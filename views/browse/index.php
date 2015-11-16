@@ -10,7 +10,6 @@ $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/br
 $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', [
     'id' => '--folderId--'
 ]));
-$this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/browse/move-files'));
 ?>
 <?php echo Html::beginForm(null, null, ['data-target' => '#globalModal']); ?>
 <div class="panel panel-default">
@@ -62,9 +61,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             'tag' => 'a',
                             'ajaxOptions' => [
                                 'type' => 'POST',
-                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show");}'),
+                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show"); openDirectory(' . $folderId . '); selectDirectory(' . $folderId . ');}'),
                                 'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [
-                                    'init' => 1
+                                    'init' => 1,
+                                    'fid' => $folderId
                                 ])
                             ],
                             'htmlOptions' => [

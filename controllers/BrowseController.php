@@ -180,7 +180,6 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     {
         $folder = $this->getCurrentFolder();
         $currentFolderId = empty($folder) ? 0 : $folder->id;
-        
         $selectedItems = Yii::$app->request->post('selected');
         $selectedDatabaseItems = [];
         $destFolderId = Yii::$app->request->post('destfid');
@@ -192,11 +191,12 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             return $this->renderAjax('moveFiles', [
                 'folders' => $this->getFolderList(),
                 'contentContainer' => $this->contentContainer,
-                'selectedItems' => $selectedItems
+                'selectedItems' => $selectedItems,
+                'selectedFolderId' => $currentFolderId
             ]);
         }
         
-        if (is_array($selectedItems) && !empty($selectedItems)) {
+        if (is_array($selectedItems) && ! empty($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = $this->module->getItemById($itemId);
                 if ($item !== null) {
@@ -219,14 +219,15 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         } else {
             $errorMsgs[] = Yii::t('CfilesModule.views_browse_index', 'No valid items were selected to move.');
         }
-       
+        
         // render modal if errors occurred
         if (! empty($errorMsgs)) {
             return $this->renderAjax('moveFiles', [
                 'errorMsgs' => $errorMsgs,
                 'folders' => $this->getFolderList(),
                 'contentContainer' => $this->contentContainer,
-                'selectedItems' => $selectedItems
+                'selectedItems' => $selectedItems,
+                'selectedFolderId' => $destFolderId
             ]);
         } else {
             // items are only then saved, if no error occurred. Else, the move transaction is canceled.
@@ -235,8 +236,8 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             }
             return $this->htmlRedirect($this->contentContainer->createUrl('index', [
                 'fid' => $destFolderId
-                ]));
-        }        
+            ]));
+        }
     }
 
     public function actionDelete()

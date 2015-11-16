@@ -41,6 +41,7 @@ function renderFolder($folder)
                 echo "</ul>";
             
             
+            
             endif;
             ?>
             <br />
@@ -48,7 +49,6 @@ function renderFolder($folder)
                 <div class="selectable" id="0">/ (root)</div>
                 <ul>
                 <?php
-                
                 foreach ($folders as $dir) :
                     renderFolder($dir);
                 endforeach
@@ -58,7 +58,7 @@ function renderFolder($folder)
             </div>
 
             <input id="input-hidden-selectedFolder" type="hidden"
-                name="destfid" value="" />
+                name="destfid" value="<?php echo $selectedFolderId ?>" />
             
             <?php
             if (is_array($selectedItems)) {
@@ -74,7 +74,7 @@ function renderFolder($folder)
                 'ajaxOptions' => [
                     'type' => 'POST',
                     'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
-                    'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'),
+                    'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); openDirectory($("#input-hidden-selectedFolder").val()); selectDirectory($("#input-hidden-selectedFolder").val()); }'),
                     'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [])
                 ],
                 'htmlOptions' => [
