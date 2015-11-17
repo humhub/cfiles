@@ -27,7 +27,6 @@ function initDirectoryList() {
 function openDirectory($id) {
 	// optinal $id, set to 0 if undefined
 	$id = $id || 0;
-	alert($id);
 	folder = $('#' + $id).parent();
 	do {
 		folder.addClass('expand');
