@@ -367,11 +367,13 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         
         return $dirstruc;
     }
-
+    
     private function getAllPostedFiles()
     {
+        // Get Posted Files
         $query = \humhub\modules\file\models\File::find();
-        $query->join('LEFT JOIN', 'content', 'file.object_model=content.object_model AND file.object_id=content.object_id');
+        $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id)');
+        $query->join('LEFT JOIN', 'content', '(comment.object_model=content.object_model AND comment.object_id=content.object_id) OR (file.object_model=content.object_model AND file.object_id=content.object_id)');
         $query->andWhere([
             'content.space_id' => $this->contentContainer->id
         ]);
@@ -383,6 +385,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         $query->orderBy([
             'file.updated_at' => SORT_DESC
         ]);
+        // Get Files from comments
         return $query->all();
     }
 }
