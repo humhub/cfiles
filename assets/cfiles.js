@@ -135,7 +135,7 @@ function updateLog(messages) {
 		$.each(messages, function(index, message) {
 			$('#hiddenLog').append('<li>' + message + '</li>');
 		});
-	} else {
+	} else if (!jQuery.isEmptyObject(messages)){
 		$('#hiddenLog').append('<li>' + messages + '</li>');
 	}
 	$('#log').html($('#hiddenLog').html());
@@ -153,9 +153,7 @@ $(function() {
 			$.each(data.result.files, function(index, file) {
 				$('#fileList').html(file.fileList);
 			});
-			if (data.result.log) {
-				updateLog(data.result.logmessages);
-			}
+			updateLog(data.result.logmessages);
 		},
 		fail : function(e, data) {
 			updateLog(data.jqXHR.responseJSON.message);
