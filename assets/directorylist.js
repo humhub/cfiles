@@ -24,7 +24,10 @@ function initDirectoryList() {
 			});
 }
 
-function openDirectory($id = 0) {
+function openDirectory($id) {
+	// optinal $id, set to 0 if undefined
+	$id = $id || 0;
+	alert($id);
 	folder = $('#' + $id).parent();
 	do {
 		folder.addClass('expand');
@@ -33,7 +36,9 @@ function openDirectory($id = 0) {
 	} while (folder.hasClass('hassub'))
 }
 
-function selectDirectory($id = 0) {
+function selectDirectory($id) {
+	// optinal $id, set to 0 if undefined
+	$id = $id || 0;
 	item = $('#' + $id);
 	item.addClass('selectedFolder');
 	$('#input-hidden-selectedFolder').val($id);
