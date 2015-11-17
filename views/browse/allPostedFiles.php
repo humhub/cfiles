@@ -12,7 +12,7 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
             <div class="col-lg-10 col-md-9 col-sm-9" id="fileList">
                 <!--<?php foreach ($items as $key => $file) : ?>
                      <pre>
-                        <?php print_r($file->getInfoArray())?>
+                        <?php print_r($file['file']->getInfoArray())?>
                     </pre>
                 <?php endforeach; ?>-->
 
@@ -51,36 +51,37 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                             </tr>
                         </tfoot>
                         <?php foreach ($items as $item) : ?>
-                        <tr data-type="<?php echo File::getItemTypeByExt($item->getExtension());?>"
-                            data-url="<?php echo $item->getUrl(); ?>">
+                        <tr data-type="<?php echo File::getItemTypeByExt($item['file']->getExtension());?>"
+                            data-url="<?php echo $item['file']->getUrl(); ?>"
+                            data-content-url="<?php echo empty($item['content']) ? "" : $item['content']->getUrl(); ?>">
                             <td class="text-left"
                                 data-sort-value="icon examples"><i
-                                class="fa <?php echo File::getIconClassByExt($item->getExtension()); ?> fa-fw"></i>&nbsp;
-                                <?php if (File::getItemTypeByExt($item->getExtension()) === "image") : ?>
-                                <a class="preview-link" data-toggle="lightbox" href="<?php echo $item->getUrl(); ?>#.jpeg" data-footer='<button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item->file_name); ?></a>
+                                class="fa <?php echo File::getIconClassByExt($item['file']->getExtension()); ?> fa-fw"></i>&nbsp;
+                                <?php if (File::getItemTypeByExt($item['file']->getExtension()) === "image") : ?>
+                                <a class="preview-link" data-toggle="lightbox" href="<?php echo $item['file']->getUrl(); ?>#.jpeg" data-footer='<button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item['file']->file_name); ?></a>
                                 <?php else : ?>
-                                <a href="<?php echo $item->getUrl(); ?>">
-                                    <?php echo Html::encode($item->file_name); ?>
+                                <a href="<?php echo $item['file']->getUrl(); ?>">
+                                    <?php echo Html::encode($item['file']->file_name); ?>
                                 </a>
                                 <?php endif; ?>
                             </td>
                             <td class="text-right"
-                                data-sort-value="<?php echo $item->size; ?>">
-                                <?php if ($item->size == 0): ?> &mdash;
+                                data-sort-value="<?php echo $item['file']->size; ?>">
+                                <?php if ($item['file']->size == 0): ?> &mdash;
                                 <?php else: ?>
-                                <?php echo Yii::$app->formatter->asShortSize($item->size, 1); ?>
+                                <?php echo Yii::$app->formatter->asShortSize($item['file']->size, 1); ?>
                                 <?php endif; ?>
                             </td>
                             <td class="text-right" data-sort-value=""
                                 title=""><a
-                                href="<?php echo File::getCreatorById($item->created_by)->createUrl(); ?>">
-                                    <?php echo File::getCreatorById($item->created_by)->username?>
+                                href="<?php echo File::getCreatorById($item['file']->created_by)->createUrl(); ?>">
+                                    <?php echo File::getCreatorById($item['file']->created_by)->username?>
                                 </a></td>
 
                             </td>
                             <td class="text-right" data-sort-value=""
                                 title="">
-                                <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp'=> $item->updated_at]); ?>
+                                <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp'=> $item['file']->updated_at]); ?>
                             </td>
                         </tr>
                         <?php endforeach ; else : ?>
@@ -101,13 +102,16 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
 <ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a tabindex="-1" href="#" data-action='show-post'>Show Post</a></li>
 </ul>
 
 <ul id="contextMenuImage" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
     <li role="separator" class="divider"></li>
-    <li><a tabindex="-1" href="#" data-action='show'>Show</a></li>
+    <li><a tabindex="-1" href="#" data-action='show-image'>Show Image</a></li>
+    <li><a tabindex="-1" href="#" data-action='show-post'>Show Post</a></li>
 </ul>
 
 <script>

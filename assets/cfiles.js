@@ -114,9 +114,13 @@ function initFileList() {
 							selectDirectory(parentId);
 						});
 						break;
-					case 'show':
+					case 'show-image':
 						previewLink = invokedOn.closest('tr').find('.preview-link');
 						previewLink.trigger("click");
+						break;
+					case 'show-post':
+						url = invokedOn.closest('tr').data('content-url');
+						document.location.href = url;
 						break;
 					default:
 						alert("Unkown action " + action);

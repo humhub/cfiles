@@ -14,6 +14,7 @@ use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\models\Content;
 use humhub\modules\content\components\ContentActiveRecord;
+use humhub\modules\comment\models\Comment;
 
 /**
  * Description of BrowseController
@@ -256,9 +257,33 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
 
     public function actionAllPostedFiles()
     {
+        $items = $this->getAllPostedFiles();
+        
+        $content_file_wrapper = [];
+        
+        foreach ($items as $file) {
+            
+            $searchItem = $file;    
+            // if the item is connected to a Comment, we have to search for the corresponding Post        
+            if ($file->object_model === Comment::className()) {
+                $searchItem = Comment::findOne([
+                    'id' => $file->object_id
+                ]);
+            }
+            $query = Content::find();
+            $query->andWhere([
+                'content.object_id' => $searchItem->object_id,
+                'content.object_model' => $searchItem->object_model
+            ]);
+            $content_file_wrapper[] = [
+                'file' => $file,
+                'content' => $query->one()
+            ];
+        }
+        
         return $this->render('allPostedFiles', [
             'contentContainer' => $this->contentContainer,
-            'items' => $this->getAllPostedFiles()
+            'items' => $content_file_wrapper
         ]);
     }
 
@@ -367,7 +392,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         
         return $dirstruc;
     }
-    
+
     private function getAllPostedFiles()
     {
         // Get Posted Files
