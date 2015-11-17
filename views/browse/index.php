@@ -51,7 +51,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             'tag' => 'a',
                             'ajaxOptions' => [
                                 'type' => 'POST',
-                                'success' => new yii\web\JsExpression('function(html){ $("#fileList").html(html); }'),
+                                'success' => new yii\web\JsExpression('function(html){ $("#fileList").html(html); showHideBtns();}'),
                                 'url' => $contentContainer->createUrl('/cfiles/browse/delete', [
                                     'fid' => $folderId
                                 ])
