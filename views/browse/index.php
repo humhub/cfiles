@@ -6,7 +6,9 @@ $bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/browse/upload', [
     'fid' => $folderId
 ]));
-$this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/browse/delete'));
+$this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/browse/delete', [
+    'fid' => $folderId
+]));
 $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', [
     'id' => '--folderId--'
 ]));
@@ -50,7 +52,9 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             'ajaxOptions' => [
                                 'type' => 'POST',
                                 'success' => new yii\web\JsExpression('function(html){ $("#fileList").html(html); }'),
-                                'url' => $contentContainer->createUrl('/cfiles/browse/delete')
+                                'url' => $contentContainer->createUrl('/cfiles/browse/delete', [
+                                    'fid' => $folderId
+                                ])
                             ],
                             'htmlOptions' => [
                                 'class' => 'selectedOnly filedelete-button',
