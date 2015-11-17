@@ -47,7 +47,7 @@ class Module extends ContentContainerModule
         }
     }
 
-    public function disableContentContainer($container)
+    public function disableContentContainer(\humhub\modules\content\components\ContentContainerActiveRecord $container)
     {
         $folders = Content::findAll([
             'object_model' => Folder::className(),
