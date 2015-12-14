@@ -30,20 +30,15 @@ function renderFolder($folder)
         </div>
 
         <div class="modal-body">
-            <?php
-            
-            if (! empty($errorMsgs)) :
-                echo "<ul>";
-                foreach ($errorMsgs as $error) :
-                    echo "<li>$error</li>";
-                endforeach
-                ;
-                echo "</ul>";
-            
-            
-            
-            endif;
-            ?>
+            <?php if (! empty($errorMsgs)) : ?>
+            <div class="alert alert-danger">
+                <ul>
+                    <?php foreach ($errorMsgs as $error) :
+                        echo "<li>$error</li>";
+                    endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
             <br />
             <div class="directory-list">
                 <div class="selectable" id="0">/ (root)</div>

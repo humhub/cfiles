@@ -128,6 +128,19 @@ class File extends FileSystemItem
         return File::getItemTypeByExt(strtolower($this->baseFile->getExtension()));
     }
     
+    /**
+     * Make method from humhub\modules\file\models\File available.
+     * @param unknown $file_name
+     * @return string
+     */
+    public static function sanitizeFilename($filename)
+    {
+        $file = new \humhub\modules\file\models\File;
+        $file->file_name = $filename;
+        $file->sanitizeFilename();
+        return $file->file_name;
+    }
+    
     public static function getItemTypeByExt($ext) {
         if (in_array($ext, [
             'html',

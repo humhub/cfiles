@@ -10,9 +10,7 @@
     <?php endforeach; ?>
 </ol>
 
-<ul id="log">
-
-</ul>
+<div id="cfiles-log"></div>
 
 <div class="table-responsive">
     <table id="bs-table" class="table table-hover">
@@ -55,7 +53,10 @@
             <td class="text-left" data-sort-value="icon examples"><i
                 class="fa <?php echo $item->getIconClass(); ?> fa-fw"></i>&nbsp;
                 <?php if ($item->getItemType() === "image") : ?>
-                <a class="preview-link" data-toggle="lightbox" href="<?php echo $item->getUrl(); ?>#.jpeg" data-footer='<button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item->getTitle()); ?></a>
+                <a class="preview-link" data-toggle="lightbox"
+                href="<?php echo $item->getUrl(); ?>#.jpeg"
+                data-footer='<button   type="button"
+                class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item->getTitle()); ?></a>
                 <?php else : ?>
                 <a href="<?php echo $item->getUrl(); ?>">
                     <?php echo Html::encode($item->getTitle()); ?>

@@ -130,15 +130,32 @@ function initFileList() {
 			});
 }
 
-function updateLog(messages) {
+function updateLog(messages, container) {
 	if ($.isArray(messages)) {
 		$.each(messages, function(index, message) {
-			$('#hiddenLog').append('<li>' + message + '</li>');
+			container.append('<li>' + message + '</li>');
+			container.show();
 		});
 	} else if (!jQuery.isEmptyObject(messages)){
-		$('#hiddenLog').append('<li>' + messages + '</li>');
+		container.append('<li>' + message + '</li>');
+		container.show();
 	}
-	$('#log').html($('#hiddenLog').html());
+}
+
+function updateLogs(errors, warnings, infos) {
+	updateLog(errors, $('#hiddenLogContainer .alert-danger'));
+	updateLog(warnings, $('#hiddenLogContainer .alert-warning'));
+	updateLog(infos, $('#hiddenLogContainer .alert-info'));
+	$('#cfiles-log').html($('#hiddenLogContainer').html());
+}
+
+function clearLog() {
+	$('#hiddenLogContainer .alert-danger').empty();
+	$('#hiddenLogContainer .alert-danger').hide();
+	$('#hiddenLogContainer .alert-warning').empty();
+	$('#hiddenLogContainer .alert-warning').hide();
+	$('#hiddenLogContainer .alert-info').empty();
+	$('#hiddenLogContainer .alert-info').hide();
 }
 
 $(function() {
@@ -153,13 +170,13 @@ $(function() {
 			$.each(data.result.files, function(index, file) {
 				$('#fileList').html(file.fileList);
 			});
-			updateLog(data.result.logmessages);
+			updateLogs(data.result.errormessages, data.result.warningmessages, data.result.infomessages);
 		},
 		fail : function(e, data) {
-			updateLog(data.jqXHR.responseJSON.message);
+			updateLogs(data.jqXHR.responseJSON.message, null, null);
 		},
 		start : function(e, data) {
-			$('#hiddenLog').empty();
+			clearLog();
 		},
 		progressall : function(e, data) {
 			var progress = parseInt(data.loaded / data.total * 100, 10);

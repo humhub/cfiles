@@ -133,7 +133,17 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
     <li><a tabindex="-1" href="#" data-action='download'>Open</a></li>
 </ul>
 
-<div id="logContainer" style="display: none">
-    <ul id="hiddenLog">
-    </ul>
+<div id="hiddenLogContainer" style="display: none">
+    <div class="alert alert-danger" style="display:none">
+        <ul>
+        </ul>
+    </div>
+    <div class="alert alert-warning" style="display:none">
+        <ul>
+        </ul>
+    </div>
+    <div class="alert alert-info" style="display:none">
+        <ul>
+        </ul>
+    </div>
 </div>

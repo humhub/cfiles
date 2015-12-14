@@ -62,7 +62,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             $filesQuery = File::find()->joinWith('baseFile')
                 ->readable()
                 ->andWhere([
-                'title' => $cFile->name,
+                'title' => File::sanitizeFilename($cFile->name),
                 'parent_folder_id' => $currentFolderId
             ]);
             $file = $filesQuery->one();
@@ -75,7 +75,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             else {
                 $humhubFile = $file->baseFile;
                 // logging file replacement
-                $response['logmessages'][] = Yii::t('CfilesModule.views_browse_index', 'Info: %title% was replaced by a newer version.', [
+                $response['infomessages'][] = Yii::t('CfilesModule.views_browse_index', '%title% was replaced by a newer version.', [
                     '%title%' => $file->title
                 ]);
                 $response['log'] = true;
@@ -105,7 +105,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                     foreach ($file->errors as $key => $message) {
                         $messages .= ($count ++ ? ' | ' : '') . $message[0];
                     }
-                    $response['logmessages'][] = Yii::t('CfilesModule.views_browse_index', 'Error: Could not save file %title%. ', [
+                    $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
                         '%title%' => $file->title
                     ]) . $messages;
                     $response['log'] = true;
@@ -117,7 +117,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 foreach ($humhubFile->errors as $key => $message) {
                     $messages .= ($count ++ ? ' | ' : '') . $message[0];
                 }
-                $response['logmessages'][] = Yii::t('CfilesModule.views_browse_index', 'Error: Could not save file %title%. ', [
+                $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
                     '%title%' => $humhubFile->filename
                 ]) . $messages;
                 $response['log'] = true;
