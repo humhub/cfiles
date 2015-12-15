@@ -17,6 +17,7 @@ use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\comment\models\Comment;
 use yii\helpers\FileHelper;
 use humhub\models\Setting;
+use yii\helpers\BaseFileHelper;
 
 /**
  * Description of ZipController
@@ -28,6 +29,8 @@ class ZipController extends BrowseController
 
     public function actionDownloadZippedFolder()
     {
+        // cleanup all old files
+        $this->cleanup();
         // init output directory
         $outputPath = $this->getZipOutputPath();
         
@@ -166,7 +169,7 @@ class ZipController extends BrowseController
     protected function getZipOutputPath()
     {
         // init output directory
-        $outputPath = Yii::getAlias('@webroot') . DIRECTORY_SEPARATOR . "temp";
+        $outputPath = Yii::getAlias('@runtime') . DIRECTORY_SEPARATOR . "temp";
         if (! is_dir($outputPath)) {
             mkdir($outputPath);
         }
@@ -176,6 +179,11 @@ class ZipController extends BrowseController
         }
         
         return $outputPath;
+    }
+
+    protected function cleanup()
+    {
+        BaseFileHelper::removeDirectory($this->getZipOutputPath());
     }
 
     protected function getCurrentFolder()
