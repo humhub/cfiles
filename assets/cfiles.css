@@ -24,6 +24,10 @@
     cursor: pointer;
 }
 
+.downloadzipped-button {
+    cursor: pointer;
+}
+
 .selectedOnly {
     display: none;
 }

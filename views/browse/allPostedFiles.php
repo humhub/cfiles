@@ -1,5 +1,8 @@
-<?php 
-use yii\helpers\Url; use yii\helpers\Html; use humhub\modules\cfiles\models\File;  
+<?php
+use yii\helpers\Url;
+use yii\helpers\Html;
+use humhub\modules\cfiles\models\File;
+use humhub\modules\cfiles\controllers\BrowseController;
 $bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', "unused");
 $this->registerJsVar('cfilesDeleteUrl', "unused");
@@ -51,16 +54,23 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                             </tr>
                         </tfoot>
                         <?php foreach ($items as $item) : ?>
-                        <tr data-type="<?php echo File::getItemTypeByExt($item['file']->getExtension());?>"
+                        <tr
+                            data-type="<?php echo File::getItemTypeByExt($item['file']->getExtension());?>"
                             data-url="<?php echo $item['file']->getUrl(); ?>"
                             data-content-url="<?php echo empty($item['content']) ? "" : $item['content']->getUrl(); ?>">
                             <td class="text-left"
                                 data-sort-value="icon examples"><i
                                 class="fa <?php echo File::getIconClassByExt($item['file']->getExtension()); ?> fa-fw"></i>&nbsp;
                                 <?php if (File::getItemTypeByExt($item['file']->getExtension()) === "image") : ?>
-                                <a class="preview-link" data-toggle="lightbox" href="<?php echo $item['file']->getUrl(); ?>#.jpeg" data-footer='<button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item['file']->file_name); ?></a>
+                                <a class="preview-link"
+                                data-toggle="lightbox"
+                                href="<?php echo $item['file']->getUrl(); ?>#.jpeg"
+                                data-footer='<button  type="button"
+                                class="btn btn-primary"
+                                data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item['file']->file_name); ?></a>
                                 <?php else : ?>
-                                <a href="<?php echo $item['file']->getUrl(); ?>">
+                                <a
+                                href="<?php echo $item['file']->getUrl(); ?>">
                                     <?php echo Html::encode($item['file']->file_name); ?>
                                 </a>
                                 <?php endif; ?>
@@ -92,7 +102,10 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                 </div>
             </div>
             <div class="col-lg-2 col-md-3 col-sm-3">
-                <ul class="nav nav-pills nav-stacked">&nbsp;
+                <ul class="nav nav-pills nav-stacked">
+                    <li><span>&nbsp;<br/>&nbsp;</span></li>
+                    <li class="nav-divider"></li>
+                    <li><?php echo Html::a('Download .zip', $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => BrowseController::All_POSTED_FILES_ID])); ?></li>
                 </ul>
             </div>
         </div>

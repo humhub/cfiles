@@ -1,4 +1,7 @@
-<?php use yii\helpers\Html; ?>
+<?php 
+use yii\helpers\Html; 
+use humhub\modules\cfiles\controllers\BrowseController;
+?>
 <ol class="breadcrumb" dir="ltr">
     <li><a
         href="<?php echo $contentContainer->createUrl('index', ['fid' => 0]); ?>"><i
@@ -29,9 +32,10 @@
                 <td colspan="5"></td>
             </tr>
         </tfoot>
-        <?php if ($folderId==0 ) : ?>
+        <?php if ($folderId == BrowseController::ROOT_ID ) : ?>
         <tr data-type="all-posted-files"
-            data-url="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
+            data-url="<?php echo $contentContainer->createUrl('all-posted-files'); ?>"
+            data-id="<?php echo BrowseController::All_POSTED_FILES_ID; ?>">
             <td></td>
             <td class="text-left"><i class="fa fa-folder fa-fw"></i>&nbsp;
                 <a
@@ -45,7 +49,7 @@
         <?php endif; ?>
         <?php foreach ($items as $item) : ?>
         <tr data-type="<?php echo $item->getItemType(); ?>"
-            data-id="<?php echo $item->getItemId(); ?>"
+            data-id="<?php echo $item->id; ?>"
             data-url="<?php echo $item->getUrl(); ?>">
             <td class="text-muted text-right">
                 <?php echo Html::checkbox( 'selected[]', false, [ 'value'=> $item->getItemId(), 'class' => 'multiselect']); ?>

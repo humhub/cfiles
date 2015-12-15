@@ -63,17 +63,8 @@ function initFileList() {
 					// file or folder
 					itemType = invokedOn.closest('tr').data('type');
 					// e.g. file-53
-					itemId = invokedOn.closest('tr').data('id');
+					itemRealId = invokedOn.closest('tr').data('id');
 					parentId = jQuery.urlParam('fid') === null ? 0 : jQuery.urlParam('fid');
-					// default if the id is not specified
-					itemRealId = undefined;
-					if (jQuery.type(itemId) === "string") {
-						$temp = itemId.split("\-");
-						// id of file or folder
-						if ($temp.length >= 2) {
-							itemRealId = $temp[1];
-						}
-					}
 
 					switch (action) {
 					case 'delete':
@@ -97,7 +88,11 @@ function initFileList() {
 						});
 						break;
 					case 'download':
-						url = invokedOn.closest('tr').data('url');
+						url = invokedOn.closest('tr').data('zip-url');
+						document.location.href = url;
+						break;
+					case 'zip':
+						url = cfilesZipFolderUrl.replace('--folderId--', itemRealId),
 						document.location.href = url;
 						break;
 					case 'move-files':

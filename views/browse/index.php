@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Url;
 use yii\helpers\Html;
+use humhub\modules\cfiles\controllers\BrowseController;
 
 $bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/browse/upload', [
@@ -12,10 +13,12 @@ $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/br
 $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', [
     'id' => '--folderId--'
 ]));
-
+$this->registerJsVar('cfilesZipFolderUrl', $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', [
+    'fid' => '--folderId--'
+    ]));
 $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/browse/move-files', [
     'init' => 1
-    ]));
+]));
 
 ?>
 <?php echo Html::beginForm(null, null, ['data-target' => '#globalModal']); ?>
@@ -40,8 +43,9 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             type="file" name="files[]" multiple>
                     </span></li>
                     <li class="nav-divider"></li>
+                    <li><?php echo Html::a('Download .zip', $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $folderId])); ?></li>
                     <li><?php echo Html::a('Add directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array('data-target' => '#globalModal')); ?></li>
-                    <?php if ($folderId !== 0) : ?>
+                    <?php if ($folderId !== BrowseController::ROOT_ID) : ?>
                         <li><?php echo Html::a('Edit directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), array('data-target' => '#globalModal')); ?></li>
                     <?php endif; ?>
                     <li>
@@ -108,7 +112,8 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='edit'>Edit</a></li>
     <li><a tabindex="-1" href="#" data-action='delete'>Delete</a></li>
-    <li><a tabindex="-1" href="#" data-action='move-files'>Move file</a></li>
+    <li><a tabindex="-1" href="#" data-action='move-files'>Move folder</a></li>
+    <li><a tabindex="-1" href="#" data-action='zip'>Download zip</a></li>
 </ul>
 
 <ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu"
@@ -128,21 +133,22 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
     <li><a tabindex="-1" href="#" data-action='move-files'>Move file</a></li>
 </ul>
 
-<ul id="contextMenuAllPostedFiles" class="contextMenu dropdown-menu" role="menu"
-    style="display: none">
+<ul id="contextMenuAllPostedFiles" class="contextMenu dropdown-menu"
+    role="menu" style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'>Open</a></li>
+    <li><a tabindex="-1" href="#" data-action='zip'>Download zip</a></li>
 </ul>
 
 <div id="hiddenLogContainer" style="display: none">
-    <div class="alert alert-danger" style="display:none">
+    <div class="alert alert-danger" style="display: none">
         <ul>
         </ul>
     </div>
-    <div class="alert alert-warning" style="display:none">
+    <div class="alert alert-warning" style="display: none">
         <ul>
         </ul>
     </div>
-    <div class="alert alert-info" style="display:none">
+    <div class="alert alert-info" style="display: none">
         <ul>
         </ul>
     </div>

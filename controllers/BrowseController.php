@@ -15,6 +15,8 @@ use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\models\Content;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\comment\models\Comment;
+use yii\helpers\FileHelper;
+use humhub\models\Setting;
 
 /**
  * Description of BrowseController
@@ -24,7 +26,15 @@ use humhub\modules\comment\models\Comment;
 class BrowseController extends \humhub\modules\content\components\ContentContainerController
 {
 
+    const ROOT_ID = 0;
+
+    const All_POSTED_FILES_ID = - 1;
+
     private $_currentFolder = false;
+
+    protected $virtualRootFolder;
+
+    protected $virtualAllPostedFilesFolder;
 
     public $hideSidebar = true;
 
@@ -32,17 +42,26 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
 
     public $errorMessages = array();
 
+    public function init()
+    {
+        $this->virtualRootFolder = new Folder();
+        $this->virtualRootFolder->id = self::ROOT_ID;
+        $this->virtualRootFolder->title = Yii::t('CfilesModule.controllers_browse', 'root');
+        $this->virtualAllPostedFilesFolder = new Folder();
+        $this->virtualAllPostedFilesFolder->id = self::All_POSTED_FILES_ID;
+        $this->virtualAllPostedFilesFolder->title = Yii::t('CfilesModule.controllers_browse', 'All posted files');
+        
+        return parent::init();
+    }
+
     public function actionIndex()
     {
         $folder = $this->getCurrentFolder();
-        $folderId = 0;
-        if ($folder !== null) {
-            $folderId = $folder->id;
-        }
+        $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
         
         return $this->render('index', [
             'contentContainer' => $this->contentContainer,
-            'folderId' => $folderId,
+            'folderId' => $currentFolderId,
             'fileList' => $this->renderFileList()
         ]);
     }
@@ -56,7 +75,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         foreach (UploadedFile::getInstancesByName('files') as $cFile) {
             
             $folder = $this->getCurrentFolder();
-            $currentFolderId = empty($folder) ? 0 : $folder->id;
+            $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
             
             // check if the file already exists in this dir
             $filesQuery = File::find()->joinWith('baseFile')
@@ -131,22 +150,15 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     public function actionEditFolder()
     {
         // fid indicates the current parent folder id
-        $currentFolderId = 0;
-        $currentFolder = $this->getCurrentFolder();
-        if ($currentFolder !== null) {
-            $currentFolderId = $currentFolder->id;
-        }
+        $folder = $this->getCurrentFolder();
+        $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
         // id is set if a folder should be edited
         $id = (int) Yii::$app->request->get('id');
-        // the parend folder id
-        $pid = (int) Yii::$app->request->get('pid');
         // the new / edited folders title
         $title = trim(Yii::$app->request->post('Folder')['title']);
         Yii::$app->request->post('Folder')['title'] = $title;
-        // if the folder exists, should it be overwritten?
-        $mode = (string) Yii::$app->request->get('mode');
         
-        // check if a folder for the given id exists
+        // check if a folder with the given id exists.
         $query = Folder::find()->contentContainer($this->contentContainer)
             ->readable()
             ->where([
@@ -162,11 +174,26 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             $folder->parent_folder_id = $currentFolderId;
         }
         
-        // try to save the current folder
-        if ($folder->load(Yii::$app->request->post()) && $folder->validate() && $folder->save()) {
+        // check if a folder with the given parent id and title exists
+        $query = Folder::find()->contentContainer($this->contentContainer)
+            ->readable()
+            ->where([
+            'cfiles_folder.title' => $title,
+            'cfiles_folder.parent_folder_id' => $currentFolderId
+        ]);
+        $similarFolder = $query->one();
+        
+        // if there is no folder with the same name, try to save the current folder
+        if (empty($similarFolder) && $folder->load(Yii::$app->request->post()) && $folder->validate() && $folder->save()) {
             return $this->htmlRedirect($this->contentContainer->createUrl('index', [
                 'fid' => $folder->id
             ]));
+        }
+        
+        // if a similar folder exists, add an error to the model. Must be done here, cause we need access to the content container
+        if (! empty($similarFolder)) {
+            $folder->title = $title;
+            $folder->addError('title', \Yii::t('CfilesModule.views_browse_index', 'A folder with this name already exists'));
         }
         
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
@@ -180,7 +207,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     public function actionMoveFiles()
     {
         $folder = $this->getCurrentFolder();
-        $currentFolderId = empty($folder) ? 0 : $folder->id;
+        $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
         $selectedItems = Yii::$app->request->post('selected');
         $selectedDatabaseItems = [];
         $destFolderId = Yii::$app->request->post('destfid');
@@ -263,8 +290,8 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         
         foreach ($items as $file) {
             
-            $searchItem = $file;    
-            // if the item is connected to a Comment, we have to search for the corresponding Post        
+            $searchItem = $file;
+            // if the item is connected to a Comment, we have to search for the corresponding Post
             if ($file->object_model === Comment::className()) {
                 $searchItem = Comment::findOne([
                     'id' => $file->object_id
@@ -301,10 +328,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
         if ($folder === null) {
             $filesQuery->andWhere([
-                'cfiles_file.parent_folder_id' => 0
+                'cfiles_file.parent_folder_id' => self::ROOT_ID
             ]);
             $foldersQuery->andWhere([
-                'cfiles_folder.parent_folder_id' => 0
+                'cfiles_folder.parent_folder_id' => self::ROOT_ID
             ]);
         } else {
             $filesQuery->andWhere([
@@ -320,7 +347,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
             'errorMessages' => $this->errorMessages,
-            'folderId' => $folder === null ? 0 : $folder->id
+            'folderId' => $folder === null ? self::ROOT_ID : $folder->id
         ]);
     }
 
@@ -330,15 +357,15 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
      *
      * @return Folder
      */
-    private function getCurrentFolder()
+    protected function getCurrentFolder()
     {
         if ($this->_currentFolder !== false) {
             return $this->_currentFolder;
         }
         
         $folder = null;
-        $folderId = (int) Yii::$app->request->get('fid', 0);
-        if ($folderId !== 0) {
+        $folderId = (int) Yii::$app->request->get('fid', self::ROOT_ID);
+        if ($folderId !== self::ROOT_ID) {
             $folder = Folder::find()->contentContainer($this->contentContainer)
                 ->readable()
                 ->where([
@@ -356,7 +383,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
      *
      * @return array of parent folders
      */
-    private function generateCrumb()
+    protected function generateCrumb()
     {
         $crumb = [];
         $currentFolder = $this->getCurrentFolder();
@@ -374,7 +401,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         return $crumb;
     }
 
-    private function getFolderList($parentId = 0)
+    protected function getFolderList($parentId = self::ROOT_ID)
     {
         $dirstruc = [];
         $folders = Folder::find()->contentContainer($this->contentContainer)
@@ -393,7 +420,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         return $dirstruc;
     }
 
-    private function getAllPostedFiles()
+    protected function getAllPostedFiles()
     {
         // Get Posted Files
         $query = \humhub\modules\file\models\File::find();

@@ -5,6 +5,9 @@ use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\content\models\Content;
+use yii\web\HttpException;
+use humhub\models\Setting;
+use yii\helpers\FileHelper;
 
 /**
  * This is the model class for table "cfiles_folder".
@@ -26,10 +29,11 @@ class Folder extends FileSystemItem
         return 'cfiles_folder';
     }
 
-    public function getItemType() {
+    public function getItemType()
+    {
         return 'folder';
     }
-    
+
     /**
      * @inheritdoc
      */
@@ -52,10 +56,6 @@ class Folder extends FileSystemItem
                 'title',
                 'string',
                 'max' => 255
-            ],
-            [
-                'title',
-                'exists'
             ],
             [
                 'title',
@@ -139,19 +139,6 @@ class Folder extends FileSystemItem
         return User::findOne([
             'id' => $content->created_by
         ]);
-    }
-
-    public function exists($attribute, $params)
-    {
-        // check if a similar folder with the same name and parent folder exists
-        $folder = Folder::findOne([
-            'title' => $this->$attribute,
-            'parent_folder_id' => $this->parent_folder_id
-        ]);
-        
-        if (! empty($folder)) {
-            $this->addError($attribute, 'A folder with this name already exists.');
-        }
     }
 
     public function noSpaces($attribute, $params)

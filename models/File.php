@@ -12,7 +12,6 @@ use humhub\modules\user\models\User;
  */
 class File extends FileSystemItem
 {
-
     /**
      * @inheritdoc
      */
@@ -123,25 +122,28 @@ class File extends FileSystemItem
         }
         return 'fa-file-o';
     }
-    
-    public function getItemType() {
+
+    public function getItemType()
+    {
         return File::getItemTypeByExt(strtolower($this->baseFile->getExtension()));
     }
-    
+
     /**
      * Make method from humhub\modules\file\models\File available.
-     * @param unknown $file_name
+     * 
+     * @param unknown $file_name            
      * @return string
      */
     public static function sanitizeFilename($filename)
     {
-        $file = new \humhub\modules\file\models\File;
+        $file = new \humhub\modules\file\models\File();
         $file->file_name = $filename;
         $file->sanitizeFilename();
         return $file->file_name;
     }
-    
-    public static function getItemTypeByExt($ext) {
+
+    public static function getItemTypeByExt($ext)
+    {
         if (in_array($ext, [
             'html',
             'cmd',
@@ -204,7 +206,7 @@ class File extends FileSystemItem
         }
         return 'unknown';
     }
-    
+
     public function getTitle()
     {
         return $this->baseFile->file_name;
