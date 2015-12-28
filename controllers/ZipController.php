@@ -18,6 +18,7 @@ use humhub\modules\comment\models\Comment;
 use yii\helpers\FileHelper;
 use humhub\models\Setting;
 use yii\helpers\BaseFileHelper;
+use humhub\modules\file\libs\ImageConverter;
 
 /**
  * Description of ZipController
@@ -26,6 +27,36 @@ use yii\helpers\BaseFileHelper;
  */
 class ZipController extends BrowseController
 {
+
+    public function actionUploadZippedFolder()
+    {
+        // cleanup all old files
+        $this->cleanup();
+        Yii::$app->response->format = 'json';
+        $response = [];
+        
+        foreach (UploadedFile::getInstancesByName('files') as $cFile) {
+            if (strtolower($cFile->extension) === 'zip') {
+                $sourcePath = $this->getZipOutputPath() . DIRECTORY_SEPARATOR . 'zipped.zip';
+                $extractionPath = $this->getZipOutputPath() . DIRECTORY_SEPARATOR . 'extracted';
+                if ($cFile->saveAs($sourcePath, false)) {
+                    $this->zipToFolder($response, $sourcePath, $extractionPath);
+                    $this->folderToModels($response, $this->getCurrentFolder()->id, $extractionPath);
+                } else {
+                    $response['errormessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', 'Archive %filename% could not be extracted.', [
+                        '%filename%' => $cFile->name
+                    ]);
+                }
+            } else {
+                $response['errormessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', '%filename% has invalid extension and was skipped.', [
+                    '%filename%' => $cFile->name
+                ]);
+            }
+        }
+        
+        $response['files'] = $this->files;
+        return $response;
+    }
 
     public function actionDownloadZippedFolder()
     {
@@ -111,6 +142,134 @@ class ZipController extends BrowseController
             $zipFile->addEmptyDir($folderPath);
             // checkout subfolders recursively with adapted local path
             $this->folderToZip($folder->id, $zipFile, $folderPath, $this->contentContainer);
+        }
+    }
+
+    protected function zipToFolder(&$response, $sourcePath, $extractionPath)
+    {
+        $zip = new \ZipArchive();
+        $zip->open($this->getZipOutputPath() . DIRECTORY_SEPARATOR . 'zipped.zip');
+        $zip->extractTo($extractionPath);
+    }
+
+    protected function folderToModels(&$response, $parentFolderId, $folderPath)
+    {
+        // remove unwanted parent folder references from the scanned files
+        $files = array_diff(scandir($folderPath), array(
+            '..',
+            '.'
+        ));
+        $response['debug_files'] = $files;
+        $response['debug_pfid'] = $parentFolderId;
+        $response['debug_fpath'] = $folderPath;
+        foreach ($files as $file) {
+            $filePath = $folderPath . DIRECTORY_SEPARATOR . $file;
+            if (is_dir($filePath)) {
+                // create a new folder
+                $folder = new Folder();
+                $folder->content->container = $this->contentContainer;
+                $folder->parent_folder_id = $parentFolderId;
+                $folder->title = $file;
+                // check if a folder with the given parent id and title exists
+                $query = Folder::find()->contentContainer($this->contentContainer)
+                    ->readable()
+                    ->where([
+                    'cfiles_folder.title' => $file,
+                    'cfiles_folder.parent_folder_id' => $parentFolderId
+                ]);
+                $similarFolder = $query->one();
+                // if a similar folder exists, add an error to the model. Must be done here, cause we need access to the content container
+                if (! empty($similarFolder)) {
+                    $response['infomessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', 'The folder %filename% already exists. Contents have been overwritten.', [
+                        '%filename%' => $file
+                    ]);
+                    $folder = $similarFolder;
+                } elseif (! $folder->save()) { // if there is no folder with the same name, try to save the current folder
+                    $response['errormessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', ' The folder %filename% could not be saved.', [
+                        '%filename%' => $file
+                    ]);
+                }
+                $this->files[] = [
+                    'fileList' => $this->renderFileList()
+                ];
+                $this->folderToModels($response, $folder->id, $filePath);
+            } else {
+                $this->fileToModel($response, $parentFolderId, $folderPath, $file);
+            }
+        }
+    }
+
+    protected function fileToModel(&$response, $parentFolderId, $folderPath, $filename)
+    {
+        $filepath = $folderPath . DIRECTORY_SEPARATOR . $filename;
+        
+        // check if the file already exists in this dir
+        $filesQuery = File::find()->joinWith('baseFile')
+            ->readable()
+            ->andWhere([
+            'title' => File::sanitizeFilename($filename),
+            'parent_folder_id' => $parentFolderId
+        ]);
+        $file = $filesQuery->one();
+        
+        // if not, initialize new File
+        if (empty($file)) {
+            $file = new File();
+            $humhubFile = new \humhub\modules\file\models\File();
+        } else { // else replace the existing file
+            $humhubFile = $file->baseFile;
+            // logging file replacement
+            $response['infomessages'][] = Yii::t('CfilesModule.views_browse_index', '%title% was replaced by a newer version.', [
+                '%title%' => $file->title
+            ]);
+            $response['log'] = true;
+        }
+        
+        // populate the file
+        $humhubFile->mime_type = FileHelper::getMimeType($filepath);
+        if ($humhubFile->mime_type == 'image/jpeg') {
+            ImageConverter::TransformToJpeg($filepath, $filepath);
+        }
+        $humhubFile->size = filesize($filepath);
+        $humhubFile->file_name = $filename;
+        
+        $humhubFile->newFileContent = stream_get_contents(fopen($filepath, 'r'));
+        
+        if ($humhubFile->save()) {
+        
+            $file->content->container = $this->contentContainer;
+            $file->parent_folder_id = $parentFolderId;
+        
+            if ($file->save()) {
+                $humhubFile->object_model = $file->className();
+                $humhubFile->object_id = $file->id;
+                $humhubFile->save();
+                $this->files[] = array_merge($humhubFile->getInfoArray(), [
+                    'fileList' => $this->renderFileList()
+                    ]);
+            } else {
+                $count = 0;
+                $messages = "";
+                // show multiple occurred errors
+                foreach ($file->errors as $key => $message) {
+                    $messages .= ($count ++ ? ' | ' : '') . $message[0];
+                }
+                $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
+                    '%title%' => $file->title
+                    ]) . $messages;
+                $response['log'] = true;
+            }
+        } else {
+            $count = 0;
+            $messages = "";
+            // show multiple occurred errors
+            foreach ($humhubFile->errors as $key => $message) {
+                $messages .= ($count ++ ? ' | ' : '') . $message[0];
+            }
+            $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
+                '%title%' => $humhubFile->filename
+                ]) . $messages;
+            $response['log'] = true;
         }
     }
 

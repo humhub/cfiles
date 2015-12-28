@@ -88,7 +88,7 @@ function initFileList() {
 						});
 						break;
 					case 'download':
-						url = invokedOn.closest('tr').data('zip-url');
+						url = invokedOn.closest('tr').data('url');
 						document.location.href = url;
 						break;
 					case 'zip':
@@ -184,6 +184,36 @@ $(function() {
 		}
 	}).prop('disabled', !$.support.fileInput).parent().addClass(
 			$.support.fileInput ? undefined : 'disabled');
+	/**
+	 * Install uploader
+	 */
+	$('#zipupload').fileupload({
+		url : cfilesZipUploadUrl,
+		dataType : 'json',
+		done : function(e, data) {
+			$.each(data.result.files, function(index, file) {
+				$('#fileList').html(file.fileList);
+			});
+			updateLogs(data.result.errormessages, data.result.warningmessages, data.result.infomessages);
+		},
+		fail : function(e, data) {
+			updateLogs(data.jqXHR.responseJSON.message, null, null);
+		},
+		start : function(e, data) {
+			clearLog();
+		},
+		progressall : function(e, data) {
+			var progress = parseInt(data.loaded / data.total * 100, 10);
+			if (progress != 100) {
+				$('#progress').show();
+				$('#progress .progress-bar').css('width', progress + '%');
+			} else {
+				$('#progress').hide();
+			}
+		}
+	}).prop('disabled', !$.support.fileInput).parent().addClass(
+			$.support.fileInput ? undefined : 'disabled');
+
 
 });
 

@@ -342,7 +342,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             ]);
         }
         
-        return $this->renderAjax('fileList', [
+        return $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
             'items' => array_merge($foldersQuery->all(), $filesQuery->all()),
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),

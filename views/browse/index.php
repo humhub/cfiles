@@ -7,6 +7,9 @@ $bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/browse/upload', [
     'fid' => $folderId
 ]));
+$this->registerJsVar('cfilesZipUploadUrl', $contentContainer->createUrl('/cfiles/zip/upload-zipped-folder', [
+    'fid' => $folderId
+    ]));
 $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/browse/delete', [
     'fid' => $folderId
 ]));
@@ -43,6 +46,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             type="file" name="files[]" multiple>
                     </span></li>
                     <li class="nav-divider"></li>
+                    <li><a class="fileinput-button">
+                            <i class="glyphicon glyphicon-plus"></i> Upload .zip <input id="zipupload"
+                            type="file" name="files[]" multiple>
+                    </a></li>
                     <li><?php echo Html::a('Download .zip', $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $folderId])); ?></li>
                     <li><?php echo Html::a('Add directory', $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array('data-target' => '#globalModal')); ?></li>
                     <?php if ($folderId !== BrowseController::ROOT_ID) : ?>
