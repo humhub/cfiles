@@ -28,6 +28,10 @@ use humhub\modules\file\libs\ImageConverter;
 class ZipController extends BrowseController
 {
 
+    /**
+     * Action to generate the according folder and file structure from an uploaded zip file.
+     * @return multitype:multitype:
+     */
     public function actionUploadZippedFolder()
     {
         // cleanup all old files
@@ -43,12 +47,12 @@ class ZipController extends BrowseController
                     $this->zipToFolder($response, $sourcePath, $extractionPath);
                     $this->folderToModels($response, $this->getCurrentFolder()->id, $extractionPath);
                 } else {
-                    $response['errormessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', 'Archive %filename% could not be extracted.', [
+                    $response['errormessages'][] = Yii::t('CfilesModule.base', 'Archive %filename% could not be extracted.', [
                         '%filename%' => $cFile->name
                     ]);
                 }
             } else {
-                $response['errormessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', '%filename% has invalid extension and was skipped.', [
+                $response['errormessages'][] = Yii::t('CfilesModule.base', '%filename% has invalid extension and was skipped.', [
                     '%filename%' => $cFile->name
                 ]);
             }
@@ -58,6 +62,11 @@ class ZipController extends BrowseController
         return $response;
     }
 
+    /**
+     * Action to download a folder defined by request param "fid" as a zip file.
+     *
+     * @throws HttpException
+     */
     public function actionDownloadZippedFolder()
     {
         // cleanup all old files
@@ -68,7 +77,7 @@ class ZipController extends BrowseController
         // check validity of currentFolder
         $currentFolder = $this->getCurrentFolder();
         if (empty($currentFolder)) {
-            throw new HttpException(404, Yii::t('CfilesModule.controllers_ZipController', 'The folder with the id %id% does not exist.', [
+            throw new HttpException(404, Yii::t('CfilesModule.base', 'The folder with the id %id% does not exist.', [
                 '%id%' => (int) Yii::$app->request->get('fid')
             ]));
         }
@@ -80,7 +89,7 @@ class ZipController extends BrowseController
         
         // check if the zip was created
         if (! file_exists($zipPath)) {
-            throw new HttpException(404, Yii::t('CfilesModule.controllers_ZipController', 'The archive could not be created.'));
+            throw new HttpException(404, Yii::t('CfilesModule.base', 'The archive could not be created.'));
         }
         
         // deliver the zip
@@ -145,6 +154,14 @@ class ZipController extends BrowseController
         }
     }
 
+    /**
+     * Unzip an archive.
+     *
+     * @param Response $response
+     *            the response errors will be parsed to.
+     * @param string $sourcePath            
+     * @param string $extractionPath            
+     */
     protected function zipToFolder(&$response, $sourcePath, $extractionPath)
     {
         $zip = new \ZipArchive();
@@ -152,6 +169,16 @@ class ZipController extends BrowseController
         $zip->extractTo($extractionPath);
     }
 
+    /**
+     * Generate the cfolder and cfile structure in the database of a given folder and all its subfolders recursively.
+     * 
+     * @param Response $response
+     *            the response errors will be parsed to.
+     * @param int $parentFolderId
+     *            the folders parent folder id.
+     * @param string $folderPath
+     *            the path of the folder.
+     */
     protected function folderToModels(&$response, $parentFolderId, $folderPath)
     {
         // remove unwanted parent folder references from the scanned files
@@ -180,12 +207,12 @@ class ZipController extends BrowseController
                 $similarFolder = $query->one();
                 // if a similar folder exists, add an error to the model. Must be done here, cause we need access to the content container
                 if (! empty($similarFolder)) {
-                    $response['infomessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', 'The folder %filename% already exists. Contents have been overwritten.', [
+                    $response['infomessages'][] = Yii::t('CfilesModule.base', 'The folder %filename% already exists. Contents have been overwritten.', [
                         '%filename%' => $file
                     ]);
                     $folder = $similarFolder;
                 } elseif (! $folder->save()) { // if there is no folder with the same name, try to save the current folder
-                    $response['errormessages'][] = Yii::t('CfilesModule.controller_zip_uploadzippedfolder', ' The folder %filename% could not be saved.', [
+                    $response['errormessages'][] = Yii::t('CfilesModule.base', ' The folder %filename% could not be saved.', [
                         '%filename%' => $file
                     ]);
                 }
@@ -199,6 +226,19 @@ class ZipController extends BrowseController
         }
     }
 
+    /**
+     * Create a cfile model and create and connect it with its basefile File model from a given data file, connect it with its parent folder.
+     * TODO: This method has a lot in common with BrowseController/actionUpload, common logic needs to be extracted and reused
+     * 
+     * @param Response $response
+     *            the response errors will be parsed to.
+     * @param int $parentFolderId
+     *            the files pid.
+     * @param string $folderPath
+     *            the path of the folder the file data lies in.
+     * @param string $filename
+     *            the files name.
+     */
     protected function fileToModel(&$response, $parentFolderId, $folderPath, $filename)
     {
         $filepath = $folderPath . DIRECTORY_SEPARATOR . $filename;
@@ -219,7 +259,7 @@ class ZipController extends BrowseController
         } else { // else replace the existing file
             $humhubFile = $file->baseFile;
             // logging file replacement
-            $response['infomessages'][] = Yii::t('CfilesModule.views_browse_index', '%title% was replaced by a newer version.', [
+            $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
                 '%title%' => $file->title
             ]);
             $response['log'] = true;
@@ -236,17 +276,17 @@ class ZipController extends BrowseController
         $humhubFile->newFileContent = stream_get_contents(fopen($filepath, 'r'));
         
         if ($humhubFile->save()) {
-        
+            
             $file->content->container = $this->contentContainer;
             $file->parent_folder_id = $parentFolderId;
-        
+            
             if ($file->save()) {
                 $humhubFile->object_model = $file->className();
                 $humhubFile->object_id = $file->id;
                 $humhubFile->save();
                 $this->files[] = array_merge($humhubFile->getInfoArray(), [
                     'fileList' => $this->renderFileList()
-                    ]);
+                ]);
             } else {
                 $count = 0;
                 $messages = "";
@@ -254,9 +294,9 @@ class ZipController extends BrowseController
                 foreach ($file->errors as $key => $message) {
                     $messages .= ($count ++ ? ' | ' : '') . $message[0];
                 }
-                $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
+                $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
                     '%title%' => $file->title
-                    ]) . $messages;
+                ]) . $messages;
                 $response['log'] = true;
             }
         } else {
@@ -266,9 +306,9 @@ class ZipController extends BrowseController
             foreach ($humhubFile->errors as $key => $message) {
                 $messages .= ($count ++ ? ' | ' : '') . $message[0];
             }
-            $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
+            $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
                 '%title%' => $humhubFile->filename
-                ]) . $messages;
+            ]) . $messages;
             $response['log'] = true;
         }
     }
@@ -325,6 +365,11 @@ class ZipController extends BrowseController
         return $folder->title . '.zip';
     }
 
+    /**
+     * Get the output path of the temporary folder used for packing and unpacking zip data.
+     * 
+     * @return string @runtime/temp/[guid]
+     */
     protected function getZipOutputPath()
     {
         // init output directory
@@ -340,11 +385,19 @@ class ZipController extends BrowseController
         return $outputPath;
     }
 
+    /**
+     * Cleanup all files in the zip output path.
+     */
     protected function cleanup()
     {
         BaseFileHelper::removeDirectory($this->getZipOutputPath());
     }
 
+    /**
+     * Initializes the current folder if request param fid is 0.
+     * 
+     * @see \humhub\modules\cfiles\controllers\BrowseController::getCurrentFolder()
+     */
     protected function getCurrentFolder()
     {
         $id = (int) Yii::$app->request->get('fid');

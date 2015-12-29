@@ -21,11 +21,11 @@ use humhub\models\Setting;
 /**
  * Description of BrowseController
  *
- * @author luke
+ * @author luke, Sebastian Stumpf
  */
 class BrowseController extends \humhub\modules\content\components\ContentContainerController
 {
-
+    
     const ROOT_ID = 0;
 
     const All_POSTED_FILES_ID = - 1;
@@ -46,10 +46,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     {
         $this->virtualRootFolder = new Folder();
         $this->virtualRootFolder->id = self::ROOT_ID;
-        $this->virtualRootFolder->title = Yii::t('CfilesModule.controllers_browse', 'root');
+        $this->virtualRootFolder->title = Yii::t('CfilesModule.base', 'root');
         $this->virtualAllPostedFilesFolder = new Folder();
         $this->virtualAllPostedFilesFolder->id = self::All_POSTED_FILES_ID;
-        $this->virtualAllPostedFilesFolder->title = Yii::t('CfilesModule.controllers_browse', 'All posted files');
+        $this->virtualAllPostedFilesFolder->title = Yii::t('CfilesModule.base', 'All posted files');
         
         return parent::init();
     }
@@ -66,6 +66,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         ]);
     }
 
+    /**
+     * Action to upload multiple files.
+     * @return multitype:boolean multitype:
+     */
     public function actionUpload()
     {
         Yii::$app->response->format = 'json';
@@ -94,7 +98,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             else {
                 $humhubFile = $file->baseFile;
                 // logging file replacement
-                $response['infomessages'][] = Yii::t('CfilesModule.views_browse_index', '%title% was replaced by a newer version.', [
+                $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
                     '%title%' => $file->title
                 ]);
                 $response['log'] = true;
@@ -124,7 +128,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                     foreach ($file->errors as $key => $message) {
                         $messages .= ($count ++ ? ' | ' : '') . $message[0];
                     }
-                    $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
+                    $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
                         '%title%' => $file->title
                     ]) . $messages;
                     $response['log'] = true;
@@ -147,6 +151,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         return $response;
     }
 
+    /**
+     * Action to edit a given folder (the folders name).
+     * @return string
+     */
     public function actionEditFolder()
     {
         // fid indicates the current parent folder id
@@ -193,7 +201,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         // if a similar folder exists, add an error to the model. Must be done here, cause we need access to the content container
         if (! empty($similarFolder)) {
             $folder->title = $title;
-            $folder->addError('title', \Yii::t('CfilesModule.views_browse_index', 'A folder with this name already exists'));
+            $folder->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists'));
         }
         
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
@@ -204,6 +212,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         ]);
     }
 
+    /**
+     * Action to move files and folders from the current, to another folder.
+     * @return string
+     */
     public function actionMoveFiles()
     {
         $folder = $this->getCurrentFolder();
@@ -229,7 +241,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 $item = $this->module->getItemById($itemId);
                 if ($item !== null) {
                     if ($item->parent_folder_id == $destFolderId) {
-                        $errorMsgs[] = Yii::t('CfilesModule.views_browse_index', 'Moving to the same folder is not valid. Choose a valid parent folder for %title%.', [
+                        $errorMsgs[] = Yii::t('CfilesModule.base', 'Moving to the same folder is not valid. Choose a valid parent folder for %title%.', [
                             '%title%' => $item->title
                         ]);
                         continue;
@@ -245,7 +257,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 }
             }
         } else {
-            $errorMsgs[] = Yii::t('CfilesModule.views_browse_index', 'No valid items were selected to move.');
+            $errorMsgs[] = Yii::t('CfilesModule.base', 'No valid items were selected to move.');
         }
         
         // render modal if errors occurred
@@ -268,6 +280,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         }
     }
 
+    /**
+     * Action to delete a file or folder.
+     * @return Ambigous <\humhub\modules\cfiles\controllers\type, string>
+     */
     public function actionDelete()
     {
         $selectedItems = Yii::$app->request->post('selected');
@@ -282,6 +298,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         return $this->renderFileList();
     }
 
+    /**
+     * Action to list all posted files from the content container.
+     * @return string
+     */
     public function actionAllPostedFiles()
     {
         $items = $this->getAllPostedFiles();
@@ -420,6 +440,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         return $dirstruc;
     }
 
+    /**
+     * Load all posted files from the database and get an array of them.
+     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
+     */
     protected function getAllPostedFiles()
     {
         // Get Posted Files

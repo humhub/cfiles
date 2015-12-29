@@ -21,10 +21,10 @@ use humhub\modules\cfiles\controllers\BrowseController;
             <tr>
                 <th class="text-right" data-sort="int">
                     <?php echo Html::checkbox( 'allchk', false, [ 'class'=> 'allselect']); ?></th>
-                <th class="col-sm-5 text-left" data-sort="string">Name</th>
-                <th class="col-sm-2 text-right" data-sort="int">Size</th>
-                <th class="col-sm-2 text-right" data-sort="string">Creator</th>
-                <th class="col-sm-3 text-right" data-sort="int">Updated</th>
+                <th class="col-sm-5 text-left" data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Name');?></th>
+                <th class="col-sm-2 text-right" data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Size');?></th>
+                <th class="col-sm-2 text-right" data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Creator');?></th>
+                <th class="col-sm-3 text-right" data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Updated');?></th>
             </tr>
         </thead>
         <tfoot>
@@ -40,7 +40,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
             <td class="text-left"><i class="fa fa-folder fa-fw"></i>&nbsp;
                 <a
                 href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
-                    <?php echo Yii::t( 'CfilesModule.views_browse_editFolder', 'All posted files'); ?>
+                    <?php echo Yii::t( 'CfilesModule.base', 'All posted files'); ?>
                 </a></td>
             <td></td>
             <td></td>
@@ -60,7 +60,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
                 <a class="preview-link" data-toggle="lightbox"
                 href="<?php echo $item->getUrl(); ?>#.jpeg"
                 data-footer='<button   type="button"
-                class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item->getTitle()); ?></a>
+                class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'><?php echo Html::encode($item->getTitle()); ?></a>
                 <?php else : ?>
                 <a href="<?php echo $item->getUrl(); ?>">
                     <?php echo Html::encode($item->getTitle()); ?>

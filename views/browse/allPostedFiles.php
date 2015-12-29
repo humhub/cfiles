@@ -13,11 +13,6 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
     <div class="panel-body">
         <div class="row">
             <div class="col-lg-10 col-md-9 col-sm-9" id="fileList">
-                <!--<?php foreach ($items as $key => $file) : ?>
-                     <pre>
-                        <?php print_r($file['file']->getInfoArray())?>
-                    </pre>
-                <?php endforeach; ?>-->
 
                 <ol class="breadcrumb" dir="ltr">
                     <li><a
@@ -25,7 +20,7 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                             class="fa fa-home fa-lg fa-fw"></i> </a></li>
                     <li><a
                         href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
-                            <?php echo Yii::t( 'CfilesModule.views_browse_editFolder', 'All posted files'); ?>
+                            <?php echo Yii::t( 'CfilesModule.base', 'All posted files'); ?>
                         </a></li>
                 </ol>
 
@@ -39,13 +34,13 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                         <thead>
                             <tr>
                                 <th class="col-sm-5 text-left"
-                                    data-sort="string">Name</th>
+                                    data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Name');?></th>
                                 <th class="col-sm-2 text-right"
-                                    data-sort="int">Size</th>
-                                <th class="col-sm-2 text-right"
-                                    data-sort="string">Creator</th>
+                                    data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Size');?></th>
+                                <th class="col-sm-2 te);?>right"
+                                    data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Creator');?></th>
                                 <th class="col-sm-3 text-right"
-                                    data-sort="int">Updated</th>
+                                    data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Updated');?></th>
                             </tr>
                         </thead>
                         <tfoot>
@@ -67,7 +62,7 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                                 href="<?php echo $item['file']->getUrl(); ?>#.jpeg"
                                 data-footer='<button  type="button"
                                 class="btn btn-primary"
-                                data-dismiss="modal"><?php echo Yii::t('FileModule.widgets_views_showFiles', 'Close'); ?></button>'><?php echo Html::encode($item['file']->file_name); ?></a>
+                                data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'><?php echo Html::encode($item['file']->file_name); ?></a>
                                 <?php else : ?>
                                 <a
                                 href="<?php echo $item['file']->getUrl(); ?>">
@@ -95,7 +90,7 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                             </td>
                         </tr>
                         <?php endforeach ; else : ?>
-                        <p>No files found.</p>
+                        <p><?php echo Yii::t('CfilesModule.base', 'No files found.');?></p>
                         <?php endif; ?>
 
                     </table>
@@ -114,17 +109,17 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
 
 <ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
-    <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
+    <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Download');?></a></li>
     <li role="separator" class="divider"></li>
-    <li><a tabindex="-1" href="#" data-action='show-post'>Show Post</a></li>
+    <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
 </ul>
 
 <ul id="contextMenuImage" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
-    <li><a tabindex="-1" href="#" data-action='download'>Download</a></li>
+    <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Download');?></a></li>
     <li role="separator" class="divider"></li>
-    <li><a tabindex="-1" href="#" data-action='show-image'>Show Image</a></li>
-    <li><a tabindex="-1" href="#" data-action='show-post'>Show Post</a></li>
+    <li><a tabindex="-1" href="#" data-action='show-image'><?php echo Yii::t('CfilesModule.base', 'Show Image');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
 </ul>
 
 <script>

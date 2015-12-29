@@ -144,7 +144,7 @@ class Folder extends FileSystemItem
     public function noSpaces($attribute, $params)
     {
         if (trim($this->$attribute) !== $this->$attribute) {
-            $this->addError($attribute, 'Should not start or end with blank space.');
+            $this->addError($attribute, Yii::t('CfilesModule.base', 'Should not start or end with blank space.'));
         }
     }
 

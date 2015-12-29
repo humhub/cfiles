@@ -25,7 +25,7 @@ function renderFolder($folder)
             <button type="button" class="close" data-dismiss="modal"
                 aria-hidden="true">&times;</button>
             <h4 class="modal-title" id="myModalLabel">
-                <?php echo Yii::t('CfilesModule.views_browse_moveFiles', '<strong>Move</strong> files'); ?>
+                <?php echo Yii::t('CfilesModule.base', '<strong>Move</strong> files'); ?>
             </h4>
         </div>
 
@@ -41,7 +41,7 @@ function renderFolder($folder)
             <?php endif; ?>
             <br />
             <div class="directory-list">
-                <div class="selectable" id="0">/ (root)</div>
+                <div class="selectable" id="0"><?php echo Yii::t('CfilesModule.base', '/ (root)'); ?></div>
                 <ul>
                 <?php
                 foreach ($folders as $dir) :
@@ -65,7 +65,7 @@ function renderFolder($folder)
             <div class="modal-footer">
             <?php
             echo \humhub\widgets\AjaxButton::widget([
-                'label' => Yii::t('CfilesModule.views_browse_moveFiles', 'Save'),
+                'label' => Yii::t('CfilesModule.base', 'Save'),
                 'ajaxOptions' => [
                     'type' => 'POST',
                     'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
@@ -78,7 +78,7 @@ function renderFolder($folder)
             ]);
             ?>
             <button type="button" class="btn btn-primary"
-                    data-dismiss="modal"><?php echo Yii::t('CfilesModule.views_browse_moveFiles', 'Close'); ?></button>
+                    data-dismiss="modal"><?php echo Yii::t('CfilesModule.base', 'Close'); ?></button>
 
             </div>
         <?php CActiveForm::end()?>
