@@ -40,20 +40,27 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                 </div>
 
                 <ul class="nav nav-pills nav-stacked">
+                    <?php if($this->context->canWrite()): ?>
                     <li><span class="fileinput-button btn btn-success">
                             <i class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', '<strong>Add file(s)</strong>');?> <input id="fileupload"
                             type="file" name="files[]" multiple>
                     </span></li>
+                    <?php else : ?>
+                    <li><span>&nbsp;<br/>&nbsp;</span></li>
+                    <?php endif; ?>
                     <li class="nav-divider"></li>
+                    <?php if($this->context->canWrite()): ?>
                     <li><a class="fileinput-button">
                             <i class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Upload .zip');?> <input id="zipupload"
                             type="file" name="files[]" multiple>
                     </a></li>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $folderId])); ?></li>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array('data-target' => '#globalModal')); ?></li>
-                    <?php if ($folderId !== BrowseController::ROOT_ID) : ?>
-                        <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), array('data-target' => '#globalModal')); ?></li>
                     <?php endif; ?>
+                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $folderId])); ?></li>
+                    <?php if($this->context->canWrite()): ?>
+                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array('data-target' => '#globalModal')); ?></li>
+                        <?php if ($folderId !== BrowseController::ROOT_ID) : ?>
+                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), array('data-target' => '#globalModal')); ?></li>
+                        <?php endif; ?>
                     <li>
                         <?php
                         echo \humhub\widgets\AjaxButton::widget([
@@ -93,6 +100,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                         ]);
                         ?>
                     </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -105,27 +113,33 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
     style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Open');?></a></li>
     <li role="separator" class="divider"></li>
+    <?php if($this->context->canWrite()): ?>
     <li><a tabindex="-1" href="#" data-action='edit'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move folder');?></a></li>
+    <?php endif; ?>
     <li><a tabindex="-1" href="#" data-action='zip'><?php echo Yii::t('CfilesModule.base', 'Download zip');?></a></li>
 </ul>
 
 <ul id="contextMenuFile" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Download');?></a></li>
+    <?php if($this->context->canWrite()): ?>
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move file');?></a></li>
+    <?php endif; ?>
 </ul>
 
 <ul id="contextMenuImage" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Download');?></a></li>
     <li role="separator" class="divider"></li>
-    <li><a tabindex="-1" href="#" data-action='show'><?php echo Yii::t('CfilesModule.base', 'Show');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='show-image'><?php echo Yii::t('CfilesModule.base', 'Show');?></a></li>
+    <?php if($this->context->canWrite()): ?>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move file');?></a></li>
+    <?php endif; ?>
 </ul>
 
 <ul id="contextMenuAllPostedFiles" class="contextMenu dropdown-menu"

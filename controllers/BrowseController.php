@@ -68,6 +68,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     public function actionUpload()
     {
         Yii::$app->response->format = 'json';
+        
+        if(!$this->canWrite()) {
+            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
+        }
 
         $response = [];
 
@@ -152,6 +156,9 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
      */
     public function actionEditFolder()
     {
+        if(!$this->canWrite()) {
+            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
+        }
         // fid indicates the current parent folder id
         $folder = $this->getCurrentFolder();
         $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
@@ -213,6 +220,9 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
      */
     public function actionMoveFiles()
     {
+        if(!$this->canWrite()) {
+            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
+        }
         $folder = $this->getCurrentFolder();
         $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
         $selectedItems = Yii::$app->request->post('selected');
@@ -281,6 +291,9 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
      */
     public function actionDelete()
     {
+        if(!$this->canWrite()) {
+            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
+        }
         $selectedItems = Yii::$app->request->post('selected');
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {

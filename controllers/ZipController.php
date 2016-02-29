@@ -45,8 +45,8 @@ class ZipController extends BrowseController
                 $sourcePath = $this->getZipOutputPath() . DIRECTORY_SEPARATOR . 'zipped.zip';
                 $extractionPath = $this->getZipOutputPath() . DIRECTORY_SEPARATOR . 'extracted';
                 if ($cFile->saveAs($sourcePath, false)) {
-                    $this->zipToFolder($response, $sourcePath, $extractionPath);
-                    $this->folderToModels($response, $this->getCurrentFolder()->id, $extractionPath);
+                    $this->unpackArchive($response, $sourcePath, $extractionPath);
+                    $this->generateModelsFromFilesystem($response, $this->getCurrentFolder()->id, $extractionPath);
                 } else {
                     $response['errormessages'][] = Yii::t('CfilesModule.base', 'Archive %filename% could not be extracted.', [
                         '%filename%' => $cFile->name
@@ -84,7 +84,7 @@ class ZipController extends BrowseController
         }
         
         // zip the current folder
-        $zipTitle = $this->zipDir($currentFolder, $outputPath);
+        $zipTitle = $this->archiveDirectory($currentFolder, $outputPath);
         
         $zipPath = $outputPath . DIRECTORY_SEPARATOR . $zipTitle;
         
@@ -124,7 +124,7 @@ class ZipController extends BrowseController
      * @param int $localPathPrefix
      *            where we currently are in the zip file
      */
-    protected function folderToZip($folderId, &$zipFile, $localPathPrefix)
+    protected function archiveFolder($folderId, &$zipFile, $localPathPrefix)
     {
         $subFiles = File::find()->contentContainer($this->contentContainer)
             ->readable()
@@ -154,7 +154,7 @@ class ZipController extends BrowseController
             // create new empty folder
             $zipFile->addEmptyDir($folderPath);
             // checkout subfolders recursively with adapted local path
-            $this->folderToZip($folder->id, $zipFile, $folderPath, $this->contentContainer);
+            $this->archiveFolder($folder->id, $zipFile, $folderPath, $this->contentContainer);
         }
     }
 
@@ -166,7 +166,7 @@ class ZipController extends BrowseController
      * @param string $sourcePath            
      * @param string $extractionPath            
      */
-    protected function zipToFolder(&$response, $sourcePath, $extractionPath)
+    protected function unpackArchive(&$response, $sourcePath, $extractionPath)
     {
         $zip = new \ZipArchive();
         $zip->open($this->getZipOutputPath() . DIRECTORY_SEPARATOR . 'zipped.zip');
@@ -183,7 +183,7 @@ class ZipController extends BrowseController
      * @param string $folderPath
      *            the path of the folder.
      */
-    protected function folderToModels(&$response, $parentFolderId, $folderPath)
+    protected function generateModelsFromFilesystem(&$response, $parentFolderId, $folderPath)
     {
         // remove unwanted parent folder references from the scanned files
         $files = array_diff(scandir($folderPath), array(
@@ -223,9 +223,9 @@ class ZipController extends BrowseController
                 $this->files[] = [
                     'fileList' => $this->renderFileList()
                 ];
-                $this->folderToModels($response, $folder->id, $filePath);
+                $this->generateModelsFromFilesystem($response, $folder->id, $filePath);
             } else {
-                $this->fileToModel($response, $parentFolderId, $folderPath, $file);
+                $this->generateModelFromFile($response, $parentFolderId, $folderPath, $file);
             }
         }
     }
@@ -243,7 +243,7 @@ class ZipController extends BrowseController
      * @param string $filename
      *            the files name.
      */
-    protected function fileToModel(&$response, $parentFolderId, $folderPath, $filename)
+    protected function generateModelFromFile(&$response, $parentFolderId, $folderPath, $filename)
     {
         $filepath = $folderPath . DIRECTORY_SEPARATOR . $filename;
         
@@ -325,7 +325,7 @@ class ZipController extends BrowseController
      * @param int $localPathPrefix
      *            where we currently are in the zip file
      */
-    protected function allPostedFilesToZip(&$zipFile, $localPathPrefix)
+    protected function archiveAllPostedFiles(&$zipFile, $localPathPrefix)
     {
         $files = $this->getAllPostedFiles();
         foreach ($files as $file) {
@@ -339,7 +339,7 @@ class ZipController extends BrowseController
     /**
      * Zip a folder (include itself).
      * Usage:
-     * zipDir('/path/to/sourceDir', '/path/to/destDir');
+     * archiveDirectory('/path/to/sourceDir', '/path/to/destDir');
      *
      * @param Folder $sourceFolder
      *            The folder to be zipped. If null, the root folder will be zipped.
@@ -347,25 +347,25 @@ class ZipController extends BrowseController
      *            Path of output directory.
      * @return string the title of the generated zip file
      */
-    protected function zipDir($sourceFolder, $outDirPath)
+    protected function archiveDirectory($sourceFolder, $outDirPath)
     {
         $folder = $sourceFolder;
         $outZipPath = $outDirPath . DIRECTORY_SEPARATOR . $folder->title . '.zip';
         $z = new \ZipArchive();
         // overwrite existing zip files
-        $code = $z->open($outZipPath, \ZipArchive::OVERWRITE);
+        $code = $z->open($outZipPath, \ZIPARCHIVE::CREATE | \ZIPARCHIVE::OVERWRITE);
         if($code !== true) {
-            throw new HttpException(500, Yii::t('CfilesModule.base', 'Opening Zip failed with error code %code%.', ['%code%' => $code]));
+            throw new HttpException(500, Yii::t('CfilesModule.base', 'Opening archive failed with error code %code%.', ['%code%' => $code]));
         }
         $z->addEmptyDir($folder->title);
         if ($folder->id === self::ROOT_ID) {
-            $this->folderToZip($folder->id, $z, $folder->title);
+            $this->archiveFolder($folder->id, $z, $folder->title);
             $allPostedFilesDirPath = $folder->title . DIRECTORY_SEPARATOR . $this->virtualAllPostedFilesFolder->title;
-            $this->allPostedFilesToZip($z, $allPostedFilesDirPath);
+            $this->archiveAllPostedFiles($z, $allPostedFilesDirPath);
         } elseif ($folder->id === self::All_POSTED_FILES_ID) {
-            $this->allPostedFilesToZip($z, $folder->title);
+            $this->archiveAllPostedFiles($z, $folder->title);
         } else {
-            $this->folderToZip($folder->id, $z, $folder->title);
+            $this->archiveFolder($folder->id, $z, $folder->title);
         }
         $z->close();
         
