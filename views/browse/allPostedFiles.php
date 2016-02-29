@@ -37,7 +37,7 @@ $this->registerJsVar('cfilesMoveUrl', "unused");
                                     data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Name');?></th>
                                 <th class="col-sm-2 text-right"
                                     data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Size');?></th>
-                                <th class="col-sm-2 te);?>right"
+                                <th class="col-sm-2 text-right"
                                     data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Creator');?></th>
                                 <th class="col-sm-3 text-right"
                                     data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Updated');?></th>

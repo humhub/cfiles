@@ -5,6 +5,7 @@
  * @copyright Copyright (c) 2015 HumHub GmbH & Co. KG
  * @license https://www.humhub.com/licences
  */
+
 namespace humhub\modules\cfiles\controllers;
 
 use Yii;
@@ -25,21 +26,15 @@ use humhub\models\Setting;
  */
 class BrowseController extends \humhub\modules\content\components\ContentContainerController
 {
-    
-    const ROOT_ID = 0;
 
+    const ROOT_ID = 0;
     const All_POSTED_FILES_ID = - 1;
 
     private $_currentFolder = false;
-
     protected $virtualRootFolder;
-
     protected $virtualAllPostedFilesFolder;
-
     public $hideSidebar = true;
-
     public $files = array();
-
     public $errorMessages = array();
 
     public function init()
@@ -50,7 +45,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         $this->virtualAllPostedFilesFolder = new Folder();
         $this->virtualAllPostedFilesFolder->id = self::All_POSTED_FILES_ID;
         $this->virtualAllPostedFilesFolder->title = Yii::t('CfilesModule.base', 'All posted files');
-        
+
         return parent::init();
     }
 
@@ -58,11 +53,11 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     {
         $folder = $this->getCurrentFolder();
         $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
-        
+
         return $this->render('index', [
-            'contentContainer' => $this->contentContainer,
-            'folderId' => $currentFolderId,
-            'fileList' => $this->renderFileList()
+                    'contentContainer' => $this->contentContainer,
+                    'folderId' => $currentFolderId,
+                    'fileList' => $this->renderFileList()
         ]);
     }
 
@@ -73,23 +68,23 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     public function actionUpload()
     {
         Yii::$app->response->format = 'json';
-        
+
         $response = [];
-        
+
         foreach (UploadedFile::getInstancesByName('files') as $cFile) {
-            
+
             $folder = $this->getCurrentFolder();
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
-            
+
             // check if the file already exists in this dir
             $filesQuery = File::find()->joinWith('baseFile')
-                ->readable()
-                ->andWhere([
+                    ->readable()
+                    ->andWhere([
                 'title' => File::sanitizeFilename($cFile->name),
                 'parent_folder_id' => $currentFolderId
             ]);
             $file = $filesQuery->one();
-            
+
             // if not, initialize new File
             if (empty($file)) {
                 $file = new File();
@@ -99,21 +94,21 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 $humhubFile = $file->baseFile;
                 // logging file replacement
                 $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
-                    '%title%' => $file->title
+                            '%title%' => $file->title
                 ]);
                 $response['log'] = true;
             }
-            
+
             $humhubFile->setUploadedFile($cFile);
             if ($humhubFile->save()) {
-                
+
                 $file->content->container = $this->contentContainer;
                 $folder = $this->getCurrentFolder();
-                
+
                 if ($folder !== null) {
                     $file->parent_folder_id = $folder->id;
                 }
-                
+
                 if ($file->save()) {
                     $humhubFile->object_model = $file->className();
                     $humhubFile->object_id = $file->id;
@@ -129,8 +124,8 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                         $messages .= ($count ++ ? ' | ' : '') . $message[0];
                     }
                     $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
-                        '%title%' => $file->title
-                    ]) . $messages;
+                                '%title%' => $file->title
+                            ]) . $messages;
                     $response['log'] = true;
                 }
             } else {
@@ -141,12 +136,12 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                     $messages .= ($count ++ ? ' | ' : '') . $message[0];
                 }
                 $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
-                    '%title%' => $humhubFile->filename
-                ]) . $messages;
+                            '%title%' => $humhubFile->filename
+                        ]) . $messages;
                 $response['log'] = true;
             }
         }
-        
+
         $response['files'] = $this->files;
         return $response;
     }
@@ -165,15 +160,15 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         // the new / edited folders title
         $title = trim(Yii::$app->request->post('Folder')['title']);
         Yii::$app->request->post('Folder')['title'] = $title;
-        
+
         // check if a folder with the given id exists.
         $query = Folder::find()->contentContainer($this->contentContainer)
-            ->readable()
-            ->where([
+                ->readable()
+                ->where([
             'cfiles_folder.id' => $id
         ]);
         $folder = $query->one();
-        
+
         // if not a folder has to be created
         if (empty($folder)) {
             // create a new folder
@@ -181,34 +176,34 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
             $folder->content->container = $this->contentContainer;
             $folder->parent_folder_id = $currentFolderId;
         }
-        
+
         // check if a folder with the given parent id and title exists
         $query = Folder::find()->contentContainer($this->contentContainer)
-            ->readable()
-            ->where([
+                ->readable()
+                ->where([
             'cfiles_folder.title' => $title,
             'cfiles_folder.parent_folder_id' => $currentFolderId
         ]);
         $similarFolder = $query->one();
-        
+
         // if there is no folder with the same name, try to save the current folder
         if (empty($similarFolder) && $folder->load(Yii::$app->request->post()) && $folder->validate() && $folder->save()) {
             return $this->htmlRedirect($this->contentContainer->createUrl('index', [
-                'fid' => $folder->id
+                                'fid' => $folder->id
             ]));
         }
-        
+
         // if a similar folder exists, add an error to the model. Must be done here, cause we need access to the content container
-        if (! empty($similarFolder)) {
+        if (!empty($similarFolder)) {
             $folder->title = $title;
             $folder->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists'));
         }
-        
+
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
         return $this->renderAjax('editFolder', [
-            'folder' => $folder,
-            'contentContainer' => $this->contentContainer,
-            'currentFolderId' => $currentFolderId
+                    'folder' => $folder,
+                    'contentContainer' => $this->contentContainer,
+                    'currentFolderId' => $currentFolderId
         ]);
     }
 
@@ -225,31 +220,31 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         $destFolderId = Yii::$app->request->post('destfid');
         $init = Yii::$app->request->get('init');
         $errorMsgs = [];
-        
+
         if ($init) {
             // render modal if no destination folder is specified
             return $this->renderAjax('moveFiles', [
-                'folders' => $this->getFolderList(),
-                'contentContainer' => $this->contentContainer,
-                'selectedItems' => $selectedItems,
-                'selectedFolderId' => $currentFolderId
+                        'folders' => $this->getFolderList(),
+                        'contentContainer' => $this->contentContainer,
+                        'selectedItems' => $selectedItems,
+                        'selectedFolderId' => $currentFolderId
             ]);
         }
-        
-        if (is_array($selectedItems) && ! empty($selectedItems)) {
+
+        if (is_array($selectedItems) && !empty($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = $this->module->getItemById($itemId);
                 if ($item !== null) {
                     if ($item->parent_folder_id == $destFolderId) {
                         $errorMsgs[] = Yii::t('CfilesModule.base', 'Moving to the same folder is not valid. Choose a valid parent folder for %title%.', [
-                            '%title%' => $item->title
+                                    '%title%' => $item->title
                         ]);
                         continue;
                     }
                     $selectedDatabaseItems[] = $item;
                     $item->setAttribute('parent_folder_id', $destFolderId);
                     $item->validate();
-                    if (! empty($item->errors)) {
+                    if (!empty($item->errors)) {
                         foreach ($item->errors as $key => $error) {
                             $errorMsgs[] = $item->errors[$key][0];
                         }
@@ -259,15 +254,15 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         } else {
             $errorMsgs[] = Yii::t('CfilesModule.base', 'No valid items were selected to move.');
         }
-        
+
         // render modal if errors occurred
-        if (! empty($errorMsgs)) {
+        if (!empty($errorMsgs)) {
             return $this->renderAjax('moveFiles', [
-                'errorMsgs' => $errorMsgs,
-                'folders' => $this->getFolderList(),
-                'contentContainer' => $this->contentContainer,
-                'selectedItems' => $selectedItems,
-                'selectedFolderId' => $destFolderId
+                        'errorMsgs' => $errorMsgs,
+                        'folders' => $this->getFolderList(),
+                        'contentContainer' => $this->contentContainer,
+                        'selectedItems' => $selectedItems,
+                        'selectedFolderId' => $destFolderId
             ]);
         } else {
             // items are only then saved, if no error occurred. Else, the move transaction is canceled.
@@ -275,7 +270,7 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 $item->save();
             }
             return $this->htmlRedirect($this->contentContainer->createUrl('index', [
-                'fid' => $destFolderId
+                                'fid' => $destFolderId
             ]));
         }
     }
@@ -305,16 +300,16 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     public function actionAllPostedFiles()
     {
         $items = $this->getAllPostedFiles();
-        
+
         $content_file_wrapper = [];
-        
+
         foreach ($items as $file) {
-            
+
             $searchItem = $file;
             // if the item is connected to a Comment, we have to search for the corresponding Post
             if ($file->object_model === Comment::className()) {
                 $searchItem = Comment::findOne([
-                    'id' => $file->object_id
+                            'id' => $file->object_id
                 ]);
             }
             $query = Content::find();
@@ -327,10 +322,10 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 'content' => $query->one()
             ];
         }
-        
+
         return $this->render('allPostedFiles', [
-            'contentContainer' => $this->contentContainer,
-            'items' => $content_file_wrapper
+                    'contentContainer' => $this->contentContainer,
+                    'items' => $content_file_wrapper
         ]);
     }
 
@@ -343,8 +338,8 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     {
         $folder = $this->getCurrentFolder();
         $filesQuery = File::find()->joinWith('baseFile')
-            ->contentContainer($this->contentContainer)
-            ->readable();
+                ->contentContainer($this->contentContainer)
+                ->readable();
         $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
         if ($folder === null) {
             $filesQuery->andWhere([
@@ -361,13 +356,13 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
                 'cfiles_folder.parent_folder_id' => $folder->id
             ]);
         }
-        
+
         return $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
-            'items' => array_merge($foldersQuery->all(), $filesQuery->all()),
-            'contentContainer' => $this->contentContainer,
-            'crumb' => $this->generateCrumb(),
-            'errorMessages' => $this->errorMessages,
-            'folderId' => $folder === null ? self::ROOT_ID : $folder->id
+                    'items' => array_merge($foldersQuery->all(), $filesQuery->all()),
+                    'contentContainer' => $this->contentContainer,
+                    'crumb' => $this->generateCrumb(),
+                    'errorMessages' => $this->errorMessages,
+                    'folderId' => $folder === null ? self::ROOT_ID : $folder->id
         ]);
     }
 
@@ -382,18 +377,18 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         if ($this->_currentFolder !== false) {
             return $this->_currentFolder;
         }
-        
+
         $folder = null;
         $folderId = (int) Yii::$app->request->get('fid', self::ROOT_ID);
         if ($folderId !== self::ROOT_ID) {
             $folder = Folder::find()->contentContainer($this->contentContainer)
-                ->readable()
-                ->where([
-                'cfiles_folder.id' => $folderId
-            ])
-                ->one();
+                    ->readable()
+                    ->where([
+                        'cfiles_folder.id' => $folderId
+                    ])
+                    ->one();
         }
-        
+
         $this->_currentFolder = $folder;
         return $folder;
     }
@@ -407,17 +402,17 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     {
         $crumb = [];
         $currentFolder = $this->getCurrentFolder();
-        
+
         if ($currentFolder !== null) {
             $folder = clone $currentFolder;
             while ($folder->parentFolder != null) {
                 $crumb[] = $folder->parentFolder;
                 $folder = $folder->parentFolder;
             }
-            
+
             $crumb[] = $currentFolder;
         }
-        
+
         return $crumb;
     }
 
@@ -425,18 +420,18 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
     {
         $dirstruc = [];
         $folders = Folder::find()->contentContainer($this->contentContainer)
-            ->readable()
-            ->where([
-            'cfiles_folder.parent_folder_id' => $parentId
-        ])
-            ->all();
+                ->readable()
+                ->where([
+                    'cfiles_folder.parent_folder_id' => $parentId
+                ])
+                ->all();
         foreach ($folders as $folder) {
             $dirstruc[] = [
                 'folder' => $folder,
                 'subfolders' => $this->getFolderlist($folder->id)
             ];
         }
-        
+
         return $dirstruc;
     }
 
@@ -450,9 +445,16 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         $query = \humhub\modules\file\models\File::find();
         $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id)');
         $query->join('LEFT JOIN', 'content', '(comment.object_model=content.object_model AND comment.object_id=content.object_id) OR (file.object_model=content.object_model AND file.object_id=content.object_id)');
-        $query->andWhere([
-            'content.space_id' => $this->contentContainer->id
-        ]);
+        if (version_compare(Yii::$app->version, '1.1', 'lt')) {
+            if ($this->contentContainer instanceof \humhub\modules\user\models\User) {
+                $query->andWhere(['content.user_id' => $this->contentContainer->id]);
+                $query->andWhere(['IS', 'content.space_id', new \yii\db\Expression('NULL')]);
+            } else {
+                $query->andWhere(['content.space_id' => $this->contentContainer->id]);
+            }
+        } else {
+            $query->andWhere(['content.contentcontainer_id' => $this->contentContainer->contentContainerRecord->id]);
+        }
         $query->andWhere([
             '<>',
             'file.object_model',
@@ -464,4 +466,25 @@ class BrowseController extends \humhub\modules\content\components\ContentContain
         // Get Files from comments
         return $query->all();
     }
+
+    /**
+     * Checks if user can write
+     * 
+     * @return boolean current user can write/upload/delete files
+     */
+    public function canWrite()
+    {
+        if (version_compare(Yii::$app->version, '1.1', 'lt')) {
+            if ($this->contentContainer instanceof \humhub\modules\user\models\User) {
+                if ($this->contentContainer->id === Yii::$app->user->getIdentity()->id) {
+                    return true;
+                }
+            }
+        }
+
+        return $this->contentContainer->permissionManager->can(new \humhub\modules\cfiles\permissions\WriteAccess());
+
+        return false;
+    }
+
 }

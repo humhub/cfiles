@@ -1,4 +1,5 @@
 <?php
+
 namespace humhub\modules\cfiles;
 
 use Yii;
@@ -23,4 +24,19 @@ class Events extends \yii\base\Object
             ));
         }
     }
+
+    public static function onProfileMenuInit($event)
+    {
+        if ($event->sender->user !== null && $event->sender->user->isModuleEnabled('cfiles')) {
+
+            if ($event->sender->user->canAccessPrivateContent()) {
+                $event->sender->addItem(array(
+                    'label' => Yii::t('CfilesModule.base', 'Files'),
+                    'url' => $event->sender->user->createUrl('/cfiles/browse'),
+                    'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
+                ));
+            }
+        }
+    }
+
 }
