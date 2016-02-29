@@ -30,6 +30,7 @@ class ZipController extends BrowseController
 
     /**
      * Action to generate the according folder and file structure from an uploaded zip file.
+     * 
      * @return multitype:multitype:
      */
     public function actionUploadZippedFolder()
@@ -139,7 +140,10 @@ class ZipController extends BrowseController
             ->all();
         
         foreach ($subFiles as $file) {
-            $filePath = $file->baseFile->getPath() . DIRECTORY_SEPARATOR . $file->title;
+            $filePath = $file->baseFile->getPath() . DIRECTORY_SEPARATOR . 'file';
+            if (version_compare(Yii::$app->version, '1.1', 'lt')) {
+                $filePath = $file->baseFile->getPath() . DIRECTORY_SEPARATOR . $file->title;
+            }
             if (is_file($filePath)) {
                 $zipFile->addFile($filePath, $localPathPrefix . DIRECTORY_SEPARATOR . $file->title);
             }
@@ -171,7 +175,7 @@ class ZipController extends BrowseController
 
     /**
      * Generate the cfolder and cfile structure in the database of a given folder and all its subfolders recursively.
-     * 
+     *
      * @param Response $response
      *            the response errors will be parsed to.
      * @param int $parentFolderId
@@ -229,7 +233,7 @@ class ZipController extends BrowseController
     /**
      * Create a cfile model and create and connect it with its basefile File model from a given data file, connect it with its parent folder.
      * TODO: This method has a lot in common with BrowseController/actionUpload, common logic needs to be extracted and reused
-     * 
+     *
      * @param Response $response
      *            the response errors will be parsed to.
      * @param int $parentFolderId
@@ -349,7 +353,10 @@ class ZipController extends BrowseController
         $outZipPath = $outDirPath . DIRECTORY_SEPARATOR . $folder->title . '.zip';
         $z = new \ZipArchive();
         // overwrite existing zip files
-        $z->open($outZipPath, \ZipArchive::OVERWRITE);
+        $code = $z->open($outZipPath, \ZipArchive::OVERWRITE);
+        if($code !== true) {
+            throw new HttpException(500, Yii::t('CfilesModule.base', 'Opening Zip failed with error code %code%.', ['%code%' => $code]));
+        }
         $z->addEmptyDir($folder->title);
         if ($folder->id === self::ROOT_ID) {
             $this->folderToZip($folder->id, $z, $folder->title);
@@ -367,7 +374,7 @@ class ZipController extends BrowseController
 
     /**
      * Get the output path of the temporary folder used for packing and unpacking zip data.
-     * 
+     *
      * @return string @runtime/temp/[guid]
      */
     protected function getZipOutputPath()
@@ -395,7 +402,7 @@ class ZipController extends BrowseController
 
     /**
      * Initializes the current folder if request param fid is 0.
-     * 
+     *
      * @see \humhub\modules\cfiles\controllers\BrowseController::getCurrentFolder()
      */
     protected function getCurrentFolder()
