@@ -9,7 +9,7 @@ use humhub\compat\CActiveForm;
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h4 class="modal-title" id="myModalLabel">
-                <?php echo Yii::t('CfilesModule.base', '<strong>Confirm delete</strong> file'); ?>
+                <?php echo Yii::t('CfilesModule.base', '<strong>Confirm</strong> delete file'); ?>
             </h4>
         </div>
 

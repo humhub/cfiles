@@ -29,10 +29,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
 
     <div class="panel-body">
         <div class="row">
-            <div class="col-lg-10 col-md-9 col-sm-9" id="fileList">
+            <div class="col-sm-8 col-md-9 col-lg-10" id="fileList">
                 <?php echo $fileList; ?>
             </div>
-            <div class="col-lg-2 col-md-3 col-sm-3">
+            <div class="col-sm-4 col-md-3 col-lg-2">
 
                 <div id="progress" class="progress"
                     style="display: none">

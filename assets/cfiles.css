@@ -40,3 +40,57 @@
         height: 100%;
     }
 }
+
+.table-responsive td .title, .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-responsive td .title {
+    max-width: 150px;
+}
+
+.table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
+    max-width: 70px;
+}
+
+@media (min-width: 420px) {
+    .table-responsive td .title {
+        max-width: 200px;
+        background-color: orange;
+    }
+    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
+        max-width: 100px;
+    }
+}
+
+@media (min-width: 768px) {
+    .table-responsive td .title {
+        max-width: 150px;
+        background-color: red;
+    }
+    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
+        max-width: 70px;
+    }
+}
+
+@media (min-width: 992px) {
+    .table-responsive td .title {
+        max-width: 250px;
+        background-color: green;
+    }
+    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
+        max-width: 120px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .table-responsive td .title {
+        max-width: 650px;
+        background-color: blue;
+    }
+    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
+        max-width: 250px;
+    }
+}

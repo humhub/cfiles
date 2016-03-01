@@ -34,11 +34,15 @@ use humhub\modules\cfiles\controllers\BrowseController;
             data-url="<?php echo $contentContainer->createUrl('all-posted-files'); ?>"
             data-id="<?php echo BrowseController::All_POSTED_FILES_ID; ?>">
             <td></td>
-            <td class="text-left"><i class="fa fa-folder fa-fw"></i>&nbsp;
-                <a
-                href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
-                        <?php echo Yii::t('CfilesModule.base', 'All posted files'); ?>
-                </a></td>
+            <td class="text-left title">
+                <div class="title">
+                    <i class="fa fa-folder fa-fw"></i>&nbsp;
+                    <a
+                    href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
+                            <?php echo Yii::t('CfilesModule.base', 'All posted files'); ?>
+                    </a>
+                </div>
+            </td>
             <td></td>
             <td></td>
             <td></td>
@@ -52,35 +56,43 @@ use humhub\modules\cfiles\controllers\BrowseController;
                 <?php echo Html::checkbox('selected[]', false, [ 'value' => $item->getItemId(), 'class' => 'multiselect']); ?>
             </td>
             <td class="text-left" data-sort-value="icon examples">
-                <i class="fa <?php echo $item->getIconClass(); ?> fa-fw"></i>&nbsp;
-                <?php if ($item->getItemType() === "image") : ?>
-                <a class="preview-link" data-toggle="lightbox"
-                    href="<?php echo $item->getUrl(); ?>#.jpeg"
-                    data-footer='
-                    <button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'>
-                    <?php echo Html::encode($item->getTitle()); ?>
-                </a>
-                <?php else : ?>
-                <a href="<?php echo $item->getUrl(); ?>">
-                    <?php echo Html::encode($item->getTitle()); ?>
-                </a>
-                <?php endif; ?>
+                <div class="title">
+                    <i class="fa <?php echo $item->getIconClass(); ?> fa-fw"></i>&nbsp;
+                    <?php if ($item->getItemType() === "image") : ?>
+                    <a class="preview-link" data-toggle="lightbox"
+                        href="<?php echo $item->getUrl(); ?>#.jpeg"
+                        data-footer='
+                        <button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'>
+                        <?php echo Html::encode($item->getTitle()); ?>
+                    </a>
+                    <?php else : ?>
+                    <a href="<?php echo $item->getUrl(); ?>">
+                        <?php echo Html::encode($item->getTitle()); ?>
+                    </a>
+                    <?php endif; ?>
+                </div>
             </td>
             <td class="text-right"
                 data-sort-value="<?php echo $item->getSize(); ?>">
-                <?php if ($item->getSize() == 0): ?> 
-                    &mdash;
-                <?php else: ?>
-                    <?php echo Yii::$app->formatter->asShortSize($item->getSize(), 1); ?>
-                <?php endif; ?>
+                <div class="size pull-right">
+                    <?php if ($item->getSize() == 0): ?> 
+                        &mdash;
+                    <?php else: ?>
+                        <?php echo Yii::$app->formatter->asShortSize($item->getSize(), 1); ?>
+                    <?php endif; ?>
+                </div>
             </td>
             <td class="text-right" data-sort-value="" title="">
-                <a href="<?php echo $item->creator->createUrl(); ?>">
-                            <?php echo $item->creator->username?>
-                </a>
+                <div class="creator">
+                    <a href="<?php echo $item->creator->createUrl(); ?>">
+                                <?php echo $item->creator->username?>
+                    </a>
+                </div>
             </td>
             <td class="text-right" data-sort-value="" title="">
-                <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $item->content->updated_at]); ?>
+                <div class="timestamp pull-right">
+                    <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $item->content->updated_at ]); ?>
+                </div>
             </td>
         </tr>
         <?php endforeach; ?>
