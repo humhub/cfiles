@@ -8,6 +8,8 @@ $this->registerJsVar('cfilesUploadUrl', "unused");
 $this->registerJsVar('cfilesDeleteUrl', "unused");
 $this->registerJsVar('cfilesEditFolderUrl', "unused");
 $this->registerJsVar('cfilesMoveUrl', "unused");
+$this->registerJsVar('cfilesZipFolderUrl', "unused");
+$this->registerJsVar('cfilesZipUploadUrl', "unused");
 ?>
 <div class="panel panel-default">
     <div class="panel-body">

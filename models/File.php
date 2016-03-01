@@ -3,6 +3,8 @@ namespace humhub\modules\cfiles\models;
 
 use Yii;
 use humhub\modules\user\models\User;
+use humhub\modules\comment\models\Comment;
+use humhub\modules\content\models\Content;
 
 /**
  * This is the model class for table "cfiles_file".

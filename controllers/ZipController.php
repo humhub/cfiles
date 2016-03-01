@@ -329,7 +329,10 @@ class ZipController extends BrowseController
     {
         $files = $this->getAllPostedFiles();
         foreach ($files as $file) {
-            $filePath = $file->getPath() . DIRECTORY_SEPARATOR . $file->title;
+            $filePath = $file->getPath() . DIRECTORY_SEPARATOR . 'file';
+            if (version_compare(Yii::$app->version, '1.1', 'lt')) {
+                $filePath = $file->getPath() . DIRECTORY_SEPARATOR . $file->title;
+            }
             if (is_file($filePath)) {
                 $zipFile->addFile($filePath, $localPathPrefix . DIRECTORY_SEPARATOR . $file->title);
             }
@@ -398,23 +401,5 @@ class ZipController extends BrowseController
     protected function cleanup()
     {
         BaseFileHelper::removeDirectory($this->getZipOutputPath());
-    }
-
-    /**
-     * Initializes the current folder if request param fid is 0.
-     *
-     * @see \humhub\modules\cfiles\controllers\BrowseController::getCurrentFolder()
-     */
-    protected function getCurrentFolder()
-    {
-        $id = (int) Yii::$app->request->get('fid');
-        
-        if ($id === self::ROOT_ID) {
-            return $this->virtualRootFolder;
-        } elseif ($id === self::All_POSTED_FILES_ID) {
-            return $this->virtualAllPostedFilesFolder;
-        } else {
-            return parent::getCurrentFolder();
-        }
     }
 }

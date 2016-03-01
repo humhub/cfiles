@@ -70,7 +70,7 @@ function renderFolder($folder)
                     'type' => 'POST',
                     'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
                     'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); openDirectory($("#input-hidden-selectedFolder").val()); selectDirectory($("#input-hidden-selectedFolder").val()); }'),
-                    'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [])
+                    'url' => $contentContainer->createUrl('/cfiles/move', [])
                 ],
                 'htmlOptions' => [
                     'class' => 'btn btn-primary'

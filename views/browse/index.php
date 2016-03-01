@@ -4,22 +4,22 @@ use yii\helpers\Html;
 use humhub\modules\cfiles\controllers\BrowseController;
 
 $bundle = \humhub\modules\cfiles\Assets::register($this);
-$this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/browse/upload', [
-    'fid' => $folderId
+$this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/upload', [
+    'fid' => $currentFolder->id
 ]));
 $this->registerJsVar('cfilesZipUploadUrl', $contentContainer->createUrl('/cfiles/zip/upload-zipped-folder', [
-    'fid' => $folderId
+    'fid' => $currentFolder->id
     ]));
-$this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/browse/delete', [
-    'fid' => $folderId
+$this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/delete', [
+    'fid' => $currentFolder->id
 ]));
-$this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/browse/edit-folder', [
+$this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/edit', [
     'id' => '--folderId--'
 ]));
 $this->registerJsVar('cfilesZipFolderUrl', $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', [
     'fid' => '--folderId--'
     ]));
-$this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/browse/move-files', [
+$this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move', [
     'init' => 1
 ]));
 
@@ -42,24 +42,27 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                 <ul class="nav nav-pills nav-stacked">
                     <?php if($this->context->canWrite()): ?>
                     <li><span class="fileinput-button btn btn-success">
-                            <i class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', '<strong>Add file(s)</strong>');?> <input id="fileupload"
-                            type="file" name="files[]" multiple>
+                            <i class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', '<strong>Add file(s)</strong>');?> <input
+                            id="fileupload" type="file" name="files[]"
+                            multiple>
                     </span></li>
                     <?php else : ?>
-                    <li><span>&nbsp;<br/>&nbsp;</span></li>
+                    <li><span>&nbsp;<br />&nbsp;
+                    </span></li>
                     <?php endif; ?>
                     <li class="nav-divider"></li>
                     <?php if($this->context->canWrite()): ?>
-                    <li><a class="fileinput-button">
-                            <i class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Upload .zip');?> <input id="zipupload"
-                            type="file" name="files[]" multiple>
+                    <li><a class="fileinput-button"> <i
+                            class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Upload .zip');?> <input
+                            id="zipupload" type="file" name="files[]"
+                            multiple>
                     </a></li>
                     <?php endif; ?>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $folderId])); ?></li>
+                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id])); ?></li>
                     <?php if($this->context->canWrite()): ?>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/browse/edit-folder', ['fid' => $folderId]), array('data-target' => '#globalModal')); ?></li>
-                        <?php if ($folderId !== BrowseController::ROOT_ID) : ?>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/browse/edit-folder', ['id' => $folderId]), array('data-target' => '#globalModal')); ?></li>
+                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal')); ?></li>
+                        <?php if ($currentFolder->id !== BrowseController::ROOT_ID) : ?>
+                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal')); ?></li>
                         <?php endif; ?>
                     <li>
                         <?php
@@ -68,18 +71,20 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             'tag' => 'a',
                             'ajaxOptions' => [
                                 'type' => 'POST',
-                                'success' => new yii\web\JsExpression('function(html){ $("#fileList").html(html); showHideBtns();}'),
-                                'url' => $contentContainer->createUrl('/cfiles/browse/delete', [
-                                    'fid' => $folderId
+                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show");}'),
+                                'url' => $contentContainer->createUrl('/cfiles/delete', [
+                                    'fid' => $currentFolder->id
                                 ])
                             ],
                             'htmlOptions' => [
                                 'class' => 'selectedOnly filedelete-button',
-                                'style' => 'display:none'
+                                'style' => 'display:none',
                             ]
                         ]);
                         ?>
+                                            
                     </li>
+                    <!-- <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Delete')." (<span class='chkCnt'></span>)", $contentContainer->createUrl('/cfiles/delete', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'selectedOnly filedelete-button', 'style' => 'display:none;')); ?></li> -->
                     <li>
                         <?php
                         echo \humhub\widgets\AjaxButton::widget([
@@ -87,10 +92,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/brow
                             'tag' => 'a',
                             'ajaxOptions' => [
                                 'type' => 'POST',
-                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show"); openDirectory(' . $folderId . '); selectDirectory(' . $folderId . ');}'),
-                                'url' => $contentContainer->createUrl('/cfiles/browse/move-files', [
+                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show"); openDirectory(' . $currentFolder->id . '); selectDirectory(' . $currentFolder->id . ');}'),
+                                'url' => $contentContainer->createUrl('/cfiles/move', [
                                     'init' => 1,
-                                    'fid' => $folderId
+                                    'fid' => $currentFolder->id
                                 ])
                             ],
                             'htmlOptions' => [

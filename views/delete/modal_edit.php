@@ -21,7 +21,7 @@
         </div>
 
         <div class="modal-footer">
-            <?php echo \humhub\widgets\AjaxButton::widget([ 'label'=> Yii::t('CfilesModule.base', 'Save'), 'ajaxOptions' => [ 'type' => 'POST', 'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'), 'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'), 'url' => $contentContainer->createUrl('/cfiles/browse/edit-folder', [ 'fid' => $currentFolderId, 'id' => $folder->id ]) ], 'htmlOptions' => [ 'class' => 'btn btn-primary' ] ]); ?>
+            <?php echo \humhub\widgets\AjaxButton::widget([ 'label'=> Yii::t('CfilesModule.base', 'Save'), 'ajaxOptions' => [ 'type' => 'POST', 'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'), 'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'), 'url' => $contentContainer->createUrl('/cfiles/edit', [ 'fid' => $currentFolder->id, 'id' => $folder->id ]) ], 'htmlOptions' => [ 'class' => 'btn btn-primary' ] ]); ?>
             <button type="button" class="btn btn-primary"
                 data-dismiss="modal">
                 <?php echo Yii::t( 'CfilesModule.base', 'Close'); ?>
