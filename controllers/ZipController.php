@@ -25,7 +25,7 @@ use humhub\modules\file\libs\ImageConverter;
  *
  * @author Sebastian Stumpf
  */
-class ZipController extends BrowseController
+class ZipController extends UploadController
 {
 
     /**
@@ -138,10 +138,10 @@ class ZipController extends BrowseController
             'parent_folder_id' => $folderId
         ])
             ->all();
-        
+               
         foreach ($subFiles as $file) {
             $filePath = $file->baseFile->getPath() . DIRECTORY_SEPARATOR . 'file';
-            if (version_compare(Yii::$app->version, '1.1', 'lt')) {
+            if (version_compare(Yii::$app->version, '1.1', '<')) {
                 $filePath = $file->baseFile->getPath() . DIRECTORY_SEPARATOR . $file->title;
             }
             if (is_file($filePath)) {
@@ -363,7 +363,7 @@ class ZipController extends BrowseController
         $z->addEmptyDir($folder->title);
         if ($folder->id === self::ROOT_ID) {
             $this->archiveFolder($folder->id, $z, $folder->title);
-            $allPostedFilesDirPath = $folder->title . DIRECTORY_SEPARATOR . $this->virtualAllPostedFilesFolder->title;
+            $allPostedFilesDirPath = $folder->title . DIRECTORY_SEPARATOR . $this->getAllPostedFilesFolder()->title;
             $this->archiveAllPostedFiles($z, $allPostedFilesDirPath);
         } elseif ($folder->id === self::All_POSTED_FILES_ID) {
             $this->archiveAllPostedFiles($z, $folder->title);

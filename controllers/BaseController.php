@@ -54,21 +54,13 @@ abstract class BaseController extends \humhub\modules\content\components\Content
         
         $this->_currentFolder = null;
         $folderId = (int) Yii::$app->request->get('fid', self::ROOT_ID);
-        
-        $rootFolder = new Folder();
-        $rootFolder->id = self::ROOT_ID;
-        $rootFolder->title = Yii::t('CfilesModule.base', 'root');
-        
+               
         switch ($folderId) {
             case self::ROOT_ID:
-                ROOT_ID:
-                $this->_currentFolder = $rootFolder;
+                $this->_currentFolder = $this->getRootFolder();
                 break;
             case self::All_POSTED_FILES_ID:
-                $this->_currentFolder = new Folder();
-                $this->_currentFolder->id = self::All_POSTED_FILES_ID;
-                $this->_currentFolder->title = Yii::t('CfilesModule.base', 'All posted files');
-                $this->_currentFolder->parent_folder_id = $rootFolder->id;
+                $this->_currentFolder = $this->getAllPostedFilesFolder();
                 break;
             default:
                 $this->_currentFolder = Folder::find()->contentContainer($this->contentContainer)
@@ -94,10 +86,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     
     protected function getAllPostedFilesFolder() {
         if (empty($this->_allPostedFilesFolder)) {
-            $this->_currentFolder = new Folder();
-            $this->_currentFolder->id = self::All_POSTED_FILES_ID;
-            $this->_currentFolder->title = Yii::t('CfilesModule.base', 'All posted files');
-            $this->_currentFolder->parentFolder = $this->getRootFolder();
+            $this->_allPostedFilesFolder = new Folder();
+            $this->_allPostedFilesFolder->id = self::All_POSTED_FILES_ID;
+            $this->_allPostedFilesFolder->title = Yii::t('CfilesModule.base', 'All posted files');
+            $this->_allPostedFilesFolder->parent_folder_id = $this->getRootFolder()->id;
         }
         return $this->_allPostedFilesFolder;
     }

@@ -10,6 +10,7 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\content\models\Content;
+use yii\helpers\Url;
 
 class Module extends ContentContainerModule
 {
@@ -101,4 +102,13 @@ class Module extends ContentContainerModule
         }
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getConfigUrl()
+    {
+        return Url::to([
+            '/cfiles/config'
+            ]);
+    }    
 }

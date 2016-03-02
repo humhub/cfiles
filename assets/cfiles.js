@@ -188,6 +188,7 @@ $(function() {
 	 * Install uploader
 	 */
 	$('#zipupload').fileupload({
+		dropZone: $([]),
 		url : cfilesZipUploadUrl,
 		dataType : 'json',
 		done : function(e, data) {

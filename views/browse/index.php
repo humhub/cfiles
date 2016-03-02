@@ -2,6 +2,7 @@
 use yii\helpers\Url;
 use yii\helpers\Html;
 use humhub\modules\cfiles\controllers\BrowseController;
+use humhub\models\Setting;
 
 $bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/upload', [
@@ -51,6 +52,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                     </span></li>
                     <?php endif; ?>
                     <li class="nav-divider"></li>
+                    <?php if(Setting::Get('enableZipSupport', 'cfiles')): ?>
                     <?php if($this->context->canWrite()): ?>
                     <li><a class="fileinput-button"> <i
                             class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Upload .zip');?> <input
@@ -58,7 +60,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                             multiple>
                     </a></li>
                     <?php endif; ?>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id])); ?></li>
+                    <?php if($itemCount > 0): ?>
+                        <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id])); ?></li>
+                    <?php endif; ?>
+                    <?php endif; ?>
                     <?php if($this->context->canWrite()): ?>
                     <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal')); ?></li>
                         <?php if ($currentFolder->id !== BrowseController::ROOT_ID) : ?>

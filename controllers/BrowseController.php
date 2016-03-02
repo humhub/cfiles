@@ -28,16 +28,18 @@ class BrowseController extends BaseController
 
     public function actionIndex()
     {
+        $fileList = $this->renderFileList(true);
         return $this->render('index', [
             'contentContainer' => $this->contentContainer,
             'currentFolder' => $this->getCurrentFolder(),
-            'fileList' => $this->renderFileList()
+            'fileList' => $fileList['view'],
+            'itemCount' => $fileList['itemCount']
         ]);
     }
 
     /**
      * Action to list all posted files from the content container.
-     * 
+     *
      * @return string
      */
     public function actionAllPostedFiles()
@@ -64,7 +66,7 @@ class BrowseController extends BaseController
      *
      * @return type
      */
-    protected function renderFileList()
+    protected function renderFileList($withItemCount = false)
     {
         $filesQuery = File::find()->joinWith('baseFile')
             ->contentContainer($this->contentContainer)
@@ -76,19 +78,28 @@ class BrowseController extends BaseController
         $foldersQuery->andWhere([
             'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
         ]);
-        
-        return $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
-            'items' => array_merge($foldersQuery->all(), $filesQuery->all()),
+        $items = array_merge($foldersQuery->all(), $filesQuery->all());
+        $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
+            'items' => $items,
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
             'errorMessages' => $this->errorMessages,
-            'currentFolder' => $this->getCurrentFolder()
+            'currentFolder' => $this->getCurrentFolder(),
+            'allPostedFilesCount' => $this->getCurrentFolder()->id === self::ROOT_ID ? count($this->getAllPostedFiles()) : 0
         ]);
+        if ($withItemCount) {
+            return [
+                'view' => $view,
+                'itemCount' => count($items)
+            ];
+        } else {
+            return $view;
+        }
     }
 
     /**
      * Load all posted files from the database and get an array of them.
-     * 
+     *
      * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
     protected function getAllPostedFiles()

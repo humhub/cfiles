@@ -14,6 +14,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
 
 <div class="table-responsive">
     <table id="bs-table" class="table table-hover">
+        <?php if(sizeof($items) > 0 || $allPostedFilesCount > 0) : ?>
         <thead>
             <tr>
                 <th class="text-right" data-sort="int">
@@ -29,7 +30,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
                 <td colspan="5"></td>
             </tr>
         </tfoot>
-        <?php if ($currentFolder->id == BrowseController::ROOT_ID) : ?>
+        <?php if ($allPostedFilesCount > 0) : ?>
             <tr data-type="all-posted-files"
             data-url="<?php echo $contentContainer->createUrl('all-posted-files'); ?>"
             data-id="<?php echo BrowseController::All_POSTED_FILES_ID; ?>">
@@ -39,7 +40,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
                     <i class="fa fa-folder fa-fw"></i>&nbsp;
                     <a
                     href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
-                            <?php echo Yii::t('CfilesModule.base', 'All posted files'); ?>
+                            <?php echo Yii::t('CfilesModule.base', 'All posted files'); ?> (<?php echo ''. $allPostedFilesCount; ?>)
                     </a>
                 </div>
             </td>
@@ -95,7 +96,10 @@ use humhub\modules\cfiles\controllers\BrowseController;
                 </div>
             </td>
         </tr>
-        <?php endforeach; ?>
+        <?php endforeach; else: ?>
+        <p><?php echo Yii::t('CfilesModule.base', 'No files found.');?></p>
+        <?php endif; ?>
+        
 
     </table>
 </div>
