@@ -118,7 +118,7 @@ $this->registerJsVar('cfilesZipUploadUrl', "unused");
                 <ul class="nav nav-pills nav-stacked">
                     <li><span>&nbsp;<br/>&nbsp;</span></li>
                     <li class="nav-divider"></li>
-                    <li><?php echo Html::a('Download .zip', $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => BrowseController::All_POSTED_FILES_ID])); ?></li>
+                    <li><?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => BrowseController::All_POSTED_FILES_ID])); ?></li>
                 </ul>
             </div>
             <?php endif; ?>

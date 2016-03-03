@@ -2,6 +2,8 @@
     position: relative;
     overflow: hidden;
     display: inline-block;
+    max-width: 100%;
+    text-overflow: ellipsis;
 }
 
 .fileinput-button input {
