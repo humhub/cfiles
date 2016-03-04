@@ -274,4 +274,22 @@ class File extends FileSystemItem
     {
         parent::validateParentFolderId($attribute, $params);
     }
+    
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentName()
+    {
+        return Yii::t('CfilesModule.base', "File");
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentDescription()
+    {
+        return $this->getItemTitle();
+    }    
+    
 }
