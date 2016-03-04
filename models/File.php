@@ -289,7 +289,7 @@ class File extends FileSystemItem
      */
     public function getContentDescription()
     {
-        return $this->getItemTitle();
+        return $this->getTitle();
     }    
     
 }
