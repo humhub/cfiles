@@ -63,10 +63,12 @@ class BrowseController extends BaseController
 
     /**
      * Returns file list
-     *
-     * @return type
+     * 
+     * @param boolean $withItemCount
+     *            true -> also calculate and return the item count.
+     * @return multitype:array | string The rendered view or an array of the rendered view and the itemCount.
      */
-    protected function renderFileList($withItemCount = false)
+    protected function renderFileList($withItemCount = false, $orderBy = ['title' => SORT_ASC])
     {
         $filesQuery = File::find()->joinWith('baseFile')
             ->contentContainer($this->contentContainer)
@@ -78,6 +80,8 @@ class BrowseController extends BaseController
         $foldersQuery->andWhere([
             'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
         ]);
+        $filesQuery->orderBy($orderBy);
+        $foldersQuery->orderBy($orderBy);
         $items = array_merge($foldersQuery->all(), $filesQuery->all());
         $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
             'items' => $items,
@@ -102,7 +106,7 @@ class BrowseController extends BaseController
      *
      * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
-    protected function getAllPostedFiles()
+    protected function getAllPostedFiles($orderBy = ['file.updated_at' => SORT_DESC, 'file.title' => SORT_ASC])
     {
         // Get Posted Files
         $query = \humhub\modules\file\models\File::find();
@@ -133,9 +137,7 @@ class BrowseController extends BaseController
             'file.object_model',
             File::className()
         ]);
-        $query->orderBy([
-            'file.updated_at' => SORT_DESC
-        ]);
+        $query->orderBy($orderBy);
         // Get Files from comments
         return $query->all();
     }
