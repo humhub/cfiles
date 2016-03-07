@@ -51,8 +51,8 @@ use humhub\modules\cfiles\controllers\BrowseController;
         <?php endif; ?>
         <?php foreach ($items as $item) : ?>
         <tr data-type="<?php echo $item->getItemType(); ?>"
-            data-id="<?php echo $item->id; ?>"
-            data-url="<?php echo $item->getUrl(); ?>">
+            data-id="<?php echo $item->getItemId(); ?>"
+            data-url="<?php echo $item->getUrl(true); ?>">
             <td class="text-muted text-right">
                 <?php echo Html::checkbox('selected[]', false, [ 'value' => $item->getItemId(), 'class' => 'multiselect']); ?>
             </td>
@@ -84,9 +84,13 @@ use humhub\modules\cfiles\controllers\BrowseController;
                 </div>
             </td>
             <td class="text-right" data-sort-value="" title="">
-                <div class="creator">
+                <div class="creator pull-right">
                     <a href="<?php echo $item->creator->createUrl(); ?>">
-                                <?php echo $item->creator->username?>
+                        <img class="img-rounded"
+                            src="<?php echo $item->creator->getProfileImage()->getUrl(); ?>" width="21"
+                            height="21" alt="21x21" data-src="holder.js/21x21"
+                            style="width: 21px; height: 21px;">
+                        <?php echo $item->creator->getDisplayName()?>
                     </a>
                 </div>
             </td>

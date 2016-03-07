@@ -58,7 +58,7 @@ $this->registerJsVar('cfilesZipUploadUrl', "unused");
                         <?php foreach ($items as $item) : ?>
                         <tr
                             data-type="<?php echo File::getItemTypeByExt($item['file']->getExtension());?>"
-                            data-url="<?php echo $item['file']->getUrl(); ?>"
+                            data-url="<?php echo $item['file']->getUrl().'&'.http_build_query(['download' => true]); ?>"
                             data-content-url="<?php echo empty($item['content']) ? "" : $item['content']->getUrl(); ?>">
                             <td class="text-left"
                                 data-sort-value="icon examples">
@@ -92,9 +92,12 @@ $this->registerJsVar('cfilesZipUploadUrl', "unused");
                             <td class="text-right" data-sort-value=""
                                 title="">
                                 <div class="creator">
-                                    <a
-                                    href="<?php echo File::getCreatorById($item['file']->created_by)->createUrl(); ?>">
-                                        <?php echo File::getCreatorById($item['file']->created_by)->username?>
+                                    <a href="<?php echo File::getCreatorById($item['file']->created_by)->createUrl(); ?>">
+                                        <img class="img-rounded"
+                                            src="<?php echo File::getCreatorById($item['file']->created_by)->getProfileImage()->getUrl(); ?>" width="21"
+                                            height="21" alt="21x21" data-src="holder.js/21x21"
+                                            style="width: 21px; height: 21px;">
+                                        <?php echo File::getCreatorById($item['file']->created_by)->getDisplayName()?>
                                     </a>
                                 </div>
                             </td>
@@ -118,7 +121,7 @@ $this->registerJsVar('cfilesZipUploadUrl', "unused");
                 <ul class="nav nav-pills nav-stacked">
                     <li><span>&nbsp;<br/>&nbsp;</span></li>
                     <li class="nav-divider"></li>
-                    <li><?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => BrowseController::All_POSTED_FILES_ID])); ?></li>
+                    <li><?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => BrowseController::All_POSTED_FILES_ID]), ['class' => 'overflow-ellipsis']); ?></li>
                 </ul>
             </div>
             <?php endif; ?>

@@ -1,9 +1,10 @@
-.fileinput-button {
+.overflow-ellipsis {
     position: relative;
     overflow: hidden;
     display: inline-block;
     max-width: 100%;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .fileinput-button input {

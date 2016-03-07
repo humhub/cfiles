@@ -42,7 +42,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
 
                 <ul class="nav nav-pills nav-stacked">
                     <?php if($this->context->canWrite()): ?>
-                    <li><span class="fileinput-button btn btn-success">
+                    <li><span class="fileinput-button btn btn-success overflow-ellipsis">
                             <i class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Add file(s)');?> <input
                             id="fileupload" type="file" name="files[]"
                             multiple>
@@ -54,20 +54,20 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                     <li class="nav-divider"></li>
                     <?php if(Setting::Get('enableZipSupport', 'cfiles')): ?>
                     <?php if($this->context->canWrite()): ?>
-                    <li><a class="fileinput-button"> <i
+                    <li><a class="fileinput-button overflow-ellipsis"> <i
                             class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Upload .zip');?> <input
                             id="zipupload" type="file" name="files[]"
                             multiple>
                     </a></li>
                     <?php endif; ?>
                     <?php if($itemCount > 0): ?>
-                        <li><?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id])); ?></li>
+                        <li><?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id]), array('class' => 'overflow-ellipsis')); ?></li>
                     <?php endif; ?>
                     <?php endif; ?>
                     <?php if($this->context->canWrite()): ?>
-                    <li><?php echo Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal')); ?></li>
+                    <li><?php echo Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'overflow-ellipsis')); ?></li>
                         <?php if ($currentFolder->id !== BrowseController::ROOT_ID) : ?>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal')); ?></li>
+                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'overflow-ellipsis')); ?></li>
                         <?php endif; ?>
                     <li>
                         <?php
@@ -82,7 +82,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                                 ])
                             ],
                             'htmlOptions' => [
-                                'class' => 'selectedOnly filedelete-button',
+                                'class' => 'selectedOnly filedelete-button overflow-ellipsis',
                                 'style' => 'display:none',
                             ]
                         ]);
@@ -103,7 +103,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                                 ])
                             ],
                             'htmlOptions' => [
-                                'class' => 'selectedOnly filemove-button',
+                                'class' => 'selectedOnly filemove-button overflow-ellipsis',
                                 'style' => 'display:none'
                             ]
                         ]);

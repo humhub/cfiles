@@ -219,9 +219,9 @@ class File extends FileSystemItem
         return $this->baseFile->size;
     }
 
-    public function getUrl()
+    public function getUrl($download = false)
     {
-        return $this->baseFile->getUrl();
+        return $this->baseFile->getUrl().($download ? '&'.http_build_query(['download' => 1]) : '');
     }
 
     public function getCreator()

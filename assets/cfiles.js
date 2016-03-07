@@ -72,7 +72,7 @@ function initFileList() {
 							url : cfilesDeleteUrl,
 							type : 'POST',
 							data : {
-								'selected[]' : itemId,
+								'selected[]' : itemRealId,
 							},
 						}).done(function(html) {
 							$("#fileList").html(html);
@@ -100,7 +100,7 @@ function initFileList() {
 							url : cfilesMoveUrl,
 							type : 'POST',
 							data : {
-								'selected[]' : itemId,
+								'selected[]' : itemRealId,
 							},
 						}).done(function(html) {
 							$("#globalModal").html(html);
