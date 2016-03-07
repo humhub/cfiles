@@ -86,11 +86,12 @@ use humhub\modules\cfiles\controllers\BrowseController;
             <td class="text-right" data-sort-value="" title="">
                 <div class="creator pull-right">
                     <a href="<?php echo $item->creator->createUrl(); ?>">
-                        <img class="img-rounded"
-                            src="<?php echo $item->creator->getProfileImage()->getUrl(); ?>" width="21"
-                            height="21" alt="21x21" data-src="holder.js/21x21"
-                            style="width: 21px; height: 21px;">
-                        <?php echo $item->creator->getDisplayName()?>
+                        <img class="img-rounded tt img_margin"
+                            src="<?php echo $item->creator->getProfileImage()->getUrl(); ?>"
+                            width="21" height="21" alt="21x21" data-src="holder.js/21x21"
+                            style="width: 21px; height: 21px;"
+                            data-original-title="<?php echo $item->creator->getDisplayName();?>"
+                            data-placement="top" title="" data-toggle="tooltip">
                     </a>
                 </div>
             </td>

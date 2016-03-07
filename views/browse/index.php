@@ -3,6 +3,8 @@ use yii\helpers\Url;
 use yii\helpers\Html;
 use humhub\modules\cfiles\controllers\BrowseController;
 use humhub\models\Setting;
+use yii\bootstrap\ButtonDropdown;
+use humhub\modules\cfiles\widgets\DropdownButton;
 
 $bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/upload', [
@@ -29,88 +31,125 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
 <div class="panel panel-default">
 
     <div class="panel-body">
-        <div class="row">
-            <div class="col-sm-8 col-md-9 col-lg-10" id="fileList">
-                <?php echo $fileList; ?>
-            </div>
-            <div class="col-sm-4 col-md-3 col-lg-2">
-
+    
+        <div class="row files-action-menu">
+            <?php if($this->context->canWrite()): ?>
+            <div class="col-sm-3">
                 <div id="progress" class="progress"
                     style="display: none">
                     <div class="progress-bar progress-bar-success"></div>
                 </div>
-
-                <ul class="nav nav-pills nav-stacked">
-                    <?php if($this->context->canWrite()): ?>
-                    <li><span class="fileinput-button btn btn-success overflow-ellipsis">
-                            <i class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Add file(s)');?> <input
-                            id="fileupload" type="file" name="files[]"
-                            multiple>
-                    </span></li>
-                    <?php else : ?>
-                    <li><span>&nbsp;<br />&nbsp;
-                    </span></li>
-                    <?php endif; ?>
-                    <li class="nav-divider"></li>
-                    <?php if(Setting::Get('enableZipSupport', 'cfiles')): ?>
-                    <?php if($this->context->canWrite()): ?>
-                    <li><a class="fileinput-button overflow-ellipsis"> <i
-                            class="glyphicon glyphicon-plus"></i> <?php echo Yii::t('CfilesModule.base', 'Upload .zip');?> <input
-                            id="zipupload" type="file" name="files[]"
-                            multiple>
-                    </a></li>
-                    <?php endif; ?>
-                    <?php if($itemCount > 0): ?>
-                        <li><?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id]), array('class' => 'overflow-ellipsis')); ?></li>
-                    <?php endif; ?>
-                    <?php endif; ?>
-                    <?php if($this->context->canWrite()): ?>
-                    <li><?php echo Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'overflow-ellipsis')); ?></li>
-                        <?php if ($currentFolder->id !== BrowseController::ROOT_ID) : ?>
-                    <li><?php echo Html::a(Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'overflow-ellipsis')); ?></li>
-                        <?php endif; ?>
-                    <li>
-                        <?php
-                        echo \humhub\widgets\AjaxButton::widget([
-                            'label' => '<i class="fa fa-trash"></i> '.Yii::t('CfilesModule.base', 'Delete')." (<span class='chkCnt'></span>)",
-                            'tag' => 'a',
-                            'ajaxOptions' => [
-                                'type' => 'POST',
-                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show");}'),
-                                'url' => $contentContainer->createUrl('/cfiles/delete', [
-                                    'fid' => $currentFolder->id
-                                ])
-                            ],
-                            'htmlOptions' => [
-                                'class' => 'selectedOnly filedelete-button overflow-ellipsis',
-                                'style' => 'display:none',
-                            ]
-                        ]);
-                        ?>
-                                            
-                    </li>
-                    <li>
-                        <?php
-                        echo \humhub\widgets\AjaxButton::widget([
-                            'label' => '<i class="fa fa-arrows"></i> '.Yii::t('CfilesModule.base', 'Move')." (<span class='chkCnt'></span>)",
-                            'tag' => 'a',
-                            'ajaxOptions' => [
-                                'type' => 'POST',
-                                'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show"); openDirectory(' . $currentFolder->id . '); selectDirectory(' . $currentFolder->id . ');}'),
-                                'url' => $contentContainer->createUrl('/cfiles/move', [
-                                    'init' => 1,
-                                    'fid' => $currentFolder->id
-                                ])
-                            ],
-                            'htmlOptions' => [
-                                'class' => 'selectedOnly filemove-button overflow-ellipsis',
-                                'style' => 'display:none'
-                            ]
-                        ]);
-                        ?>
-                    </li>
-                    <?php endif; ?>
-                </ul>
+                <?php 
+                $icon = '<i class="glyphicon glyphicon-plus"></i> ';
+                $buttons = [];
+                $buttons[] = 
+                '<span class="fileinput-button btn btn-success overflow-ellipsis">'.
+                    $icon.
+                    Yii::t('CfilesModule.base', 'Add file(s)').
+                    '<input id="fileupload" type="file" name="files[]" multiple>'.
+                '</span>';
+                if(Setting::Get('enableZipSupport', 'cfiles')):
+                    $buttons[] = 
+                    '<span class="fileinput-button btn btn-success overflow-ellipsis">'.
+                        $icon.
+                        Yii::t('CfilesModule.base', 'Upload .zip').
+                        '<input id="zipupload" type="file" name="files[]" multiple>'.
+                    '</span>';
+                endif;
+                echo DropdownButton::widget([
+                    'label' => \Yii::t('CfilesModule.base', 'Upload'),
+                    'buttons' => $buttons,
+                    'icon' => $icon,
+                    'options' => [
+                        'class' => 'btn btn-success overflow-ellipsis',
+                        ]
+                    ]
+                );      
+                ?>
+            </div>
+            <?php endif; ?>
+            <?php if(Setting::Get('enableZipSupport', 'cfiles') && $itemCount > 0): ?>
+            <div class="col-sm-3">
+                <div>
+                    <?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id]), array('class' => 'btn btn-default overflow-ellipsis')); ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php if($this->context->canWrite()): ?>
+            <div class="col-sm-3">
+                <?php 
+                $icon = '<i class="fa fa-folder"></i> ';
+                $buttons = [];
+                $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'btn btn-default overflow-ellipsis'));
+                if ($currentFolder->id !== BrowseController::ROOT_ID):
+                    $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'btn btn-default overflow-ellipsis'));
+                endif;
+                echo DropdownButton::widget([
+                    'label' => \Yii::t('CfilesModule.base', 'Folder options'),
+                    'buttons' => $buttons,
+                    'icon' => $icon,
+                    'options' => [
+                        'class' => 'btn btn-default overflow-ellipsis',
+                        ]
+                    ]
+                );      
+                ?>
+            </div>
+            <?php endif; ?>
+            <?php if($this->context->canWrite()): ?>
+            <div class="col-sm-3 selectedOnly">
+                <?php 
+                $icon = '';
+                $buttons = [];
+                $buttons[] = 
+                \humhub\widgets\AjaxButton::widget([
+                    'label' => '<i class="fa fa-trash"></i> '.Yii::t('CfilesModule.base', 'Delete')." (<span class='chkCnt'></span>)",
+                    'tag' => 'button',
+                    'ajaxOptions' => [
+                    'type' => 'POST',
+                    'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show");}'),
+                    'url' => $contentContainer->createUrl('/cfiles/delete', [
+                        'fid' => $currentFolder->id
+                        ])
+                    ],
+                    'htmlOptions' => [
+                    'class' => 'btn btn-danger selectedOnly filedelete-button overflow-ellipsis',
+                    'style' => 'display:none',
+                    ]
+                ]);
+                $buttons[] = 
+                \humhub\widgets\AjaxButton::widget([
+                    'label' => '<i class="fa fa-arrows"></i> '.Yii::t('CfilesModule.base', 'Move')." (<span class='chkCnt'></span>)",
+                    'tag' => 'button',
+                    'ajaxOptions' => [
+                    'type' => 'POST',
+                    'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); $("#globalModal").modal("show"); openDirectory(' . $currentFolder->id . '); selectDirectory(' . $currentFolder->id . ');}'),
+                    'url' => $contentContainer->createUrl('/cfiles/move', [
+                        'init' => 1,
+                        'fid' => $currentFolder->id
+                        ])
+                    ],
+                    'htmlOptions' => [
+                    'class' => 'btn btn-default filemove-button overflow-ellipsis',
+                    ]
+                ]);
+                echo DropdownButton::widget([
+                    'label' => \Yii::t('CfilesModule.base', 'Move / Delete')." (<span class='chkCnt'></span>)",
+                    'buttons' => $buttons,
+                    'icon' => $icon,
+                    'options' => [
+                        'class' => 'btn btn-default overflow-ellipsis',
+                        ]
+                    ]
+                );      
+                ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12" id="fileList">
+                <?php echo $fileList; ?>
             </div>
         </div>
     </div>
