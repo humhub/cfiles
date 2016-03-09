@@ -42,7 +42,7 @@ class Module extends ContentContainerModule
 
     public function getItemById($itemId)
     {
-        list ($type, $id) = explode('-', $itemId);
+        list ($type, $id) = explode('_', $itemId);
 
         if ($type == 'file') {
             return models\File::findOne([
@@ -50,6 +50,10 @@ class Module extends ContentContainerModule
             ]);
         } elseif ($type == 'folder') {
             return models\Folder::findOne([
+                        'id' => $id
+            ]);
+        } elseif ($type == 'baseFile') {
+            return \humhub\modules\file\models\File::findOne([
                         'id' => $id
             ]);
         }

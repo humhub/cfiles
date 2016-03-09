@@ -10,7 +10,7 @@ $bundle = \humhub\modules\cfiles\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/upload', [
     'fid' => $currentFolder->id
 ]));
-$this->registerJsVar('cfilesZipUploadUrl', $contentContainer->createUrl('/cfiles/zip/upload-zipped-folder', [
+$this->registerJsVar('cfilesZipUploadUrl', $contentContainer->createUrl('/cfiles/zip/upload-archive', [
     'fid' => $currentFolder->id
     ]));
 $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/delete', [
@@ -19,7 +19,7 @@ $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/de
 $this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/edit', [
     'id' => '--folderId--'
 ]));
-$this->registerJsVar('cfilesZipFolderUrl', $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', [
+$this->registerJsVar('cfilesDownloadArchiveUrl', $contentContainer->createUrl('/cfiles/zip/download-archive', [
     'fid' => '--folderId--'
     ]));
 $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move', [
@@ -27,7 +27,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
 ]));
 
 ?>
-<?php echo Html::beginForm(null, null, ['data-target' => '#globalModal']); ?>
+<?php echo Html::beginForm(null, null, ['data-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
 <div class="panel panel-default">
 
     <div class="panel-body">
@@ -70,9 +70,20 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
             <?php endif; ?>
             <?php if(Setting::Get('enableZipSupport', 'cfiles') && $itemCount > 0): ?>
             <div class="col-sm-3">
-                <div>
-                    <?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-zipped-folder', ['fid' => $currentFolder->id]), array('class' => 'btn btn-default overflow-ellipsis')); ?>
-                </div>
+                <?php 
+                    $icon = '<i class="fa fa-download"></i> ';
+                    $buttons = [];
+                    $buttons[] = Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Archive folder'), $contentContainer->createUrl('/cfiles/zip/download-archive', ['fid' => $currentFolder->id]), array('class' => 'btn btn-default overflow-ellipsis'));
+                    echo DropdownButton::widget([
+                        'label' => \Yii::t('CfilesModule.base', 'Download zip'),
+                        'buttons' => $buttons,
+                        'icon' => $icon,
+                        'options' => [
+                            'class' => 'btn btn-default overflow-ellipsis',
+                            ]
+                        ]
+                    );      
+                ?>
             </div>
             <?php endif; ?>
             <?php if($this->context->canWrite()): ?>
@@ -103,7 +114,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                 $buttons = [];
                 $buttons[] = 
                 \humhub\widgets\AjaxButton::widget([
-                    'label' => '<i class="fa fa-trash"></i> '.Yii::t('CfilesModule.base', 'Delete')." (<span class='chkCnt'></span>)",
+                    'label' => '<i class="fa fa-trash"></i> '.Yii::t('CfilesModule.base', 'Delete'),
                     'tag' => 'button',
                     'ajaxOptions' => [
                     'type' => 'POST',
@@ -119,7 +130,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                 ]);
                 $buttons[] = 
                 \humhub\widgets\AjaxButton::widget([
-                    'label' => '<i class="fa fa-arrows"></i> '.Yii::t('CfilesModule.base', 'Move')." (<span class='chkCnt'></span>)",
+                    'label' => '<i class="fa fa-arrows"></i> '.Yii::t('CfilesModule.base', 'Move'),
                     'tag' => 'button',
                     'ajaxOptions' => [
                     'type' => 'POST',
@@ -133,8 +144,11 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                     'class' => 'btn btn-default filemove-button overflow-ellipsis',
                     ]
                 ]);
+                if(Setting::Get('enableZipSupport', 'cfiles')) {
+                    $buttons[] = Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Archive'), $contentContainer->createUrl('/cfiles/zip/download-archive'), array('class' => 'btn btn-default overflow-ellipsis', 'id' => 'zip-selected-button'));
+                }
                 echo DropdownButton::widget([
-                    'label' => \Yii::t('CfilesModule.base', 'Move / Delete')." (<span class='chkCnt'></span>)",
+                    'label' => "(<span class='chkCnt'></span>) ".\Yii::t('CfilesModule.base', 'Selected items...'),
                     'buttons' => $buttons,
                     'icon' => $icon,
                     'options' => [
@@ -155,7 +169,6 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     </div>
 </div>
 <?php echo Html::endForm(); ?>
-
 
 <ul id="contextMenuFolder" class="contextMenu dropdown-menu" role="menu"
     style="display: none">
@@ -212,3 +225,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
         </ul>
     </div>
 </div>
+
+<form method="post" id="downloadSelectedAsZipForm" action="/cfiles/zip/download-selected" style="display:none;">
+
+</form>

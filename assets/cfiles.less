@@ -27,6 +27,30 @@
         font-weight: normal !important;
     }
 
+    .btn-default {
+        &:hover {
+            background-color: #e6e6e6 !important;
+        }
+    }
+
+    .btn-success {
+        &:hover {
+            background-color: #89cc5e !important;
+        }
+    }
+
+    .btn-danger {
+        &:hover {
+            background-color: #ff6f6f !important;
+        }
+    }
+
+    .btn-primary {
+        &:hover {
+            background-color: #286090 !important;
+        }
+    }
+
     .btn-group {
         width: 100%;
     }
@@ -38,19 +62,27 @@
 
         li {
             padding: 0;
+            border: none !important;
 
             &:first-child {
                 padding: 0;
                 margin: 0;
+                border: none;
             }
 
             &:last-child {
                 padding: 0;
                 margin: 0;
+                border: none;
             }
+        }
+
+        .btn {
+            border-radius: 0 !important;
         }
     }
 }
+
 .filedelete-button {
     cursor: pointer;
 }
@@ -80,46 +112,32 @@
     max-width: 150px;
 }
 
-.table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
-    max-width: 70px;
+@media (max-width: 419px) {
+    .hidden-xxs {
+        display: none !important;
+    }
 }
 
 @media (min-width: 420px) {
     .table-responsive td .title {
-        max-width: 200px;
-    }
-
-    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
-        max-width: 100px;
+        max-width: 160px;
     }
 }
 
 @media (min-width: 768px) {
     .table-responsive td .title {
-        max-width: 150px;
-    }
-
-    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
-        max-width: 70px;
+        max-width: 400px;
     }
 }
 
 @media (min-width: 992px) {
     .table-responsive td .title {
-        max-width: 250px;
-    }
-
-    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
-        max-width: 120px;
+        max-width: 450px;
     }
 }
 
 @media (min-width: 1200px) {
     .table-responsive td .title {
-        max-width: 650px;
-    }
-
-    .table-responsive td .timestamp, .table-responsive td .creator, .table-responsive td .size {
-        max-width: 250px;
+        max-width: 600px;
     }
 }

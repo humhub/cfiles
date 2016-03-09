@@ -52,7 +52,7 @@ class File extends FileSystemItem
 
     public function getItemId()
     {
-        return 'file-' . $this->id;
+        return 'file_' . $this->id;
     }
 
     public function getIconClass()

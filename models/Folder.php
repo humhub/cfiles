@@ -106,7 +106,7 @@ class Folder extends FileSystemItem
 
     public function getItemId()
     {
-        return 'folder-' . $this->id;
+        return 'folder_' . $this->id;
     }
 
     public function getIconClass()

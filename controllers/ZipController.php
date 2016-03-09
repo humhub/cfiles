@@ -19,6 +19,7 @@ use yii\helpers\FileHelper;
 use humhub\models\Setting;
 use yii\helpers\BaseFileHelper;
 use humhub\modules\file\libs\ImageConverter;
+use humhub\modules\cfiles\models\FileSystemItem;
 
 /**
  * Description of ZipController
@@ -30,11 +31,14 @@ class ZipController extends UploadController
 
     /**
      * Action to generate the according folder and file structure from an uploaded zip file.
-     * 
+     *
      * @return multitype:multitype:
      */
-    public function actionUploadZippedFolder()
+    public function actionUploadArchive()
     {
+        if (! Setting::Get('enableZipSupport', 'cfiles')) {
+            throw new HttpException(404, Yii::t('CfilesModule.base', 'Zip support is not enabled.'));
+        }
         // cleanup all old files
         $this->cleanup();
         Yii::$app->response->format = 'json';
@@ -61,42 +65,59 @@ class ZipController extends UploadController
         
         $response['files'] = $this->files;
         return $response;
-    }
+    }    
 
     /**
-     * Action to download a folder defined by request param "fid" as a zip file.
+     * Action to download a zip of the selected items.
      *
-     * @throws HttpException
+     * @return Ambigous <\humhub\modules\cfiles\controllers\type, string>
      */
-    public function actionDownloadZippedFolder()
+    public function actionDownloadArchive()
     {
+        if (! Setting::Get('enableZipSupport', 'cfiles')) {
+            throw new HttpException(404, Yii::t('CfilesModule.base', 'Zip support is not enabled.'));
+        }
+    
+        $selectedItems = Yii::$app->request->post('selected');
+        
+        $items = [];
+        // download selected items if there are some
+        if (is_array($selectedItems)) {
+            foreach ($selectedItems as $itemId) {
+                $item = $this->module->getItemById($itemId);
+                if ($item !== null) {
+                    $items[] = $item;
+                }
+            }
+        } 
+        // download current folder if no items are selected
+        else {
+            // check validity of currentFolder
+            $items = $this->getCurrentFolder();
+            if (empty($items)) {
+                throw new HttpException(404, Yii::t('CfilesModule.base', 'The folder with the id %id% does not exist.', [
+                    '%id%' => (int) Yii::$app->request->get('fid')
+                    ]));
+            }     
+        }
+        
         // cleanup all old files
         $this->cleanup();
         // init output directory
         $outputPath = $this->getZipOutputPath();
         
-        // check validity of currentFolder
-        $currentFolder = $this->getCurrentFolder();
-        if (empty($currentFolder)) {
-            throw new HttpException(404, Yii::t('CfilesModule.base', 'The folder with the id %id% does not exist.', [
-                '%id%' => (int) Yii::$app->request->get('fid')
-            ]));
-        }
-        
-        // zip the current folder
-        $zipTitle = $this->archiveDirectory($currentFolder, $outputPath);
-        
+        $zipTitle = $this->archive($items, $outputPath);
+
         $zipPath = $outputPath . DIRECTORY_SEPARATOR . $zipTitle;
-        
         // check if the zip was created
         if (! file_exists($zipPath)) {
-            throw new HttpException(404, Yii::t('CfilesModule.base', 'The archive could not be created.'));
+            throw new HttpException(500, Yii::t('CfilesModule.base', 'The archive could not be created.'));
         }
-        
+
         // deliver the zip
         $options = [
-            'inline' => false,
-            'mimeType' => FileHelper::getMimeTypeByExtension($zipPath)
+        'inline' => false,
+        'mimeType' => FileHelper::getMimeTypeByExtension($zipPath)
         ];
         if (! Setting::Get('useXSendfile', 'file')) {
             Yii::$app->response->sendFile($zipPath, $zipTitle, $options);
@@ -138,15 +159,9 @@ class ZipController extends UploadController
             'parent_folder_id' => $folderId
         ])
             ->all();
-               
+        
         foreach ($subFiles as $file) {
-            $filePath = $file->baseFile->getPath() . DIRECTORY_SEPARATOR . 'file';
-            if (version_compare(Yii::$app->version, '1.1', '<')) {
-                $filePath = $file->baseFile->getPath() . DIRECTORY_SEPARATOR . $file->title;
-            }
-            if (is_file($filePath)) {
-                $zipFile->addFile($filePath, $localPathPrefix . DIRECTORY_SEPARATOR . $file->title);
-            }
+            $this->archiveFile($file, $zipFile, $localPathPrefix);
         }
         foreach ($subFolders as $folder) {
             // go one level deeper in the loacalPath
@@ -155,6 +170,30 @@ class ZipController extends UploadController
             $zipFile->addEmptyDir($folderPath);
             // checkout subfolders recursively with adapted local path
             $this->archiveFolder($folder->id, $zipFile, $folderPath, $this->contentContainer);
+        }
+    }
+
+    /**
+     * Add a file to zip file.
+     *
+     * @param File $file
+     *            the parent folder id which content should be added to the zip file
+     * @param ZipArchive $zipFile
+     *            The zip file to add the entries to
+     * @param int $localPathPrefix
+     *            where we currently are in the zip file
+     */
+    protected function archiveFile($file, &$zipFile, $localPathPrefix)
+    {
+        if($file instanceof File) {
+            $file = $file->baseFile;
+        }
+        $filePath = $file->getPath() . DIRECTORY_SEPARATOR . 'file';
+        if (version_compare(Yii::$app->version, '1.1', '<')) {
+            $filePath = $file->getPath() . DIRECTORY_SEPARATOR . $file->title;
+        }
+        if (is_file($filePath)) {
+            $zipFile->addFile($filePath, (empty($localPathPrefix) ? "" : $localPathPrefix . DIRECTORY_SEPARATOR) . $file->title);
         }
     }
 
@@ -329,50 +368,64 @@ class ZipController extends UploadController
     {
         $files = $this->getAllPostedFiles();
         foreach ($files as $file) {
-            $filePath = $file->getPath() . DIRECTORY_SEPARATOR . 'file';
-            if (version_compare(Yii::$app->version, '1.1', 'lt')) {
-                $filePath = $file->getPath() . DIRECTORY_SEPARATOR . $file->title;
-            }
-            if (is_file($filePath)) {
-                $zipFile->addFile($filePath, $localPathPrefix . DIRECTORY_SEPARATOR . $file->title);
-            }
+            $this->archiveFile($file, $zipFile, $localPathPrefix);
         }
     }
 
     /**
-     * Zip a folder (include itself).
+     * Zip an array of items.
      * Usage:
-     * archiveDirectory('/path/to/sourceDir', '/path/to/destDir');
+     * archiveDirectory([$folder1, $file1, $file2, $folder5, ...], 'myArchive');
      *
-     * @param Folder $sourceFolder
-     *            The folder to be zipped. If null, the root folder will be zipped.
-     * @param string $outDirPath
-     *            Path of output directory.
+     * @param
+     *            array | Folder $items
+     *            The items to be zipped. Accepts an array and a single Folder.
+     * @param string $zipName
+     *            name of the generrated zip
      * @return string the title of the generated zip file
      */
-    protected function archiveDirectory($sourceFolder, $outDirPath)
+    protected function archive($items, $outDirPath)
     {
-        $folder = $sourceFolder;
-        $outZipPath = $outDirPath . DIRECTORY_SEPARATOR . $folder->title . '.zip';
+        if (is_array($items)) {
+            $title = 'files.zip';
+        } elseif ($items instanceof FileSystemItem) {
+            $title = $items->title . '.zip';
+            $items = array(
+                $items
+            );
+        } else {
+            throw new HttpException(500, Yii::t('CfilesModule.base', 'Invalid parameter.'));
+        }
+        $outZipPath = $outDirPath . DIRECTORY_SEPARATOR . $title;
+        
         $z = new \ZipArchive();
         // overwrite existing zip files
         $code = $z->open($outZipPath, \ZIPARCHIVE::CREATE | \ZIPARCHIVE::OVERWRITE);
-        if($code !== true) {
-            throw new HttpException(500, Yii::t('CfilesModule.base', 'Opening archive failed with error code %code%.', ['%code%' => $code]));
+        if ($code !== true) {
+            throw new HttpException(500, Yii::t('CfilesModule.base', 'Opening archive failed with error code %code%.', [
+                '%code%' => $code
+            ]));
         }
-        $z->addEmptyDir($folder->title);
-        if ($folder->id === self::ROOT_ID) {
-            $this->archiveFolder($folder->id, $z, $folder->title);
-            $allPostedFilesDirPath = $folder->title . DIRECTORY_SEPARATOR . $this->getAllPostedFilesFolder()->title;
-            $this->archiveAllPostedFiles($z, $allPostedFilesDirPath);
-        } elseif ($folder->id === self::All_POSTED_FILES_ID) {
-            $this->archiveAllPostedFiles($z, $folder->title);
-        } else {
-            $this->archiveFolder($folder->id, $z, $folder->title);
+        foreach ($items as $item) {
+            if ($item instanceof Folder) {
+                $z->addEmptyDir($item->title);
+                if ($item->id === self::ROOT_ID) {
+                    $this->archiveFolder($item->id, $z, $item->title);
+                    $allPostedFilesDirPath = $item->title . DIRECTORY_SEPARATOR . $this->getAllPostedFilesFolder()->title;
+                    $this->archiveAllPostedFiles($z, $allPostedFilesDirPath);
+                } elseif ($item->id == self::All_POSTED_FILES_ID) {
+                    $this->archiveAllPostedFiles($z, $item->title);
+                }
+                else {
+                    $this->archiveFolder($item->id, $z, $item->title);
+                }
+            } elseif ($item instanceof File || $item instanceof \humhub\modules\file\models\File) {
+                $this->archiveFile($item, $z, "");
+            }
         }
         $z->close();
         
-        return $folder->title . '.zip';
+        return $title;
     }
 
     /**

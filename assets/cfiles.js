@@ -75,12 +75,13 @@ function initFileList() {
 								'selected[]' : itemRealId,
 							},
 						}).done(function(html) {
-							$("#fileList").html(html);
+							$("#globalModal").html(html);
+							$("#globalModal").modal("show");
 						});
 						break;
 					case 'edit':
 						$.ajax({
-							url : cfilesEditFolderUrl.replace('--folderId--', itemRealId),
+							url : cfilesEditFolderUrl.replace('--folderId--', itemRealId.split('_')[1]),
 							type : 'GET',
 						}).done(function(html) {
 							$("#globalModal").html(html);
@@ -92,7 +93,7 @@ function initFileList() {
 						document.location.href = url;
 						break;
 					case 'zip':
-						url = cfilesZipFolderUrl.replace('--folderId--', itemRealId),
+						url = cfilesDownloadArchiveUrl.replace('--folderId--', itemRealId.split('_')[1]),
 						document.location.href = url;
 						break;
 					case 'move-files':
@@ -154,7 +155,19 @@ function clearLog() {
 }
 
 $(function() {
-
+	
+	/**
+	 * Bind event actions.
+	 */
+	$( "#zip-selected-button" ).click(function( event ) {
+		  event.preventDefault();
+		  $form = $('#cfiles-form'); 
+		  $form.attr("action", $(this).attr("href"));
+		  $form.attr("method", "post");
+		  $form.attr("enctype", "multipart/form-data");
+		  $form.submit()
+		});
+	
 	/**
 	 * Install uploader
 	 */
@@ -180,6 +193,7 @@ $(function() {
 				$('#progress .progress-bar').css('width', progress + '%');
 			} else {
 				$('#progress').hide();
+				$('#fileupload').parents(".btn-group").click();
 			}
 		}
 	}).prop('disabled', !$.support.fileInput).parent().addClass(
@@ -203,14 +217,14 @@ $(function() {
 		start : function(e, data) {
 			clearLog();
 		},
+		success : function (e, data) {
+			$('#progress').hide();
+			$("#zipupload").parents(".btn-group").click();
+		},
 		progressall : function(e, data) {
-			var progress = parseInt(data.loaded / data.total * 100, 10);
-			if (progress != 100) {
-				$('#progress').show();
-				$('#progress .progress-bar').css('width', progress + '%');
-			} else {
-				$('#progress').hide();
-			}
+			var progress = parseInt(50, 10);
+			$('#progress').show();
+			$('#progress .progress-bar').css('width', progress + '%');
 		}
 	}).prop('disabled', !$.support.fileInput).parent().addClass(
 			$.support.fileInput ? undefined : 'disabled');

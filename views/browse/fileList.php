@@ -12,28 +12,30 @@ use humhub\modules\cfiles\controllers\BrowseController;
 
 <div id="cfiles-log"></div>
 
+<?php if(sizeof($items) > 0 || $allPostedFilesCount > 0) : ?>
 <div class="table-responsive">
     <table id="bs-table" class="table table-hover">
-        <?php if(sizeof($items) > 0 || $allPostedFilesCount > 0) : ?>
         <thead>
             <tr>
-                <th class="text-right" data-sort="int">
+                <th class="text-right">
                     <?php echo Html::checkbox('allchk', false, [ 'class' => 'allselect']); ?></th>
-                <th class="col-sm-5 text-left" data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Name'); ?></th>
-                <th class="col-sm-2 text-right" data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Size'); ?></th>
-                <th class="col-sm-2 text-right" data-sort="string"><?php echo Yii::t('CfilesModule.base', 'Creator'); ?></th>
-                <th class="col-sm-3 text-right" data-sort="int"><?php echo Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <th class="text-left"><?php echo Yii::t('CfilesModule.base', 'Name'); ?></th>
+                <th class="hidden-xs text-right"><?php echo Yii::t('CfilesModule.base', 'Size'); ?></th>
+                <th class="text-right"><?php echo Yii::t('CfilesModule.base', 'Creator'); ?></th>
+                <th class="hidden-xxs text-right"><?php echo Yii::t('CfilesModule.base', 'Updated'); ?></th>
             </tr>
         </thead>
         <tfoot>
             <tr>
-                <td colspan="5"></td>
+                <td colspan="3"></td>
+                <td class="hidden-xs"></td>
+                <td class="hidden-xxs"></td>
             </tr>
         </tfoot>
         <?php if ($allPostedFilesCount > 0) : ?>
             <tr data-type="all-posted-files"
             data-url="<?php echo $contentContainer->createUrl('all-posted-files'); ?>"
-            data-id="<?php echo BrowseController::All_POSTED_FILES_ID; ?>">
+            data-id="<?php echo 'folder_'.BrowseController::All_POSTED_FILES_ID; ?>">
             <td></td>
             <td class="text-left title">
                 <div class="title">
@@ -45,8 +47,8 @@ use humhub\modules\cfiles\controllers\BrowseController;
                 </div>
             </td>
             <td></td>
-            <td></td>
-            <td></td>
+            <td class="hidden-xs"></td>
+            <td class="hidden-xxs"></td>
         </tr>
         <?php endif; ?>
         <?php foreach ($items as $item) : ?>
@@ -56,7 +58,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
             <td class="text-muted text-right">
                 <?php echo Html::checkbox('selected[]', false, [ 'value' => $item->getItemId(), 'class' => 'multiselect']); ?>
             </td>
-            <td class="text-left" data-sort-value="icon examples">
+            <td class="text-left">
                 <div class="title">
                     <i class="fa <?php echo $item->getIconClass(); ?> fa-fw"></i>&nbsp;
                     <?php if ($item->getItemType() === "image") : ?>
@@ -73,8 +75,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
                     <?php endif; ?>
                 </div>
             </td>
-            <td class="text-right"
-                data-sort-value="<?php echo $item->getSize(); ?>">
+            <td class="hidden-xs text-right">
                 <div class="size pull-right">
                     <?php if ($item->getSize() == 0): ?> 
                         &mdash;
@@ -83,7 +84,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
                     <?php endif; ?>
                 </div>
             </td>
-            <td class="text-right" data-sort-value="" title="">
+            <td class="text-right">
                 <div class="creator pull-right">
                     <a href="<?php echo $item->creator->createUrl(); ?>">
                         <img class="img-rounded tt img_margin"
@@ -95,19 +96,29 @@ use humhub\modules\cfiles\controllers\BrowseController;
                     </a>
                 </div>
             </td>
-            <td class="text-right" data-sort-value="" title="">
+            <td class="hidden-xxs text-right">
                 <div class="timestamp pull-right">
                     <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $item->content->updated_at ]); ?>
                 </div>
             </td>
         </tr>
-        <?php endforeach; else: ?>
-        <p><?php echo Yii::t('CfilesModule.base', 'No files found.');?></p>
-        <?php endif; ?>
-        
-
+        <?php endforeach; ?>
     </table>
 </div>
+<?php else : ?>
+<div class="folderEmptyMessage">
+    <div class="panel">
+        <div class="panel-body">
+            <p><strong><?php echo Yii::t('CfilesModule.base', 'This folder is empty.');?></strong></p>
+            <?php if($this->context->canWrite()): ?>
+            <?php echo Yii::t('CfilesModule.base', 'Upload files or create a subfolder with the buttons on the top.');?>
+            <?php else: ?>
+            <?php echo Yii::t('CfilesModule.base', 'Unfortunately you have no permission to upload/edit files.');?>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 <script>
     $(function () {
         initFileList();

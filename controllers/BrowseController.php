@@ -57,7 +57,8 @@ class BrowseController extends BaseController
         
         return $this->render('allPostedFiles', [
             'contentContainer' => $this->contentContainer,
-            'items' => $content_file_wrapper
+            'items' => $content_file_wrapper,
+            'currentFolder' => $this->getAllPostedFilesFolder()
         ]);
     }
 
