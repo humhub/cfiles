@@ -17,14 +17,14 @@ function showHideBtns() {
 	}
 }
 
-jQuery.urlParam = function(name){
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-    if (results==null){
-       return null;
-    }
-    else{
-       return results[1] || 0;
-    }
+jQuery.urlParam = function(name) {
+	var results = new RegExp('[\?&]' + name + '=([^&#]*)')
+			.exec(window.location.href);
+	if (results == null) {
+		return null;
+	} else {
+		return results[1] || 0;
+	}
 }
 
 /**
@@ -64,7 +64,8 @@ function initFileList() {
 					itemType = invokedOn.closest('tr').data('type');
 					// e.g. file-53
 					itemRealId = invokedOn.closest('tr').data('id');
-					parentId = jQuery.urlParam('fid') === null ? 0 : jQuery.urlParam('fid');
+					parentId = jQuery.urlParam('fid') === null ? 0 : jQuery
+							.urlParam('fid');
 
 					switch (action) {
 					case 'delete':
@@ -80,10 +81,13 @@ function initFileList() {
 						});
 						break;
 					case 'edit':
-						$.ajax({
-							url : cfilesEditFolderUrl.replace('--folderId--', itemRealId.split('_')[1]),
-							type : 'GET',
-						}).done(function(html) {
+						$.ajax(
+								{
+									url : cfilesEditFolderUrl.replace(
+											'--folderId--', itemRealId
+													.split('_')[1]),
+									type : 'GET',
+								}).done(function(html) {
 							$("#globalModal").html(html);
 							$("#globalModal").modal("show");
 						});
@@ -93,8 +97,9 @@ function initFileList() {
 						document.location.href = url;
 						break;
 					case 'zip':
-						url = cfilesDownloadArchiveUrl.replace('--folderId--', itemRealId.split('_')[1]),
-						document.location.href = url;
+						url = cfilesDownloadArchiveUrl.replace('--folderId--',
+								itemRealId.split('_')[1]),
+								document.location.href = url;
 						break;
 					case 'move-files':
 						$.ajax({
@@ -111,7 +116,8 @@ function initFileList() {
 						});
 						break;
 					case 'show-image':
-						previewLink = invokedOn.closest('tr').find('.preview-link');
+						previewLink = invokedOn.closest('tr').find(
+								'.preview-link');
 						previewLink.trigger("click");
 						break;
 					case 'show-post':
@@ -132,7 +138,7 @@ function updateLog(messages, container) {
 			container.append('<li>' + message + '</li>');
 			container.show();
 		});
-	} else if (!jQuery.isEmptyObject(messages)){
+	} else if (!jQuery.isEmptyObject(messages)) {
 		container.append('<li>' + message + '</li>');
 		container.show();
 	}
@@ -155,80 +161,89 @@ function clearLog() {
 }
 
 $(function() {
-	
+
 	/**
 	 * Bind event actions.
 	 */
-	$( "#zip-selected-button" ).click(function( event ) {
-		  event.preventDefault();
-		  $form = $('#cfiles-form'); 
-		  $form.attr("action", $(this).attr("href"));
-		  $form.attr("method", "post");
-		  $form.attr("enctype", "multipart/form-data");
-		  $form.submit()
-		});
-	
-	/**
-	 * Install uploader
-	 */
-	$('#fileupload').fileupload({
-		url : cfilesUploadUrl,
-		dataType : 'json',
-		done : function(e, data) {
-			$.each(data.result.files, function(index, file) {
-				$('#fileList').html(file.fileList);
-			});
-			updateLogs(data.result.errormessages, data.result.warningmessages, data.result.infomessages);
-		},
-		fail : function(e, data) {
-			updateLogs(data.jqXHR.responseJSON.message, null, null);
-		},
-		start : function(e, data) {
-			clearLog();
-		},
-		progressall : function(e, data) {
-			var progress = parseInt(data.loaded / data.total * 100, 10);
-			if (progress != 100) {
-				$('#progress').show();
-				$('#progress .progress-bar').css('width', progress + '%');
-			} else {
-				$('#progress').hide();
-				$('#fileupload').parents(".btn-group").click();
-			}
-		}
-	}).prop('disabled', !$.support.fileInput).parent().addClass(
-			$.support.fileInput ? undefined : 'disabled');
-	/**
-	 * Install uploader
-	 */
-	$('#zipupload').fileupload({
-		dropZone: $([]),
-		url : cfilesZipUploadUrl,
-		dataType : 'json',
-		done : function(e, data) {
-			$.each(data.result.files, function(index, file) {
-				$('#fileList').html(file.fileList);
-			});
-			updateLogs(data.result.errormessages, data.result.warningmessages, data.result.infomessages);
-		},
-		fail : function(e, data) {
-			updateLogs(data.jqXHR.responseJSON.message, null, null);
-		},
-		start : function(e, data) {
-			clearLog();
-		},
-		success : function (e, data) {
-			$('#progress').hide();
-			$("#zipupload").parents(".btn-group").click();
-		},
-		progressall : function(e, data) {
-			var progress = parseInt(50, 10);
-			$('#progress').show();
-			$('#progress .progress-bar').css('width', progress + '%');
-		}
-	}).prop('disabled', !$.support.fileInput).parent().addClass(
-			$.support.fileInput ? undefined : 'disabled');
+	$("#zip-selected-button").click(function(event) {
+		event.preventDefault();
+		$form = $('#cfiles-form');
+		$form.attr("action", $(this).attr("href"));
+		$form.attr("method", "post");
+		$form.attr("enctype", "multipart/form-data");
+		$form.submit()
+	});
 
+	/**
+	 * Install uploader
+	 */
+	$('#fileupload')
+			.fileupload(
+					{
+						url : cfilesUploadUrl,
+						dataType : 'json',
+						done : function(e, data) {
+							$.each(data.result.files, function(index, file) {
+								$('#fileList').html(file.fileList);
+							});
+							updateLogs(data.result.errormessages,
+									data.result.warningmessages,
+									data.result.infomessages);
+						},
+						fail : function(e, data) {
+							updateLogs(data.jqXHR.responseJSON.message, null,
+									null);
+						},
+						start : function(e, data) {
+							clearLog();
+						},
+						progressall : function(e, data) {
+							var progress = parseInt(data.loaded / data.total
+									* 100, 10);
+							if (progress != 100) {
+								$('#progress').show();
+								$('#progress .progress-bar').css('width',
+										progress + '%');
+							} else {
+								$('#progress').hide();
+								$('#fileupload').parents(".btn-group").click();
+							}
+						}
+					}).prop('disabled', !$.support.fileInput).parent()
+			.addClass($.support.fileInput ? undefined : 'disabled');
+	/**
+	 * Install uploader
+	 */
+	$('#zipupload').fileupload(
+			{
+				dropZone : $([]),
+				url : cfilesZipUploadUrl,
+				dataType : 'json',
+				done : function(e, data) {
+					$.each(data.result.files, function(index, file) {
+						$('#fileList').html(file.fileList);
+					});
+					updateLogs(data.result.errormessages,
+							data.result.warningmessages,
+							data.result.infomessages);
+				},
+				fail : function(e, data) {
+					updateLogs(data.jqXHR.responseJSON.message, null, null);
+				},
+				start : function(e, data) {
+					clearLog();
+				},
+				success : function(e, data) {
+					$('#progress').hide();
+					$("#zipupload").parents(".btn-group").click();
+				},
+				progressall : function(e, data) {
+					var progress = parseInt(50, 10);
+					$('#progress').show();
+					$('#progress .progress-bar').css('width', progress + '%');
+				}
+			}).prop('disabled', !$.support.fileInput).parent().addClass(
+			$.support.fileInput ? undefined : 'disabled');
 
 });
 
@@ -255,15 +270,19 @@ $(function() {
 						menuSelector = settings.getMenuSelector.call(this,
 								$(e.target));
 
+					    oParent = $(menuSelector).parent().offsetParent().offset(),
+					    posTop = e.clientY - oParent.top,
+					    posLeft = e.clientX - oParent.left;
+						
 						// open menu
 						var $menu = $(menuSelector).data("invokedOn",
 								$(e.target)).show().css(
 								{
 									position : "absolute",
-									left : getMenuPosition(e.clientX, 'width',
-											'scrollLeft'),
-									top : getMenuPosition(e.clientY, 'height',
-											'scrollTop')
+									left : getMenuPosition(posLeft, 'width',
+										'scrollLeft'),
+									top : getMenuPosition(posTop, 'height',
+									'scrollTop')
 								}).off('click').on(
 								'click',
 								'a',
@@ -287,8 +306,10 @@ $(function() {
 		});
 
 		function getMenuPosition(mouse, direction, scrollDir) {
-			var win = $(window)[direction](), scroll = $(window)[scrollDir](), menu = $(settings.menuSelector)[direction]
-					(), position = mouse + scroll;
+			var win = $(window)[direction]();
+			var scroll = $(window)[scrollDir]();
+			var menu = $(settings.menuSelector)[direction]();
+			var position = mouse + scroll;
 
 			// opening menu would pass the side of the page
 			if (mouse + menu > win && menu < mouse)
