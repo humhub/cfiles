@@ -15,6 +15,7 @@ function showHideBtns() {
 	} else {
 		$('.selectedOnly').hide();
 	}
+	hideActionMenuDivider();
 }
 
 jQuery.urlParam = function(name) {
@@ -160,6 +161,14 @@ function clearLog() {
 	$('#hiddenLogContainer .alert-info').hide();
 }
 
+function hideActionMenuDivider() {
+	if($('.files-action-menu').children(":visible").length > 0) {
+		$('#files-action-menu-divider').show();
+	} else {
+		$('#files-action-menu-divider').hide();
+	}
+}
+
 $(function() {
 
 	/**
@@ -174,6 +183,8 @@ $(function() {
 		$form.submit()
 	});
 
+	hideActionMenuDivider();
+	
 	/**
 	 * Install uploader
 	 */

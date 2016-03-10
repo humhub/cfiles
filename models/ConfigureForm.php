@@ -13,7 +13,7 @@ use Yii;
 class ConfigureForm extends \yii\base\Model
 {
 
-    public $enableZipSupport;
+    public $disableZipSupport;
 
     /**
      * Declares the validation rules.
@@ -21,7 +21,7 @@ class ConfigureForm extends \yii\base\Model
     public function rules()
     {
         return array(
-            array('enableZipSupport', 'boolean'),
+            array('disableZipSupport', 'boolean'),
         );
     }
 
@@ -33,7 +33,7 @@ class ConfigureForm extends \yii\base\Model
     public function attributeLabels()
     {
         return array(
-            'enableZipSupport' => Yii::t('CfilesModule.base', 'Enable archive (zip) support'),
+            'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support'),
         );
     }
 

@@ -16,7 +16,7 @@ use yii\helpers\Html;
         ?>
         
      	<div class="form-group">
-            <?= $form->field($model, 'enableZipSupport')->checkbox(null, false);?>
+            <?= $form->field($model, 'disableZipSupport')->checkbox(null, false);?>
         </div>
 
         <div class="form-group">

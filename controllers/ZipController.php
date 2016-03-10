@@ -36,7 +36,7 @@ class ZipController extends UploadController
      */
     public function actionUploadArchive()
     {
-        if (! Setting::Get('enableZipSupport', 'cfiles')) {
+        if (Setting::Get('disableZipSupport', 'cfiles')) {
             throw new HttpException(404, Yii::t('CfilesModule.base', 'Archive (zip) support is not enabled.'));
         }
         // cleanup all old files
@@ -74,7 +74,7 @@ class ZipController extends UploadController
      */
     public function actionDownloadArchive()
     {
-        if (! Setting::Get('enableZipSupport', 'cfiles')) {
+        if (Setting::Get('disableZipSupport', 'cfiles')) {
             throw new HttpException(404, Yii::t('CfilesModule.base', 'Archive (zip) support is not enabled.'));
         }
         

@@ -22,8 +22,8 @@ use humhub\modules\file\models\File;
                     <?php echo Html::checkbox('allchk', false, [ 'class' => 'allselect']); ?></th>
                 <th class="text-left"><?php echo Yii::t('CfilesModule.base', 'Name'); ?></th>
                 <th class="hidden-xs text-right"><?php echo Yii::t('CfilesModule.base', 'Size'); ?></th>
-                <th class="text-right"><?php echo Yii::t('CfilesModule.base', 'Creator'); ?></th>
                 <th class="hidden-xxs text-right"><?php echo Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <th class="text-right"><?php echo Yii::t('CfilesModule.base', 'Creator'); ?></th>
             </tr>
         </thead>
         <tfoot>
@@ -97,6 +97,11 @@ use humhub\modules\file\models\File;
                     <?php endif; ?>
                 </div>
             </td>
+            <td class="hidden-xxs text-right">
+                <div class="timestamp pull-right">
+                    <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $updatedAt ]); ?>
+                </div>
+            </td>
             <td class="text-right">
                 <div class="creator pull-right">
                     <a href="<?php echo $creator->createUrl(); ?>">
@@ -107,11 +112,6 @@ use humhub\modules\file\models\File;
                             data-original-title="<?php echo $creator->getDisplayName();?>"
                             data-placement="top" title="" data-toggle="tooltip">
                     </a>
-                </div>
-            </td>
-            <td class="hidden-xxs text-right">
-                <div class="timestamp pull-right">
-                    <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $updatedAt ]); ?>
                 </div>
             </td>
         </tr>
