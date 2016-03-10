@@ -51,10 +51,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
 
                 <ol class="breadcrumb" dir="ltr">
                     <li><a
-                        href="<?php echo $contentContainer->createUrl('index', ['fid' => 0]); ?>"><i
+                        href="<?php echo $contentContainer->createUrl('/cfiles/browse/index', ['fid' => 0]); ?>"><i
                             class="fa fa-home fa-lg fa-fw"></i> </a></li>
                     <li><a
-                        href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
+                        href="<?php echo $contentContainer->createUrl('/cfiles/browse/all-posted-files'); ?>">
                             <?php echo Yii::t( 'CfilesModule.base', 'All posted files'); ?>
                         </a></li>
                 </ol>
