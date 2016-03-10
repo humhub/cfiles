@@ -52,7 +52,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                     $buttons[] = 
                     '<span class="fileinput-button btn btn-success overflow-ellipsis">'.
                         $icon.
-                        Yii::t('CfilesModule.base', 'Upload .zip').
+                        Yii::t('CfilesModule.base', 'Upload archive').
                         '<input id="zipupload" type="file" name="files[]" multiple>'.
                     '</span>';
                 endif;
@@ -75,7 +75,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                     $buttons = [];
                     $buttons[] = Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Archive folder'), $contentContainer->createUrl('/cfiles/zip/download-archive', ['fid' => $currentFolder->id]), array('class' => 'btn btn-default overflow-ellipsis'));
                     echo DropdownButton::widget([
-                        'label' => \Yii::t('CfilesModule.base', 'Download zip'),
+                        'label' => \Yii::t('CfilesModule.base', 'Download archive'),
                         'buttons' => $buttons,
                         'icon' => $icon,
                         'options' => [
@@ -145,7 +145,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                     ]
                 ]);
                 if(Setting::Get('enableZipSupport', 'cfiles')) {
-                    $buttons[] = Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Archive'), $contentContainer->createUrl('/cfiles/zip/download-archive'), array('class' => 'btn btn-default overflow-ellipsis', 'id' => 'zip-selected-button'));
+                    $buttons[] = Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Create archive'), $contentContainer->createUrl('/cfiles/zip/download-archive'), array('class' => 'btn btn-default overflow-ellipsis', 'id' => 'zip-selected-button'));
                 }
                 echo DropdownButton::widget([
                     'label' => "(<span class='chkCnt'></span>) ".\Yii::t('CfilesModule.base', 'Selected items...'),
@@ -177,10 +177,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <?php if($this->context->canWrite()): ?>
     <li><a tabindex="-1" href="#" data-action='edit'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
-    <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move folder');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
     <?php endif; ?>
     <?php if(Setting::Get('enableZipSupport', 'cfiles')): ?>
-    <li><a tabindex="-1" href="#" data-action='zip'><?php echo Yii::t('CfilesModule.base', 'Download zip');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='zip'><?php echo Yii::t('CfilesModule.base', 'Download archive');?></a></li>
     <?php endif; ?>
 </ul>
 
@@ -190,7 +190,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <?php if($this->context->canWrite()): ?>
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
-    <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move file');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
     <?php endif; ?>
 </ul>
 
@@ -201,14 +201,14 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <li><a tabindex="-1" href="#" data-action='show-image'><?php echo Yii::t('CfilesModule.base', 'Show');?></a></li>
     <?php if($this->context->canWrite()): ?>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
-    <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move file');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
     <?php endif; ?>
 </ul>
 
 <ul id="contextMenuAllPostedFiles" class="contextMenu dropdown-menu"
     role="menu" style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Open');?></a></li>
-    <li><a tabindex="-1" href="#" data-action='zip'><?php echo Yii::t('CfilesModule.base', 'Download zip');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='zip'><?php echo Yii::t('CfilesModule.base', 'Download archive');?></a></li>
 </ul>
 
 <div id="hiddenLogContainer" style="display: none">

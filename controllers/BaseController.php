@@ -88,7 +88,7 @@ abstract class BaseController extends \humhub\modules\content\components\Content
         if (empty($this->_allPostedFilesFolder)) {
             $this->_allPostedFilesFolder = new Folder();
             $this->_allPostedFilesFolder->id = self::All_POSTED_FILES_ID;
-            $this->_allPostedFilesFolder->title = Yii::t('CfilesModule.base', 'All posted files');
+            $this->_allPostedFilesFolder->title = Yii::t('CfilesModule.base', 'Files from the stream');
             $this->_allPostedFilesFolder->parent_folder_id = $this->getRootFolder()->id;
         }
         return $this->_allPostedFilesFolder;

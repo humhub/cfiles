@@ -42,7 +42,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
                     <i class="fa fa-folder fa-fw"></i>&nbsp;
                     <a
                     href="<?php echo $contentContainer->createUrl('/cfiles/browse/all-posted-files'); ?>">
-                            <?php echo Yii::t('CfilesModule.base', 'All posted files'); ?> (<?php echo ''. $allPostedFilesCount; ?>)
+                            <?php echo Yii::t('CfilesModule.base', 'Files from the stream'); ?> (<?php echo ''. $allPostedFilesCount; ?>)
                     </a>
                 </div>
             </td>

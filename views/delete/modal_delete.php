@@ -15,7 +15,7 @@ use humhub\compat\CActiveForm;
 
         <div class="modal-body">
             <br />
-            <?php echo Yii::t('CfilesModule.base', 'Do you really want to delete this %number% item(s) wit all subcontent?', ['%number%' => count($selectedItems)]); ?>
+            <?php echo Yii::t('CfilesModule.base', 'Do you really want to delete this %number% item(s) with all subcontent?', ['%number%' => count($selectedItems)]); ?>
         </div>
         
         <?php

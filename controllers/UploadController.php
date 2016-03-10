@@ -107,7 +107,7 @@ class UploadController extends BrowseController
                 foreach ($humhubFile->errors as $key => $message) {
                     $messages .= ($count ++ ? ' | ' : '') . $message[0];
                 }
-                $response['errormessages'][] = Yii::t('CfilesModule.views_browse_index', 'Could not save file %title%. ', [
+                $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
                             '%title%' => $humhubFile->filename
                         ]) . $messages;
                 $response['log'] = true;
