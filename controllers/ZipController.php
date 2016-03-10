@@ -65,7 +65,7 @@ class ZipController extends UploadController
         
         $response['files'] = $this->files;
         return $response;
-    }    
+    }
 
     /**
      * Action to download a zip of the selected items.
@@ -77,7 +77,7 @@ class ZipController extends UploadController
         if (! Setting::Get('enableZipSupport', 'cfiles')) {
             throw new HttpException(404, Yii::t('CfilesModule.base', 'Archive (zip) support is not enabled.'));
         }
-    
+        
         $selectedItems = Yii::$app->request->post('selected');
         
         $items = [];
@@ -89,16 +89,15 @@ class ZipController extends UploadController
                     $items[] = $item;
                 }
             }
-        } 
-        // download current folder if no items are selected
+        }         // download current folder if no items are selected
         else {
             // check validity of currentFolder
             $items = $this->getCurrentFolder();
             if (empty($items)) {
                 throw new HttpException(404, Yii::t('CfilesModule.base', 'The folder with the id %id% does not exist.', [
                     '%id%' => (int) Yii::$app->request->get('fid')
-                    ]));
-            }     
+                ]));
+            }
         }
         
         // cleanup all old files
@@ -107,17 +106,17 @@ class ZipController extends UploadController
         $outputPath = $this->getZipOutputPath();
         
         $zipTitle = $this->archive($items, $outputPath);
-
+        
         $zipPath = $outputPath . DIRECTORY_SEPARATOR . $zipTitle;
         // check if the zip was created
         if (! file_exists($zipPath)) {
             throw new HttpException(500, Yii::t('CfilesModule.base', 'The archive could not be created.'));
         }
-
+        
         // deliver the zip
         $options = [
-        'inline' => false,
-        'mimeType' => FileHelper::getMimeTypeByExtension($zipPath)
+            'inline' => false,
+            'mimeType' => FileHelper::getMimeTypeByExtension($zipPath)
         ];
         if (! Setting::Get('useXSendfile', 'file')) {
             Yii::$app->response->sendFile($zipPath, $zipTitle, $options);
@@ -182,10 +181,14 @@ class ZipController extends UploadController
      *            The zip file to add the entries to
      * @param int $localPathPrefix
      *            where we currently are in the zip file
+     * @param string $suffix
+     *            suffix added to the file title. Use for example to make the title unique.
+     * @param string $suffix
+     *            see suffix
      */
-    protected function archiveFile($file, &$zipFile, $localPathPrefix)
+    protected function archiveFile($file, &$zipFile, $localPathPrefix, $prefix = '', $suffix = '')
     {
-        if($file instanceof File) {
+        if ($file instanceof File) {
             $file = $file->baseFile;
         }
         $filePath = $file->getPath() . DIRECTORY_SEPARATOR . 'file';
@@ -193,7 +196,7 @@ class ZipController extends UploadController
             $filePath = $file->getPath() . DIRECTORY_SEPARATOR . $file->title;
         }
         if (is_file($filePath)) {
-            $zipFile->addFile($filePath, (empty($localPathPrefix) ? "" : $localPathPrefix . DIRECTORY_SEPARATOR) . $file->title);
+            $zipFile->addFile($filePath, (empty($localPathPrefix) ? "" : $localPathPrefix . DIRECTORY_SEPARATOR) . $prefix . $file->title . $suffix);
         }
     }
 
@@ -366,9 +369,9 @@ class ZipController extends UploadController
      */
     protected function archiveAllPostedFiles(&$zipFile, $localPathPrefix)
     {
-        $files = $this->getAllPostedFiles();
+        $files = $this->getAllPostedFilesList();
         foreach ($files as $file) {
-            $this->archiveFile($file, $zipFile, $localPathPrefix);
+            $this->archiveFile($file, $zipFile, $localPathPrefix, \humhub\modules\cfiles\models\File::getCreatorById($file->created_by)->username.'_'.$file->created_at.'_');
         }
     }
 
@@ -415,8 +418,7 @@ class ZipController extends UploadController
                     $this->archiveAllPostedFiles($z, $allPostedFilesDirPath);
                 } elseif ($item->id == self::All_POSTED_FILES_ID) {
                     $this->archiveAllPostedFiles($z, $item->title);
-                }
-                else {
+                } else {
                     $this->archiveFolder($item->id, $z, $item->title);
                 }
             } elseif ($item instanceof File || $item instanceof \humhub\modules\file\models\File) {

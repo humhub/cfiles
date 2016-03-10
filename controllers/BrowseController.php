@@ -44,32 +44,23 @@ class BrowseController extends BaseController
      */
     public function actionAllPostedFiles()
     {
-        $items = $this->getAllPostedFiles();
-        
-        $content_file_wrapper = [];
-        
-        foreach ($items as $file) {
-            $content_file_wrapper[] = [
-                'file' => $file,
-                'content' => $this->getBasePost($file)
-            ];
-        }
-        
-        return $this->render('allPostedFiles', [
+        $fileList = $this->renderAllPostedFilesList(true);
+        return $this->render('index', [
             'contentContainer' => $this->contentContainer,
-            'items' => $content_file_wrapper,
-            'currentFolder' => $this->getAllPostedFilesFolder()
+            'currentFolder' => $this->getAllPostedFilesFolder(),
+            'fileList' => $fileList['view'],
+            'itemCount' => $fileList['itemCount']
         ]);
     }
 
     /**
-     * Returns file list
-     * 
-     * @param boolean $withItemCount
-     *            true -> also calculate and return the item count.
-     * @return multitype:array | string The rendered view or an array of the rendered view and the itemCount.
+     * Load all files and folders of the current folder from the database and get an array of them.
+     *
+     * @param array $orderBy
+     *            orderBy array appended to the query
+     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
-    protected function renderFileList($withItemCount = false, $orderBy = ['title' => SORT_ASC])
+    protected function getItemsList($orderBy = ['title' => SORT_ASC])
     {
         $filesQuery = File::find()->joinWith('baseFile')
             ->contentContainer($this->contentContainer)
@@ -83,14 +74,38 @@ class BrowseController extends BaseController
         ]);
         $filesQuery->orderBy($orderBy);
         $foldersQuery->orderBy($orderBy);
-        $items = array_merge($foldersQuery->all(), $filesQuery->all());
+        return array_merge($foldersQuery->all(), $filesQuery->all());
+    }
+
+    /**
+     * Returns file list
+     *
+     * @param boolean $withItemCount
+     *            true -> also calculate and return the item count.
+     * @param array $orderBy
+     *            orderBy array appended to the query
+     * @return multitype:array | string The rendered view or an array of the rendered view and the itemCount.
+     */
+    protected function renderFileList($withItemCount = false, $orderBy = null)
+    {
+        $items = $this->getItemsList($orderBy);
+        
+        $content_file_wrapper = [];
+        
+        foreach ($items as $file) {
+            $content_file_wrapper[] = [
+                'file' => $file,
+                'content' => ''
+            ];
+        }
+        
         $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
-            'items' => $items,
+            'items' => $content_file_wrapper,
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
             'errorMessages' => $this->errorMessages,
             'currentFolder' => $this->getCurrentFolder(),
-            'allPostedFilesCount' => $this->getCurrentFolder()->id === self::ROOT_ID ? count($this->getAllPostedFiles()) : 0
+            'allPostedFilesCount' => $this->getCurrentFolder()->id === self::ROOT_ID ? count($this->getAllPostedFilesList()) : 0
         ]);
         if ($withItemCount) {
             return [
@@ -105,9 +120,11 @@ class BrowseController extends BaseController
     /**
      * Load all posted files from the database and get an array of them.
      *
+     * @param array $orderBy
+     *            orderBy array appended to the query
      * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
-    protected function getAllPostedFiles($orderBy = ['file.updated_at' => SORT_DESC, 'file.title' => SORT_ASC])
+    protected function getAllPostedFilesList($orderBy = ['file.updated_at' => SORT_DESC, 'file.title' => SORT_ASC])
     {
         // Get Posted Files
         $query = \humhub\modules\file\models\File::find();
@@ -141,5 +158,46 @@ class BrowseController extends BaseController
         $query->orderBy($orderBy);
         // Get Files from comments
         return $query->all();
+    }
+
+    /**
+     * Render all posted files from the database and get an array of them.
+     *
+     * @param boolean $withItemCount
+     *            true -> also calculate and return the item count.
+     * @param array $orderBy
+     *            orderBy array appended to the query
+     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
+     */
+    protected function renderAllPostedFilesList($withItemCount = false, $orderBy = null)
+    {
+        $items = $this->getAllPostedFilesList($orderBy);
+        
+        $content_file_wrapper = [];
+        
+        foreach ($items as $file) {
+            $content_file_wrapper[] = [
+                'file' => $file,
+                'content' => $this->getBasePost($file)
+            ];
+        }
+        
+        $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
+            'items' => $content_file_wrapper,
+            'contentContainer' => $this->contentContainer,
+            'crumb' => $this->generateCrumb(),
+            'errorMessages' => $this->errorMessages,
+            'currentFolder' => $this->getCurrentFolder(),
+            'allPostedFilesCount' => 0
+        ]);
+        
+        if ($withItemCount) {
+            return [
+                'view' => $view,
+                'itemCount' => count($items)
+            ];
+        } else {
+            return $view;
+        }
     }
 }
