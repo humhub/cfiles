@@ -35,7 +35,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
             <?php if(Setting::Get('enableZipSupport', 'cfiles')): ?>
             <div class="col-sm-3">
                 <div>
-                    <?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download .zip'), $contentContainer->createUrl('/cfiles/zip/download-archive', ['fid' => $currentFolder->id]), array('class' => 'btn btn-default overflow-ellipsis')); ?>
+                    <?php echo Html::a('<i class="fa fa-download"></i> '.Yii::t('CfilesModule.base', 'Download archive'), $contentContainer->createUrl('/cfiles/zip/download-archive', ['fid' => $currentFolder->id]), array('class' => 'btn btn-default overflow-ellipsis')); ?>
                 </div>
             </div>
             <div class="col-sm-3">
@@ -51,11 +51,11 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
 
                 <ol class="breadcrumb" dir="ltr">
                     <li><a
-                        href="<?php echo $contentContainer->createUrl('index', ['fid' => 0]); ?>"><i
+                        href="<?php echo $contentContainer->createUrl('/cfiles/browse/index', ['fid' => 0]); ?>"><i
                             class="fa fa-home fa-lg fa-fw"></i> </a></li>
                     <li><a
-                        href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
-                            <?php echo Yii::t( 'CfilesModule.base', 'All posted files'); ?>
+                        href="<?php echo $contentContainer->createUrl('/cfiles/browse/all-posted-files'); ?>">
+                            <?php echo Yii::t( 'CfilesModule.base', 'Files from the stream'); ?>
                         </a></li>
                 </ol>
 

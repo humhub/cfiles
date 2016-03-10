@@ -5,7 +5,7 @@ use humhub\modules\cfiles\controllers\BrowseController;
 <ol class="breadcrumb" dir="ltr">
 <?php foreach ($crumb as $parentFolder): ?>
     <li><a
-        href="<?php echo $contentContainer->createUrl('index', ['fid' => $parentFolder->id]); ?>">
+        href="<?php echo $contentContainer->createUrl('/cfiles/browse/index', ['fid' => $parentFolder->id]); ?>">
     <?php echo $parentFolder->id == BrowseController::ROOT_ID ? '<i class="fa fa-home fa-lg fa-fw"></i>' : Html::encode($parentFolder->title); ?></a></li>
 <?php endforeach; ?>
 </ol>
@@ -34,15 +34,15 @@ use humhub\modules\cfiles\controllers\BrowseController;
         </tfoot>
         <?php if ($allPostedFilesCount > 0) : ?>
             <tr data-type="all-posted-files"
-            data-url="<?php echo $contentContainer->createUrl('all-posted-files'); ?>"
+            data-url="<?php echo $contentContainer->createUrl('/cfiles/browse/all-posted-files'); ?>"
             data-id="<?php echo 'folder_'.BrowseController::All_POSTED_FILES_ID; ?>">
             <td></td>
             <td class="text-left title">
                 <div class="title">
                     <i class="fa fa-folder fa-fw"></i>&nbsp;
                     <a
-                    href="<?php echo $contentContainer->createUrl('all-posted-files'); ?>">
-                            <?php echo Yii::t('CfilesModule.base', 'All posted files'); ?> (<?php echo ''. $allPostedFilesCount; ?>)
+                    href="<?php echo $contentContainer->createUrl('/cfiles/browse/all-posted-files'); ?>">
+                            <?php echo Yii::t('CfilesModule.base', 'Files from the stream'); ?> (<?php echo ''. $allPostedFilesCount; ?>)
                     </a>
                 </div>
             </td>

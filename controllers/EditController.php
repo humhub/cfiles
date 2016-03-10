@@ -79,7 +79,7 @@ class EditController extends BrowseController
         // if a similar folder exists, add an error to the model.
         if (!empty($similarFolder)) {
             $folder->title = $title;
-            $folder->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists'));
+            $folder->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
         }
 
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal

@@ -33,7 +33,7 @@ class ConfigureForm extends \yii\base\Model
     public function attributeLabels()
     {
         return array(
-            'enableZipSupport' => Yii::t('CfilesModule.base', 'Enable Zip Support'),
+            'enableZipSupport' => Yii::t('CfilesModule.base', 'Enable archive (zip) support'),
         );
     }
 

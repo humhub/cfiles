@@ -100,7 +100,7 @@ class Module extends ContentContainerModule
     public function getContentContainerDescription(ContentContainerActiveRecord $container)
     {
         if ($container instanceof Space) {
-            return Yii::t('CfilesModule.base', 'Adds an file module to this space.');
+            return Yii::t('CfilesModule.base', 'Adds files module to this space.');
         } elseif ($container instanceof User) {
             return Yii::t('CfilesModule.base', 'Adds files module to your profile.');
         }
