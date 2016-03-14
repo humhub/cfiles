@@ -1,7 +1,6 @@
 .overflow-ellipsis {
     position: relative;
     overflow: hidden;
-    display: inline-block;
     max-width: 100%;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -19,7 +18,7 @@
     cursor: pointer;
 }
 
-.files-action-menu {
+.panel .panel-body .files-action-menu {
     .btn {
         width: 100%;
         padding: 8px 16px !important;
@@ -53,7 +52,30 @@
 
     .btn-group {
         width: 100%;
+
+        .split-toggle {
+            width: auto !important;
+            float: right !important;
+            border-radius: 0px 3px 3px 0px;
+
+            &:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+                border-radius: 0px 3px 3px 0px;
+            }
+        }
+
+        & > .split-button {
+            width: auto !important;
+            overflow: hidden;
+            display: block;
+            float: none !important;
+            border-radius: 3px 0px 0px 3px;
+
+            &:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+                border-radius: 3px 0px 0px 3px;
+            }
+        }
     }
+
 
     .dropdown-menu {
         padding: 0;
@@ -62,23 +84,33 @@
 
         li {
             padding: 0;
-            border: none !important;
+            border: none;
+            border-radius: 0px;
 
             &:first-child {
                 padding: 0;
                 margin: 0;
-                border: none;
+                border-radius: 3px 3px 0px 0px;
+
+                .btn {
+                    border-radius: 3px 3px 0px 0px;
+                }
             }
 
             &:last-child {
                 padding: 0;
                 margin: 0;
-                border: none;
+                border-radius: 0px 0px 3px 3px;
+
+                .btn {
+                    border-radius: 0px 0px 3px 3px;
+                }
             }
         }
 
         .btn {
-            border-radius: 0 !important;
+            border: none;
+            border-radius: 0px;
         }
     }
 }

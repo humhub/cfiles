@@ -1,7 +1,6 @@
 .overflow-ellipsis {
   position: relative;
   overflow: hidden;
-  display: inline-block;
   max-width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -17,48 +16,74 @@
   direction: ltr;
   cursor: pointer;
 }
-.files-action-menu .btn {
+.panel .panel-body .files-action-menu .btn {
   width: 100%;
   padding: 8px 16px !important;
   font-size: 1em !important;
   font-weight: normal !important;
 }
-.files-action-menu .btn-default:hover {
+.panel .panel-body .files-action-menu .btn-default:hover {
   background-color: #e6e6e6 !important;
 }
-.files-action-menu .btn-success:hover {
+.panel .panel-body .files-action-menu .btn-success:hover {
   background-color: #89cc5e !important;
 }
-.files-action-menu .btn-danger:hover {
+.panel .panel-body .files-action-menu .btn-danger:hover {
   background-color: #ff6f6f !important;
 }
-.files-action-menu .btn-primary:hover {
+.panel .panel-body .files-action-menu .btn-primary:hover {
   background-color: #286090 !important;
 }
-.files-action-menu .btn-group {
+.panel .panel-body .files-action-menu .btn-group {
   width: 100%;
 }
-.files-action-menu .dropdown-menu {
+.panel .panel-body .files-action-menu .btn-group .split-toggle {
+  width: auto !important;
+  float: right !important;
+  border-radius: 0px 3px 3px 0px;
+}
+.panel .panel-body .files-action-menu .btn-group .split-toggle:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+  border-radius: 0px 3px 3px 0px;
+}
+.panel .panel-body .files-action-menu .btn-group > .split-button {
+  width: auto !important;
+  overflow: hidden;
+  display: block;
+  float: none !important;
+  border-radius: 3px 0px 0px 3px;
+}
+.panel .panel-body .files-action-menu .btn-group > .split-button:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+  border-radius: 3px 0px 0px 3px;
+}
+.panel .panel-body .files-action-menu .dropdown-menu {
   padding: 0;
   margin: 0;
   width: 100%;
 }
-.files-action-menu .dropdown-menu li {
+.panel .panel-body .files-action-menu .dropdown-menu li {
   padding: 0;
-  border: none !important;
+  border: none;
+  border-radius: 0px;
 }
-.files-action-menu .dropdown-menu li:first-child {
+.panel .panel-body .files-action-menu .dropdown-menu li:first-child {
   padding: 0;
   margin: 0;
-  border: none;
+  border-radius: 3px 3px 0px 0px;
 }
-.files-action-menu .dropdown-menu li:last-child {
+.panel .panel-body .files-action-menu .dropdown-menu li:first-child .btn {
+  border-radius: 3px 3px 0px 0px;
+}
+.panel .panel-body .files-action-menu .dropdown-menu li:last-child {
   padding: 0;
   margin: 0;
-  border: none;
+  border-radius: 0px 0px 3px 3px;
 }
-.files-action-menu .dropdown-menu .btn {
-  border-radius: 0 !important;
+.panel .panel-body .files-action-menu .dropdown-menu li:last-child .btn {
+  border-radius: 0px 0px 3px 3px;
+}
+.panel .panel-body .files-action-menu .dropdown-menu .btn {
+  border: none;
+  border-radius: 0px;
 }
 .filedelete-button {
   cursor: pointer;

@@ -1,18 +1,18 @@
 <?php
 namespace humhub\modules\cfiles\widgets;
 
-use yii\bootstrap\ButtonDropdown;
-
 class DropdownButton extends \yii\base\Widget
 {
 
     public $buttons;
 
     public $icon;
-    
+
     public $options;
-    
+
     public $label;
+
+    public $split = true;
 
     public function run()
     {
@@ -21,13 +21,23 @@ class DropdownButton extends \yii\base\Widget
             foreach ($this->buttons as $button) {
                 $items[] = '<li>' . str_replace($this->icon, '', $button) . '</li>';
             }
+            if ($this->split) {
+                array_shift($items);
+            }
             return ButtonDropdown::widget([
-                'encodeLabel' => false,
-                'label' => $this->icon . $this->label,
+                
                 'dropdown' => [
                     'items' => $items
                 ],
-                'options' => $this->options
+                'splitButton' => $this->split ? [
+                    'visible' => true,
+                    'options' => $this->options
+                ] : null,
+                'button' => $this->split ? $this->buttons[0] : [
+                    'encodeLabel' => false,
+                    'label' => $this->icon . $this->label,
+                    'options' => $this->options
+                ]
             ]);
         } elseif (count($this->buttons) > 0) {
             return $this->buttons[0];

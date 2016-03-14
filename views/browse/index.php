@@ -57,7 +57,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                 $icon = '<i class="glyphicon glyphicon-plus"></i> ';
                 $buttons = [];
                 $buttons[] = 
-                '<span class="fileinput-button btn btn-success overflow-ellipsis">'.
+                '<span class="split-button fileinput-button btn btn-success overflow-ellipsis">'.
                     $icon.
                     Yii::t('CfilesModule.base', 'Add file(s)').
                     '<input id="fileupload" type="file" name="files[]" multiple>'.
@@ -88,7 +88,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                 $icon = '<i class="fa fa-folder"></i> ';
                 $buttons = [];
                 if($this->context->canWrite()):
-                    $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'btn btn-default overflow-ellipsis'));
+                    $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'split-button btn btn-default overflow-ellipsis'));
                     if ($currentFolder->id !== BrowseController::ROOT_ID):
                         $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'btn btn-default overflow-ellipsis'));
                     endif;
@@ -154,6 +154,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                     'label' => "(<span class='chkCnt'></span>) ".\Yii::t('CfilesModule.base', 'Selected items...'),
                     'buttons' => $buttons,
                     'icon' => $icon,
+                    'split' => false,
                     'options' => [
                         'class' => 'btn btn-default overflow-ellipsis',
                         ]
