@@ -226,10 +226,15 @@ class File extends FileSystemItem
 
     public function getCreator()
     {
-        return File::getCreatorById($this->baseFile->created_by);
+        return File::getUserById($this->baseFile->created_by);
+    }
+    
+    public function getEditor()
+    {
+        return File::getUserById($this->baseFile->updated_by);
     }
 
-    public static function getCreatorById($id)
+    public static function getUserById($id)
     {
         return User::findOne([
             'id' => $id

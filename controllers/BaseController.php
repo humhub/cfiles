@@ -175,16 +175,12 @@ abstract class BaseController extends \humhub\modules\content\components\Content
      */
     public function canWrite()
     {
-        if (version_compare(Yii::$app->version, '1.1', 'lt')) {
-            if ($this->contentContainer instanceof \humhub\modules\user\models\User) {
-                if ($this->contentContainer->id === Yii::$app->user->getIdentity()->id) {
-                    return true;
-                }
+        if ($this->contentContainer instanceof \humhub\modules\user\models\User) {
+            if ($this->contentContainer->id === Yii::$app->user->getIdentity()->id) {
+                return true;
             }
         }
         
         return $this->contentContainer->permissionManager->can(new \humhub\modules\cfiles\permissions\WriteAccess());
-        
-        return false;
     }
 }

@@ -61,7 +61,8 @@ use humhub\modules\file\models\File;
         $iconClass = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getIconClassByExt($item['file']->getExtension()) : $item['file']->getIconClass();
         $title = Html::encode($item['file'] instanceof File ? $item['file']->file_name : $item['file']->getTitle());
         $size = $item['file'] instanceof File ? $item['file']->size : $item['file']->getSize();
-        $creator = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getCreatorById($item['file']->created_by) : $item['file']->creator;
+        $creator = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getUserById($item['file']->created_by) : $item['file']->creator;
+        $editor = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getUserById($item['file']->updated_by) : $item['file']->editor;
         $updatedAt = $item['file'] instanceof File ? $item['file']->updated_at : $item['file']->content->updated_at;
         ?>
         <tr data-type="<?php echo $type; ?>"
@@ -109,9 +110,19 @@ use humhub\modules\file\models\File;
                             src="<?php echo $creator->getProfileImage()->getUrl(); ?>"
                             width="21" height="21" alt="21x21" data-src="holder.js/21x21"
                             style="width: 21px; height: 21px;"
-                            data-original-title="<?php echo $creator->getDisplayName();?>"
+                            data-original-title="<?php echo (!empty($editor) && $creator->id !== $editor->id ? Yii::t('CfilesModule.base', 'created:') . ' ' : '') . $creator->getDisplayName();?>"
                             data-placement="top" title="" data-toggle="tooltip">
                     </a>
+                    <?php if(!empty($editor) && $creator->id !== $editor->id):?>
+                    <a href="<?php echo $editor->createUrl(); ?>">
+                        <img class="img-rounded tt img_margin"
+                            src="<?php echo $editor->getProfileImage()->getUrl(); ?>"
+                            width="21" height="21" alt="21x21" data-src="holder.js/21x21"
+                            style="width: 21px; height: 21px;"
+                            data-original-title="<?php echo Yii::t('CfilesModule.base', 'changed:') . ' ' . $editor->getDisplayName();?>"
+                            data-placement="top" title="" data-toggle="tooltip">
+                    </a>
+                    <?php endif; ?>
                 </div>
             </td>
         </tr>

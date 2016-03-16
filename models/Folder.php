@@ -1,5 +1,4 @@
 <?php
-
 namespace humhub\modules\cfiles\models;
 
 use Yii;
@@ -80,14 +79,14 @@ class Folder extends FileSystemItem
     public function getFiles()
     {
         return $this->hasMany(File::className(), [
-                    'parent_folder_id' => 'id'
+            'parent_folder_id' => 'id'
         ]);
     }
 
     public function getFolders()
     {
         return $this->hasMany(Folder::className(), [
-                    'parent_folder_id' => 'id'
+            'parent_folder_id' => 'id'
         ]);
     }
 
@@ -96,11 +95,11 @@ class Folder extends FileSystemItem
         foreach ($this->folders as $folder) {
             $folder->delete();
         }
-
+        
         foreach ($this->files as $file) {
             $file->delete();
         }
-
+        
         return parent::beforeDelete();
     }
 
@@ -127,18 +126,21 @@ class Folder extends FileSystemItem
     public function getUrl()
     {
         return $this->content->container->createUrl('/cfiles/browse/index', [
-                    'fid' => $this->id
+            'fid' => $this->id
         ]);
     }
 
     public function getCreator()
     {
-        $content = Content::findOne([
-                    'object_model' => $this->className(),
-                    'object_id' => $this->id
-        ]);
         return User::findOne([
-                    'id' => $content->created_by
+            'id' => $this->content->created_by
+        ]);
+    }
+
+    public function getEditor()
+    {
+        return User::findOne([
+            'id' => $this->content->updated_by
         ]);
     }
 
@@ -155,17 +157,17 @@ class Folder extends FileSystemItem
             return $separator;
         }
         $item = Folder::findOne([
-                    'id' => $id
+            'id' => $id
         ]);
         if (empty($item)) {
             return null;
         }
         $tempFolder = $item->parentFolder;
         $path = $separator;
-        if (!$parentFolderPath) {
+        if (! $parentFolderPath) {
             $path .= $item->title;
         }
-        while (!empty($tempFolder)) {
+        while (! empty($tempFolder)) {
             $path = $separator . $tempFolder->title . $path;
         }
         return $path;
@@ -174,28 +176,28 @@ class Folder extends FileSystemItem
     public static function getIdFromPath($path, $contentContainer, $separator = '/')
     {
         $titles = array_reverse(explode($separator, $path));
-
+        
         if (sizeof($titles) <= 0) {
             return null;
         }
-
+        
         $folders = Folder::find()->contentContainer($contentContainer)
-                ->readable()
-                ->where([
-                    'title' => $titles[0]
-                ])
-                ->all();
+            ->readable()
+            ->where([
+            'title' => $titles[0]
+        ])
+            ->all();
         if (sizeof($folders) <= 0) {
             return null;
         }
         unset($titles[0]);
-
+        
         foreach ($titles as $index => $title) {
             if (sizeof($folders) <= 0) {
                 return null;
             }
         }
-
+        
         $query = $this->hasOne(\humhub\modules\content\models\Content::className(), [
             'object_id' => 'id'
         ]);
@@ -224,5 +226,4 @@ class Folder extends FileSystemItem
     {
         return $this->title;
     }
-
 }
