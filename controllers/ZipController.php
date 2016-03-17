@@ -431,22 +431,34 @@ class ZipController extends UploadController
     }
 
     /**
-     * Get the output path of the temporary folder used for packing and unpacking zip data.
+     * Get the output path of the user specified temporary folder used for packing and unpacking zip data for this user.
      *
      * @return string @runtime/temp/[guid]
      */
     protected function getZipOutputPath()
     {
         // init output directory
-        $outputPath = Yii::getAlias('@runtime') . DIRECTORY_SEPARATOR . "temp";
-        if (! is_dir($outputPath)) {
-            mkdir($outputPath);
-        }
+        $outputPath = $this->getBaseTempFolderPath();
         $outputPath .= DIRECTORY_SEPARATOR . \Yii::$app->user->guid;
         if (! is_dir($outputPath)) {
             mkdir($outputPath);
         }
         
+        return $outputPath;
+    }
+    
+    /**
+     * Get the output path of the base temporary folder used for packing and unpacking zip data for all users.
+     *
+     * @return string @runtime/temp/[guid]
+     */
+    protected function getBaseTempFolderPath()
+    {
+        // init output directory
+        $outputPath = Yii::getAlias('@runtime') . DIRECTORY_SEPARATOR . "temp";
+        if (! is_dir($outputPath)) {
+            mkdir($outputPath);
+        }
         return $outputPath;
     }
 
@@ -455,6 +467,9 @@ class ZipController extends UploadController
      */
     protected function cleanup()
     {
-        BaseFileHelper::removeDirectory($this->getZipOutputPath());
+        $files = BaseFileHelper::findFiles($this->getBaseTempFolderPath(), ['filter' => function($path) {return time()-filemtime($path) > 30 ? true : false;}, 'recursive' => true]);
+        foreach($files as $file) {
+            unlink($file);
+        }
     }
 }
