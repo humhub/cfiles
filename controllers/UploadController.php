@@ -49,7 +49,7 @@ class UploadController extends BrowseController
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
 
             // check if the file already exists in this dir
-            $filesQuery = File::find()->joinWith('baseFile')
+            $filesQuery = File::find()->contentContainer($this->contentContainer)->joinWith('baseFile')
                     ->readable()
                     ->andWhere([
                 'title' => File::sanitizeFilename($cFile->name),
