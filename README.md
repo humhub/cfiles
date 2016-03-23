@@ -19,7 +19,7 @@ After installation and activiation from the Marketplace you can deactivate the Z
 <img src="https://www.zeros.ones.de/fileadmin/logo_facebook.png" alt="Drawing" style="width: 100px;"/>
 
 __Author:__       
-Sebastian Stumpf / Lukas Bartholemy @zeros+ones     
+Sebastian Stumpf (zeros+ones) / Lucas Bartholemy    
   
 __Author description:__       
 zeros+ones, is a Munich based digital agency focused on design and technical development with over 20 years of experience.     
