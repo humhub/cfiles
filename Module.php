@@ -72,24 +72,12 @@ class Module extends ContentContainerModule
 
     public function disableContentContainer(\humhub\modules\content\components\ContentContainerActiveRecord $container)
     {
-        $folders = Content::findAll([
-                    'object_model' => Folder::className(),
-                    'space_id' => $container->id
-        ]);
-        foreach ($folders as $key => $folderContent) {
-            $folder = Folder::findOne([
-                        'id' => $folderContent->object_id
-            ]);
+        
+        foreach (Folder::find()->contentContainer($container)->all() as $folder) {
             $folder->delete();
-        }
-        $files = Content::findAll([
-                    'object_model' => File::className(),
-                    'space_id' => $container->id
-        ]);
-        foreach ($files as $key => $fileContent) {
-            $file = File::findOne([
-                        'id' => $fileContent->object_id
-            ]);
+        } 
+        
+        foreach (File::find()->contentContainer($container)->all() as $file) {
             $file->delete();
         }
     }
