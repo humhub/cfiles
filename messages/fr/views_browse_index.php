@@ -17,5 +17,5 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Could not save file %title%. ' => '',
+    'Could not save file %title%. ' => 'Impossible d\'enregistrer le fichier %title%. ',
 ];
