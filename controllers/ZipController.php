@@ -191,10 +191,8 @@ class ZipController extends UploadController
         if ($file instanceof File) {
             $file = $file->baseFile;
         }
-        $filePath = $file->getPath() . DIRECTORY_SEPARATOR . 'file';
-        if (version_compare(Yii::$app->version, '1.1', '<')) {
-            $filePath = $file->getPath() . DIRECTORY_SEPARATOR . $file->title;
-        }
+        
+        $filePath = $file->getStoredFilePath();
         if (is_file($filePath)) {
             $zipFile->addFile($filePath, (empty($localPathPrefix) ? "" : $localPathPrefix . DIRECTORY_SEPARATOR) . $prefix . $file->title . $suffix);
         }

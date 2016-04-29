@@ -3,9 +3,9 @@
     "name": "Files",
     "description": "File manager for spaces/users.",
     "keywords": ["files"],
-    "version": "0.9.2",
+    "version": "0.9.3",
     "humhub": {
-        "minVersion": "1.0"
+        "minVersion": "1.0.0"
     },
     "screenshots": ["assets/screen1.PNG","assets/screen2.PNG"]
 }
