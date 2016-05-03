@@ -71,8 +71,8 @@ class Folder extends FileSystemItem
     {
         return [
             'id' => 'ID',
-            'parent_folder_id' => Yii::t('CfilesModule.base', 'Parent Folder ID'),
-            'title' => Yii::t('CfilesModule.base', 'Title')
+            'parent_folder_id' => Yii::t('CfilesModule.models_Folder', 'Parent Folder ID'),
+            'title' => Yii::t('CfilesModule.models_Folder', 'Title')
         ];
     }
 
