@@ -46,7 +46,7 @@ class File extends FileSystemItem
     {
         return [
             'id' => 'ID',
-            'parent_folder_id' => 'Folder ID'
+            'parent_folder_id' => Yii::t('CfilesModule.models_File', 'Folder ID')
         ];
     }
 
