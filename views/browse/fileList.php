@@ -6,7 +6,7 @@ use humhub\modules\file\models\File;
 <ol class="breadcrumb" dir="ltr">
 <?php foreach ($crumb as $parentFolder): ?>
     <li><a
-        href="<?php echo $contentContainer->createUrl('/cfiles/browse/index', ['fid' => $parentFolder->id]); ?>">
+        href="<?php echo $contentContainer->createUrl('/cfiles/browse/'.($parentFolder->id == BrowseController::All_POSTED_FILES_ID ? 'all-posted-files' : 'index'), ['fid' => $parentFolder->id]); ?>">
     <?php echo $parentFolder->id == BrowseController::ROOT_ID ? '<i class="fa fa-home fa-lg fa-fw"></i>' : Html::encode($parentFolder->title); ?></a></li>
 <?php endforeach; ?>
 </ol>
