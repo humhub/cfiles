@@ -17,6 +17,7 @@ use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\comment\models\Comment;
 use yii\helpers\FileHelper;
 use humhub\models\Setting;
+use humhub\modules\post\models\Post;
 
 /**
  * Description of BrowseController
@@ -128,9 +129,12 @@ class BrowseController extends BaseController
     {
         // Get Posted Files
         $query = \humhub\modules\file\models\File::find();
-        $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id)');
+        // join comments to the file if available
+        $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id AND file.object_model=' . Yii::$app->db->quoteValue(Comment::className()) . ')');
+        // join parent post of comment or file
         $query->join('LEFT JOIN', 'content', '(comment.object_model=content.object_model AND comment.object_id=content.object_id) OR (file.object_model=content.object_model AND file.object_id=content.object_id)');
         if (version_compare(Yii::$app->version, '1.1', 'lt')) {
+            // select only the one for the given content container for Yii version < 1.1
             if ($this->contentContainer instanceof \humhub\modules\user\models\User) {
                 $query->andWhere([
                     'content.user_id' => $this->contentContainer->id
@@ -146,16 +150,25 @@ class BrowseController extends BaseController
                 ]);
             }
         } else {
+            // select only the one for the given content container for Yii version >= 1.1
             $query->andWhere([
                 'content.contentcontainer_id' => $this->contentContainer->contentContainerRecord->id
             ]);
         }
+        // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
         $query->andWhere([
-            '<>',
-            'file.object_model',
-            File::className()
+            'or',
+            [
+                '=',
+                'comment.object_model',
+                Post::className()
+            ],
+            [
+                '=',
+                'file.object_model',
+                Post::className()
+            ]
         ]);
-        $query->orderBy($orderBy);
         // Get Files from comments
         return $query->all();
     }
