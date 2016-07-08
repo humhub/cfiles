@@ -72,14 +72,22 @@ class Module extends ContentContainerModule
 
     public function disableContentContainer(\humhub\modules\content\components\ContentContainerActiveRecord $container)
     {
-        
+
         foreach (Folder::find()->contentContainer($container)->all() as $folder) {
             $folder->delete();
-        } 
-        
+        }
+
         foreach (File::find()->contentContainer($container)->all() as $file) {
             $file->delete();
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentContainerName(ContentContainerActiveRecord $container)
+    {
+        return Yii::t('CfilesModule.base', 'Files');
     }
 
     /**
@@ -100,7 +108,8 @@ class Module extends ContentContainerModule
     public function getConfigUrl()
     {
         return Url::to([
-            '/cfiles/config'
-            ]);
-    }    
+                    '/cfiles/config'
+        ]);
+    }
+
 }
