@@ -72,7 +72,7 @@ class UploadController extends BrowseController
             }
 
             $humhubFile->setUploadedFile($cFile);
-            if ($humhubFile->save()) {
+            if ($humhubFile->validate()) {
 
                 $file->content->container = $this->contentContainer;
                 $folder = $this->getCurrentFolder();

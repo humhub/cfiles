@@ -2,12 +2,15 @@
 use yii\helpers\Html;
 use humhub\modules\cfiles\controllers\BrowseController;
 use humhub\modules\file\models\File;
+
+$parentFolderId = 0;
 ?>
 <ol class="breadcrumb" dir="ltr">
 <?php foreach ($crumb as $parentFolder): ?>
     <li><a
         href="<?php echo $contentContainer->createUrl('/cfiles/browse/'.($parentFolder->id == BrowseController::All_POSTED_FILES_ID ? 'all-posted-files' : 'index'), ['fid' => $parentFolder->id]); ?>">
     <?php echo $parentFolder->id == BrowseController::ROOT_ID ? '<i class="fa fa-home fa-lg fa-fw"></i>' : Html::encode($parentFolder->title); ?></a></li>
+    <?php $parentFolderId = $parentFolder->id; ?>
 <?php endforeach; ?>
 </ol>
 
@@ -76,7 +79,7 @@ use humhub\modules\file\models\File;
                 <div class="title">
                     <i class="fa <?php echo $iconClass; ?> fa-fw"></i>&nbsp;
                     <?php if ($type === "image") : ?>
-                    <a class="preview-link" data-toggle="lightbox"
+                    <a class="preview-link" data-toggle="lightbox" data-parent="#bs-table"  data-gallery="FilesModule-Gallery-<?php echo $parentFolderId; ?>"
                         href="<?php echo $url; ?>#.jpeg"
                         data-footer='
                         <button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'>
