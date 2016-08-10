@@ -48,38 +48,40 @@ class EditController extends BrowseController
         ]);
         $folder = $query->one();
         
+        // the new / edited folders title
+        $title = trim(Yii::$app->request->post('Folder')['title']);
+        Yii::$app->request->post('Folder')['title'] = $title;
+        
         // if not a folder has to be created
         if (empty($folder)) {
+            $titleChanged = true;
             // create a new folder
             $folder = new Folder();
             $folder->content->container = $this->contentContainer;
             $folder->parent_folder_id = $this->getCurrentFolder()->id;
+        } else {
+            $titleChanged = $title !== $folder->title;
         }
-
-        // the new / edited folders title
-        $title = trim(Yii::$app->request->post('Folder')['title']);
-        Yii::$app->request->post('Folder')['title'] = $title;
         
         // check if a folder with the given parent id and title exists
         $query = Folder::find()->contentContainer($this->contentContainer)
                 ->readable()
                 ->where([
             'cfiles_folder.title' => $title,
-            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
+            'cfiles_folder.parent_folder_id' => $folder->parent_folder_id
         ]);
         $similarFolder = $query->one();
         
+        // if a similar folder exists and a new folder should be created, add an error to the model.
+        if (!empty($similarFolder) && $titleChanged) {
+            $folder->title = $title;
+            $folder->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
+        } else         
         // if there is no folder with the same name, try to save the current folder
-        if (empty($similarFolder) && $folder->load(Yii::$app->request->post()) && $folder->validate() && $folder->save()) {
+        if ($folder->load(Yii::$app->request->post()) && $folder->validate() && $folder->save()) {
             return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', [
                 'fid' => $folder->id
             ]));
-        }
-
-        // if a similar folder exists, add an error to the model.
-        if (!empty($similarFolder)) {
-            $folder->title = $title;
-            $folder->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
         }
 
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
