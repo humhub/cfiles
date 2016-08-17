@@ -11,9 +11,21 @@ use humhub\modules\content\models\Content;
  *
  * @property integer $id
  * @property integer $parent_folder_id
+ * @property string $description
  */
 class File extends FileSystemItem
 {
+    
+    /**
+     * @inheritdoc
+     */
+    public $autoAddToWall = false;
+    
+    /**
+     * @inheritdoc
+     */
+    public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFile";
+    
     /**
      * @inheritdoc
      */
@@ -35,6 +47,11 @@ class File extends FileSystemItem
             [
                 'parent_folder_id',
                 'validateParentFolderId'
+            ],
+            [
+            'description',
+            'string',
+            'max' => 255
             ]
         ];
     }
@@ -269,12 +286,19 @@ class File extends FileSystemItem
         if (! $parentFolderPath) {
             $path .= $item->title;
         }
-        while (! empty($tempFolder)) {
+        $counter = 0;
+        // break at maxdepth 20 to avoid hangs
+        while (! empty($tempFolder) && $counter++ <= 20) {
             $path = $separator . $tempFolder->title . $path;
+            $tempFolder = $tempFolder->parentFolder;
         }
         return $path;
     }
 
+    public function getFullPath($separator='/') {
+        return $this->getPathFromId($this->id, false, $separator);
+    }
+    
     public function validateParentFolderId($attribute, $params)
     {
         parent::validateParentFolderId($attribute, $params);

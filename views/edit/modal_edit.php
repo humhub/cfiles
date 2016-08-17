@@ -18,6 +18,7 @@
         <div class="modal-body">
             <br />
             <?php echo $form->field($folder, 'title'); ?>
+            <?php echo $form->field($folder, 'description'); ?>
         </div>
 
         <div class="modal-footer">

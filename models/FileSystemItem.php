@@ -12,13 +12,6 @@ use Yii;
 abstract class FileSystemItem extends \humhub\modules\content\components\ContentActiveRecord implements \humhub\modules\cfiles\ItemInterface
 {
 
-    /**
-     * @inheritdoc
-     */
-    public $autoAddToWall = false;
-
-    public $path = null;
-
     public function beforeSave($insert)
     {
         if ($this->parent_folder_id == "") {
@@ -49,17 +42,17 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
 
     /**
      * Check if a parent folder is valid or lies in itsself, etc.
-     * @param unknown $attribute
-     * @param unknown $params
+     * @param integer $id
+     * @param array $params
      */
-    public function validateParentFolderId($attribute, $params)
+    public function validateParentFolderId($id, $params)
     {
         $parent = Folder::findOne([
-            'id' => $this->$attribute
+            'id' => $this->$id
         ]);
         
-        if ($this->$attribute != 0 && ! ($parent instanceof Folder)) {
-            $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', [
+        if ($this->$id != 0 && ! ($parent instanceof Folder)) {
+            $this->addError($id, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', [
                 '%title%' => $this->title
             ]));
         }
@@ -67,7 +60,7 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         // check if one of the parents is oneself to avoid circles
         while (! empty($parent)) {
             if ($this->id == $parent->id) {
-                $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', [
+                $this->addError($id, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', [
                     '%title%' => $this->title
                 ]));
                 break;

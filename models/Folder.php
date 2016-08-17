@@ -15,12 +15,21 @@ use yii\helpers\FileHelper;
  * @property integer $id
  * @property integer $parent_folder_id
  * @property string $title
+ * @property string $description
  */
 class Folder extends FileSystemItem
 {
 
-    public $path = "";
-
+    /**
+     * @inheritdoc
+     */
+    public $autoAddToWall = true;
+        
+    /**
+     * @inheritdoc
+     */
+    public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFolder";
+    
     /**
      * @inheritdoc
      */
@@ -60,6 +69,11 @@ class Folder extends FileSystemItem
             [
                 'title',
                 'noSpaces'
+            ],
+            [
+            'description',
+            'string',
+            'max' => 255
             ]
         ];
     }
@@ -87,7 +101,7 @@ class Folder extends FileSystemItem
     {
         return $this->hasMany(Folder::className(), [
             'parent_folder_id' => 'id'
-        ]);
+        ]);        
     }
 
     public function beforeDelete()
@@ -102,7 +116,7 @@ class Folder extends FileSystemItem
         
         return parent::beforeDelete();
     }
-
+    
     public function getItemId()
     {
         return 'folder_' . $this->id;
@@ -151,6 +165,10 @@ class Folder extends FileSystemItem
         }
     }
 
+    public function getFullPath($separator='/') {
+        return $this->getPathFromId($this->id, false, $separator);
+    }
+    
     public static function getPathFromId($id, $parentFolderPath = false, $separator = '/')
     {
         if ($id == 0) {
@@ -167,8 +185,11 @@ class Folder extends FileSystemItem
         if (! $parentFolderPath) {
             $path .= $item->title;
         }
-        while (! empty($tempFolder)) {
+        $counter = 0;
+        // break at maxdepth 20 to avoid hangs
+        while (! empty($tempFolder) && $counter++ <= 20) {
             $path = $separator . $tempFolder->title . $path;
+            $tempFolder = $tempFolder->parentFolder;
         }
         return $path;
     }
