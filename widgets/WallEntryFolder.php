@@ -17,14 +17,13 @@ class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
     /**
      * @inheritdoc
      */
-    public $editRoute = "";
+    public $editRoute = "/cfiles/browse/redirect";
 
     /**
      * @inheritdoc
      */
     public function run()
     {
-        
         return $this->render('wallEntryFolder', array('folder' => $this->contentObject));
     }
 

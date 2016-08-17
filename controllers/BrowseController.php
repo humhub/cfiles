@@ -27,6 +27,15 @@ use humhub\modules\post\models\Post;
 class BrowseController extends BaseController
 {
 
+    /**
+     * Force redirect to index. This is needed for the wall entry nav-pills.
+     */
+    public function actionRedirect()
+    {
+        $fid = (int) Yii::$app->request->get('id', self::ROOT_ID);
+        return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $fid]));
+    }
+    
     public function actionIndex()
     {
         $fileList = $this->renderFileList(true);
