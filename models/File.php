@@ -5,6 +5,7 @@ use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\models\Content;
+use humhub\modules\cfiles\controllers\BaseController;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -34,6 +35,18 @@ class File extends FileSystemItem
         return 'cfiles_file';
     }
 
+    public function getWallUrl()
+    {
+        $parentFolder = $this->parentFolder;
+        $firstWallEntryId = $parentFolder == null ? '' : $parentFolder->content->getFirstWallEntryId();  
+            
+        if ($firstWallEntryId == '') {
+            return '';
+        }
+    
+        return \yii\helpers\Url::toRoute(['/content/perma/wall-entry', 'id' => $firstWallEntryId]);
+    }
+    
     /**
      * @inheritdoc
      */

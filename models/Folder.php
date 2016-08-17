@@ -43,6 +43,17 @@ class Folder extends FileSystemItem
         return 'folder';
     }
 
+    public function getWallUrl()
+    {
+        $firstWallEntryId = $this->content->getFirstWallEntryId();
+    
+        if ($firstWallEntryId == "") {
+            return '';
+        }
+    
+        return \yii\helpers\Url::toRoute(['/content/perma/wall-entry', 'id' => $firstWallEntryId]);
+    }
+    
     /**
      * @inheritdoc
      */

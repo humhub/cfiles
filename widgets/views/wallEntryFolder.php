@@ -1,14 +1,45 @@
 <?php
 use yii\helpers\Html;
+use humhub\modules\like\widgets\LikeLink;
+use humhub\modules\comment\widgets\CommentLink;
 $emptyList = true;
 ?>
+
+<style>
+.cfiles-wallout-folder .breadcrumb {
+    margin-bottom: 0;
+}
+.cfiles-wallout-folder .breadcrumb a {
+    color: #555;
+}
+.cfiles-wallout-folder .breadcrumb .link-info {
+    color: #bebebe;
+    font-size: 11px;
+}
+.cfiles-wallout-folder .table-responsive .table a {
+    color: #555;
+}
+.cfiles-wallout-folder .table-responsive .table .file-controls {
+    color: #bebebe;
+    font-size: 11px;
+}
+.cfiles-wallout-folder .table-responsive .table .file-controls hr {
+    margin-top: 2px;
+    margin-bottom: 2px;    
+}
+.cfiles-wallout-folder .table-responsive .table .file-controls a {
+    color: #bebebe;
+}
+
+</style>
+
 <div style="overflow: hidden; margin-bottom: 10px;">
     <?php echo trim($folder->description) ? $folder->description : '&nbsp;' ?>
 </div>
 <div class="cfiles-wallout-folder" id="cfiles-wallout-folder-content-<?php echo $folder->id; ?>" style="overflow: hidden; margin-bottom: 5px;">
-    <ol class="breadcrumb" style="margin-bottom: 0;" dir="ltr">
+    <ol class="breadcrumb" dir="ltr">
         <li><a
-            href="<?php echo $folder->getUrl(); ?>"><i class="fa fa-home fa-lg fa-fw"></i><?php echo Html::encode($folder->getFullPath(' / ')); ?></a>
+            href="<?php echo $folder->getUrl(); ?>"><i class="fa fa-home fa-lg fa-fw"></i><?php echo Html::encode($folder->getFullPath(' / ')); ?></a> <span class="link-info"><?php echo Yii::t('CfilesModule.base', '(Click to edit and move files in directory)'); ?></span>
         </li>
     </ol>
     
@@ -18,6 +49,7 @@ $emptyList = true;
                 <tr>
                     <th class="text-left"><?php echo Yii::t('CfilesModule.base', 'Name'); ?></th>
                     <th class="hidden-xxs text-right"><?php echo Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                    <th class="text-right"><?php echo Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
                     <th class="text-right"><?php echo Yii::t('CfilesModule.base', 'Creator'); ?></th>
                 </tr>
             </thead>
@@ -64,6 +96,13 @@ $emptyList = true;
                 <td class="hidden-xxs text-right">
                     <div class="timestamp pull-right">
                         <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $updatedAt ]); ?>
+                    </div>
+                </td>
+                <td class="text-right">
+                    <div class="file-controls pull-right">
+                        <?php echo LikeLink::widget(['object' => $item]); ?>
+                        <hr>
+                        <?php echo CommentLink::widget(['object' => $item, 'mode' => CommentLink::MODE_POPUP]); ?>
                     </div>
                 </td>
                 <td class="text-right">

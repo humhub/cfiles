@@ -24,7 +24,7 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
 
     public function getParentFolder()
     {
-        $query = $this->hasOne(self::className(), [
+        $query = $this->hasOne(Folder::className(), [
             'id' => 'parent_folder_id'
         ]);
         return $query;
@@ -39,17 +39,6 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
             'file.object_model' => self::className()
         ]);
         return $query;
-    }
-
-    public function getWallUrl()
-    {
-        $firstWallEntryId = $this->content->getFirstWallEntryId();
-        
-        if ($firstWallEntryId == "") {
-            return '';
-        }
-        
-        return \yii\helpers\Url::toRoute(['/content/perma/wall-entry', 'id' => $firstWallEntryId]);
     }
     
     /**

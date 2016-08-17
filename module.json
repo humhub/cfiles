@@ -3,7 +3,7 @@
     "name": "Files",
     "description": "File manager for spaces/users.",
     "keywords": ["files"],
-    "version": "0.9.5.1",
+    "version": "0.9.5.2",
     "humhub": {
         "minVersion": "1.0.0"
     },
