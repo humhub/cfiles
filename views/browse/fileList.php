@@ -60,7 +60,7 @@ $parentFolderId = 0;
         $id = $item['file'] instanceof File ? 'baseFile_'.$item['file']->id : $item['file']->getItemId();
         $downloadUrl = $item['file'] instanceof File ? $item['file']->getUrl().'&'.http_build_query(['download' => true]) : $item['file']->getUrl(true);
         $url = $item['file'] instanceof File ? $item['file']->getUrl() : $item['file']->getUrl();
-        $contentUrl = !empty($item['content']) ? $item['content']->getUrl() : "";
+        $wallUrl = $item['file'] instanceof File ?  $item['content']->getUrl() : $item['file']->getWallUrl();
         $iconClass = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getIconClassByExt($item['file']->getExtension()) : $item['file']->getIconClass();
         $title = Html::encode($item['file'] instanceof File ? $item['file']->file_name : $item['file']->getTitle());
         $size = $item['file'] instanceof File ? $item['file']->size : $item['file']->getSize();
@@ -71,7 +71,7 @@ $parentFolderId = 0;
         <tr data-type="<?php echo $type; ?>"
             data-id="<?php echo $id; ?>"
             data-url="<?php echo $downloadUrl; ?>"
-            data-content-url="<?php echo $contentUrl; ?>">
+            data-wall-url="<?php echo $wallUrl; ?>">
             <td class="text-muted text-right">
                 <?php echo Html::checkbox('selected[]', false, [ 'value' => $id, 'class' => 'multiselect']); ?>
             </td>

@@ -15,17 +15,17 @@ use humhub\modules\content\models\Content;
  */
 class File extends FileSystemItem
 {
-    
+
     /**
      * @inheritdoc
      */
     public $autoAddToWall = false;
-    
+
     /**
      * @inheritdoc
      */
     public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFile";
-    
+
     /**
      * @inheritdoc
      */
@@ -49,9 +49,9 @@ class File extends FileSystemItem
                 'validateParentFolderId'
             ],
             [
-            'description',
-            'string',
-            'max' => 255
+                'description',
+                'string',
+                'max' => 255
             ]
         ];
     }
@@ -149,7 +149,7 @@ class File extends FileSystemItem
 
     /**
      * Make method from humhub\modules\file\models\File available.
-     * 
+     *
      * @param unknown $file_name            
      * @return string
      */
@@ -238,14 +238,16 @@ class File extends FileSystemItem
 
     public function getUrl($download = false)
     {
-        return $this->baseFile->getUrl().($download ? '&'.http_build_query(['download' => 1]) : '');
+        return $this->baseFile->getUrl() . ($download ? '&' . http_build_query([
+            'download' => 1
+        ]) : '');
     }
 
     public function getCreator()
     {
         return File::getUserById($this->baseFile->created_by);
     }
-    
+
     public function getEditor()
     {
         return File::getUserById($this->baseFile->updated_by);
@@ -288,22 +290,22 @@ class File extends FileSystemItem
         }
         $counter = 0;
         // break at maxdepth 20 to avoid hangs
-        while (! empty($tempFolder) && $counter++ <= 20) {
+        while (! empty($tempFolder) && $counter ++ <= 20) {
             $path = $separator . $tempFolder->title . $path;
             $tempFolder = $tempFolder->parentFolder;
         }
         return $path;
     }
 
-    public function getFullPath($separator='/') {
+    public function getFullPath($separator = '/')
+    {
         return $this->getPathFromId($this->id, false, $separator);
     }
-    
+
     public function validateParentFolderId($attribute, $params)
     {
         parent::validateParentFolderId($attribute, $params);
     }
-    
 
     /**
      * @inheritdoc
@@ -319,6 +321,5 @@ class File extends FileSystemItem
     public function getContentDescription()
     {
         return $this->getTitle();
-    }    
-    
+    }
 }

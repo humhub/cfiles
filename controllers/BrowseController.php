@@ -96,7 +96,7 @@ class BrowseController extends BaseController
         foreach ($items as $file) {
             $content_file_wrapper[] = [
                 'file' => $file,
-                'content' => ''
+                'content' => $file->content
             ];
         }
         

@@ -2,6 +2,7 @@
 namespace humhub\modules\cfiles\models;
 
 use Yii;
+use yii\base\Exception;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -40,6 +41,17 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         return $query;
     }
 
+    public function getWallUrl()
+    {
+        $firstWallEntryId = $this->content->getFirstWallEntryId();
+        
+        if ($firstWallEntryId == "") {
+            return '';
+        }
+        
+        return \yii\helpers\Url::toRoute(['/content/perma/wall-entry', 'id' => $firstWallEntryId]);
+    }
+    
     /**
      * Check if a parent folder is valid or lies in itsself, etc.
      * @param integer $id

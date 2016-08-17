@@ -122,7 +122,7 @@ function initFileList() {
 						previewLink.trigger("click");
 						break;
 					case 'show-post':
-						url = invokedOn.closest('tr').data('content-url');
+						url = invokedOn.closest('tr').data('wall-url');
 						document.location.href = url;
 						break;
 					default:
