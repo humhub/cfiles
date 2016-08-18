@@ -369,7 +369,10 @@ class ZipController extends UploadController
     {
         $files = $this->getAllPostedFilesList();
         foreach ($files as $file) {
-            $this->archiveFile($file, $zipFile, $localPathPrefix, \humhub\modules\cfiles\models\File::getUserById($file->created_by)->username.'_'.$file->created_at.'_');
+            if ($file->getMimeBaseType() != 'video') {
+                $this->archiveFile($file, $zipFile, $localPathPrefix,
+                    \humhub\modules\cfiles\models\File::getUserById($file->created_by)->username . '_' . $file->created_at . '_');
+            }
         }
     }
 

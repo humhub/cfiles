@@ -73,7 +73,9 @@ $parentFolderId = 0;
             data-url="<?php echo $downloadUrl; ?>"
             data-wall-url="<?php echo $wallUrl; ?>">
             <td class="text-muted text-right">
-                <?php echo Html::checkbox('selected[]', false, [ 'value' => $id, 'class' => 'multiselect']); ?>
+                <?php if($type != 'video') :?>
+                    <?php echo Html::checkbox('selected[]', false, [ 'value' => $id, 'class' => 'multiselect']); ?>
+                <?php endif;?>
             </td>
             <td class="text-left">
                 <div class="title">
