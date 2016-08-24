@@ -1,7 +1,8 @@
 <?php
-
 use humhub\modules\space\widgets\Menu;
 use humhub\modules\user\widgets\ProfileMenu;
+use humhub\modules\content\widgets\WallEntryControls;
+use humhub\modules\cfiles\Events;
 
 return [
     'id' => 'cfiles',
@@ -16,7 +17,14 @@ return [
                 'onSpaceMenuInit'
             )
         ),
-        array('class' => ProfileMenu::className(), 'event' => ProfileMenu::EVENT_INIT, 'callback' => array('humhub\modules\cfiles\Events', 'onProfileMenuInit')),
+        array(
+            'class' => ProfileMenu::className(),
+            'event' => ProfileMenu::EVENT_INIT,
+            'callback' => array(
+                'humhub\modules\cfiles\Events',
+                'onProfileMenuInit'
+            )
+        )
     )
 ];
 ?>

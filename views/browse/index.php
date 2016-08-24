@@ -33,7 +33,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <div class="panel-body">
     
         <div class="row files-action-menu">
-            <?php if($this->context->action->id == "all-posted-files"): ?>
+            <?php if($currentFolder->isAllPostedFiles()): ?>
             <?php if(!Setting::Get('disableZipSupport', 'cfiles')): ?>
             <div class="col-sm-4">
                 <div>
@@ -89,7 +89,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                 $buttons = [];
                 if($this->context->canWrite()):
                     $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'split-button btn btn-default overflow-ellipsis'));
-                    if ($currentFolder->id !== BrowseController::ROOT_ID):
+                    if (!$currentFolder->isRoot()):
                         $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'btn btn-default overflow-ellipsis'));
                     endif;
                 endif;
@@ -211,6 +211,13 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
     <?php endif; ?>
+</ul>
+
+<ul id="contextMenuAllPostedFiles" class="contextMenu dropdown-menu"
+    role="menu" style="display: none">
+    <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Open');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='zip'><?php echo Yii::t('CfilesModule.base', 'Download ZIP');?></a></li>
 </ul>
 
 <div id="hiddenLogContainer" style="display: none">

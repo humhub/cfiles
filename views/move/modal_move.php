@@ -18,6 +18,7 @@ function renderFolder($folder)
 }
 
 ?>
+
 <div class="modal-dialog modal-dialog-small animated fadeIn">
     <div class="modal-content">
         <?php $form = CActiveForm::begin(); ?>

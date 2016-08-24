@@ -30,10 +30,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
 
     const All_POSTED_FILES_ID = - 1;
 
-    private $_currentFolder = false;
-    
+    private $_currentFolder = null;
+
     private $_rootFolder = null;
-    
+
     private $_allPostedFilesFolder = null;
 
     public $hideSidebar = true;
@@ -48,52 +48,68 @@ abstract class BaseController extends \humhub\modules\content\components\Content
      */
     protected function getCurrentFolder()
     {
-        if ($this->_currentFolder !== false) {
-            return $this->_currentFolder;
-        }
-        
-        $this->_currentFolder = null;
-        $folderId = (int) Yii::$app->request->get('fid', self::ROOT_ID);
-               
-        switch ($folderId) {
-            case self::ROOT_ID:
-                $this->_currentFolder = $this->getRootFolder();
-                break;
-            case self::All_POSTED_FILES_ID:
-                $this->_currentFolder = $this->getAllPostedFilesFolder();
-                break;
-            default:
-                $this->_currentFolder = Folder::find()->contentContainer($this->contentContainer)
-                    ->readable()
-                    ->where([
-                    'cfiles_folder.id' => $folderId
-                ])
-                    ->one();
+        if ($this->_currentFolder === null) {
+            $this->_currentFolder = null;
+            $folderId = (int) Yii::$app->request->get('fid', self::ROOT_ID);
+            
+            switch ($folderId) {
+                case self::ROOT_ID:
+                    $this->_currentFolder = $this->getRootFolder();
+                    break;
+                case self::All_POSTED_FILES_ID:
+                    $this->_currentFolder = $this->getAllPostedFilesFolder();
+                    break;
+                default:
+                    $this->_currentFolder = Folder::find()->contentContainer($this->contentContainer)
+                        ->readable()
+                        ->where([
+                        'cfiles_folder.id' => $folderId
+                    ])
+                        ->one();
+                    if ($this->_currentFolder === null) {
+                        throw new HttpException(500, Yii::t('CfilesModule.base', 'An internal error occurred. Could not find folder with id: %id%', [
+                            '%id%' => $folderId
+                        ]));
+                    }
+            }
         }
         
         return $this->_currentFolder;
     }
 
-    protected function getRootFolder() {
-        if (empty($this->_rootFolder)) {
-            $this->_rootFolder = new Folder();
-            $this->_rootFolder->id = self::ROOT_ID;
-            $this->_rootFolder->title = Yii::t('CfilesModule.base', 'root');
+    protected function getRootFolder()
+    {
+        if ($this->_rootFolder === null) {
+            $this->_rootFolder = Folder::find()->contentContainer($this->contentContainer)
+                ->readable()
+                ->where([
+                'type' => Folder::TYPE_FOLDER_ROOT
+            ])
+                ->one();
+        }
+        if ($this->_rootFolder === null) {
+            throw new HttpException(500, Yii::t('CfilesModule.base', 'An internal error occurred. Could not load root folder, database not properly initialized.'));
         }
         return $this->_rootFolder;
-        
     }
-    
-    protected function getAllPostedFilesFolder() {
-        if (empty($this->_allPostedFilesFolder)) {
-            $this->_allPostedFilesFolder = new Folder();
-            $this->_allPostedFilesFolder->id = self::All_POSTED_FILES_ID;
-            $this->_allPostedFilesFolder->title = Yii::t('CfilesModule.base', 'Files from the stream');
-            $this->_allPostedFilesFolder->parent_folder_id = $this->getRootFolder()->id;
+
+    protected function getAllPostedFilesFolder()
+    {
+        if ($this->_allPostedFilesFolder === null) {
+            $this->_allPostedFilesFolder = Folder::find()->contentContainer($this->contentContainer)
+                ->readable()
+                ->where([
+                'type' => Folder::TYPE_FOLDER_POSTED,
+                'parent_folder_id' => $this->getRootFolder()->id
+            ])
+                ->one();
+        }
+        if ($this->_allPostedFilesFolder === null) {
+            throw new HttpException(500, Yii::t('CfilesModule.base', 'An internal error occurred. Could not load default folder containing all posted files, database not properly initialized.'));
         }
         return $this->_allPostedFilesFolder;
     }
-    
+
     /**
      * Returns all parent folders as array
      *
@@ -102,40 +118,53 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     protected function generateCrumb()
     {
         $crumb = [];
-        
-        $crumb[] = $this->getRootFolder();
-        if ($this->getCurrentFolder()->id == self::All_POSTED_FILES_ID) {
-            $crumb[] = $this->getAllPostedFilesFolder();
-        } elseif ($this->getCurrentFolder()->id != self::ROOT_ID) {
-            if ($this->getCurrentFolder() !== null) {
-                $temp = [];
-                $temp[] = $this->getCurrentFolder();
-                $parent = $this->getCurrentFolder()->parentFolder;
-                while ($parent != null) {
-                    $temp[] = $parent;
-                    $parent = $parent->parentFolder;
-                }
-                $crumb = array_merge($crumb, array_reverse($temp));
-            }       
-        }        
-        return $crumb;
+        $parent = $this->getCurrentFolder();
+        do {
+            $crumb[] = $parent;
+            $parent = $parent->parentFolder;
+        } while ($parent != null);
+        return array_reverse($crumb);
     }
 
     /**
-     * Generate the sirectory structure originating from a given folder id.
+     * Generate the directory structure originating from a given folder id.
      *
      * @param int $parentId            
      * @return array [['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ...]
      */
-    protected function getFolderList($parentId = self::ROOT_ID)
+    protected function getFolderList($parentId = self::ROOT_ID, $orderBy = ['title' => SORT_ASC])
     {
+        // map 0 to this containers root folder id
+        if ($parentId === self::ROOT_ID) {
+            $parentId = $this->getRootFolder()->id;
+        }
         $dirstruc = [];
-        $folders = Folder::find()->contentContainer($this->contentContainer)
-            ->readable()
-            ->where([
+        $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
+        $foldersQuery->andWhere([
             'cfiles_folder.parent_folder_id' => $parentId
-        ])
-            ->all();
+        ]);
+        // do not return any subfolders here that are root or allpostedfiles
+        $foldersQuery->andWhere([
+            'or',
+            [
+                'cfiles_folder.type' => null
+            ],
+            [
+                'and',
+                [
+                    '<>',
+                    'cfiles_folder.type',
+                    Folder::TYPE_FOLDER_POSTED
+                ],
+                [
+                    '<>',
+                    'cfiles_folder.type',
+                    Folder::TYPE_FOLDER_ROOT
+                ]
+            ]
+        ]);
+        $foldersQuery->orderBy($orderBy);
+        $folders = $foldersQuery->all();
         foreach ($folders as $folder) {
             $dirstruc[] = [
                 'folder' => $folder,
@@ -147,27 +176,65 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     }
 
     /**
-     * Get the post the file is connected to.
+     * Load all files and folders of the current folder from the database and get an array of them.
+     *
+     * @param array $orderBy
+     *            orderBy array appended to the query
+     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
-    public function getBasePost($file = null) {
-        if($file === null) {
-            return null;
-        }
-        $searchItem = $file;
-        // if the item is connected to a Comment, we have to search for the corresponding Post
-        if ($file->object_model === Comment::className()) {
-            $searchItem = Comment::findOne([
-                'id' => $file->object_id
-                ]);
-        }
-        $query = Content::find();
-        $query->andWhere([
-            'content.object_id' => $searchItem->object_id,
-            'content.object_model' => $searchItem->object_model
-            ]);
-        return $query->one();
+    protected function getItemsList($orderBy = ['title' => SORT_ASC])
+    {
+        $filesQuery = File::find()->joinWith('baseFile')
+            ->contentContainer($this->contentContainer)
+            ->readable();
+        $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
+        $specialFoldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
+        $filesQuery->andWhere([
+            'cfiles_file.parent_folder_id' => $this->getCurrentFolder()->id
+        ]);
+        // user maintained folders
+        $foldersQuery->andWhere([
+            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
+        ]);
+        // do not return any folders here that are root or allpostedfiles
+        $foldersQuery->andWhere([
+            'or',
+            [
+                'cfiles_folder.type' => null
+            ],
+            [
+                'and',
+                [
+                    '<>',
+                    'cfiles_folder.type',
+                    Folder::TYPE_FOLDER_POSTED
+                ],
+                [
+                    '<>',
+                    'cfiles_folder.type',
+                    Folder::TYPE_FOLDER_ROOT
+                ]
+            ]
+        ]);
+        // special default folders like the allposted files folder
+        $specialFoldersQuery->andWhere([
+            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
+        ]);
+        $specialFoldersQuery->andWhere([
+            'is not',
+            'cfiles_folder.type',
+            null
+        ]);
+        
+        $filesQuery->orderBy($orderBy);
+        $foldersQuery->orderBy($orderBy);
+        return [
+            'specialFolders' => $specialFoldersQuery->all(),
+            'folders' => $foldersQuery->all(),
+            'files' => $filesQuery->all()
+        ];
     }
-    
+
     /**
      * Checks if user can write
      *

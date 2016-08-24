@@ -273,6 +273,29 @@ class File extends FileSystemItem
         ]);
     }
 
+    /**
+     * Get the post the file is connected to.
+     */
+    public static function getBasePost($file = null)
+    {
+        if ($file === null) {
+            return null;
+        }
+        $searchItem = $file;
+        // if the item is connected to a Comment, we have to search for the corresponding Post
+        if ($file->object_model === Comment::className()) {
+            $searchItem = Comment::findOne([
+                'id' => $file->object_id
+                ]);
+        }
+        $query = Content::find();
+        $query->andWhere([
+            'content.object_id' => $searchItem->object_id,
+            'content.object_model' => $searchItem->object_model
+            ]);
+        return $query->one();
+    }
+    
     public function getBaseFile()
     {
         $query = $this->hasOne(\humhub\modules\file\models\File::className(), [
@@ -284,7 +307,7 @@ class File extends FileSystemItem
         return $query;
     }
 
-    public static function getPathFromId($id, $parentFolderPath = false, $separator = '/')
+    public static function getPathFromId($id, $parentFolderPath = false, $separator = '/', $withRoot = false)
     {
         if ($id == 0) {
             return $separator;

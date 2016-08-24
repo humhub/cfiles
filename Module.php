@@ -15,6 +15,11 @@ use yii\helpers\Url;
 class Module extends ContentContainerModule
 {
 
+    const ALL_POSTED_FILES_TITLE = 'Files from the stream';
+    const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';
+    const ROOT_TITLE = 'Root';
+    const ROOT_DESCRIPTION = 'The root folder is the entry point that contains all available files.';
+    
     /**
      * @inheritdoc
      */
@@ -80,6 +85,27 @@ class Module extends ContentContainerModule
         foreach (File::find()->contentContainer($container)->all() as $file) {
             $file->delete();
         }
+    }
+    
+    public function enableContentContainer($container) {
+        // create default folders
+        $root = new Folder();
+        $root->title = self::ROOT_TITLE;
+        $root->content->container = $container;
+        $root->description = self::ROOT_DESCRIPTION;
+        $root->type = Folder::TYPE_FOLDER_ROOT;
+        $root->has_wall_entry = true;
+        $root->save();
+        $posted = new Folder();
+        $posted->title = self::ALL_POSTED_FILES_TITLE;
+        $posted->description = self::ALL_POSTED_FILES_DESCRIPTION;
+        $posted->content->container = $container;
+        $posted->parent_folder_id = $root->id;
+        $posted->type = Folder::TYPE_FOLDER_POSTED;
+        $posted->has_wall_entry = false;
+        $posted->save();
+        
+        
     }
 
     /**

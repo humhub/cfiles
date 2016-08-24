@@ -36,7 +36,7 @@ class EditController extends BrowseController
         if (! $this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
-        
+                
         // id is set if a folder should be edited
         $id = (int) Yii::$app->request->get('id');
         
@@ -57,6 +57,7 @@ class EditController extends BrowseController
             $titleChanged = true;
             // create a new folder
             $folder = new Folder();
+            $folder->has_wall_entry = Setting::Get('defaultCreateWallEntry', 'cfiles');
             $folder->content->container = $this->contentContainer;
             $folder->parent_folder_id = $this->getCurrentFolder()->id;
         } else {
@@ -90,5 +91,19 @@ class EditController extends BrowseController
             'contentContainer' => $this->contentContainer,
             'currentFolderId' => $this->getCurrentFolder()->id
         ]);
+    }
+    
+    private function isEditable($item) {
+        if($item === null) {
+            return false;
+        }
+        if($item instanceof Folder) {
+            if($item->isRoot() || $item->isAllPostedFiles()) {
+                return false;
+            }
+        } elseif($item instanceof \humhub\modules\file\models\File) {
+            return false;
+        }
+        return true;
     }
 }

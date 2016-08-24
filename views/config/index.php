@@ -18,6 +18,10 @@ use yii\helpers\Html;
      	<div class="form-group">
             <?= $form->field($model, 'disableZipSupport')->checkbox(null, false);?>
         </div>
+        
+        <div class="form-group">
+            <?= $form->field($model, 'defaultCreateWallEntry')->checkbox(null, false);?>
+        </div>
 
         <div class="form-group">
             <?= Html::submitButton('Submit', ['class' => 'btn btn-primary'])?>

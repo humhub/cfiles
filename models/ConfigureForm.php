@@ -14,6 +14,7 @@ class ConfigureForm extends \yii\base\Model
 {
 
     public $disableZipSupport;
+    public $defaultCreateWallEntry;
 
     /**
      * Declares the validation rules.
@@ -22,6 +23,7 @@ class ConfigureForm extends \yii\base\Model
     {
         return array(
             array('disableZipSupport', 'boolean'),
+            array('defaultCreateWallEntry', 'boolean'),
         );
     }
 
@@ -34,6 +36,7 @@ class ConfigureForm extends \yii\base\Model
     {
         return array(
             'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support'),
+            'defaultCreateWallEntry' => Yii::t('CfilesModule.base', 'Connect each folder with a wall entry per default'),
         );
     }
 

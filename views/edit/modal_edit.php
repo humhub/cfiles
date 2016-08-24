@@ -19,6 +19,7 @@
             <br />
             <?php echo $form->field($folder, 'title'); ?>
             <?php echo $form->field($folder, 'description'); ?>
+            <?= $form->field($folder, 'has_wall_entry')->checkbox(null, false);?>
         </div>
 
         <div class="modal-footer">

@@ -16,14 +16,20 @@ use yii\helpers\FileHelper;
  * @property integer $parent_folder_id
  * @property string $title
  * @property string $description
+ * @property string $type
+ * @property boolean $has_wall_entry
  */
 class Folder extends FileSystemItem
 {
 
+    const TYPE_FOLDER_ROOT = 'root';
+
+    const TYPE_FOLDER_POSTED = 'posted';
+
     /**
      * @inheritdoc
      */
-    public $autoAddToWall = true;
+    public $autoAddToWall = false;
 
     /**
      * @inheritdoc
@@ -40,20 +46,23 @@ class Folder extends FileSystemItem
 
     public function getItemType()
     {
-        return 'folder';
+        return 'folder' . ($this->type !== null ? '-' . $this->type : '');
     }
 
     public function getWallUrl()
     {
         $firstWallEntryId = $this->content->getFirstWallEntryId();
-    
+        
         if ($firstWallEntryId == "") {
             return '';
         }
-    
-        return \yii\helpers\Url::toRoute(['/content/perma/wall-entry', 'id' => $firstWallEntryId]);
+        
+        return \yii\helpers\Url::toRoute([
+            '/content/perma/wall-entry',
+            'id' => $firstWallEntryId
+        ]);
     }
-    
+
     /**
      * @inheritdoc
      */
@@ -85,6 +94,10 @@ class Folder extends FileSystemItem
                 'description',
                 'string',
                 'max' => 255
+            ],
+            [
+                'has_wall_entry',
+                'boolean'
             ]
         ];
     }
@@ -97,7 +110,9 @@ class Folder extends FileSystemItem
         return [
             'id' => 'ID',
             'parent_folder_id' => Yii::t('CfilesModule.models_Folder', 'Parent Folder ID'),
-            'title' => Yii::t('CfilesModule.models_Folder', 'Title')
+            'title' => Yii::t('CfilesModule.models_Folder', 'Title'),
+            'has_wall_entry' => Yii::t('CfilesModule.models_Folder', 'This folder will show up on the wall.'),
+            'description' => Yii::t('CfilesModule.models_Folder', 'Description for the wall entry.')
         ];
     }
 
@@ -130,7 +145,7 @@ class Folder extends FileSystemItem
 
     public function getItemId()
     {
-        return 'folder_' . $this->id;
+        return $this->getItemType() . '_' . $this->id;
     }
 
     public function getIconClass()
@@ -181,7 +196,7 @@ class Folder extends FileSystemItem
         return $this->getPathFromId($this->id, false, $separator);
     }
 
-    public static function getPathFromId($id, $parentFolderPath = false, $separator = '/')
+    public static function getPathFromId($id, $parentFolderPath = false, $separator = '/', $withRoot = false)
     {
         if ($id == 0) {
             return $separator;
@@ -193,14 +208,32 @@ class Folder extends FileSystemItem
             return null;
         }
         $tempFolder = $item->parentFolder;
-        $path = $separator;
+        $path = '';
         if (! $parentFolderPath) {
-            $path .= $item->title;
+            if ($item->isRoot()) {
+                if ($withRoot) {
+                    $path .= $item->title;
+                }
+            } else {
+                $path .= $separator . $item->title;
+            }
         }
         $counter = 0;
-        // break at maxdepth 20 to avoid hangs
-        while (! empty($tempFolder) && $counter ++ <= 20) {
-            $path = $separator . $tempFolder->title . $path;
+        // break at maxdepth to avoid hangs
+        while (! empty($tempFolder)) {
+            if ($tempFolder->isRoot()) {
+                if ($withRoot) {
+                    $path = $tempFolder->title . $path;
+                }
+                break;
+            } else {
+                if (++ $counter > 10) {
+                    $path = '...' . $path;
+                    break;
+                }
+                $path = $separator . $tempFolder->title . $path;
+            }
+            
             $tempFolder = $tempFolder->parentFolder;
         }
         return $path;
@@ -258,5 +291,31 @@ class Folder extends FileSystemItem
     public function getContentDescription()
     {
         return $this->title;
+    }
+
+    public function isRoot()
+    {
+        return $this->type === self::TYPE_FOLDER_ROOT;
+    }
+
+    public function isAllPostedFiles()
+    {
+        return $this->type === self::TYPE_FOLDER_POSTED;
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        if ($insert || array_key_exists('has_wall_entry', $changedAttributes) && $changedAttributes['has_wall_entry'] !== $this->has_wall_entry) {
+            if($this->has_wall_entry) {
+                $this->content->addToWall();
+            } else {
+                // need to remove the wall entry (but not the connected files / folders)
+                foreach ($this->content->getWallEntries() as $wallEntry) {
+                    $wallEntry->delete();
+                }
+            }
+            
+        }
     }
 }

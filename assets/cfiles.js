@@ -48,7 +48,7 @@ function initFileList() {
 				getMenuSelector : function(invokedOn, settings) {
 					itemId = invokedOn.closest('tr').data('type');
 					switch (itemId) {
-					case "all-posted-files":
+					case "folder-posted":
 						return '#contextMenuAllPostedFiles';
 					case "folder":
 						return '#contextMenuFolder';

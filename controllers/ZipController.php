@@ -368,7 +368,7 @@ class ZipController extends UploadController
     protected function archiveAllPostedFiles(&$zipFile, $localPathPrefix)
     {
         $files = $this->getAllPostedFilesList();
-        foreach ($files as $file) {
+        foreach ($files['postedFiles'] as $file) {
             $this->archiveFile($file, $zipFile, $localPathPrefix, \humhub\modules\cfiles\models\File::getUserById($file->created_by)->username.'_'.$file->created_at.'_');
         }
     }
@@ -410,11 +410,11 @@ class ZipController extends UploadController
         foreach ($items as $item) {
             if ($item instanceof Folder) {
                 $z->addEmptyDir($item->title);
-                if ($item->id === self::ROOT_ID) {
+                if ($item->isRoot()) {
                     $this->archiveFolder($item->id, $z, $item->title);
                     $allPostedFilesDirPath = $item->title . DIRECTORY_SEPARATOR . $this->getAllPostedFilesFolder()->title;
                     $this->archiveAllPostedFiles($z, $allPostedFilesDirPath);
-                } elseif ($item->id == self::All_POSTED_FILES_ID) {
+                } elseif ($item->isAllPostedFiles()) {
                     $this->archiveAllPostedFiles($z, $item->title);
                 } else {
                     $this->archiveFolder($item->id, $z, $item->title);

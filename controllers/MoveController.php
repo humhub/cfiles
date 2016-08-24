@@ -52,7 +52,6 @@ class MoveController extends BaseController {
                         'selectedFolderId' => $currentFolderId
             ]);
         }
-
         if (is_array($selectedItems) && !empty($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = $this->module->getItemById($itemId);

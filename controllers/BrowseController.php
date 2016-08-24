@@ -28,14 +28,17 @@ class BrowseController extends BaseController
 {
 
     /**
-     * Force redirect to index. This is needed for the wall entry nav-pills.
+     * Force redirect to index.
+     * This is needed for the wall entry nav-pills.
      */
     public function actionRedirect()
     {
         $fid = (int) Yii::$app->request->get('id', self::ROOT_ID);
-        return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $fid]));
+        return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', [
+            'fid' => $fid
+        ]));
     }
-    
+
     public function actionIndex()
     {
         $fileList = $this->renderFileList(true);
@@ -64,30 +67,6 @@ class BrowseController extends BaseController
     }
 
     /**
-     * Load all files and folders of the current folder from the database and get an array of them.
-     *
-     * @param array $orderBy
-     *            orderBy array appended to the query
-     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
-     */
-    protected function getItemsList($orderBy = ['title' => SORT_ASC])
-    {
-        $filesQuery = File::find()->joinWith('baseFile')
-            ->contentContainer($this->contentContainer)
-            ->readable();
-        $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
-        $filesQuery->andWhere([
-            'cfiles_file.parent_folder_id' => $this->getCurrentFolder()->id
-        ]);
-        $foldersQuery->andWhere([
-            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
-        ]);
-        $filesQuery->orderBy($orderBy);
-        $foldersQuery->orderBy($orderBy);
-        return array_merge($foldersQuery->all(), $filesQuery->all());
-    }
-
-    /**
      * Returns file list
      *
      * @param boolean $withItemCount
@@ -98,29 +77,25 @@ class BrowseController extends BaseController
      */
     protected function renderFileList($withItemCount = false, $orderBy = null)
     {
-        $items = $this->getItemsList($orderBy);
-        
-        $content_file_wrapper = [];
-        
-        foreach ($items as $file) {
-            $content_file_wrapper[] = [
-                'file' => $file,
-                'content' => $file->content
-            ];
+        if($this->getCurrentFolder()->isAllPostedFiles()) {
+            return $this->renderAllPostedFilesList($withItemCount, $orderBy);
         }
         
+        $items = $this->getItemsList($orderBy);
+        
         $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
-            'items' => $content_file_wrapper,
+            'items' => $items,
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
             'errorMessages' => $this->errorMessages,
             'currentFolder' => $this->getCurrentFolder(),
-            'allPostedFilesCount' => $this->getCurrentFolder()->id === self::ROOT_ID ? count($this->getAllPostedFilesList()) : 0
+            'allPostedFilesCount' => $this->getCurrentFolder()
+                ->isRoot() ? count($this->getAllPostedFilesList()) : 0
         ]);
         if ($withItemCount) {
             return [
                 'view' => $view,
-                'itemCount' => count($items)
+                'itemCount' => count($items, COUNT_RECURSIVE)
             ];
         } else {
             return $view;
@@ -179,7 +154,7 @@ class BrowseController extends BaseController
             ]
         ]);
         // Get Files from comments
-        return $query->all();
+        return ['postedFiles' => $query->all()];
     }
 
     /**
@@ -195,17 +170,8 @@ class BrowseController extends BaseController
     {
         $items = $this->getAllPostedFilesList($orderBy);
         
-        $content_file_wrapper = [];
-        
-        foreach ($items as $file) {
-            $content_file_wrapper[] = [
-                'file' => $file,
-                'content' => $this->getBasePost($file)
-            ];
-        }
-        
         $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
-            'items' => $content_file_wrapper,
+            'items' => $items,
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
             'errorMessages' => $this->errorMessages,
@@ -216,7 +182,7 @@ class BrowseController extends BaseController
         if ($withItemCount) {
             return [
                 'view' => $view,
-                'itemCount' => count($items)
+                'itemCount' => count($items, COUNT_RECURSIVE)
             ];
         } else {
             return $view;

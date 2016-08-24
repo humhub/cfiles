@@ -27,10 +27,12 @@ class ConfigController extends \humhub\modules\admin\components\Controller
     public function actionIndex()
     {
         $form = new ConfigureForm();
-        $form->disableZipSupport = Setting::Get('disableZipSupport', 'cfiles');           
+        $form->disableZipSupport = Setting::Get('disableZipSupport', 'cfiles');
+        $form->defaultCreateWallEntry = Setting::Get('defaultCreateWallEntry', 'cfiles');
         
         if ($form->load(Yii::$app->request->post()) && $form->validate()) {
             Setting::Set('disableZipSupport', $form->disableZipSupport, 'cfiles');
+            Setting::Set('defaultCreateWallEntry', $form->defaultCreateWallEntry, 'cfiles');
         }
         
         return $this->render('index', array('model' => $form));

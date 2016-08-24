@@ -49,11 +49,23 @@ class DeleteController extends BrowseController
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = $this->module->getItemById($itemId);
-                if ($item !== null) {
+                if ($this->isDeletable($item)) {
                     $item->delete();
                 }
             }
         }
         return $this->renderFileList();
+    }
+    
+    private function isDeletable($item) {
+        if($item === null) {
+            return false;
+        }
+        if($item instanceof Folder) {
+            if($item->isRoot() || $item->isAllPostedFiles()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
