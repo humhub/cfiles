@@ -7,6 +7,7 @@ use humhub\modules\cfiles\models\File;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use humhub\modules\cfiles\Module;
+use humhub\libs\DateHelper;
 
 class m160831_134312_generate_default_folders extends Migration
 {
@@ -15,31 +16,66 @@ class m160831_134312_generate_default_folders extends Migration
     {
         $spaces = Space::find()->all();
         $users = User::find()->all();
-        $containers = array_merge($users == null ?  [] : $users, $spaces == null ? [] : $spaces);
+        $containers = array_merge($users == null ? [] : $users, $spaces == null ? [] : $spaces);
         foreach ($containers as $container) {
+            $created_by = $container instanceof User ? $container->id : $container instanceof Space ? $container->created_by : 1;
+            $created_by = $created_by == null ? 1 : $created_by;
             if ($container->isModuleEnabled('cfiles')) {
-                $created_by = 1;$container instanceof User ? $container->id : $container instanceof Space ? $container->created_by : 1; 
-                $created_by = $created_by == null ? 1 : $created_by;               
-                $root = new Folder();
-                $root->title = Module::ROOT_TITLE;
-                $root->content->container = $container;
-                $root->description = Module::ROOT_DESCRIPTION;
-                $root->type = Folder::TYPE_FOLDER_ROOT;
-                $root->has_wall_entry = true;
-                $root->content->created_by = $created_by;
-                $root->save();
-                $posted = new Folder();
-                $posted->title = Module::ALL_POSTED_FILES_TITLE;
-                $posted->description = Module::ALL_POSTED_FILES_DESCRIPTION;
-                $posted->content->container = $container;
-                $posted->parent_folder_id = $root->id;
-                $posted->type = Folder::TYPE_FOLDER_POSTED;
-                $posted->has_wall_entry = false;
-                $posted->content->created_by = $created_by;
-                $posted->save();
+                $this->insert('cfiles_folder', [
+                    'title' => Module::ROOT_TITLE,
+                    'description' => Module::ROOT_DESCRIPTION,
+                    'parent_folder_id' => 0,
+                    'has_wall_entry' => true,
+                    'type' => Folder::TYPE_FOLDER_ROOT
+                ]);
+                $root_id = Yii::$app->db->getLastInsertID();
+                $this->insert('content', [
+                    'guid' => \humhub\libs\UUID::v4(),
+                    'object_model' => Folder::className(),
+                    'object_id' => $root_id,
+                    'visibility' => 0,
+                    'sticked' => 0,
+                    'archived' => 0,
+                    'created_at' => new \yii\db\Expression('NOW()'),
+                    'created_by' => $created_by,
+                    'updated_at' => new \yii\db\Expression('NOW()'),
+                    'updated_by' => $created_by,
+                    'contentcontainer_id' => $container->contentcontainer_id
+                ]);
+                $root_content_id = Yii::$app->db->getLastInsertID();
+                $this->insert('wall_entry', [
+                    'wall_id' => $container->wall_id,
+                    'content_id' => $root_content_id,
+                    'created_at' => new \yii\db\Expression('NOW()'),
+                    'created_by' => $created_by,
+                    'updated_at' => new \yii\db\Expression('NOW()'),
+                    'updated_by' => $created_by
+                ]);
+                $wall_entry_id = Yii::$app->db->getLastInsertID();
+                $this->insert('cfiles_folder', [
+                    'title' => Module::ALL_POSTED_FILES_TITLE,
+                    'description' => Module::ALL_POSTED_FILES_DESCRIPTION,
+                    'parent_folder_id' => $root_id,
+                    'has_wall_entry' => false,
+                    'type' => Folder::TYPE_FOLDER_POSTED
+                ]);
+                $allpostedfiles_id = Yii::$app->db->getLastInsertID();
+                $this->insert('content', [
+                    'guid' => \humhub\libs\UUID::v4(),
+                    'object_model' => Folder::className(),
+                    'object_id' => $allpostedfiles_id,
+                    'visibility' => 0,
+                    'sticked' => 0,
+                    'archived' => 0,
+                    'created_at' => new \yii\db\Expression('NOW()'),
+                    'created_by' => $created_by,
+                    'updated_at' => new \yii\db\Expression('NOW()'),
+                    'updated_by' => $created_by,
+                    'contentcontainer_id' => $container->contentcontainer_id
+                ]);
+                $posted_content_id = Yii::$app->db->getLastInsertID();
                 
-                $filesQuery = File::find()->joinWith('baseFile')
-                    ->contentContainer($container);
+                $filesQuery = File::find()->joinWith('baseFile')->contentContainer($container);
                 $foldersQuery = Folder::find()->contentContainer($container);
                 $filesQuery->andWhere([
                     'cfiles_file.parent_folder_id' => 0
@@ -57,12 +93,14 @@ class m160831_134312_generate_default_folders extends Migration
                 $rootsubfolders = $foldersQuery->all();
                 
                 foreach ($rootsubfiles as $file) {
-                    $file->parent_folder_id = $root->id;
-                    $file->save();
+                    $this->update('cfiles_file', [
+                        'cfiles_file.parent_folder_id' => $root_id
+                    ], ['id' => $file->id]);
                 }
                 foreach ($rootsubfolders as $folder) {
-                    $folder->parent_folder_id = $root->id;
-                    $folder->save();
+                    $this->update('cfiles_folder', [
+                        'parent_folder_id' => $root_id
+                    ], ['id' => $folder->id]);
                 }
             }
         }
