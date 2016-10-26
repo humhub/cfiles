@@ -25,7 +25,7 @@ class m160831_134312_generate_default_folders extends Migration
                     'title' => Module::ROOT_TITLE,
                     'description' => Module::ROOT_DESCRIPTION,
                     'parent_folder_id' => 0,
-                    'has_wall_entry' => true,
+                    'has_wall_entry' => false,
                     'type' => Folder::TYPE_FOLDER_ROOT
                 ]);
                 $root_id = Yii::$app->db->getLastInsertID();
@@ -42,16 +42,6 @@ class m160831_134312_generate_default_folders extends Migration
                     'updated_by' => $created_by,
                     'contentcontainer_id' => $container->contentcontainer_id
                 ]);
-                $root_content_id = Yii::$app->db->getLastInsertID();
-                $this->insert('wall_entry', [
-                    'wall_id' => $container->wall_id,
-                    'content_id' => $root_content_id,
-                    'created_at' => new \yii\db\Expression('NOW()'),
-                    'created_by' => $created_by,
-                    'updated_at' => new \yii\db\Expression('NOW()'),
-                    'updated_by' => $created_by
-                ]);
-                $wall_entry_id = Yii::$app->db->getLastInsertID();
                 $this->insert('cfiles_folder', [
                     'title' => Module::ALL_POSTED_FILES_TITLE,
                     'description' => Module::ALL_POSTED_FILES_DESCRIPTION,

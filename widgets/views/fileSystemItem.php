@@ -9,9 +9,12 @@ $emptyList = true;
 data-id="<?php echo $id; ?>"
 data-url="<?php echo $downloadUrl; ?>"
 data-wall-url="<?php echo $wallUrl; ?>">
+    <?php if(in_array('select', $columns)): ?>
     <td class="text-muted text-right">
-    <?php echo $selectable ? Html::checkbox('selected[]', false, [ 'value' => $id, 'class' => 'multiselect']) : ''; ?>
+        <?php echo $selectable ? Html::checkbox('selected[]', false, [ 'value' => $id, 'class' => 'multiselect']) : ''; ?>
     </td>
+    <?php endif;?>
+    <?php if(in_array('title', $columns)): ?>
     <td class="text-left">
         <div class="title">
             <i class="fa <?php echo $iconClass; ?> fa-fw"></i>&nbsp;
@@ -33,6 +36,8 @@ data-wall-url="<?php echo $wallUrl; ?>">
             <?php endif; ?>
         </div>
     </td>
+    <?php endif; ?>
+    <?php if(in_array('size', $columns)): ?>
     <td class="hidden-xs text-right">
         <div class="size pull-right">
             <?php if ($size == 0): ?> 
@@ -42,12 +47,27 @@ data-wall-url="<?php echo $wallUrl; ?>">
             <?php endif; ?>
         </div>
     </td>
+    <?php endif; ?>
+    <?php if(in_array('timestamp', $columns)): ?>
     <td class="hidden-xxs text-right">
         <div class="timestamp pull-right">
             <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $updatedAt ]); ?>
         </div>
     </td>
+    <?php endif; ?>
+    <?php if(in_array('likesncomments', $columns)): ?>
     <td class="text-right">
+        <?php if($socialActionsAvailable): ?>
+        <div class="file-controls pull-right">
+            <?php echo LikeLink::widget(['object' => $contentObject]); ?>
+            |
+            <?php echo CommentLink::widget(['object' => $contentObject, 'mode' => CommentLink::MODE_POPUP]); ?>
+        </div>
+        <?php endif; ?>
+    </td>
+    <?php endif; ?>
+    <?php if(in_array('creator', $columns)): ?>
+    <td class="hidden-xxs text-right">
         <div class="creator pull-right">
             <a href="<?php echo $creator->createUrl(); ?>"> <img
                 class="img-rounded tt img_margin"
@@ -73,4 +93,5 @@ data-wall-url="<?php echo $wallUrl; ?>">
             <?php endif; ?>
         </div>
     </td>
+    <?php endif; ?>
 </tr>    

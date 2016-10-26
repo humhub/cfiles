@@ -108,8 +108,18 @@
   display: block;
   white-space: nowrap;
 }
+.table-responsive > table > tbody > tr > td {
+  vertical-align: middle;
+}
 .table-responsive td .title {
   max-width: 150px;
+}
+.table-responsive .table .file-controls {
+  font-size: 11px;
+}
+.table-responsive .table .file-controls hr {
+  margin-top: 2px;
+  margin-bottom: 2px;
 }
 @media (max-width: 419px) {
   .hidden-xxs {

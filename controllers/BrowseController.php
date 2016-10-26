@@ -89,8 +89,6 @@ class BrowseController extends BaseController
             'crumb' => $this->generateCrumb(),
             'errorMessages' => $this->errorMessages,
             'currentFolder' => $this->getCurrentFolder(),
-            'allPostedFilesCount' => $this->getCurrentFolder()
-                ->isRoot() ? count($this->getAllPostedFilesList()) : 0
         ]);
         if ($withItemCount) {
             return [
@@ -176,7 +174,6 @@ class BrowseController extends BaseController
             'crumb' => $this->generateCrumb(),
             'errorMessages' => $this->errorMessages,
             'currentFolder' => $this->getCurrentFolder(),
-            'allPostedFilesCount' => 0
         ]);
         
         if ($withItemCount) {

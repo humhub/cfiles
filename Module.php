@@ -94,7 +94,6 @@ class Module extends ContentContainerModule
         $root->content->container = $container;
         $root->description = self::ROOT_DESCRIPTION;
         $root->type = Folder::TYPE_FOLDER_ROOT;
-        $root->has_wall_entry = true;
         $root->save();
         $posted = new Folder();
         $posted->title = self::ALL_POSTED_FILES_TITLE;
@@ -102,7 +101,6 @@ class Module extends ContentContainerModule
         $posted->content->container = $container;
         $posted->parent_folder_id = $root->id;
         $posted->type = Folder::TYPE_FOLDER_POSTED;
-        $posted->has_wall_entry = false;
         $posted->save();
         
         
@@ -136,6 +134,13 @@ class Module extends ContentContainerModule
         return Url::to([
                     '/cfiles/config'
         ]);
+    }
+    
+    public static function getUserById($id)
+    {
+        return User::findOne([
+            'id' => $id
+            ]);
     }
 
 }

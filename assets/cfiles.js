@@ -81,12 +81,22 @@ function initFileList() {
 							$("#globalModal").modal("show");
 						});
 						break;
-					case 'edit':
+					case 'edit-folder':
 						$.ajax(
 								{
 									url : cfilesEditFolderUrl.replace(
-											'--folderId--', itemRealId
-													.split('_')[1]),
+											'--itemId--', itemRealId),
+									type : 'GET',
+								}).done(function(html) {
+							$("#globalModal").html(html);
+							$("#globalModal").modal("show");
+						});
+						break;
+					case 'edit-file':
+						$.ajax(
+								{
+									url : cfilesEditFileUrl.replace(
+											'--itemId--', itemRealId),
 									type : 'GET',
 								}).done(function(html) {
 							$("#globalModal").html(html);

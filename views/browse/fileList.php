@@ -3,9 +3,14 @@ use yii\helpers\Html;
 use humhub\modules\cfiles\controllers\BrowseController;
 use humhub\modules\file\models\File;
 use humhub\modules\cfiles\widgets\FileSystemItem;
+use humhub\models\Setting;
 
 $parentFolderId = null;
-
+$itemsSelectable = !(Setting::Get('disableZipSupport', 'cfiles') && $currentFolder->isAllPostedFiles());
+$itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['specialFolders']) > 0
+               || array_key_exists('folders', $items) && sizeof($items['folders']) > 0
+               || array_key_exists('files', $items) && sizeof($items['files']) > 0
+               || array_key_exists('postedFiles', $items) && sizeof($items['postedFiles']) > 0
 ?>
 <ol class="breadcrumb" dir="ltr">
 
@@ -20,32 +25,37 @@ $parentFolderId = null;
 
 <div id="cfiles-log"></div>
 
-<?php if(sizeof($items) > 0 || $allPostedFilesCount > 0) : ?>
+<?php if($itemsInFolder) : ?>
 <div class="table-responsive">
     <table id="bs-table" class="table table-hover">
         <thead>
             <tr>
+                <?php if($itemsSelectable): ?>
                 <th class="text-right">
                     <?php echo Html::checkbox('allchk', false, [ 'class' => 'allselect']); ?></th>
+                <?php endif; ?>
                 <th class="text-left"><?php echo Yii::t('CfilesModule.base', 'Name'); ?></th>
                 <th class="hidden-xs text-right"><?php echo Yii::t('CfilesModule.base', 'Size'); ?></th>
                 <th class="hidden-xxs text-right"><?php echo Yii::t('CfilesModule.base', 'Updated'); ?></th>
-                <th class="text-right"><?php echo Yii::t('CfilesModule.base', 'Creator'); ?></th>
+                <?php if(!$parentFolder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to. ?>
+                <th class="text-right"><?php echo Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
+                <?php endif; ?>
+                <th class="hidden-xxs text-right"><?php echo Yii::t('CfilesModule.base', 'Creator'); ?></th>
             </tr>
         </thead>
         <tfoot>
             <tr>
-                <td colspan="3"></td>
+                <td colspan="<?php echo $itemsSelectable ? 3 : 2 ?>"></td>
                 <td class="hidden-xs"></td>
-                <td class="hidden-xxs"></td>
+                <td colspan="2" class="hidden-xxs"></td>
             </tr>
         </tfoot>
         
         <?php foreach ((array_key_exists('specialFolders', $items) ? $items['specialFolders'] : []) as $specialFolder) : ?>
         <?php echo FileSystemItem::widget([
-            'selectable' => false,
-            'editable' => false,
             'parentFolderId' => $parentFolderId,
+            'socialActionsAvailable' => false,
+            'selectable' => false,
             'type' => $specialFolder->getItemType(),
             'id' => $specialFolder->getItemId(),
             'downloadUrl' => $specialFolder->getUrl(true),
@@ -56,7 +66,8 @@ $parentFolderId = null;
             'size' => $specialFolder->getSize(),
             'creator' => $specialFolder->creator,
             'editor' => $specialFolder->editor,
-            'updatedAt' => $specialFolder->content->updated_at
+            'updatedAt' => $specialFolder->content->updated_at,
+            'contentObject' => $specialFolder
         ]); ?>
         <?php endforeach; ?>
         <?php foreach ((array_key_exists('folders', $items) ? $items['folders'] : []) as $folder) : ?>
@@ -72,7 +83,8 @@ $parentFolderId = null;
             'size' => $folder->getSize(),
             'creator' => $folder->creator,
             'editor' => $folder->editor,
-            'updatedAt' => $folder->content->updated_at
+            'updatedAt' => $folder->content->updated_at,
+            'contentObject' => $folder
         ]); ?>
         <?php endforeach; ?>
         <?php foreach ((array_key_exists('files', $items) ? $items['files'] : []) as $file) : ?>
@@ -88,13 +100,15 @@ $parentFolderId = null;
             'size' => $file->getSize(),
             'creator' => $file->creator,
             'editor' => $file->editor,
-            'updatedAt' => $file->content->updated_at
+            'updatedAt' => $file->content->updated_at,
+            'contentObject' => $file
         ]); ?>
         <?php endforeach; ?>
         <?php foreach ((array_key_exists('postedFiles', $items) ? $items['postedFiles'] : []) as $file) : ?>
         <?php echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'type' => \humhub\modules\cfiles\models\File::getItemTypeByExt($file->getExtension()),
+            'columns' => $itemsSelectable ? ['select', 'title', 'size', 'timestamp', 'creator'] : ['title', 'size', 'timestamp', 'creator'],
             'id' => 'baseFile_'.$file->id,
             'downloadUrl' => $file->getUrl().'&'.http_build_query(['download' => true]),
             'url' =>  $file->getUrl(),
@@ -104,95 +118,8 @@ $parentFolderId = null;
             'size' =>  $file->size,
             'creator' => \humhub\modules\cfiles\models\File::getUserById($file->created_by),
             'editor' => \humhub\modules\cfiles\models\File::getUserById($file->updated_by),
-            'updatedAt' => $file->updated_at
+            'updatedAt' => $file->updated_at,
         ]); ?>
-        <?php endforeach; ?>
-        <?php foreach ($items as $item) : 
-        break;
-        $type = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getItemTypeByExt($item['file']->getExtension()) : $item['file']->getItemType();
-        $id = $item['file'] instanceof File ? 'baseFile_'.$item['file']->id : $item['file']->getItemId();
-        $downloadUrl = $item['file'] instanceof File ? $item['file']->getUrl().'&'.http_build_query(['download' => true]) : $item['file']->getUrl(true);
-        $url = $item['file'] instanceof File ? $item['file']->getUrl() : $item['file']->getUrl();
-        $wallUrl = $item['file'] instanceof File ?  $item['content']->getUrl() : $item['file']->getWallUrl();
-        $iconClass = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getIconClassByExt($item['file']->getExtension()) : $item['file']->getIconClass();
-        $title = Html::encode($item['file'] instanceof File ? $item['file']->file_name : $item['file']->getTitle());
-        $size = $item['file'] instanceof File ? $item['file']->size : $item['file']->getSize();
-        $creator = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getUserById($item['file']->created_by) : $item['file']->creator;
-        $editor = $item['file'] instanceof File ? \humhub\modules\cfiles\models\File::getUserById($item['file']->updated_by) : $item['file']->editor;
-        $updatedAt = $item['file'] instanceof File ? $item['file']->updated_at : $item['file']->content->updated_at;
-        ?>
-        <tr data-type="<?php echo $type; ?>"
-            data-id="<?php echo $id; ?>"
-            data-url="<?php echo $downloadUrl; ?>"
-            data-wall-url="<?php echo $wallUrl; ?>">
-            <td class="text-muted text-right">
-                <?php echo Html::checkbox('selected[]', false, [ 'value' => $id, 'class' => 'multiselect']); ?>
-            </td>
-            <td class="text-left">
-                <div class="title">
-                    <i class="fa <?php echo $iconClass; ?> fa-fw"></i>&nbsp;
-                    <?php if ($type === "image") : ?>
-                    <a class="preview-link" data-toggle="lightbox"
-                        data-parent="#bs-table"
-                        data-gallery="FilesModule-Gallery-<?php echo $parentFolderId; ?>"
-                        href="<?php echo $url; ?>#.jpeg"
-                        data-footer='
-                        <button 
-                        
-                        
-                        
-                        type="button" class="btn btn-primary"
-                        data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'>
-                        <?php echo $title; ?>
-                    </a>
-                    <?php else : ?>
-                    <a href="<?php echo $url; ?>">
-                        <?php echo $title; ?>
-                    </a>
-                    <?php endif; ?>
-                </div>
-            </td>
-            <td class="hidden-xs text-right">
-                <div class="size pull-right">
-                    <?php if ($size == 0): ?> 
-                        &mdash;
-                    <?php else: ?>
-                        <?php echo Yii::$app->formatter->asShortSize($size, 1); ?>
-                    <?php endif; ?>
-                </div>
-            </td>
-            <td class="hidden-xxs text-right">
-                <div class="timestamp pull-right">
-                    <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $updatedAt ]); ?>
-                </div>
-            </td>
-            <td class="text-right">
-                <div class="creator pull-right">
-                    <a href="<?php echo $creator->createUrl(); ?>"> <img
-                        class="img-rounded tt img_margin"
-                        src="<?php echo $creator->getProfileImage()->getUrl(); ?>"
-                        width="21" height="21" alt="21x21"
-                        data-src="holder.js/21x21"
-                        style="width: 21px; height: 21px;"
-                        data-original-title="<?php echo (!empty($editor) && $creator->id !== $editor->id ? Yii::t('CfilesModule.base', 'created:') . ' ' : '') . $creator->getDisplayName();?>"
-                        data-placement="top" title=""
-                        data-toggle="tooltip">
-                    </a>
-                    <?php if(!empty($editor) && $creator->id !== $editor->id):?>
-                    <a href="<?php echo $editor->createUrl(); ?>"> <img
-                        class="img-rounded tt img_margin"
-                        src="<?php echo $editor->getProfileImage()->getUrl(); ?>"
-                        width="21" height="21" alt="21x21"
-                        data-src="holder.js/21x21"
-                        style="width: 21px; height: 21px;"
-                        data-original-title="<?php echo Yii::t('CfilesModule.base', 'changed:') . ' ' . $editor->getDisplayName();?>"
-                        data-placement="top" title=""
-                        data-toggle="tooltip">
-                    </a>
-                    <?php endif; ?>
-                </div>
-            </td>
-        </tr>
         <?php endforeach; ?>
     </table>
 </div>
@@ -203,7 +130,7 @@ $parentFolderId = null;
             <p>
                 <strong><?php echo Yii::t('CfilesModule.base', 'This folder is empty.');?></strong>
             </p>
-            <?php if($this->context->action->id == "all-posted-files"): ?>
+            <?php if($currentFolder->isAllPostedFiles()): ?>
             <?php echo Yii::t('CfilesModule.base', 'Upload files to the stream to fill this folder.');?>
             <?php elseif($this->context->canWrite()): ?>
             <?php echo Yii::t('CfilesModule.base', 'Upload files or create a subfolder with the buttons on the top.');?>

@@ -20,7 +20,7 @@ class File extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public $autoAddToWall = false;
+    public $autoAddToWall = true;
 
     /**
      * @inheritdoc
@@ -37,8 +37,7 @@ class File extends FileSystemItem
 
     public function getWallUrl()
     {
-        $parentFolder = $this->parentFolder;
-        $firstWallEntryId = $parentFolder == null ? '' : $parentFolder->content->getFirstWallEntryId();  
+        $firstWallEntryId = $this->content->getFirstWallEntryId();  
             
         if ($firstWallEntryId == '') {
             return '';

@@ -12,10 +12,11 @@ namespace humhub\modules\cfiles\widgets;
  */
 class FileSystemItem extends \yii\base\Widget
 {
-
     public $selectable = true;
-
-    public $editable = true;
+    
+    public $socialActionsAvailable = true;
+    
+    public $columns = ['select', 'title', 'size', 'timestamp', 'likesncomments', 'creator'];
 
     public $parentFolderId;
 
@@ -40,6 +41,9 @@ class FileSystemItem extends \yii\base\Widget
     public $editor;
 
     public $updatedAt;
+    
+    /** Content Object used for the Like/Comment widgets */
+    public $contentObject;
 
     /**
      * @inheritdoc
@@ -48,7 +52,8 @@ class FileSystemItem extends \yii\base\Widget
     {
         return $this->render('fileSystemItem', array(
             'selectable' => $this->selectable,
-            'editable' => $this->editable,
+            'socialActionsAvailable' => $this->socialActionsAvailable,
+            'columns' => $this->columns,
             'parentFolderId' => $this->parentFolderId,
             'type' => $this->type,
             'id' => $this->id,
@@ -60,7 +65,8 @@ class FileSystemItem extends \yii\base\Widget
             'size' => $this->size,
             'creator' => $this->creator,
             'editor' => $this->editor,
-            'updatedAt' => $this->updatedAt
+            'updatedAt' => $this->updatedAt,
+            'contentObject' => $this->contentObject
         ));
     }
 }

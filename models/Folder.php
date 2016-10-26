@@ -17,7 +17,6 @@ use yii\helpers\FileHelper;
  * @property string $title
  * @property string $description
  * @property string $type
- * @property boolean $has_wall_entry
  */
 class Folder extends FileSystemItem
 {
@@ -94,10 +93,6 @@ class Folder extends FileSystemItem
                 'description',
                 'string',
                 'max' => 255
-            ],
-            [
-                'has_wall_entry',
-                'boolean'
             ]
         ];
     }
@@ -111,7 +106,6 @@ class Folder extends FileSystemItem
             'id' => 'ID',
             'parent_folder_id' => Yii::t('CfilesModule.models_Folder', 'Parent Folder ID'),
             'title' => Yii::t('CfilesModule.models_Folder', 'Title'),
-            'has_wall_entry' => Yii::t('CfilesModule.models_Folder', 'This folder will show up on the wall.'),
             'description' => Yii::t('CfilesModule.models_Folder', 'Description for the wall entry.')
         ];
     }
@@ -297,7 +291,7 @@ class Folder extends FileSystemItem
     {
         return $this->type === self::TYPE_FOLDER_ROOT;
     }
-
+    
     public function isAllPostedFiles()
     {
         return $this->type === self::TYPE_FOLDER_POSTED;
@@ -306,16 +300,9 @@ class Folder extends FileSystemItem
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-        if ($insert || array_key_exists('has_wall_entry', $changedAttributes) && $changedAttributes['has_wall_entry'] !== $this->has_wall_entry) {
-            if($this->has_wall_entry) {
-                $this->content->addToWall();
-            } else {
-                // need to remove the wall entry (but not the connected files / folders)
-                foreach ($this->content->getWallEntries() as $wallEntry) {
-                    $wallEntry->delete();
-                }
-            }
-            
+        // Rootfolder and Allposted files folder do never have wallentries
+        if ($insert && !$this->isAllPostedFiles() && !$this->isRoot()) {
+            $this->content->addToWall();
         }
     }
 }

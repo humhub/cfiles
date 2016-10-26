@@ -8,24 +8,29 @@
 
 namespace humhub\modules\cfiles\widgets;
 
-use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\models\File;
 /**
  * @inheritdoc
  */
-class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
+class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
 {
 
     /**
      * @inheritdoc
      */
-    public $editRoute = "/cfiles/edit/folder";
-
+    public $editRoute = "/cfiles/edit/file";
+    
+    /**
+     * @inheritdoc
+     */
+    public $showFiles = false;
+    
     /**
      * @inheritdoc
      */
     public function run()
     {
-        return $this->render('wallEntryFolder', array('folder' => $this->contentObject));
+        return $this->render('wallEntryFile', array('file' => $this->contentObject));
     }
     
     /**
@@ -38,8 +43,7 @@ class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
         if (parent::getEditUrl() === "") {
             return "";
         }
-    
-        if($this->contentObject instanceof Folder) {
+        if($this->contentObject instanceof File) {
             return $this->contentObject->content->container->createUrl($this->editRoute, ['id' => $this->contentObject->getItemId(), 'fromWall' => true]);
         }
         return "";

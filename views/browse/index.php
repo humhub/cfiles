@@ -16,8 +16,11 @@ $this->registerJsVar('cfilesZipUploadUrl', $contentContainer->createUrl('/cfiles
 $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/delete', [
     'fid' => $currentFolder->id
 ]));
-$this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/edit', [
-    'id' => '--folderId--'
+$this->registerJsVar('cfilesEditFolderUrl', $contentContainer->createUrl('/cfiles/edit/folder', [
+    'id' => '--itemId--'
+]));
+$this->registerJsVar('cfilesEditFileUrl', $contentContainer->createUrl('/cfiles/edit/file', [
+    'id' => '--itemId--'
 ]));
 $this->registerJsVar('cfilesDownloadArchiveUrl', $contentContainer->createUrl('/cfiles/zip/download-archive', [
     'fid' => '--folderId--'
@@ -88,9 +91,9 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                 $icon = '<i class="fa fa-folder"></i> ';
                 $buttons = [];
                 if($this->context->canWrite()):
-                    $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'split-button btn btn-default overflow-ellipsis'));
+                    $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Add directory'), $contentContainer->createUrl('/cfiles/edit/folder', ['fid' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'split-button btn btn-default overflow-ellipsis'));
                     if (!$currentFolder->isRoot()):
-                        $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit', ['id' => $currentFolder->id]), array('data-target' => '#globalModal', 'class' => 'btn btn-default overflow-ellipsis'));
+                        $buttons[] = Html::a('<i class="fa fa-folder"></i> '.Yii::t('CfilesModule.base', 'Edit directory'), $contentContainer->createUrl('/cfiles/edit/folder', ['id' => $currentFolder->getItemId()]), array('data-target' => '#globalModal', 'class' => 'btn btn-default overflow-ellipsis'));
                     endif;
                 endif;
                 if(!Setting::Get('disableZipSupport', 'cfiles') && $itemCount > 0):
@@ -181,7 +184,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
     <?php if($this->context->canWrite()): ?>
     <li role="separator" class="divider"></li>
-    <li><a tabindex="-1" href="#" data-action='edit'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
+    <li><a tabindex="-1" href="#" data-action='edit-folder'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
     <?php endif; ?>
@@ -196,6 +199,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
     <?php if($this->context->canWrite() && $this->context->action->id != "all-posted-files"): ?>
     <li role="separator" class="divider"></li>
+    <li><a tabindex="-1" href="#" data-action='edit-file'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
     <?php endif; ?>
@@ -208,6 +212,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='show-image'><?php echo Yii::t('CfilesModule.base', 'Show');?></a></li>
     <?php if($this->context->canWrite() && $this->context->action->id != "all-posted-files"): ?>    
+    <li><a tabindex="-1" href="#" data-action='edit-file'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
     <?php endif; ?>

@@ -20,10 +20,6 @@ use yii\helpers\Html;
         </div>
         
         <div class="form-group">
-            <?= $form->field($model, 'defaultCreateWallEntry')->checkbox(null, false);?>
-        </div>
-
-        <div class="form-group">
             <?= Html::submitButton('Submit', ['class' => 'btn btn-primary'])?>
         </div>
     
