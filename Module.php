@@ -75,7 +75,7 @@ class Module extends ContentContainerModule
         }
     }
 
-    public function disableContentContainer(\humhub\modules\content\components\ContentContainerActiveRecord $container)
+    public function disableContentContainer(ContentContainerActiveRecord $container)
     {
 
         foreach (Folder::find()->contentContainer($container)->all() as $folder) {
@@ -87,7 +87,7 @@ class Module extends ContentContainerModule
         }
     }
     
-    public function enableContentContainer($container) {
+    public function enableContentContainer(ContentContainerActiveRecord $container) {
         // create default folders
         $root = new Folder();
         $root->title = self::ROOT_TITLE;
