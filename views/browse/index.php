@@ -31,7 +31,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
 
 ?>
 <?php echo Html::beginForm(null, null, ['data-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
-<div class="panel panel-default">
+<div class="panel panel-default cfiles-content">
 
     <div class="panel-body">
     

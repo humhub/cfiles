@@ -4,24 +4,40 @@ use humhub\modules\cfiles\controllers\BrowseController;
 use humhub\modules\file\models\File;
 use humhub\modules\cfiles\widgets\FileSystemItem;
 use humhub\models\Setting;
+use humhub\modules\like\widgets\LikeLink;
+use humhub\modules\comment\widgets\CommentLink;
+use humhub\modules\comment\widgets\Comments;
 
 $parentFolderId = null;
-$itemsSelectable = !(Setting::Get('disableZipSupport', 'cfiles') && $currentFolder->isAllPostedFiles());
-$itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['specialFolders']) > 0
-               || array_key_exists('folders', $items) && sizeof($items['folders']) > 0
-               || array_key_exists('files', $items) && sizeof($items['files']) > 0
-               || array_key_exists('postedFiles', $items) && sizeof($items['postedFiles']) > 0
-?>
-<ol class="breadcrumb" dir="ltr">
+$itemsSelectable = ! (Setting::Get('disableZipSupport', 'cfiles') && $currentFolder->isAllPostedFiles());
+$itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['specialFolders']) > 0 || array_key_exists('folders', $items) && sizeof($items['folders']) > 0 || array_key_exists('files', $items) && sizeof($items['files']) > 0 || array_key_exists('postedFiles', $items) && sizeof($items['postedFiles']) > 0?>
 
-<?php foreach ($crumb as $parentFolder): ?>
-    
-    <li><a
-        href="<?php echo $contentContainer->createUrl('/cfiles/browse/'.($parentFolder->isAllPostedFiles() ? 'all-posted-files' : 'index'), ['fid' => $parentFolder->id]); ?>">
-    <?php echo $parentFolder->isRoot() ? '<i class="fa fa-home fa-lg fa-fw"></i>' : Html::encode($parentFolder->title); ?></a></li>
-    <?php $parentFolderId = $parentFolder->id; ?>
-<?php endforeach; ?>
-</ol>
+<div class="panel panel-default">
+    <div class="panel-head">
+        <ol class="breadcrumb" dir="ltr">
+        <?php foreach ($crumb as $parentFolder): ?>
+            <li><a
+                    href="<?php echo $contentContainer->createUrl('/cfiles/browse/'.($parentFolder->isAllPostedFiles() ? 'all-posted-files' : 'index'), ['fid' => $parentFolder->id]); ?>">
+            <?php echo $parentFolder->isRoot() ? '<i class="fa fa-home fa-lg fa-fw"></i>' : Html::encode($parentFolder->title); ?></a></li>
+            <?php $parentFolderId = $parentFolder->id; ?>
+        <?php endforeach; ?>
+        </ol>
+    </div>
+    <div class="panel-body">
+        <?php if(!$currentFolder->isRoot() && !$currentFolder->isAllPostedFiles()): ?>
+        <div class="cfiles-folder-description"><?php echo $currentFolder->description; ?></div>
+        <?php endif; ?>
+        <div class="file-controls">
+            <?php echo LikeLink::widget(['object' => $currentFolder]); ?>
+            |
+            <?php echo CommentLink::widget(['object' => $currentFolder, 'mode' => CommentLink::MODE_POPUP]); ?>
+            <?php if(!$currentFolder->isRoot() && !$currentFolder->isAllPostedFiles()): ?>
+            |
+            <a href="<?php echo $currentFolder->getWallUrl(); ?>"><?php echo Yii::t('CfilesModule.base', 'Show on Wall'); ?></a>
+            <?php endif;?>
+        </div>
+    </div>
+</div>
 
 <div id="cfiles-log"></div>
 
@@ -52,7 +68,9 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
         </tfoot>
         
         <?php foreach ((array_key_exists('specialFolders', $items) ? $items['specialFolders'] : []) as $specialFolder) : ?>
-        <?php echo FileSystemItem::widget([
+        <?php
+        
+echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'socialActionsAvailable' => false,
             'selectable' => false,
@@ -68,10 +86,13 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
             'editor' => $specialFolder->editor,
             'updatedAt' => $specialFolder->content->updated_at,
             'contentObject' => $specialFolder
-        ]); ?>
+        ]);
+        ?>
         <?php endforeach; ?>
         <?php foreach ((array_key_exists('folders', $items) ? $items['folders'] : []) as $folder) : ?>
-        <?php echo FileSystemItem::widget([
+        <?php
+        
+echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'type' => $folder->getItemType(),
             'id' => $folder->getItemId(),
@@ -85,10 +106,13 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
             'editor' => $folder->editor,
             'updatedAt' => $folder->content->updated_at,
             'contentObject' => $folder
-        ]); ?>
+        ]);
+        ?>
         <?php endforeach; ?>
         <?php foreach ((array_key_exists('files', $items) ? $items['files'] : []) as $file) : ?>
-        <?php echo FileSystemItem::widget([
+        <?php
+        
+echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'type' => $file->getItemType(),
             'id' => $file->getItemId(),
@@ -102,24 +126,41 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
             'editor' => $file->editor,
             'updatedAt' => $file->content->updated_at,
             'contentObject' => $file
-        ]); ?>
+        ]);
+        ?>
         <?php endforeach; ?>
         <?php foreach ((array_key_exists('postedFiles', $items) ? $items['postedFiles'] : []) as $file) : ?>
-        <?php echo FileSystemItem::widget([
+        <?php
+        
+echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'type' => \humhub\modules\cfiles\models\File::getItemTypeByExt($file->getExtension()),
-            'columns' => $itemsSelectable ? ['select', 'title', 'size', 'timestamp', 'creator'] : ['title', 'size', 'timestamp', 'creator'],
-            'id' => 'baseFile_'.$file->id,
-            'downloadUrl' => $file->getUrl().'&'.http_build_query(['download' => true]),
-            'url' =>  $file->getUrl(),
+            'columns' => $itemsSelectable ? [
+                'select',
+                'title',
+                'size',
+                'timestamp',
+                'creator'
+            ] : [
+                'title',
+                'size',
+                'timestamp',
+                'creator'
+            ],
+            'id' => 'baseFile_' . $file->id,
+            'downloadUrl' => $file->getUrl() . '&' . http_build_query([
+                'download' => true
+            ]),
+            'url' => $file->getUrl(),
             'wallUrl' => \humhub\modules\cfiles\models\File::getBasePost($file)->getUrl(),
             'iconClass' => \humhub\modules\cfiles\models\File::getIconClassByExt($file->getExtension()),
             'title' => $file->file_name,
-            'size' =>  $file->size,
+            'size' => $file->size,
             'creator' => \humhub\modules\cfiles\models\File::getUserById($file->created_by),
             'editor' => \humhub\modules\cfiles\models\File::getUserById($file->updated_by),
-            'updatedAt' => $file->updated_at,
-        ]); ?>
+            'updatedAt' => $file->updated_at
+        ]);
+        ?>
         <?php endforeach; ?>
     </table>
 </div>

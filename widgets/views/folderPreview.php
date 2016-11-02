@@ -6,6 +6,8 @@ use yii\helpers\Html;
 use humhub\modules\like\widgets\LikeLink;
 use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\cfiles\libs\FileUtils;
+
+$emptyList = true;
 ?>
 
 <style>

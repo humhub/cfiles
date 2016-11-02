@@ -3,7 +3,6 @@ use yii\helpers\Html;
 use humhub\modules\like\widgets\LikeLink;
 use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\cfiles\widgets\FolderPreview;
-$emptyList = true;
 ?>
 
 <div class="cfiles-wallout-folder">

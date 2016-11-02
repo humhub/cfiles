@@ -47,6 +47,8 @@ class Module extends ContentContainerModule
 
     public function getItemById($itemId)
     {
+        $params = explode('_', $itemId);
+        if(sizeof($params) < 2) return null;
         list ($type, $id) = explode('_', $itemId);
 
         if ($type == 'file') {

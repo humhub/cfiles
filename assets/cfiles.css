@@ -5,6 +5,22 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.cfiles-content .breadcrumb {
+  border-radius: 0;
+  margin: 0;
+}
+.cfiles-content .file-controls {
+  font-size: 11px;
+  color: #aeaeae;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.cfiles-content .file-controls a {
+  font-size: 11px;
+  color: #aeaeae;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
 .fileinput-button input {
   position: absolute;
   top: 0;
@@ -116,6 +132,13 @@
 }
 .table-responsive .table .file-controls {
   font-size: 11px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.table-responsive .table .file-controls a {
+  font-size: 11px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .table-responsive .table .file-controls hr {
   margin-top: 2px;
