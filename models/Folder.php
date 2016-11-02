@@ -114,14 +114,14 @@ class Folder extends FileSystemItem
     {
         return $this->hasMany(File::className(), [
             'parent_folder_id' => 'id'
-        ]);
+        ])->joinWith('baseFile')->orderBy(['title' => SORT_ASC]);
     }
 
     public function getFolders()
     {
         return $this->hasMany(Folder::className(), [
             'parent_folder_id' => 'id'
-        ]);
+        ])->orderBy(['title' => SORT_ASC]);
     }
 
     public function beforeDelete()

@@ -182,8 +182,11 @@ abstract class BaseController extends \humhub\modules\content\components\Content
      *            orderBy array appended to the query
      * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
-    protected function getItemsList($orderBy = ['title' => SORT_ASC])
+    protected function getItemsList($orderBy = NULL)
     {
+        // set default value
+        if(!$orderBy) $orderBy = ['title' => SORT_ASC];
+        
         $filesQuery = File::find()->joinWith('baseFile')
             ->contentContainer($this->contentContainer)
             ->readable();

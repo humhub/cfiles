@@ -75,7 +75,7 @@ class BrowseController extends BaseController
      *            orderBy array appended to the query
      * @return multitype:array | string The rendered view or an array of the rendered view and the itemCount.
      */
-    protected function renderFileList($withItemCount = false, $orderBy = null)
+    protected function renderFileList($withItemCount = false, $orderBy = NULL)
     {
         if($this->getCurrentFolder()->isAllPostedFiles()) {
             return $this->renderAllPostedFilesList($withItemCount, $orderBy);
@@ -152,7 +152,7 @@ class BrowseController extends BaseController
             ]
         ]);
         // Get Files from comments
-        return ['postedFiles' => $query->all()];
+        return ['postedFiles' => $query->orderBy(['title' => SORT_ASC])->all()];
     }
 
     /**
