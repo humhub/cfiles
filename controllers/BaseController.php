@@ -127,13 +127,16 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     }
 
     /**
-     * Generate the directory structure originating from a given folder id.
+     * Generate the maximum depth directory structure originating from a given folder id.
      *
      * @param int $parentId            
      * @return array [['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ...]
      */
-    protected function getFolderList($parentId = self::ROOT_ID, $orderBy = ['title' => SORT_ASC])
+    protected function getFolderList($parentId = self::ROOT_ID, $orderBy = NULL)
     {
+        // set default value
+        if(!$orderBy) $orderBy = ['title' => SORT_ASC];
+        
         // map 0 to this containers root folder id
         if ($parentId === self::ROOT_ID) {
             $parentId = $this->getRootFolder()->id;
@@ -178,14 +181,21 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     /**
      * Load all files and folders of the current folder from the database and get an array of them.
      *
-     * @param array $orderBy
-     *            orderBy array appended to the query
+     * @param array $filesOrder
+     *            orderBy array appended to the files query
+     * @param array $foldersOrder
+     *            orderBy array appended to the folders query
      * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
-    protected function getItemsList($orderBy = NULL)
+    protected function getItemsList($filesOrder = NULL, $foldersOrder = NULL)
     {
         // set default value
-        if(!$orderBy) $orderBy = ['title' => SORT_ASC];
+        if(!$filesOrder) {
+            $filesOrder = ['title' => SORT_ASC];
+        }
+        if(!$foldersOrder) {
+            $foldersOrder = ['title' => SORT_ASC];
+        }
         
         $filesQuery = File::find()->joinWith('baseFile')
             ->contentContainer($this->contentContainer)
@@ -229,8 +239,9 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             null
         ]);
         
-        $filesQuery->orderBy($orderBy);
-        $foldersQuery->orderBy($orderBy);
+        $filesQuery->orderBy($filesOrder);
+        $foldersQuery->orderBy($foldersOrder);
+        
         return [
             'specialFolders' => $specialFoldersQuery->all(),
             'folders' => $foldersQuery->all(),
