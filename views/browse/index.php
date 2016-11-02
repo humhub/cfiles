@@ -197,7 +197,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Download');?></a></li>
     <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
-    <?php if($this->context->canWrite() && $this->context->action->id != "all-posted-files"): ?>
+    <?php if($this->context->canWrite() && !$currentFolder->isAllPostedFiles()): ?>
     <li role="separator" class="divider"></li>
     <li><a tabindex="-1" href="#" data-action='edit-file'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
@@ -210,8 +210,8 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Download');?></a></li>
     <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
     <li role="separator" class="divider"></li>
-    <li><a tabindex="-1" href="#" data-action='show-image'><?php echo Yii::t('CfilesModule.base', 'Show');?></a></li>
-    <?php if($this->context->canWrite() && $this->context->action->id != "all-posted-files"): ?>    
+    <li><a tabindex="-1" href="#" data-action='show-image'><?php echo Yii::t('CfilesModule.base', 'Show Image');?></a></li>
+    <?php if($this->context->canWrite() && !$currentFolder->isAllPostedFiles()): ?>    
     <li><a tabindex="-1" href="#" data-action='edit-file'><?php echo Yii::t('CfilesModule.base', 'Edit');?></a></li>
     <li><a tabindex="-1" href="#" data-action='delete'><?php echo Yii::t('CfilesModule.base', 'Delete');?></a></li>
     <li><a tabindex="-1" href="#" data-action='move-files'><?php echo Yii::t('CfilesModule.base', 'Move');?></a></li>
