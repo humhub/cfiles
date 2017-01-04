@@ -13,6 +13,7 @@ $emptyList = true;
 <style>
 .cfiles-wallout-folder-preview .content-list {
     margin: 0;
+    list-style: none;
 }
 .cfiles-wallout-folder-preview .content-list li {
     margin-bottom: 4px;

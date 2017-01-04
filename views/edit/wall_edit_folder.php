@@ -1,4 +1,7 @@
-<?php use yii\helpers\Html; use humhub\compat\CActiveForm; ?>
+<?php 
+use yii\helpers\Html; use humhub\compat\CActiveForm; 
+use humhub\modules\cfiles\widgets\FolderPreview;
+?>
 
 <div class="content_edit" id="cfiles_edit_folder_<?php echo $folder->id;?>">
     
@@ -40,4 +43,9 @@
     ]); ?>
 
     <?php CActiveForm::end()?>
+    
+    <div class="preview">
+        <?php echo FolderPreview::widget(['folder' => $folder, 'lightboxDataParent' => "#cfiles-wallout-folder-content-$folder->id", 'lightboxDataGallery' => "FilesModule-Gallery-$folder->id"]); ?>
+    </div>
+
 </div>

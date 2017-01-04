@@ -119,9 +119,6 @@ class EditController extends BrowseController
         if ($cancel) {
             return $this->renderAjaxContent($file->getWallOut());
         }
-        // the new / edited folders title
-        $title = trim(Yii::$app->request->post('Folder')['title']);
-        Yii::$app->request->post('Folder')['title'] = $title;
         
         // if not return cause this should not happen
         if (empty($file) || ! ($file instanceof File)) {
