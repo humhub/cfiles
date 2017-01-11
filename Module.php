@@ -75,6 +75,7 @@ class Module extends ContentContainerModule
         foreach (File::find()->all() as $key => $file) {
             $file->delete();
         }
+        parent::disable();
     }
 
     public function disableContentContainer(ContentContainerActiveRecord $container)
@@ -87,25 +88,7 @@ class Module extends ContentContainerModule
         foreach (File::find()->contentContainer($container)->all() as $file) {
             $file->delete();
         }
-    }
-    
-    public function enableContentContainer(ContentContainerActiveRecord $container) {
-        // create default folders
-        $root = new Folder();
-        $root->title = self::ROOT_TITLE;
-        $root->content->container = $container;
-        $root->description = self::ROOT_DESCRIPTION;
-        $root->type = Folder::TYPE_FOLDER_ROOT;
-        $root->save();
-        $posted = new Folder();
-        $posted->title = self::ALL_POSTED_FILES_TITLE;
-        $posted->description = self::ALL_POSTED_FILES_DESCRIPTION;
-        $posted->content->container = $container;
-        $posted->parent_folder_id = $root->id;
-        $posted->type = Folder::TYPE_FOLDER_POSTED;
-        $posted->save();
-        
-        
+        parent::disableContentContainer($container);
     }
 
     /**
@@ -134,7 +117,7 @@ class Module extends ContentContainerModule
     public function getConfigUrl()
     {
         return Url::to([
-                    '/cfiles/config'
+            '/cfiles/config'
         ]);
     }
     
@@ -142,7 +125,7 @@ class Module extends ContentContainerModule
     {
         return User::findOne([
             'id' => $id
-            ]);
+        ]);
     }
 
 }

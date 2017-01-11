@@ -23,20 +23,18 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
         <?php endforeach; ?>
         </ol>
     </div>
+    <?php if(!$currentFolder->isRoot() && !$currentFolder->isAllPostedFiles()): ?>
     <div class="panel-body">
-        <?php if(!$currentFolder->isRoot() && !$currentFolder->isAllPostedFiles()): ?>
         <div class="cfiles-folder-description"><?php echo $currentFolder->description; ?></div>
-        <?php endif; ?>
         <div class="file-controls">
             <?php echo LikeLink::widget(['object' => $currentFolder]); ?>
             |
             <?php echo CommentLink::widget(['object' => $currentFolder, 'mode' => CommentLink::MODE_POPUP]); ?>
-            <?php if(!$currentFolder->isRoot() && !$currentFolder->isAllPostedFiles()): ?>
             |
             <a href="<?php echo $currentFolder->getWallUrl(); ?>"><?php echo Yii::t('CfilesModule.base', 'Show on Wall'); ?></a>
-            <?php endif;?>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 
 <div id="cfiles-log"></div>

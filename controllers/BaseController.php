@@ -17,6 +17,7 @@ use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\comment\models\Comment;
 use yii\helpers\FileHelper;
 use humhub\models\Setting;
+use humhub\modules\cfiles\Module;
 
 /**
  * Description of a Base Controller for the files module.
@@ -39,6 +40,73 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     public $hideSidebar = true;
 
     public $errorMessages = array();
+
+    public function beforeAction($action)
+    {
+        if (parent::beforeAction($action)) {
+            $newRoot = false;
+            // create default folders
+            if ($this->getRootFolder() == null) {
+                $this->_rootFolder = new Folder();
+                $this->_rootFolder->title = Module::ROOT_TITLE;
+                $this->_rootFolder->content->container = $this->contentContainer;
+                $this->_rootFolder->description = Module::ROOT_DESCRIPTION;
+                $this->_rootFolder->type = Folder::TYPE_FOLDER_ROOT;
+                $this->_rootFolder->save();
+                $newRoot = true;
+                // update creator of root folder, which should not be the random currently logged in user
+                $created_by = $this->contentContainer instanceof User ? $this->contentContainer->id : $this->contentContainer instanceof Space ? $this->contentContainer->created_by : 1;
+                $created_by = $created_by == null ? 1 : $created_by;
+                $this->_rootFolder->content->created_by = $created_by;
+                $this->_rootFolder->content->save();
+            }
+            if ($this->getAllPostedFilesFolder() == null) {
+                $this->_allPostedFilesFolder = new Folder();
+                $this->_allPostedFilesFolder->title = Module::ALL_POSTED_FILES_TITLE;
+                $this->_allPostedFilesFolder->description = Module::ALL_POSTED_FILES_DESCRIPTION;
+                $this->_allPostedFilesFolder->content->container = $this->contentContainer;
+                $this->_allPostedFilesFolder->parent_folder_id = $this->_rootFolder->id;
+                $this->_allPostedFilesFolder->type = Folder::TYPE_FOLDER_POSTED;
+                $this->_allPostedFilesFolder->save();
+                // update creator of all posted files folder, which should not be the random currently logged in user
+                $created_by = $this->contentContainer instanceof User ? $this->contentContainer->id : $this->contentContainer instanceof Space ? $this->contentContainer->created_by : 1;
+                $created_by = $created_by == null ? 1 : $created_by;
+                $this->_allPostedFilesFolder->content->created_by = $created_by;
+                $this->_allPostedFilesFolder->content->save();
+            }
+            // next step is to shift all former root subfiles which have parent_folder_id == 0 (up to module version v.9.7) to the generated root folder
+            // this should not be a problem if the migration was broken, because it only affects entries with parent_folder_id==0
+            if ($newRoot) {
+                $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->contentContainer);
+                $foldersQuery = Folder::find()->contentContainer($this->contentContainer);
+                $filesQuery->andWhere([
+                    'cfiles_file.parent_folder_id' => 0
+                ]);
+                // user maintained folders
+                $foldersQuery->andWhere([
+                    'cfiles_folder.parent_folder_id' => 0
+                ]);
+                // do not return any folders here that are root or allpostedfiles
+                $foldersQuery->andWhere([
+                    'cfiles_folder.type' => null
+                ]);
+                
+                $rootsubfiles = $filesQuery->all();
+                $rootsubfolders = $foldersQuery->all();
+                
+                foreach ($rootsubfiles as $file) {
+                    $file->parent_folder_id = $this->_rootFolder->id;
+                    $file->save();
+                }
+                foreach ($rootsubfolders as $folder) {
+                    $folder->parent_folder_id = $this->_rootFolder->id;
+                    $folder->save();
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Returns current folder by given fid get parameter.
@@ -81,14 +149,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     {
         if ($this->_rootFolder === null) {
             $this->_rootFolder = Folder::find()->contentContainer($this->contentContainer)
-                ->readable()
                 ->where([
                 'type' => Folder::TYPE_FOLDER_ROOT
             ])
                 ->one();
-        }
-        if ($this->_rootFolder === null) {
-            throw new HttpException(500, Yii::t('CfilesModule.base', 'An internal error occurred. Could not load root folder, database not properly initialized.'));
         }
         return $this->_rootFolder;
     }
@@ -97,15 +161,11 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     {
         if ($this->_allPostedFilesFolder === null) {
             $this->_allPostedFilesFolder = Folder::find()->contentContainer($this->contentContainer)
-                ->readable()
                 ->where([
                 'type' => Folder::TYPE_FOLDER_POSTED,
                 'parent_folder_id' => $this->getRootFolder()->id
             ])
                 ->one();
-        }
-        if ($this->_allPostedFilesFolder === null) {
-            throw new HttpException(500, Yii::t('CfilesModule.base', 'An internal error occurred. Could not load default folder containing all posted files, database not properly initialized.'));
         }
         return $this->_allPostedFilesFolder;
     }
@@ -135,9 +195,12 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     protected function getFolderList($parentId = self::ROOT_ID, $orderBy = NULL)
     {
         // set default value
-        if(!$orderBy) $orderBy = ['title' => SORT_ASC];
-        
-        // map 0 to this containers root folder id
+        if (! $orderBy)
+            $orderBy = [
+                'title' => SORT_ASC
+            ];
+            
+            // map 0 to this containers root folder id
         if ($parentId === self::ROOT_ID) {
             $parentId = $this->getRootFolder()->id;
         }
@@ -190,11 +253,15 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     protected function getItemsList($filesOrder = NULL, $foldersOrder = NULL)
     {
         // set default value
-        if(!$filesOrder) {
-            $filesOrder = ['title' => SORT_ASC];
+        if (! $filesOrder) {
+            $filesOrder = [
+                'title' => SORT_ASC
+            ];
         }
-        if(!$foldersOrder) {
-            $foldersOrder = ['title' => SORT_ASC];
+        if (! $foldersOrder) {
+            $foldersOrder = [
+                'title' => SORT_ASC
+            ];
         }
         
         $filesQuery = File::find()->joinWith('baseFile')
