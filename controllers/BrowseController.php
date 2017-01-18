@@ -99,7 +99,7 @@ class BrowseController extends BaseController
         
         $items = $this->getItemsList($filesOrder, $foldersOrder);
         
-        $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
+        $view = $this->renderPartial('@humhub/modules/cfiles/views/browse/fileList', [
             'items' => $items,
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
@@ -193,7 +193,7 @@ class BrowseController extends BaseController
     {
         $items = $this->getAllPostedFilesList($filesOrder, $foldersOrder);
         
-        $view = $this->renderAjax('@humhub/modules/cfiles/views/browse/fileList', [
+        $view = $this->renderPartial('@humhub/modules/cfiles/views/browse/fileList', [
             'items' => $items,
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),

@@ -50,16 +50,7 @@ class Folder extends FileSystemItem
 
     public function getWallUrl()
     {
-        $firstWallEntryId = $this->content->getFirstWallEntryId();
-        
-        if ($firstWallEntryId == "") {
-            return '';
-        }
-        
-        return \yii\helpers\Url::toRoute([
-            '/content/perma/wall-entry',
-            'id' => $firstWallEntryId
-        ]);
+        return $this->content->getUrl();
     }
 
     /**
@@ -301,8 +292,9 @@ class Folder extends FileSystemItem
     {
         parent::afterSave($insert, $changedAttributes);
         // Rootfolder and Allposted files folder do never have wallentries
+        // TODO: ROOT and AllPostedFiles must not be added to Wall but are automatically added
         if ($insert && !$this->isAllPostedFiles() && !$this->isRoot()) {
-            $this->content->addToWall();
+            // $this->content->addToWall();
         }
     }
 }

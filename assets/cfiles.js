@@ -44,113 +44,98 @@ function initFileList() {
 		showHideBtns();
 	});
 	$("#bs-table tr").contextMenu(
-			{
-				getMenuSelector : function(invokedOn, settings) {
-					itemId = invokedOn.closest('tr').data('type');
-					switch (itemId) {
-					case "folder-posted":
-						return '#contextMenuAllPostedFiles';
-					case "folder":
-						return '#contextMenuFolder';
-					case "image":
-						return '#contextMenuImage';
-					default:
-						return '#contextMenuFile';
-					}
-				},
-				menuSelected : function(invokedOn, selectedMenu) {
+	{
+		getMenuSelector : function(invokedOn, settings) {
+			itemId = invokedOn.closest('tr').data('type');
+			switch (itemId) {
+			case "folder-posted":
+				return '#contextMenuAllPostedFiles';
+			case "folder":
+				return '#contextMenuFolder';
+			case "image":
+				return '#contextMenuImage';
+			default:
+				return '#contextMenuFile';
+			}
+		},
+		menuSelected : function(invokedOn, selectedMenu) {
 
-					action = selectedMenu.data('action');
-					// file or folder
-					itemType = invokedOn.closest('tr').data('type');
-					// e.g. file-53
-					itemRealId = invokedOn.closest('tr').data('id');
-					parentId = jQuery.urlParam('fid') === null ? 0 : jQuery
-							.urlParam('fid');
+			action = selectedMenu.data('action');
+			// file or folder
+			itemType = invokedOn.closest('tr').data('type');
+			// e.g. file-53
+			itemRealId = invokedOn.closest('tr').data('id');
+			parentId = jQuery.urlParam('fid') === null ? 0 : jQuery
+					.urlParam('fid');
 
-					switch (action) {
-					case 'delete':
-						$.ajax({
-							url : cfilesDeleteUrl,
-							type : 'POST',
-							data : {
-								'selected[]' : itemRealId,
-							},
-						}).done(function(html) {
-							$("#globalModal").html(html);
-							$("#globalModal").modal("show");
-						});
-						break;
-					case 'edit-folder':
-						$.ajax(
-								{
-									url : cfilesEditFolderUrl.replace(
-											'--itemId--', itemRealId),
-									type : 'GET',
-								}).done(function(html) {
-							$("#globalModal").html(html);
-							$("#globalModal").modal("show");
-						});
-						break;
-					case 'edit-file':
-						$.ajax(
-								{
-									url : cfilesEditFileUrl.replace(
-											'--itemId--', itemRealId),
-									type : 'GET',
-								}).done(function(html) {
-							$("#globalModal").html(html);
-							$("#globalModal").modal("show");
-						});
-						break;
-					case 'download':
-						url = invokedOn.closest('tr').data('url');
-						document.location.href = url;
-						break;
-					case 'zip':
-						url = cfilesDownloadArchiveUrl.replace('--folderId--',
-								itemRealId.split('_')[1]),
-								document.location.href = url;
-						break;
-					case 'move-files':
-						$.ajax({
-							url : cfilesMoveUrl,
-							type : 'POST',
-							data : {
-								'selected[]' : itemRealId,
-							},
-						}).done(function(html) {
-							$("#globalModal").html(html);
-							$("#globalModal").modal("show");
-							openDirectory(parentId);
-							selectDirectory(parentId);
-						});
-						break;
-					case 'show-image':
-						previewLink = invokedOn.closest('tr').find(
-								'.preview-link');
-						previewLink.trigger("click");
-						break;
-					case 'show-post':
-						url = invokedOn.closest('tr').data('wall-url');
-						document.location.href = url;
-						break;
-					default:
-						alert("Unkown action " + action);
-						break;
-					}
-				}
-			});
+			switch (action) {
+			case 'delete':
+				$.ajax({
+					url : cfilesDeleteUrl,
+					type : 'POST',
+					data : {
+						'selected[]' : itemRealId,
+					},
+				}).done(function(html) {
+					$("#globalModal").html(html);
+					$("#globalModal").modal("show");
+				});
+				break;
+			case 'move-files':
+				$.ajax({
+					url : cfilesMoveUrl,
+					type : 'POST',
+					data : {
+						'selected[]' : itemRealId,
+					},
+				}).done(function(html) {
+					$("#globalModal").html(html);
+					$("#globalModal").modal("show");
+					openDirectory(parentId);
+					selectDirectory(parentId);
+				});
+				break;
+			case 'edit-folder':
+				var url = cfilesEditFolderUrl.replace('--itemId--', itemRealId);
+                humhub.modules.ui.modal.global.load({'url': url});
+				break;
+			case 'edit-file':
+				var url = cfilesEditFileUrl.replace('--itemId--', itemRealId);
+                humhub.modules.ui.modal.global.load({'url': url});
+				break;
+			case 'download':
+				url = invokedOn.closest('tr').data('url');
+				document.location.href = url;
+				break;
+			case 'zip':
+				url = cfilesDownloadArchiveUrl.replace('--folderId--', itemRealId.split('_')[1]);
+				document.location.href = url;
+				break;
+			case 'show-image':
+				previewLink = invokedOn.closest('tr').find('.preview-link');
+				previewLink.trigger("click");
+				break;
+			case 'show-post':
+				url = invokedOn.closest('tr').data('wall-url');
+				document.location.href = url;
+				break;
+			default:
+				alert("Unkown action " + action);
+				break;
+			}
+		}
+	});
 }
 
 function updateLog(messages, container) {
 	if ($.isArray(messages)) {
-		$.each(messages, function(index, message) {
-			container.append('<li>' + message + '</li>');
+		var key;
+		for (key in messages) {
+			container.append('<li>' + messages[key] + '</li>');
 			container.show();
-		});
+		}
 	} else if (!jQuery.isEmptyObject(messages)) {
-		container.append('<li>' + message + '</li>');
+		container.append('<li>' + messages + '</li>');
 		container.show();
 	}
 }
@@ -341,3 +326,30 @@ $(function() {
 
 	};
 })(jQuery, window);
+
+
+humhub.module('cfiles', function (module, require, $) {
+
+	var client = require('client');
+	var modal = require('ui.modal');
+	var additions = require('ui.additions');
+	
+	var init = function() {
+		if($('#fileList').length) {
+			additions.observe($('#fileList'));
+		}
+	}
+	
+    var deleteFiles = function(evt) {
+    	client.submit(evt, {'dataType': 'html'}).then(function (response) {
+    		$("#fileList").html(response.html); 
+    		modal.global.close();
+    		showHideBtns(); 
+		});
+    };
+    
+    module.export({
+        deleteFiles: deleteFiles,
+        init: init
+    });
+});

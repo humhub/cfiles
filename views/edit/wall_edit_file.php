@@ -19,32 +19,44 @@ use humhub\modules\cfiles\widgets\FilePreview;
         <?php //echo $form->field($file, 'description'); ?>
     
     
-        <?php echo \humhub\widgets\AjaxButton::widget([
-            'label' => Yii::t('PostModule.views_edit', 'Save'),
-            'ajaxOptions' => [
-                'type' => 'POST',
-                'beforeSend' => new yii\web\JsExpression('function(html){ }'),
-                'success' => new yii\web\JsExpression('function(html){$(".wall_' . $file->getUniqueId() . '").replaceWith(html); }'),
-                'statusCode' => ['400' => new yii\web\JsExpression('function(xhr) { }')],
-                'url' => $contentContainer->createUrl('/cfiles/edit/file', [ 'fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => 1 ])
-            ],
-            'htmlOptions' => [ 
-                'class' => 'btn btn-primary' 
-            ] 
-        ]); ?>
+        <?php 
+        // FIXME: v1.2 deprecated, delete if no longer needed
+//         echo \humhub\widgets\AjaxButton::widget([
+//             'label' => Yii::t('PostModule.views_edit', 'Save'),
+//             'ajaxOptions' => [
+//                 'type' => 'POST',
+//                 'beforeSend' => new yii\web\JsExpression('function(html){ }'),
+//                 'success' => new yii\web\JsExpression('function(html){$(".wall_' . $file->getUniqueId() . '").replaceWith(html); }'),
+//                 'statusCode' => ['400' => new yii\web\JsExpression('function(xhr) { }')],
+//                 'url' => $contentContainer->createUrl('/cfiles/edit/file', [ 'fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => 1 ])
+//             ],
+//             'htmlOptions' => [ 
+//                 'class' => 'btn btn-primary' 
+//             ] 
+//         ]); 
+        ?>
         
-        <?php echo \humhub\widgets\AjaxButton::widget([
-            'label' => Yii::t('CfilesModule.base', 'Close'),
-            'ajaxOptions' => [
-                'type' => 'GET',
-                'success' => new yii\web\JsExpression('function(html){$(".wall_' . $file->getUniqueId() . '").replaceWith(html); }'),
-                'statusCode' => ['400' => new yii\web\JsExpression('function(xhr) { }')],
-                'url' => $contentContainer->createUrl('/cfiles/edit/file', [ 'fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => 1 , 'cancel' => 1])
-            ],
-            'htmlOptions' => [ 
-                'class' => 'btn btn-primary' 
-            ] 
-        ]); ?>
+        <!-- editSubmit action of surrounding StreamEntry component -->
+        <button type="submit" class="btn btn-default btn-sm btn-comment-submit" data-ui-loader data-action-click="editSubmit" data-action-url="<?= $contentContainer->createUrl('/cfiles/edit/file', [ 'fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => 1 ]) ?>">
+            <?= Yii::t('CfilesModule.base', 'Save') ?>
+        </button>
+    
+        
+        <?php 
+        // FIXME: v1.2 -> deprecated since editing can be canceled by wall entry's context menu
+//         echo \humhub\widgets\AjaxButton::widget([
+//             'label' => Yii::t('CfilesModule.base', 'Close'),
+//             'ajaxOptions' => [
+//                 'type' => 'GET',
+//                 'success' => new yii\web\JsExpression('function(html){$(".wall_' . $file->getUniqueId() . '").replaceWith(html); }'),
+//                 'statusCode' => ['400' => new yii\web\JsExpression('function(xhr) { }')],
+//                 'url' => $contentContainer->createUrl('/cfiles/edit/file', [ 'fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => 1 , 'cancel' => 1])
+//             ],
+//             'htmlOptions' => [ 
+//                 'class' => 'btn btn-primary' 
+//             ] 
+//         ]); 
+        ?>
     
         <?php CActiveForm::end()?>
     </div>

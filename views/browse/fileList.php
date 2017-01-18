@@ -184,4 +184,5 @@ echo FileSystemItem::widget([
     $(function () {
         initFileList();
     });
+    //humhub.modules.ui.additions.applyTo($('#fileList'));
 </script>

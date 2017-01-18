@@ -52,7 +52,8 @@ class UploadController extends BrowseController
             $filesQuery = File::find()->contentContainer($this->contentContainer)->joinWith('baseFile')
                     ->readable()
                     ->andWhere([
-                'title' => File::sanitizeFilename($cFile->name),
+                // TODO: sanitize filename??? old function wil no longer work
+                'file_name' => $cFile->name,
                 'parent_folder_id' => $currentFolderId
             ]);
             $file = $filesQuery->one();
@@ -60,7 +61,7 @@ class UploadController extends BrowseController
             // if not, initialize new File
             if (empty($file)) {
                 $file = new File();
-                $humhubFile = new \humhub\modules\file\models\File();
+                $humhubFile = new \humhub\modules\file\models\FileUpload();
             }             // else replace the existing file
             else {
                 $humhubFile = $file->baseFile;

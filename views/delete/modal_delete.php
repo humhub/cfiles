@@ -27,21 +27,32 @@ use humhub\compat\CActiveForm;
         ?>
 
         <div class="modal-footer">
-            <?php echo \humhub\widgets\AjaxButton::widget([
-                            'label' => Yii::t('CfilesModule.base', 'Delete'),
-                            'ajaxOptions' => [
-                                'type' => 'POST',
-                                'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
-                                'success' => new yii\web\JsExpression('function(html){ $("#fileList").html(html); $("#globalModal").modal("hide"); showHideBtns(); }'),
-                                'url' => $contentContainer->createUrl('/cfiles/delete', [
-                                    'fid' => $currentFolder->id,
-                                    'confirm' => true,
-                                ])
-                            ],
-                            'htmlOptions' => [
-                                'class' => 'btn btn-primary',
-                            ]
-                        ]); ?>
+            <?php 
+            // FIXME: v1.2 deprecated, delete if no longer needed
+//             echo \humhub\widgets\AjaxButton::widget([
+//                     'label' => Yii::t('CfilesModule.base', 'Delete'),
+//                     'ajaxOptions' => [
+//                         'type' => 'POST',
+//                         'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
+//                         'success' => new yii\web\JsExpression('function(html){ $("#fileList").html(html); $("#globalModal").modal("hide"); showHideBtns(); }'),
+//                         'url' => $contentContainer->createUrl('/cfiles/delete', [
+//                             'fid' => $currentFolder->id,
+//                             'confirm' => true,
+//                         ])
+//                     ],
+//                     'htmlOptions' => [
+//                         'class' => 'btn btn-primary',
+//                     ]
+//                 ]); 
+            ?>
+            <a href="#" class="btn btn-primary"
+                data-action-click="cfiles.deleteFiles"
+                data-action-url="<?= $contentContainer->createUrl('/cfiles/delete', [
+                    'fid' => $currentFolder->id,
+                    'confirm' => true,
+                ]) ?>">
+                <?= Yii::t('CfilesModule.base', 'Delete'); ?>
+            </a>
             <button type="button" class="btn btn-primary"
                 data-dismiss="modal">
                 <?php echo Yii::t( 'CfilesModule.base', 'Close'); ?>

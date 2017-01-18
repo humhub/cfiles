@@ -37,13 +37,7 @@ class File extends FileSystemItem
 
     public function getWallUrl()
     {
-        $firstWallEntryId = $this->content->getFirstWallEntryId();  
-            
-        if ($firstWallEntryId == '') {
-            return '';
-        }
-    
-        return \yii\helpers\Url::toRoute(['/content/perma/wall-entry', 'id' => $firstWallEntryId]);
+        return $this->content->getUrl();
     }
     
     /**
@@ -164,6 +158,8 @@ class File extends FileSystemItem
      *
      * @param unknown $file_name            
      * @return string
+     * TODO: check against changes in 1.2
+     * @deprecated will no longer work in 1.2
      */
     public static function sanitizeFilename($filename)
     {
@@ -297,7 +293,7 @@ class File extends FileSystemItem
     
     public function getBaseFile()
     {
-        $query = $this->hasOne(\humhub\modules\file\models\File::className(), [
+        $query = $this->hasOne(\humhub\modules\file\models\FileUpload::className(), [
             'object_id' => 'id'
         ]);
         $query->andWhere([
