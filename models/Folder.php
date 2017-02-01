@@ -24,17 +24,24 @@ class Folder extends FileSystemItem
     const TYPE_FOLDER_ROOT = 'root';
 
     const TYPE_FOLDER_POSTED = 'posted';
-
+   
     /**
      * @inheritdoc
      */
     public $autoAddToWall = false;
-
+    
     /**
      * @inheritdoc
      */
     public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFolder";
 
+    public function init() {
+        parent::init();
+        if($this->isAllPostedFiles() || $this->isRoot()) {
+            $this->streamChannel = null;
+        }
+    }
+    
     /**
      * @inheritdoc
      */
@@ -46,11 +53,6 @@ class Folder extends FileSystemItem
     public function getItemType()
     {
         return 'folder' . ($this->type !== null ? '-' . $this->type : '');
-    }
-
-    public function getWallUrl()
-    {
-        return $this->content->getUrl();
     }
 
     /**
@@ -286,15 +288,5 @@ class Folder extends FileSystemItem
     public function isAllPostedFiles()
     {
         return $this->type === self::TYPE_FOLDER_POSTED;
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-        // Rootfolder and Allposted files folder do never have wallentries
-        // TODO: ROOT and AllPostedFiles must not be added to Wall but are automatically added
-        if ($insert && !$this->isAllPostedFiles() && !$this->isRoot()) {
-            // $this->content->addToWall();
-        }
     }
 }

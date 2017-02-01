@@ -348,8 +348,15 @@ humhub.module('cfiles', function (module, require, $) {
 		});
     };
     
+    var editFiles = function(evt) {
+    	client.submit(evt, {'dataType': 'html'}).then(function (response) {
+    		$("#globalModal").html(response.html);
+		});
+    };
+    
     module.export({
         deleteFiles: deleteFiles,
+        editFiles: editFiles,
         init: init
     });
 });

@@ -21,7 +21,8 @@ data-wall-url="<?php echo $wallUrl; ?>">
             <?php if ($type === "image") : ?>
             <a class="preview-link" data-toggle="lightbox"
                 data-parent="#bs-table"
-                data-gallery="FilesModule-Gallery-<?php echo $parentFolderId; ?>"
+                data-pjax-prevent="1"
+                data-ui-gallery="FilesModule-Gallery-<?php echo $parentFolderId; ?>"
                 href="<?php echo $url; ?>#.jpeg"
                 data-footer='
                 <button 
@@ -30,7 +31,7 @@ data-wall-url="<?php echo $wallUrl; ?>">
                 <?php echo $title; ?>
             </a>
             <?php else : ?>
-            <a href="<?php echo $url; ?>">
+            <a data-pjax-prevent="1" href="<?php echo $url; ?>">
                 <?php echo $title; ?>
             </a>
             <?php endif; ?>

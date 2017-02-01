@@ -3,6 +3,7 @@ namespace humhub\modules\cfiles\models;
 
 use Yii;
 use yii\base\Exception;
+use yii\helpers\Url;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -28,6 +29,12 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
             'id' => 'parent_folder_id'
         ]);
         return $query;
+    }
+    
+    public function getWallUrl()
+    {
+        $permaLink = Url::to(['/content/perma', 'id' => $this->content->id], true);
+        return $permaLink;
     }
 
     public function getBaseContent()

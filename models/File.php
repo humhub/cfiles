@@ -6,6 +6,7 @@ use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\models\Content;
 use humhub\modules\cfiles\controllers\BaseController;
+use humhub\modules\content\components\ContentActiveRecord;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -33,11 +34,6 @@ class File extends FileSystemItem
     public static function tableName()
     {
         return 'cfiles_file';
-    }
-
-    public function getWallUrl()
-    {
-        return $this->content->getUrl();
     }
     
     /**
@@ -246,9 +242,10 @@ class File extends FileSystemItem
 
     public function getUrl($download = false)
     {
-        return $this->baseFile->getUrl() . ($download ? '&' . http_build_query([
-            'download' => 1
-        ]) : '');
+//         return $this->baseFile->getUrl() . ($download ? '&' . http_build_query([
+//             'download' => 1
+//         ]) : '');
+        return $this->baseFile->getUrl(['download' => $download]);
     }
 
     public function getCreator()

@@ -85,7 +85,7 @@ class EditController extends BrowseController
                     'justEdited' => true
                 ]));
             } else {
-                return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', [
+                return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', [
                     'fid' => $folder->id
                 ]));
             }

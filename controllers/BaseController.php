@@ -43,6 +43,12 @@ abstract class BaseController extends \humhub\modules\content\components\Content
 
     public function beforeAction($action)
     {
+        
+        // FIXME: enable zip support again if problem with zip upload is solved
+        if (!Setting::Get('disableZipSupport', 'cfiles')) {
+            Setting::Set('disableZipSupport', true, 'cfiles');
+        }
+        
         if (parent::beforeAction($action)) {
             $newRoot = false;
             // create default folders
