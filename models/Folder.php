@@ -114,14 +114,20 @@ class Folder extends FileSystemItem
     {
         return $this->hasMany(File::className(), [
             'parent_folder_id' => 'id'
-        ])->joinWith('baseFile')->orderBy(['title' => SORT_ASC]);
+        ])
+            ->joinWith('baseFile')
+            ->orderBy([
+            'title' => SORT_ASC
+        ]);
     }
 
     public function getFolders()
     {
         return $this->hasMany(Folder::className(), [
             'parent_folder_id' => 'id'
-        ])->orderBy(['title' => SORT_ASC]);
+        ])->orderBy([
+            'title' => SORT_ASC
+        ]);
     }
 
     public function beforeDelete()
@@ -164,18 +170,23 @@ class Folder extends FileSystemItem
         ]);
     }
 
-    public function getCreator()
+    /**
+     * @inheritdoc
+     */
+    public function getSearchAttributes()
     {
-        return User::findOne([
-            'id' => $this->content->created_by
-        ]);
-    }
-
-    public function getEditor()
-    {
-        return User::findOne([
-            'id' => $this->content->updated_by
-        ]);
+        if ($this->isAllPostedFiles() || $this->isRoot()) {
+            $attributes = [];
+        } else {
+            $attributes = array(
+                'name' => $this->title,
+                'description' => $this->description,
+                'creator' => $this->getCreator()->getDisplayName(),
+                'editor' => $this->getEditor()->getDisplayName()
+            );
+        }
+        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
+        return $attributes;
     }
 
     public function noSpaces($attribute, $params)
@@ -291,7 +302,7 @@ class Folder extends FileSystemItem
     {
         return $this->type === self::TYPE_FOLDER_ROOT;
     }
-    
+
     public function isAllPostedFiles()
     {
         return $this->type === self::TYPE_FOLDER_POSTED;
@@ -301,7 +312,7 @@ class Folder extends FileSystemItem
     {
         parent::afterSave($insert, $changedAttributes);
         // Rootfolder and Allposted files folder do never have wallentries
-        if ($insert && !$this->isAllPostedFiles() && !$this->isRoot()) {
+        if ($insert && ! $this->isAllPostedFiles() && ! $this->isRoot()) {
             $this->content->addToWall();
         }
     }

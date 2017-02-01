@@ -5,7 +5,6 @@
  * @copyright Copyright (c) 2015 HumHub GmbH & Co. KG
  * @license https://www.humhub.com/licences
  */
-
 namespace humhub\modules\cfiles\controllers;
 
 use Yii;
@@ -31,32 +30,34 @@ class UploadController extends BrowseController
 
     /**
      * Action to upload multiple files.
+     * 
      * @return multitype:boolean multitype:
      */
     public function actionIndex()
     {
         Yii::$app->response->format = 'json';
         
-        if(!$this->canWrite()) {
+        if (! $this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
-
+        
         $response = [];
-
+        
         foreach (UploadedFile::getInstancesByName('files') as $cFile) {
-
+            
             $folder = $this->getCurrentFolder();
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
-
+            
             // check if the file already exists in this dir
-            $filesQuery = File::find()->contentContainer($this->contentContainer)->joinWith('baseFile')
-                    ->readable()
-                    ->andWhere([
+            $filesQuery = File::find()->contentContainer($this->contentContainer)
+                ->joinWith('baseFile')
+                ->readable()
+                ->andWhere([
                 'title' => File::sanitizeFilename($cFile->name),
                 'parent_folder_id' => $currentFolderId
             ]);
             $file = $filesQuery->one();
-
+            
             // if not, initialize new File
             if (empty($file)) {
                 $file = new File();
@@ -66,25 +67,30 @@ class UploadController extends BrowseController
                 $humhubFile = $file->baseFile;
                 // logging file replacement
                 $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
-                            '%title%' => $file->title
+                    '%title%' => $file->title
                 ]);
                 $response['log'] = true;
             }
-
+            
             $humhubFile->setUploadedFile($cFile);
             if ($humhubFile->validate()) {
-
+                
                 $file->content->container = $this->contentContainer;
                 $folder = $this->getCurrentFolder();
-
+                
                 if ($folder !== null) {
                     $file->parent_folder_id = $folder->id;
                 }
-
+                
                 if ($file->save()) {
                     $humhubFile->object_model = $file->className();
                     $humhubFile->object_id = $file->id;
                     $humhubFile->save();
+                    $searchFile = File::findOne([
+                        'id' => $file->id
+                    ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
+                    Yii::$app->search->update($searchFile); // update index with title
+                    
                     $this->files[] = array_merge($humhubFile->getInfoArray(), [
                         'fileList' => $this->renderFileList()
                     ]);
@@ -96,8 +102,8 @@ class UploadController extends BrowseController
                         $messages .= ($count ++ ? ' | ' : '') . $message[0];
                     }
                     $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
-                                '%title%' => $file->title
-                            ]) . $messages;
+                        '%title%' => $file->title
+                    ]) . $messages;
                     $response['log'] = true;
                 }
             } else {
@@ -108,12 +114,12 @@ class UploadController extends BrowseController
                     $messages .= ($count ++ ? ' | ' : '') . $message[0];
                 }
                 $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
-                            '%title%' => $humhubFile->filename
-                        ]) . $messages;
+                    '%title%' => $humhubFile->filename
+                ]) . $messages;
                 $response['log'] = true;
             }
         }
-
+        
         $response['files'] = $this->files;
         return $response;
     }

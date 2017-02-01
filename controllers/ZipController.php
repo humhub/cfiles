@@ -328,6 +328,10 @@ class ZipController extends UploadController
                 $humhubFile->object_model = $file->className();
                 $humhubFile->object_id = $file->id;
                 $humhubFile->save();
+                $searchFile = File::findOne([
+                    'id' => $file->id
+                ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
+                Yii::$app->search->update($searchFile); // update index with title
                 $this->files[] = array_merge($humhubFile->getInfoArray(), [
                     'fileList' => $this->renderFileList()
                 ]);
@@ -369,7 +373,7 @@ class ZipController extends UploadController
     {
         $files = $this->getAllPostedFilesList();
         foreach ($files['postedFiles'] as $file) {
-            $this->archiveFile($file, $zipFile, $localPathPrefix, \humhub\modules\cfiles\models\File::getUserById($file->created_by)->username.'_'.$file->created_at.'_');
+            $this->archiveFile($file, $zipFile, $localPathPrefix, \humhub\modules\cfiles\models\File::getUserById($file->created_by)->username . '_' . $file->created_at . '_');
         }
     }
 
@@ -444,7 +448,7 @@ class ZipController extends UploadController
         
         return $outputPath;
     }
-    
+
     /**
      * Get the output path of the base temporary folder used for packing and unpacking zip data for all users.
      *
@@ -465,8 +469,14 @@ class ZipController extends UploadController
      */
     protected function cleanup()
     {
-        $files = BaseFileHelper::findFiles($this->getBaseTempFolderPath(), ['filter' => function($path) {return time()-filemtime($path) > 30 ? true : false;}, 'recursive' => true]);
-        foreach($files as $file) {
+        $files = BaseFileHelper::findFiles($this->getBaseTempFolderPath(), [
+            'filter' => function ($path)
+            {
+                return time() - filemtime($path) > 30 ? true : false;
+            },
+            'recursive' => true
+        ]);
+        foreach ($files as $file) {
             unlink($file);
         }
     }
