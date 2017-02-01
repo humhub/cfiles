@@ -17,7 +17,7 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
         <ol class="breadcrumb" dir="ltr">
         <?php foreach ($crumb as $parentFolder): ?>
             <li><a
-                    href="<?php echo $contentContainer->createUrl('/cfiles/browse/'.($parentFolder->isAllPostedFiles() ? 'all-posted-files' : 'index'), ['fid' => $parentFolder->id]); ?>">
+                href="<?php echo $contentContainer->createUrl('/cfiles/browse/'.($parentFolder->isAllPostedFiles() ? 'all-posted-files' : 'index'), ['fid' => $parentFolder->id]); ?>">
             <?php echo $parentFolder->isRoot() ? '<i class="fa fa-home fa-lg fa-fw"></i>' : Html::encode($parentFolder->title); ?></a></li>
             <?php $parentFolderId = $parentFolder->id; ?>
         <?php endforeach; ?>
@@ -68,7 +68,7 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
         <?php foreach ((array_key_exists('specialFolders', $items) ? $items['specialFolders'] : []) as $specialFolder) : ?>
         <?php
         
-echo FileSystemItem::widget([
+        echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'socialActionsAvailable' => false,
             'selectable' => false,
@@ -80,8 +80,8 @@ echo FileSystemItem::widget([
             'iconClass' => $specialFolder->getIconClass(),
             'title' => $specialFolder->getTitle(),
             'size' => $specialFolder->getSize(),
-            'creator' => $specialFolder->creator,
-            'editor' => $specialFolder->editor,
+            'creator' => NULL, // do not display creator / editr of automatically generated folders
+            'editor' => NULL, // do not display creator / editr of automatically generated folders
             'updatedAt' => $specialFolder->content->updated_at,
             'contentObject' => $specialFolder
         ]);
@@ -90,7 +90,7 @@ echo FileSystemItem::widget([
         <?php foreach ((array_key_exists('folders', $items) ? $items['folders'] : []) as $folder) : ?>
         <?php
         
-echo FileSystemItem::widget([
+        echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'type' => $folder->getItemType(),
             'id' => $folder->getItemId(),
@@ -110,7 +110,7 @@ echo FileSystemItem::widget([
         <?php foreach ((array_key_exists('files', $items) ? $items['files'] : []) as $file) : ?>
         <?php
         
-echo FileSystemItem::widget([
+        echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'type' => $file->getItemType(),
             'id' => $file->getItemId(),
@@ -130,7 +130,7 @@ echo FileSystemItem::widget([
         <?php foreach ((array_key_exists('postedFiles', $items) ? $items['postedFiles'] : []) as $file) : ?>
         <?php
         
-echo FileSystemItem::widget([
+        echo FileSystemItem::widget([
             'parentFolderId' => $parentFolderId,
             'type' => \humhub\modules\cfiles\models\File::getItemTypeByExt($file->getExtension()),
             'columns' => $itemsSelectable ? [
