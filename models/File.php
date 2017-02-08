@@ -242,9 +242,7 @@ class File extends FileSystemItem
 
     public function getUrl($download = false)
     {
-//         return $this->baseFile->getUrl() . ($download ? '&' . http_build_query([
-//             'download' => 1
-//         ]) : '');
+
         return $this->baseFile->getUrl(['download' => $download]);
     }
 

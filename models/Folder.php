@@ -24,22 +24,17 @@ class Folder extends FileSystemItem
     const TYPE_FOLDER_ROOT = 'root';
 
     const TYPE_FOLDER_POSTED = 'posted';
-   
-    /**
-     * @inheritdoc
-     */
-    public $autoAddToWall = false;
     
     /**
      * @inheritdoc
      */
     public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFolder";
 
-    public function init() {
-        parent::init();
+    public function beforeSave($insert) {
         if($this->isAllPostedFiles() || $this->isRoot()) {
             $this->streamChannel = null;
         }
+        return parent::beforeSave($insert);
     }
     
     /**
@@ -152,6 +147,9 @@ class Folder extends FileSystemItem
 
     public function getUrl()
     {
+        if(empty($this->content->container)) {
+            return "";
+        }
         return $this->content->container->createUrl('/cfiles/browse/index', [
             'fid' => $this->id
         ]);
