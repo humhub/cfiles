@@ -48,7 +48,7 @@ abstract class BaseController extends \humhub\modules\content\components\Content
         // FIXME: enable zip support again if problem with zip upload is solved
         if (!Setting::Get('disableZipSupport', 'cfiles')) {
             Setting::Set('disableZipSupport', true, 'cfiles');
-        }
+        }        
         
         if (parent::beforeAction($action)) {
             $newRoot = false;
@@ -68,6 +68,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                 $this->_rootFolder->content->created_by = $created_by;
                 $this->_rootFolder->content->save();
             }
+            // FIXME: ugly way to ensure that folders generated within the last version are not displayed on the wall. The save will trigger streamChannel to be set to null
+            else {
+                $this->getRootFolder()->save();
+            }
             if ($this->getAllPostedFilesFolder() == null) {
                 $this->_allPostedFilesFolder = new Folder();
                 $this->_allPostedFilesFolder->type = Folder::TYPE_FOLDER_POSTED;
@@ -82,6 +86,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                 $created_by = $created_by == NULL ? Yii::$app->user->id : $created_by;
                 $this->_allPostedFilesFolder->content->created_by = $created_by;
                 $this->_allPostedFilesFolder->content->save();
+            }
+            // FIXME: ugly way to ensure that folders generated within the last version are not displayed on the wall. The save will trigger streamChannel to be set to null
+            else {
+                $this->getAllPostedFilesFolder()->save();
             }
             // next step is to shift all former root subfiles which have parent_folder_id == 0 (up to module version v.9.7) to the generated root folder
             // this should not be a problem if the migration was broken, because it only affects entries with parent_folder_id==0
