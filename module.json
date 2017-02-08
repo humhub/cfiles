@@ -1,11 +1,17 @@
 {
     "id": "cfiles",
     "name": "Files",
-    "description": "File manager for spaces/users.",
-    "keywords": ["files"],
-    "version": "0.9.8.1",
+    "description": "File manager for spaces\/users.",
+    "keywords": [
+        "files"
+    ],
+    "version": "0.9.8.2",
     "humhub": {
-        "minVersion": "1.2"
+        "minVersion": "1.2",
+        "maxVersion": ""
     },
-    "screenshots": ["assets/screen1.PNG","assets/screen2.PNG"]
+    "screenshots": [
+        "assets\/screen1.PNG",
+        "assets\/screen2.PNG"
+    ]
 }
