@@ -70,7 +70,7 @@ $emptyList = true;
             <span class="title">
                 <i class="fa <?php echo $iconClass; ?> fa-fw"></i>
                 <?php if ($type === "image") : ?>
-                <a class="preview-link" data-toggle="lightbox" data-parent="<?php echo $lightboxDataParent; ?>"  data-gallery="<?php echo $lightboxDataGallery; ?>"
+                <a class="preview-link" data-toggle="lightbox" data-parent="<?php echo $lightboxDataParent; ?>"  data-ui-gallery="<?php echo $lightboxDataGallery; ?>"
                     href="<?php echo $url; ?>#.jpeg"
                     data-footer='
                     <button type="button" class="btn btn-primary" data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'>

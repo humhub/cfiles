@@ -2,10 +2,8 @@
 namespace humhub\modules\cfiles\models;
 
 use Yii;
-use yii\base\Exception;
-use humhub\modules\user\models\User;
-
-/**
+use yii\base\Exception;use yii\helpers\Url;
+use humhub\modules\user\models\User;/**
  * This is the model class for table "cfiles_file".
  *
  * @property integer $id
@@ -22,7 +20,6 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         
         return parent::beforeSave($insert);
     }
-
     public function afterSave($insert, $changedAttributes)
     {
         // this should set the editor and edit date of all parent folders if sth. inside of them has changed
@@ -31,13 +28,18 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         }
         return parent::afterSave($insert, $changedAttributes);
     }
-
-    public function getParentFolder()
+        public function getParentFolder()
     {
         $query = $this->hasOne(Folder::className(), [
             'id' => 'parent_folder_id'
         ]);
         return $query;
+    }
+
+    public function getWallUrl()
+    {
+        $permaLink = Url::to(['/content/perma', 'id' => $this->content->id], true);
+        return $permaLink;
     }
 
     public function getBaseContent()
@@ -82,18 +84,18 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
             ]);
         }
     }
-
+    
     public function getCreator()
     {
         return User::findOne([
             'id' => $this->content->created_by
-        ]);
+            ]);
     }
-
+    
     public function getEditor()
     {
         return User::findOne([
             'id' => $this->content->updated_by
-        ]);
+            ]);
     }
 }

@@ -53,7 +53,8 @@ class UploadController extends BrowseController
                 ->joinWith('baseFile')
                 ->readable()
                 ->andWhere([
-                'title' => File::sanitizeFilename($cFile->name),
+                // TODO: sanitize filename??? old function wil no longer work
+                'file_name' => $cFile->name,
                 'parent_folder_id' => $currentFolderId
             ]);
             $file = $filesQuery->one();
@@ -61,7 +62,7 @@ class UploadController extends BrowseController
             // if not, initialize new File
             if (empty($file)) {
                 $file = new File();
-                $humhubFile = new \humhub\modules\file\models\File();
+                $humhubFile = new \humhub\modules\file\models\FileUpload();
             }             // else replace the existing file
             else {
                 $humhubFile = $file->baseFile;
@@ -89,9 +90,7 @@ class UploadController extends BrowseController
                     $searchFile = File::findOne([
                         'id' => $file->id
                     ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
-                    Yii::$app->search->update($searchFile); // update index with title
-                    
-                    $this->files[] = array_merge($humhubFile->getInfoArray(), [
+                    Yii::$app->search->update($searchFile); // update index with title                    $this->files[] = array_merge($humhubFile->getInfoArray(), [
                         'fileList' => $this->renderFileList()
                     ]);
                 } else {

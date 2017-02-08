@@ -28,13 +28,15 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public $autoAddToWall = false;
-
-    /**
-     * @inheritdoc
-     */
     public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFolder";
 
+    public function beforeSave($insert) {
+        if($this->isAllPostedFiles() || $this->isRoot()) {
+            $this->streamChannel = null;
+        }
+        return parent::beforeSave($insert);
+    }
+    
     /**
      * @inheritdoc
      */
@@ -43,23 +45,28 @@ class Folder extends FileSystemItem
         return 'cfiles_folder';
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getSearchAttributes()
+    {
+        if ($this->isAllPostedFiles() || $this->isRoot()) {
+            $attributes = [];
+        } else {
+            $attributes = array(
+                'name' => $this->title,
+                'description' => $this->description,
+                'creator' => $this->getCreator()->getDisplayName(),
+                'editor' => $this->getEditor()->getDisplayName()
+            );
+    }
+        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
+        return $attributes;
+    }
+
     public function getItemType()
     {
         return 'folder' . ($this->type !== null ? '-' . $this->type : '');
-    }
-
-    public function getWallUrl()
-    {
-        $firstWallEntryId = $this->content->getFirstWallEntryId();
-        
-        if ($firstWallEntryId == "") {
-            return '';
-        }
-        
-        return \yii\helpers\Url::toRoute([
-            '/content/perma/wall-entry',
-            'id' => $firstWallEntryId
-        ]);
     }
 
     /**
@@ -165,30 +172,13 @@ class Folder extends FileSystemItem
 
     public function getUrl()
     {
+        if(empty($this->content->container)) {
+            return "";
+        }
         return $this->content->container->createUrl('/cfiles/browse/index', [
             'fid' => $this->id
         ]);
     }
-
-    /**
-     * @inheritdoc
-     */
-    public function getSearchAttributes()
-    {
-        if ($this->isAllPostedFiles() || $this->isRoot()) {
-            $attributes = [];
-        } else {
-            $attributes = array(
-                'name' => $this->title,
-                'description' => $this->description,
-                'creator' => $this->getCreator()->getDisplayName(),
-                'editor' => $this->getEditor()->getDisplayName()
-            );
-        }
-        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
-        return $attributes;
-    }
-
     public function noSpaces($attribute, $params)
     {
         if (trim($this->$attribute) !== $this->$attribute) {
@@ -306,14 +296,5 @@ class Folder extends FileSystemItem
     public function isAllPostedFiles()
     {
         return $this->type === self::TYPE_FOLDER_POSTED;
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-        // Rootfolder and Allposted files folder do never have wallentries
-        if ($insert && ! $this->isAllPostedFiles() && ! $this->isRoot()) {
-            $this->content->addToWall();
-        }
     }
 }

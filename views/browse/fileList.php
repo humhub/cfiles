@@ -75,15 +75,15 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
             'type' => $specialFolder->getItemType(),
             'id' => $specialFolder->getItemId(),
             'downloadUrl' => $specialFolder->getUrl(true),
-            'url' => $specialFolder->getUrl(),
+            'url' => $specialFolder->getUrl(false),
             'wallUrl' => $specialFolder->getWallUrl(),
             'iconClass' => $specialFolder->getIconClass(),
             'title' => $specialFolder->getTitle(),
             'size' => $specialFolder->getSize(),
-            'creator' => NULL, // do not display creator / editr of automatically generated folders
+
+ 'creator' => NULL, // do not display creator / editr of automatically generated folders
             'editor' => NULL, // do not display creator / editr of automatically generated folders
-            'updatedAt' => $specialFolder->content->updated_at,
-            'contentObject' => $specialFolder
+            'updatedAt' => $specialFolder->isAllPostedFiles() ? "" : $specialFolder->content->updated_at, // do not display timestamp of all posted files folder            'contentObject' => $specialFolder
         ]);
         ?>
         <?php endforeach; ?>
@@ -95,7 +95,7 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
             'type' => $folder->getItemType(),
             'id' => $folder->getItemId(),
             'downloadUrl' => $folder->getUrl(true),
-            'url' => $folder->getUrl(),
+            'url' => $folder->getUrl(false),
             'wallUrl' => $folder->getWallUrl(),
             'iconClass' => $folder->getIconClass(),
             'title' => $folder->getTitle(),
@@ -115,7 +115,7 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
             'type' => $file->getItemType(),
             'id' => $file->getItemId(),
             'downloadUrl' => $file->getUrl(true),
-            'url' => $file->getUrl(),
+            'url' => $file->getUrl(false),
             'wallUrl' => $file->getWallUrl(),
             'iconClass' => $file->getIconClass(),
             'title' => $file->getTitle(),
@@ -184,4 +184,5 @@ $itemsInFolder = array_key_exists('specialFolders', $items) && sizeof($items['sp
     $(function () {
         initFileList();
     });
+    //humhub.modules.ui.additions.applyTo($('#fileList'));
 </script>

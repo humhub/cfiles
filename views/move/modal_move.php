@@ -34,15 +34,17 @@ function renderFolder($folder)
             <?php if (! empty($errorMsgs)) : ?>
             <div class="alert alert-danger">
                 <ul>
-                    <?php foreach ($errorMsgs as $error) :
-                        echo "<li>$error</li>";
-                    endforeach; ?>
+                <?php
+                foreach ($errorMsgs as $error) :
+                    echo "<li>$error</li>";
+                endforeach;
+                ?>
                 </ul>
             </div>
             <?php endif; ?>
             <br />
             <div class="directory-list">
-                <div class="selectable" id="0"><?php echo Yii::t('CfilesModule.base', '/ (root)'); ?></div>
+                <div class="selectable" id="<?php echo $rootFolder->id; ?>"><?php echo Yii::t('CfilesModule.base', '/ (root)'); ?></div>
                 <ul>
                 <?php
                 foreach ($folders as $dir) :
@@ -65,21 +67,27 @@ function renderFolder($folder)
             ?>
             <div class="modal-footer">
             <?php
-            echo \humhub\widgets\AjaxButton::widget([
-                'label' => Yii::t('CfilesModule.base', 'Save'),
-                'ajaxOptions' => [
-                    'type' => 'POST',
-                    'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
-                    'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); openDirectory($("#input-hidden-selectedFolder").val()); selectDirectory($("#input-hidden-selectedFolder").val()); }'),
-                    'url' => $contentContainer->createUrl('/cfiles/move', [])
-                ],
-                'htmlOptions' => [
-                    'class' => 'btn btn-primary'
-                ]
-            ]);
+            // FIXME: v1.2 deprecated, delete if no longer needed
+//             echo \humhub\widgets\AjaxButton::widget([
+//                 'label' => Yii::t('CfilesModule.base', 'Save'),
+//                 'ajaxOptions' => [
+//                     'type' => 'POST',
+//                     'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
+//                     'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); openDirectory($("#input-hidden-selectedFolder").val()); selectDirectory($("#input-hidden-selectedFolder").val()); }'),
+//                     'url' => $contentContainer->createUrl('/cfiles/move', [])
+//                 ],
+//                 'htmlOptions' => [
+//                     'class' => 'btn btn-primary'
+//                 ]
+//             ]);
             ?>
+            <a href="#" class="btn btn-primary"
+                    data-action-click="ui.modal.submit"
+                    data-action-url="<?= $contentContainer->createUrl('/cfiles/move', []) ?>">
+                    <?= Yii::t('CfilesModule.base', 'Save'); ?>
+            </a>
             <button type="button" class="btn btn-primary"
-                    data-dismiss="modal"><?php echo Yii::t('CfilesModule.base', 'Close'); ?></button>
+                data-dismiss="modal"><?php echo Yii::t('CfilesModule.base', 'Close'); ?></button>
 
             </div>
         <?php CActiveForm::end()?>

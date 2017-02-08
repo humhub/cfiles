@@ -85,14 +85,14 @@ class EditController extends BrowseController
                     'justEdited' => true
                 ]));
             } else {
-                return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', [
+                return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', [
                     'fid' => $folder->id
                 ]));
             }
         }
         
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
-        return $this->renderAjax(($fromWall ? 'wall_edit_folder' : 'modal_edit_folder'), [
+        return $this->renderPartial(($fromWall ? 'wall_edit_folder' : 'modal_edit_folder'), [
             'folder' => $folder,
             'contentContainer' => $this->contentContainer,
             'currentFolderId' => $this->getCurrentFolder()->id,
@@ -139,7 +139,7 @@ class EditController extends BrowseController
         }
         
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
-        return $this->renderAjax(($fromWall ? 'wall_edit_file' : 'modal_edit_file'), [
+        return $this->renderPartial(($fromWall ? 'wall_edit_file' : 'modal_edit_file'), [
             'file' => $file,
             'contentContainer' => $this->contentContainer,
             'currentFolderId' => $this->getCurrentFolder()->id,

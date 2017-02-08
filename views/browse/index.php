@@ -222,7 +222,9 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
     role="menu" style="display: none">
     <li><a tabindex="-1" href="#" data-action='download'><?php echo Yii::t('CfilesModule.base', 'Open');?></a></li>
     <li><a tabindex="-1" href="#" data-action='show-post'><?php echo Yii::t('CfilesModule.base', 'Show Post');?></a></li>
+    <?php if(!Setting::Get('disableZipSupport', 'cfiles')): ?>
     <li><a tabindex="-1" href="#" data-action='zip'><?php echo Yii::t('CfilesModule.base', 'Download ZIP');?></a></li>
+    <?php endif; ?>
 </ul>
 
 <div id="hiddenLogContainer" style="display: none">

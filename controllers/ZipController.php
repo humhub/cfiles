@@ -291,7 +291,7 @@ class ZipController extends UploadController
         $filesQuery = File::find()->joinWith('baseFile')
             ->readable()
             ->andWhere([
-            'title' => File::sanitizeFilename($filename),
+            'file_name' => $filename,
             'parent_folder_id' => $parentFolderId
         ]);
         $file = $filesQuery->one();
@@ -299,7 +299,7 @@ class ZipController extends UploadController
         // if not, initialize new File
         if (empty($file)) {
             $file = new File();
-            $humhubFile = new \humhub\modules\file\models\File();
+            $humhubFile = new \humhub\modules\file\models\FileUpload();
         } else { // else replace the existing file
             $humhubFile = $file->baseFile;
             // logging file replacement
@@ -309,15 +309,39 @@ class ZipController extends UploadController
             $response['log'] = true;
         }
         
-        // populate the file
-        $humhubFile->mime_type = FileHelper::getMimeType($filepath);
-        if ($humhubFile->mime_type == 'image/jpeg') {
+        $uploadedFile = new UploadedFile();
+        
+        // generate and fill an uploadedFile instance to populate FileUpload with
+        $uploadedFile->name = $filename;
+        $uploadedFile->type = FileHelper::getMimeType($filepath);
+        if ($uploadedFile->type == 'image/jpeg') {
             ImageConverter::TransformToJpeg($filepath, $filepath);
         }
-        $humhubFile->size = filesize($filepath);
-        $humhubFile->file_name = $filename;
+        $uploadedFile->size = filesize($filepath);
+        $uploadedFile->tempName = $filepath;
         
-        $humhubFile->newFileContent = stream_get_contents(fopen($filepath, 'r'));
+        // DEBUG CODE: check if file exists in filesystem and return it as response
+        // open the file in a binary mode
+//         $fp = fopen($filepath, 'rb');
+//         // send the right headers
+//         header("Content-Type: " . $uploadedFile->type);
+//         header("Content-Length: " . $uploadedFile->size);
+//         // dump the picture and stop the script
+//         fpassthru($fp);
+//         exit;
+        
+        $humhubFile->setUploadedFile($uploadedFile);
+        
+        // populate the file
+// v1.1 deprecated        
+//         $humhubFile->mime_type = FileHelper::getMimeType($filepath);
+//         if ($humhubFile->mime_type == 'image/jpeg') {
+//             ImageConverter::TransformToJpeg($filepath, $filepath);
+//         }
+//         $humhubFile->size = filesize($filepath);
+//         $humhubFile->file_name = $filename;
+        
+//         $humhubFile->newFileContent = stream_get_contents(fopen($filepath, 'r'));
         
         if ($humhubFile->save()) {
             

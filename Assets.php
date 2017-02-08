@@ -21,6 +21,10 @@ class Assets extends AssetBundle
         'directorylist.css'
     ];
 
+    public $jsOptions = [
+        'position' => \yii\web\View::POS_BEGIN
+    ];
+
     public $js = [
         'cfiles.js',
         'directorylist.js'

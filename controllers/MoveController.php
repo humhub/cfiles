@@ -40,12 +40,15 @@ class MoveController extends BaseController {
         $selectedItems = Yii::$app->request->post('selected');
         $selectedDatabaseItems = [];
         $destFolderId = Yii::$app->request->post('destfid');
+        $destFolder = Folder::findOne(['id' => $destFolderId]);
         $init = Yii::$app->request->get('init');
         $errorMsgs = [];
 
         if ($init) {
             // render modal if no destination folder is specified
+            // FIXME: v1.2 -> render partial will not work here! The rendered modal will not be embedded in the base page.
             return $this->renderAjax('modal_move', [
+                        'rootFolder' => $this->getRootFolder(),
                         'folders' => $this->getFolderList(),
                         'contentContainer' => $this->contentContainer,
                         'selectedItems' => $selectedItems,
@@ -60,6 +63,10 @@ class MoveController extends BaseController {
                         $errorMsgs[] = Yii::t('CfilesModule.base', 'Moving to the same folder is not valid. Choose a valid parent folder for %title%.', [
                                     '%title%' => $item->title
                         ]);
+                        continue;
+                    }
+                    if ($destFolder != null && $destFolder->isAllPostedFiles()) {
+                        $errorMsgs[] = Yii::t('CfilesModule.base', 'Moving to this folder is invalid.');
                         continue;
                     }
                     $selectedDatabaseItems[] = $item;
@@ -78,8 +85,10 @@ class MoveController extends BaseController {
 
         // render modal if errors occurred
         if (!empty($errorMsgs)) {
+            // FIXME: v1.2 -> render partial will not work here! The rendered modal will not be embedded in the base page.
             return $this->renderAjax('modal_move', [
                         'errorMsgs' => $errorMsgs,
+                        'rootFolder' => $this->getRootFolder(),
                         'folders' => $this->getFolderList(),
                         'contentContainer' => $this->contentContainer,
                         'selectedItems' => $selectedItems,

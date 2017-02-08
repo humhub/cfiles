@@ -44,15 +44,21 @@ abstract class BaseController extends \humhub\modules\content\components\Content
 
     public function beforeAction($action)
     {
+        
+        // FIXME: enable zip support again if problem with zip upload is solved
+        if (!Setting::Get('disableZipSupport', 'cfiles')) {
+            Setting::Set('disableZipSupport', true, 'cfiles');
+        }
+        
         if (parent::beforeAction($action)) {
             $newRoot = false;
             // create default folders
             if ($this->getRootFolder() == null) {
                 $this->_rootFolder = new Folder();
+                $this->_rootFolder->type = Folder::TYPE_FOLDER_ROOT;
                 $this->_rootFolder->title = Module::ROOT_TITLE;
                 $this->_rootFolder->content->container = $this->contentContainer;
                 $this->_rootFolder->description = Module::ROOT_DESCRIPTION;
-                $this->_rootFolder->type = Folder::TYPE_FOLDER_ROOT;
                 $this->_rootFolder->save();
                 $newRoot = true;
                 // update creator of root folder, which should not be the random currently logged in user
@@ -64,11 +70,11 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             }
             if ($this->getAllPostedFilesFolder() == null) {
                 $this->_allPostedFilesFolder = new Folder();
+                $this->_allPostedFilesFolder->type = Folder::TYPE_FOLDER_POSTED;
                 $this->_allPostedFilesFolder->title = Module::ALL_POSTED_FILES_TITLE;
                 $this->_allPostedFilesFolder->description = Module::ALL_POSTED_FILES_DESCRIPTION;
                 $this->_allPostedFilesFolder->content->container = $this->contentContainer;
                 $this->_allPostedFilesFolder->parent_folder_id = $this->_rootFolder->id;
-                $this->_allPostedFilesFolder->type = Folder::TYPE_FOLDER_POSTED;
                 $this->_allPostedFilesFolder->save();
                 // update creator of all posted files folder, which should not be the random currently logged in user
                 $created_by = $this->contentContainer instanceof User ? $this->contentContainer->id : $this->contentContainer instanceof Space ? $this->contentContainer->getSpaceOwner()->id : NULL;

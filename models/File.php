@@ -6,6 +6,7 @@ use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\models\Content;
 use humhub\modules\cfiles\controllers\BaseController;
+use humhub\modules\content\components\ContentActiveRecord;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -33,40 +34,7 @@ class File extends FileSystemItem
     public static function tableName()
     {
         return 'cfiles_file';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getSearchAttributes()
-    {
-        $attributes = array(
-            'description' => $this->description,
-            'creator' => $this->getCreator()->getDisplayName(),
-            'editor' => $this->getEditor()->getDisplayName()
-        );
-        if ($this->baseFile) {
-            $attributes['name'] = $this->getTitle();
-        }
-        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
-        return $attributes;
-    }
-
-    public function getWallUrl()
-    {
-        $firstWallEntryId = $this->content->getFirstWallEntryId();
-        
-        if ($firstWallEntryId == '') {
-            return '';
-        }
-        
-        return \yii\helpers\Url::toRoute([
-            '/content/perma/wall-entry',
-            'id' => $firstWallEntryId
-        ]);
-    }
-
-    /**
+    }    /**
      * @inheritdoc
      */
     public function rules()
@@ -99,6 +67,23 @@ class File extends FileSystemItem
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getSearchAttributes()
+    {
+        $attributes = array(
+            'description' => $this->description,
+            'creator' => $this->getCreator()->getDisplayName(),
+            'editor' => $this->getEditor()->getDisplayName()
+        );
+        if ($this->baseFile) {
+            $attributes['name'] = $this->getTitle();
+        }
+        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
+        return $attributes;
+    }
+    
     public function getItemId()
     {
         return 'file_' . $this->id;
@@ -184,6 +169,8 @@ class File extends FileSystemItem
      *
      * @param unknown $file_name            
      * @return string
+     * TODO: check against changes in 1.2
+     * @deprecated will no longer work in 1.2
      */
     public static function sanitizeFilename($filename)
     {
@@ -275,12 +262,8 @@ class File extends FileSystemItem
 
     public function getUrl($download = false)
     {
-        return $this->baseFile->getUrl() . ($download ? '&' . http_build_query([
-            'download' => 1
-        ]) : '');
-    }
-
-    public static function getUserById($id)
+        return $this->baseFile->getUrl(['download' => $download]);
+    }    public static function getUserById($id)
     {
         return User::findOne([
             'id' => $id
@@ -312,7 +295,7 @@ class File extends FileSystemItem
 
     public function getBaseFile()
     {
-        $query = $this->hasOne(\humhub\modules\file\models\File::className(), [
+        $query = $this->hasOne(\humhub\modules\file\models\FileUpload::className(), [
             'object_id' => 'id'
         ]);
         $query->andWhere([
