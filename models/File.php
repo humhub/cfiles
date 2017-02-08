@@ -69,6 +69,23 @@ class File extends FileSystemItem
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getSearchAttributes()
+    {
+        $attributes = array(
+            'description' => $this->description,
+            'creator' => $this->getCreator()->getDisplayName(),
+            'editor' => $this->getEditor()->getDisplayName()
+        );
+        if ($this->baseFile) {
+            $attributes['name'] = $this->getTitle();
+        }
+        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
+        return $attributes;
+    }
+    
     public function getItemId()
     {
         return 'file_' . $this->id;
@@ -232,7 +249,12 @@ class File extends FileSystemItem
 
     public function getTitle()
     {
-        return $this->baseFile->file_name;
+        // needs to be checked cause used with uninitialized basefile by search index
+        if (! empty($this->baseFile)) {
+            return $this->baseFile->file_name;
+        } else {
+            return "";
+        }
     }
 
     public function getSize()
@@ -244,16 +266,6 @@ class File extends FileSystemItem
     {
 
         return $this->baseFile->getUrl(['download' => $download]);
-    }
-
-    public function getCreator()
-    {
-        return File::getUserById($this->baseFile->created_by);
-    }
-
-    public function getEditor()
-    {
-        return File::getUserById($this->baseFile->updated_by);
     }
 
     public static function getUserById($id)

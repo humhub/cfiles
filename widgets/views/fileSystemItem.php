@@ -52,7 +52,7 @@ data-wall-url="<?php echo $wallUrl; ?>">
     <?php if(in_array('timestamp', $columns)): ?>
     <td class="hidden-xxs text-right">
         <div class="timestamp pull-right">
-            <?php echo \humhub\widgets\TimeAgo::widget([ 'timestamp' => $updatedAt ]); ?>
+            <?php echo $updatedAt ? \humhub\widgets\TimeAgo::widget([ 'timestamp' => $updatedAt ]) : ""; ?>
         </div>
     </td>
     <?php endif; ?>
@@ -70,6 +70,7 @@ data-wall-url="<?php echo $wallUrl; ?>">
     <?php if(in_array('creator', $columns)): ?>
     <td class="hidden-xxs text-right">
         <div class="creator pull-right">
+            <?php if(!empty($creator)): ?>
             <a href="<?php echo $creator->createUrl(); ?>"> <img
                 class="img-rounded tt img_margin"
                 src="<?php echo $creator->getProfileImage()->getUrl(); ?>"
@@ -80,6 +81,7 @@ data-wall-url="<?php echo $wallUrl; ?>">
                 data-placement="top" title=""
                 data-toggle="tooltip">
             </a>
+            <?php endif; ?>
             <?php if(!empty($editor) && $creator->id !== $editor->id):?>
             <a href="<?php echo $editor->createUrl(); ?>"> <img
                 class="img-rounded tt img_margin"

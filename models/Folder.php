@@ -45,6 +45,25 @@ class Folder extends FileSystemItem
         return 'cfiles_folder';
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getSearchAttributes()
+    {
+        if ($this->isAllPostedFiles() || $this->isRoot()) {
+            $attributes = [];
+        } else {
+            $attributes = array(
+                'name' => $this->title,
+                'description' => $this->description,
+                'creator' => $this->getCreator()->getDisplayName(),
+                'editor' => $this->getEditor()->getDisplayName()
+            );
+        }
+        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
+        return $attributes;
+    }
+    
     public function getItemType()
     {
         return 'folder' . ($this->type !== null ? '-' . $this->type : '');
@@ -152,20 +171,6 @@ class Folder extends FileSystemItem
         }
         return $this->content->container->createUrl('/cfiles/browse/index', [
             'fid' => $this->id
-        ]);
-    }
-
-    public function getCreator()
-    {
-        return User::findOne([
-            'id' => $this->content->created_by
-        ]);
-    }
-
-    public function getEditor()
-    {
-        return User::findOne([
-            'id' => $this->content->updated_by
         ]);
     }
 

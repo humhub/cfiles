@@ -4,6 +4,7 @@ namespace humhub\modules\cfiles\models;
 use Yii;
 use yii\base\Exception;
 use yii\helpers\Url;
+use humhub\modules\user\models\User;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -11,7 +12,7 @@ use yii\helpers\Url;
  * @property integer $id
  * @property integer $folder_id
  */
-abstract class FileSystemItem extends \humhub\modules\content\components\ContentActiveRecord implements \humhub\modules\cfiles\ItemInterface
+abstract class FileSystemItem extends \humhub\modules\content\components\ContentActiveRecord implements \humhub\modules\cfiles\ItemInterface, \humhub\modules\search\interfaces\Searchable
 {
 
     public function beforeSave($insert)
@@ -23,6 +24,16 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         return parent::beforeSave($insert);
     }
 
+    public function afterSave($insert, $changedAttributes)
+    {
+        // this should set the editor and edit date of all parent folders if sth. inside of them has changed
+        if (! empty($this->parentFolder)) {
+            $this->parentFolder->save();
+        }
+        return parent::afterSave($insert, $changedAttributes);
+    }
+    
+    
     public function getParentFolder()
     {
         $query = $this->hasOne(Folder::className(), [
@@ -77,5 +88,19 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
                 'id' => $parent->parent_folder_id
             ]);
         }
+    }
+    
+    public function getCreator()
+    {
+        return User::findOne([
+            'id' => $this->content->created_by
+            ]);
+    }
+    
+    public function getEditor()
+    {
+        return User::findOne([
+            'id' => $this->content->updated_by
+            ]);
     }
 }

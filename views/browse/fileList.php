@@ -80,9 +80,9 @@ echo FileSystemItem::widget([
             'iconClass' => $specialFolder->getIconClass(),
             'title' => $specialFolder->getTitle(),
             'size' => $specialFolder->getSize(),
-            'creator' => $specialFolder->creator,
-            'editor' => $specialFolder->editor,
-            'updatedAt' => $specialFolder->content->updated_at,
+            'creator' => NULL, // do not display creator / editr of automatically generated folders
+            'editor' => NULL, // do not display creator / editr of automatically generated folders
+            'updatedAt' => $specialFolder->isAllPostedFiles() ? "" : $specialFolder->content->updated_at, // do not display timestamp of all posted files folder
             'contentObject' => $specialFolder
         ]);
         ?>

@@ -61,8 +61,9 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                 $this->_rootFolder->save();
                 $newRoot = true;
                 // update creator of root folder, which should not be the random currently logged in user
-                $created_by = $this->contentContainer instanceof User ? $this->contentContainer->id : $this->contentContainer instanceof Space ? $this->contentContainer->created_by : 1;
-                $created_by = $created_by == null ? 1 : $created_by;
+                $created_by = $this->contentContainer instanceof User ? $this->contentContainer->id : $this->contentContainer instanceof Space ? $this->contentContainer->getSpaceOwner()->id : NULL;
+                // absolute fallback, this should not happen
+                $created_by = $created_by == NULL ? Yii::$app->user->id : $created_by;
                 $this->_rootFolder->content->created_by = $created_by;
                 $this->_rootFolder->content->save();
             }
@@ -74,9 +75,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                 $this->_allPostedFilesFolder->content->container = $this->contentContainer;
                 $this->_allPostedFilesFolder->parent_folder_id = $this->_rootFolder->id;
                 $this->_allPostedFilesFolder->save();
-                // update creator of all posted files folder, which should not be the random currently logged in user
-                $created_by = $this->contentContainer instanceof User ? $this->contentContainer->id : $this->contentContainer instanceof Space ? $this->contentContainer->created_by : 1;
-                $created_by = $created_by == null ? 1 : $created_by;
+               // update creator of all posted files folder, which should not be the random currently logged in user
+                $created_by = $this->contentContainer instanceof User ? $this->contentContainer->id : $this->contentContainer instanceof Space ? $this->contentContainer->getSpaceOwner()->id : NULL;
+                // absolute fallback, this should not happen
+                $created_by = $created_by == NULL ? Yii::$app->user->id : $created_by;
                 $this->_allPostedFilesFolder->content->created_by = $created_by;
                 $this->_allPostedFilesFolder->content->save();
             }

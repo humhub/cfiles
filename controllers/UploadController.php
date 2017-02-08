@@ -86,6 +86,10 @@ class UploadController extends BrowseController
                     $humhubFile->object_model = $file->className();
                     $humhubFile->object_id = $file->id;
                     $humhubFile->save();
+                    $searchFile = File::findOne([
+                        'id' => $file->id
+                        ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
+                    Yii::$app->search->update($searchFile); // update index with title
                     $this->files[] = array_merge($humhubFile->getInfoArray(), [
                         'fileList' => $this->renderFileList()
                     ]);
