@@ -351,6 +351,8 @@ humhub.module('cfiles', function (module, require, $) {
     var editFiles = function (evt) {
         client.submit(evt, {'dataType': 'html'}).then(function (response) {
             $("#globalModal").html(response.html);
+        }).catch(function (e) {
+            module.log.error(e, true)
         });
     };
 

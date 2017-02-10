@@ -47,6 +47,7 @@ use humhub\compat\CActiveForm;
                 // ]);
                 ?>
                 <a href="#" class="btn btn-primary"
+                   data-ui-loader=""
                    data-action-click="cfiles.editFiles"
                    data-action-url="<?= $contentContainer->createUrl('/cfiles/edit/folder', ['fid' => $currentFolderId, 'id' => $folder->getItemId(), 'fromWall' => $fromWall]) ?>">
                        <?= Yii::t('CfilesModule.base', 'Save'); ?>
