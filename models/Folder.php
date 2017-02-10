@@ -269,4 +269,26 @@ class Folder extends FileSystemItem
         return $this->type === self::TYPE_FOLDER_POSTED;
     }
 
+    /**
+     * Validate parent folder id
+     * 
+     * @param string $attribute the attribute name
+     * @param array $params
+     */
+    public function validateParentFolderId($attribute = 'parent_folder_id', $params)
+    {
+        $parent = $this->parentFolder;
+
+        // check if one of the parents is oneself to avoid circles
+        while (!empty($parent)) {
+            if ($this->id == $parent->id) {
+                $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->title]));
+                break;
+            }
+            $parent = static::findOne(['id' => $parent->parent_folder_id]);
+        }
+
+        parent::validateParentFolderId($attribute, $params);
+    }
+
 }
