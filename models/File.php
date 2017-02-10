@@ -1,12 +1,11 @@
 <?php
+
 namespace humhub\modules\cfiles\models;
 
 use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\models\Content;
-use humhub\modules\cfiles\controllers\BaseController;
-use humhub\modules\content\components\ContentActiveRecord;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -34,25 +33,17 @@ class File extends FileSystemItem
     public static function tableName()
     {
         return 'cfiles_file';
-    }    /**
+    }
+
+    /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            [
-                'parent_folder_id',
-                'integer'
-            ],
-            [
-                'parent_folder_id',
-                'validateParentFolderId'
-            ],
-            [
-                'description',
-                'string',
-                'max' => 255
-            ]
+            ['parent_folder_id', 'integer'],
+            ['parent_folder_id', 'validateParentFolderId'],
+            ['description', 'string', 'max' => 255]
         ];
     }
 
@@ -83,7 +74,7 @@ class File extends FileSystemItem
         $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
         return $attributes;
     }
-    
+
     public function getItemId()
     {
         return 'file_' . $this->id;
@@ -97,63 +88,63 @@ class File extends FileSystemItem
     public static function getIconClassByExt($ext)
     {
         if (in_array($ext, [
-            'html',
-            'cmd',
-            'bat',
-            'xml'
-        ])) {
+                    'html',
+                    'cmd',
+                    'bat',
+                    'xml'
+                ])) {
             return 'fa-file-code-o';
         } elseif (in_array($ext, [
-            'zip',
-            'rar',
-            'gz',
-            'tar'
-        ])) {
+                    'zip',
+                    'rar',
+                    'gz',
+                    'tar'
+                ])) {
             return "fa-file-archive-o";
         } elseif (in_array($ext, [
-            'mp3',
-            'wav'
-        ])) {
+                    'mp3',
+                    'wav'
+                ])) {
             return "fa-file-audio-o";
         } elseif (in_array($ext, [
-            'xls',
-            'xlsx'
-        ])) {
+                    'xls',
+                    'xlsx'
+                ])) {
             return "fa-file-excel-o";
         } elseif (in_array($ext, [
-            'jpg',
-            'gif',
-            'bmp',
-            'svg',
-            'tiff',
-            'png'
-        ])) {
+                    'jpg',
+                    'gif',
+                    'bmp',
+                    'svg',
+                    'tiff',
+                    'png'
+                ])) {
             return "fa-file-image-o";
         } elseif (in_array($ext, [
-            'pdf'
-        ])) {
+                    'pdf'
+                ])) {
             return "fa-file-pdf-o";
         } elseif (in_array($ext, [
-            'ppt',
-            'pptx'
-        ])) {
+                    'ppt',
+                    'pptx'
+                ])) {
             return "fa-file-powerpoint-o";
         } elseif (in_array($ext, [
-            'txt',
-            'log',
-            'md'
-        ])) {
+                    'txt',
+                    'log',
+                    'md'
+                ])) {
             return "fa-file-text-o";
         } elseif (in_array($ext, [
-            'mp4',
-            'mpeg',
-            'swf'
-        ])) {
+                    'mp4',
+                    'mpeg',
+                    'swf'
+                ])) {
             return "fa-file-video-o";
         } elseif (in_array($ext, [
-            'doc',
-            'docx'
-        ])) {
+                    'doc',
+                    'docx'
+                ])) {
             return "fa-file-word-o";
         }
         return 'fa-file-o';
@@ -183,63 +174,63 @@ class File extends FileSystemItem
     public static function getItemTypeByExt($ext)
     {
         if (in_array($ext, [
-            'html',
-            'cmd',
-            'bat',
-            'xml'
-        ])) {
+                    'html',
+                    'cmd',
+                    'bat',
+                    'xml'
+                ])) {
             return 'code';
         } elseif (in_array($ext, [
-            'zip',
-            'rar',
-            'gz',
-            'tar'
-        ])) {
+                    'zip',
+                    'rar',
+                    'gz',
+                    'tar'
+                ])) {
             return "archive";
         } elseif (in_array($ext, [
-            'mp3',
-            'wav'
-        ])) {
+                    'mp3',
+                    'wav'
+                ])) {
             return "audio";
         } elseif (in_array($ext, [
-            'xls',
-            'xlsx'
-        ])) {
+                    'xls',
+                    'xlsx'
+                ])) {
             return "excel";
         } elseif (in_array($ext, [
-            'jpg',
-            'gif',
-            'bmp',
-            'svg',
-            'tiff',
-            'png'
-        ])) {
+                    'jpg',
+                    'gif',
+                    'bmp',
+                    'svg',
+                    'tiff',
+                    'png'
+                ])) {
             return "image";
         } elseif (in_array($ext, [
-            'pdf'
-        ])) {
+                    'pdf'
+                ])) {
             return "pdf";
         } elseif (in_array($ext, [
-            'ppt',
-            'pptx'
-        ])) {
+                    'ppt',
+                    'pptx'
+                ])) {
             return "powerpoint";
         } elseif (in_array($ext, [
-            'txt',
-            'log',
-            'md'
-        ])) {
+                    'txt',
+                    'log',
+                    'md'
+                ])) {
             return "text";
         } elseif (in_array($ext, [
-            'mp4',
-            'mpeg',
-            'swf'
-        ])) {
+                    'mp4',
+                    'mpeg',
+                    'swf'
+                ])) {
             return "video";
         } elseif (in_array($ext, [
-            'doc',
-            'docx'
-        ])) {
+                    'doc',
+                    'docx'
+                ])) {
             return "word";
         }
         return 'unknown';
@@ -248,7 +239,7 @@ class File extends FileSystemItem
     public function getTitle()
     {
         // needs to be checked cause used with uninitialized basefile by search index
-        if (! empty($this->baseFile)) {
+        if (!empty($this->baseFile)) {
             return $this->baseFile->file_name;
         } else {
             return "";
@@ -263,10 +254,12 @@ class File extends FileSystemItem
     public function getUrl($download = false)
     {
         return $this->baseFile->getUrl(['download' => $download]);
-    }    public static function getUserById($id)
+    }
+
+    public static function getUserById($id)
     {
         return User::findOne([
-            'id' => $id
+                    'id' => $id
         ]);
     }
 
@@ -282,7 +275,7 @@ class File extends FileSystemItem
         // if the item is connected to a Comment, we have to search for the corresponding Post
         if ($file->object_model === Comment::className()) {
             $searchItem = Comment::findOne([
-                'id' => $file->object_id
+                        'id' => $file->object_id
             ]);
         }
         $query = Content::find();
@@ -310,20 +303,20 @@ class File extends FileSystemItem
             return $separator;
         }
         $item = File::findOne([
-            'id' => $id
+                    'id' => $id
         ]);
-        
+
         if (empty($item)) {
             return null;
         }
         $tempFolder = $item->parentFolder;
         $path = $separator;
-        if (! $parentFolderPath) {
+        if (!$parentFolderPath) {
             $path .= $item->title;
         }
         $counter = 0;
         // break at maxdepth 20 to avoid hangs
-        while (! empty($tempFolder) && $counter ++ <= 20) {
+        while (!empty($tempFolder) && $counter ++ <= 20) {
             $path = $separator . $tempFolder->title . $path;
             $tempFolder = $tempFolder->parentFolder;
         }
@@ -333,11 +326,6 @@ class File extends FileSystemItem
     public function getFullPath($separator = '/')
     {
         return $this->getPathFromId($this->id, false, $separator);
-    }
-
-    public function validateParentFolderId($attribute, $params)
-    {
-        parent::validateParentFolderId($attribute, $params);
     }
 
     /**
@@ -355,4 +343,5 @@ class File extends FileSystemItem
     {
         return $this->getTitle();
     }
+
 }

@@ -19,7 +19,7 @@ class Module extends ContentContainerModule
     const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';
     const ROOT_TITLE = 'Root';
     const ROOT_DESCRIPTION = 'The root folder is the entry point that contains all available files.';
-    
+
     /**
      * @inheritdoc
      */
@@ -48,7 +48,8 @@ class Module extends ContentContainerModule
     public function getItemById($itemId)
     {
         $params = explode('_', $itemId);
-        if(sizeof($params) < 2) return null;
+        if (sizeof($params) < 2)
+            return null;
         list ($type, $id) = explode('_', $itemId);
 
         if ($type == 'file') {
@@ -117,14 +118,14 @@ class Module extends ContentContainerModule
     public function getConfigUrl()
     {
         return Url::to([
-            '/cfiles/config'
+                    '/cfiles/config'
         ]);
     }
-    
+
     public static function getUserById($id)
     {
         return User::findOne([
-            'id' => $id
+                    'id' => $id
         ]);
     }
 

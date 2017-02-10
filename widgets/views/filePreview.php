@@ -1,4 +1,5 @@
 <?php
+
 // available params:
 // $file;
 // $height;
@@ -13,26 +14,30 @@ use humhub\modules\cfiles\libs\FileUtils;
 $iconClass = $file->getIconClass();
 $title = Html::encode($file->getTitle());
 ?>
-<?php if($file->getItemType() == 'image'): ?>
+<?php if ($file->getItemType() == 'image'): ?>
     <a href="<?php echo $file->getUrl(); ?>" 
        data-type="image" 
        data-toggle="lightbox" 
        data-footer="<button type='button'
-                             class='btn btn-primary' 
-                             data-dismiss='modal'>
-                        <?php echo Yii::t('CfilesModule.base', 'Schließen')?>
-                    </button>"
-       
-       <?php foreach ($htmlConf as $key => $val): 
-           echo $key.'="'.$val.'"'; 
-       endforeach; ?>>
+       class='btn btn-primary' 
+       data-dismiss='modal'>
+       <?php echo Yii::t('CfilesModule.base', 'Schließen') ?>
+       </button>"
+
+       <?php
+       foreach ($htmlConf as $key => $val):
+           echo $key . '="' . $val . '"';
+       endforeach;
+       ?>>
         <img src="<?php echo ($width > 0 && $height > 0 ? $file->baseFile->getPreviewImageUrl($width, $height) : $file->getUrl()); ?>">
     </a>
 <?php else: ?>
     <a href="<?php echo $file->getUrl(true); ?>" 
-       <?php foreach ($htmlConf as $key => $val): 
-           echo $key.'="'.$val.'"'; 
-       endforeach; ?>>
+    <?php
+    foreach ($htmlConf as $key => $val):
+        echo $key . '="' . $val . '"';
+    endforeach;
+    ?>>
         <span><i class="fa fa-cloud-download ?> fa-fw"></i><span>&nbsp;<?php echo Yii::t('CfilesModule.base', 'Download') ?></span></span>
     </a>
 <?php endif; ?>

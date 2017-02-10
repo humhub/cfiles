@@ -13,11 +13,12 @@ namespace humhub\modules\cfiles\widgets;
  */
 class FolderPreview extends \humhub\components\Widget
 {
+
     public $htmlConf = [];
     public $lightboxDataParent;
     public $lightboxDataGallery;
     public $folder;
-    
+
     /**
      * @inheritdoc
      */

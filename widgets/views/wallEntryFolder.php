@@ -1,7 +1,6 @@
 <?php
+
 use yii\helpers\Html;
-use humhub\modules\like\widgets\LikeLink;
-use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\cfiles\widgets\FolderPreview;
 ?>
 
@@ -24,7 +23,7 @@ use humhub\modules\cfiles\widgets\FolderPreview;
 </div>
 
 <script type="text/javascript">
-            
+
     $(document).ready(function () {
 
         var _folderContentHeight = $('#cfiles-wallout-folder-content-<?php echo $folder->id; ?>').outerHeight();
@@ -62,7 +61,7 @@ use humhub\modules\cfiles\widgets\FolderPreview;
             // update link state
             $('#more-link-cfiles-wallout-folder-' + folder_id).attr('data-state', 'down');
 
-            $('body, html').animate({ 
+            $('body, html').animate({
                 scrollTop: $('#more-link-cfiles-wallout-folder-' + folder_id).closest('.wall-entry').offset().top - 100
             }, 600);
 

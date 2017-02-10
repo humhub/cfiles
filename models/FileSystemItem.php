@@ -1,9 +1,12 @@
 <?php
+
 namespace humhub\modules\cfiles\models;
 
 use Yii;
-use yii\base\Exception;use yii\helpers\Url;
-use humhub\modules\user\models\User;/**
+use yii\helpers\Url;
+use humhub\modules\user\models\User;
+
+/**
  * This is the model class for table "cfiles_file".
  *
  * @property integer $id
@@ -17,18 +20,20 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
         if ($this->parent_folder_id == "") {
             $this->parent_folder_id = 0;
         }
-        
+
         return parent::beforeSave($insert);
     }
+
     public function afterSave($insert, $changedAttributes)
     {
         // this should set the editor and edit date of all parent folders if sth. inside of them has changed
-        if (! empty($this->parentFolder)) {
+        if (!empty($this->parentFolder)) {
             $this->parentFolder->save();
         }
         return parent::afterSave($insert, $changedAttributes);
     }
-        public function getParentFolder()
+
+    public function getParentFolder()
     {
         $query = $this->hasOne(Folder::className(), [
             'id' => 'parent_folder_id'
@@ -62,40 +67,41 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
     public function validateParentFolderId($id, $params)
     {
         $parent = Folder::findOne([
-            'id' => $this->$id
+                    'id' => $this->$id
         ]);
-        
-        if ($this->$id != 0 && ! ($parent instanceof Folder)) {
+
+        if ($this->$id != 0 && !($parent instanceof Folder)) {
             $this->addError($id, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', [
-                '%title%' => $this->title
+                        '%title%' => $this->title
             ]));
         }
-        
+
         // check if one of the parents is oneself to avoid circles
-        while (! empty($parent)) {
+        while (!empty($parent)) {
             if ($this->id == $parent->id) {
                 $this->addError($id, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', [
-                    '%title%' => $this->title
+                            '%title%' => $this->title
                 ]));
                 break;
             }
             $parent = Folder::findOne([
-                'id' => $parent->parent_folder_id
+                        'id' => $parent->parent_folder_id
             ]);
         }
     }
-    
+
     public function getCreator()
     {
         return User::findOne([
-            'id' => $this->content->created_by
-            ]);
+                    'id' => $this->content->created_by
+        ]);
     }
-    
+
     public function getEditor()
     {
         return User::findOne([
-            'id' => $this->content->updated_by
-            ]);
+                    'id' => $this->content->updated_by
+        ]);
     }
+
 }

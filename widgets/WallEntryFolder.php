@@ -9,6 +9,7 @@
 namespace humhub\modules\cfiles\widgets;
 
 use humhub\modules\cfiles\models\Folder;
+
 /**
  * @inheritdoc
  */
@@ -27,7 +28,7 @@ class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
     {
         return $this->render('wallEntryFolder', array('folder' => $this->contentObject));
     }
-    
+
     /**
      * Returns the edit url to edit the content (if supported)
      *
@@ -38,8 +39,8 @@ class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
         if (parent::getEditUrl() === "") {
             return "";
         }
-    
-        if($this->contentObject instanceof Folder) {
+
+        if ($this->contentObject instanceof Folder) {
             return $this->contentObject->content->container->createUrl($this->editRoute, ['id' => $this->contentObject->getItemId(), 'fromWall' => true]);
         }
         return "";

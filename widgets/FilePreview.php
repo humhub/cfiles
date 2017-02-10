@@ -18,7 +18,7 @@ class FilePreview extends \humhub\components\Widget
     public $height = -1;
     public $width = -1;
     public $htmlConf = [];
-    
+
     /**
      * @inheritdoc
      */

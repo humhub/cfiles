@@ -10,21 +10,15 @@ namespace humhub\modules\cfiles\controllers;
 
 use Yii;
 use yii\web\HttpException;
-use yii\web\UploadedFile;
-use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\content\models\Content;
-use humhub\modules\content\components\ContentActiveRecord;
-use humhub\modules\comment\models\Comment;
-use yii\helpers\FileHelper;
-use humhub\models\Setting;
 
 /**
  * Description of BrowseController
  *
  * @author luke, Sebastian Stumpf
  */
-class MoveController extends BaseController {
+class MoveController extends BaseController
+{
 
     /**
      * Action to move files and folders from the current, to another folder.
@@ -32,7 +26,7 @@ class MoveController extends BaseController {
      */
     public function actionIndex()
     {
-        if(!$this->canWrite()) {
+        if (!$this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
         $folder = $this->getCurrentFolder();
@@ -104,4 +98,5 @@ class MoveController extends BaseController {
             ]));
         }
     }
+
 }

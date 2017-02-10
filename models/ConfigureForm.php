@@ -20,9 +20,9 @@ class ConfigureForm extends \yii\base\Model
      */
     public function rules()
     {
-        return array(
-            array('disableZipSupport', 'boolean'),
-        );
+        return [
+            ['disableZipSupport', 'boolean'],
+        ];
     }
 
     /**
@@ -32,9 +32,9 @@ class ConfigureForm extends \yii\base\Model
      */
     public function attributeLabels()
     {
-        return array(
+        return [
             'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support -- currently not supported with this version.'),
-        );
+        ];
     }
 
 }
