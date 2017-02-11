@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\widgets;
 
 use humhub\modules\file\converter\PreviewImage;
 use humhub\modules\cfiles\models\File;
+use humhub\libs\MimeHelper;
 
 /**
  * @inheritdoc
@@ -25,11 +26,6 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
     /**
      * @inheritdoc
      */
-    public $showFiles = false;
-
-    /**
-     * @inheritdoc
-     */
     public function run()
     {
         $cFile = $this->contentObject;
@@ -39,8 +35,9 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
                     'fileName' => $cFile->getTitle(),
                     'fileSize' => $cFile->getSize(),
                     'file' => $cFile->baseFile,
-                    'previewImage' => new \PreviewImage(),
-                    'folderUrl' => $cFile->parentFolder->getUrl()
+                    'previewImage' => new PreviewImage(),
+                    'folderUrl' => $cFile->parentFolder->getUrl(),
+                    'mimeIconClass' => MimeHelper::getMimeIconClassByExtension($cFile->baseFile)
         ]);
     }
 

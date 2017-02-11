@@ -348,6 +348,7 @@ class ZipController extends UploadController
             if ($file->save()) {
                 $humhubFile->object_model = $file->className();
                 $humhubFile->object_id = $file->id;
+                $humHubFile->show_in_stream = false;
                 $humhubFile->save();
                 $searchFile = File::findOne([
                             'id' => $file->id
