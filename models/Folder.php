@@ -22,13 +22,9 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFolder";
-
     public function beforeSave($insert)
     {
-        if ($this->isAllPostedFiles() || $this->isRoot()) {
-            $this->streamChannel = null;
-        }
+        $this->streamChannel = null;
         return parent::beforeSave($insert);
     }
 
@@ -39,6 +35,7 @@ class Folder extends FileSystemItem
     {
         return 'cfiles_folder';
     }
+
 
     /**
      * @inheritdoc
@@ -88,28 +85,20 @@ class Folder extends FileSystemItem
             'id' => 'ID',
             'parent_folder_id' => Yii::t('CfilesModule.models_Folder', 'Parent Folder ID'),
             'title' => Yii::t('CfilesModule.models_Folder', 'Title'),
-            'description' => Yii::t('CfilesModule.models_Folder', 'Description for the wall entry.')
+            'description' => Yii::t('CfilesModule.models_Folder', 'Description')
         ];
     }
 
     public function getFiles()
     {
-        return $this->hasMany(File::className(), [
-                            'parent_folder_id' => 'id'
-                        ])
+        return $this->hasMany(File::className(), ['parent_folder_id' => 'id'])
                         ->joinWith('baseFile')
-                        ->orderBy([
-                            'title' => SORT_ASC
-        ]);
+                        ->orderBy(['title' => SORT_ASC]);
     }
 
     public function getFolders()
     {
-        return $this->hasMany(Folder::className(), [
-                    'parent_folder_id' => 'id'
-                ])->orderBy([
-                    'title' => SORT_ASC
-        ]);
+        return $this->hasMany(Folder::className(), ['parent_folder_id' => 'id'])->orderBy(['title' => SORT_ASC]);
     }
 
     public function beforeDelete()
