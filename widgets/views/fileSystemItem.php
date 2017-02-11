@@ -3,8 +3,6 @@
 use yii\helpers\Html;
 use humhub\modules\like\widgets\LikeLink;
 use humhub\modules\comment\widgets\CommentLink;
-
-$emptyList = true;
 ?>
 
 <tr data-type="<?php echo $type; ?>" data-id="<?php echo $id; ?>"

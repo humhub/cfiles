@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\file\converter\PreviewImage;
 use humhub\modules\cfiles\models\File;
 
 /**
@@ -31,7 +32,16 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
      */
     public function run()
     {
-        return $this->render('wallEntryFile', array('file' => $this->contentObject));
+        $cFile = $this->contentObject;
+
+        return $this->render('wallEntryFile', [
+                    'cFile' => $cFile,
+                    'fileName' => $cFile->getTitle(),
+                    'fileSize' => $cFile->getSize(),
+                    'file' => $cFile->baseFile,
+                    'previewImage' => new \PreviewImage(),
+                    'folderUrl' => $cFile->parentFolder->getUrl()
+        ]);
     }
 
     /**
