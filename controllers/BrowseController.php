@@ -76,13 +76,10 @@ class BrowseController extends BaseController
     /**
      * Returns file list
      *
-     * @param boolean $withItemCount
-     *            true -> also calculate and return the item count.
-     * @param array $filesOrder
-     *            orderBy array appended to the files query
-     * @param array $foldersOrder
-     *            orderBy array appended to the folders query
-     * @return multitype:array | string The rendered view or an array of the rendered view and the itemCount.
+     * @param boolean $withItemCount true -> also calculate and return the item count.
+     * @param array $filesOrder orderBy array appended to the files query
+     * @param array $foldersOrder orderBy array appended to the folders query
+     * @return array|string the rendered view or an array of the rendered view and the itemCount.
      */
     protected function renderFileList($withItemCount = false, $filesOrder = NULL, $foldersOrder = NULL)
     {
@@ -92,7 +89,7 @@ class BrowseController extends BaseController
 
         $items = $this->getItemsList($filesOrder, $foldersOrder);
 
-        $view = $this->renderPartial('@humhub/modules/cfiles/views/browse/fileList', [
+        $view = $this->renderPartial('@cfiles/views/browse/fileList', [
             'items' => $items,
             'contentContainer' => $this->contentContainer,
             'crumb' => $this->generateCrumb(),
