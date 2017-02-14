@@ -58,8 +58,7 @@ class UploadController extends BrowseController
             if (empty($file)) {
                 $file = new File();
                 $humhubFile = new \humhub\modules\file\models\FileUpload();
-            }             // else replace the existing file
-            else {
+            } else {
                 $humhubFile = $file->baseFile;
                 // logging file replacement
                 $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
@@ -89,9 +88,7 @@ class UploadController extends BrowseController
                     ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
                     Yii::$app->search->update($searchFile); // update index with title
 
-                    $this->files[] = array_merge($humhubFile->getInfoArray(), [
-                        'fileList' => $this->renderFileList()
-                    ]);
+                    $this->files[] =$humhubFile->getInfoArray();
                 } else {
                     $count = 0;
                     $messages = "";
@@ -99,9 +96,7 @@ class UploadController extends BrowseController
                     foreach ($file->errors as $key => $message) {
                         $messages .= ($count ++ ? ' | ' : '') . $message[0];
                     }
-                    $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
-                                '%title%' => $file->title
-                            ]) . $messages;
+                    $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', ['%title%' => $file->title]) . $messages;
                     $response['log'] = true;
                 }
             } else {
@@ -119,6 +114,7 @@ class UploadController extends BrowseController
         }
 
         $response['files'] = $this->files;
+        $response['fileList'] = $this->renderFileList();
         return $response;
     }
 

@@ -14,6 +14,7 @@ use yii\helpers\Url;
 
 class Module extends ContentContainerModule
 {
+    public $resourcesPath = 'resources';
 
     const ALL_POSTED_FILES_TITLE = 'Files from the stream';
     const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';

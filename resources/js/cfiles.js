@@ -19,8 +19,7 @@ function showHideBtns() {
 }
 
 jQuery.urlParam = function (name) {
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)')
-            .exec(window.location.href);
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
     if (results == null) {
         return null;
     } else {
@@ -65,8 +64,7 @@ function initFileList() {
                     itemType = invokedOn.closest('tr').data('type');
                     // e.g. file-53
                     itemRealId = invokedOn.closest('tr').data('id');
-                    parentId = jQuery.urlParam('fid') === null ? 0 : jQuery
-                            .urlParam('fid');
+                    parentId = jQuery.urlParam('fid') === null ? 0 : jQuery.urlParam('fid');
 
                     switch (action) {
                         case 'delete':
@@ -333,12 +331,16 @@ humhub.module('cfiles', function (module, require, $) {
     var client = require('client');
     var modal = require('ui.modal');
     var additions = require('ui.additions');
+    var Widget = require('ui.widget').Widget;
+    var object = require('util').object;
+
+    module.initOnPjaxLoad = true;
 
     var init = function () {
         if ($('#fileList').length) {
             additions.observe($('#fileList'));
         }
-    }
+    };
 
     var deleteFiles = function (evt) {
         client.submit(evt, {'dataType': 'html'}).then(function (response) {
@@ -352,13 +354,35 @@ humhub.module('cfiles', function (module, require, $) {
         client.submit(evt, {'dataType': 'html'}).then(function (response) {
             $("#globalModal").html(response.html);
         }).catch(function (e) {
-            module.log.error(e, true)
+            module.log.error(e, true);
         });
+    };
+
+    var FileList = function (node, options) {
+        Widget.call(this, node, options);
+    };
+
+    object.inherits(FileList, Widget);
+
+    FileList.prototype.setSource = function (uploadComponent) {
+        var that = this;
+        this.source = uploadComponent;
+        this.source.on('humhub:file:upload', function (evt, response) {
+            that.$.html(response.result.fileList);
+            if(response.result.infomessages && response.result.infomessages.length) {
+                that.statusInfo(response.result.infomessages);
+            }
+        });
+    };
+
+    FileList.prototype.add = function (file) {
+        //Nothing todo
     };
 
     module.export({
         deleteFiles: deleteFiles,
         editFiles: editFiles,
+        FileList: FileList,
         init: init
     });
 });

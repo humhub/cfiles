@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use humhub\models\Setting;
 use humhub\modules\cfiles\widgets\DropdownButton;
 
-$bundle = \humhub\modules\cfiles\Assets::register($this);
+$bundle = \humhub\modules\cfiles\assets\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/upload', ['fid' => $currentFolder->id]));
 $this->registerJsVar('cfilesZipUploadUrl', $contentContainer->createUrl('/cfiles/zip/upload-archive', ['fid' => $currentFolder->id]));
 $this->registerJsVar('cfilesDeleteUrl', $contentContainer->createUrl('/cfiles/delete', ['fid' => $currentFolder->id]));
@@ -39,7 +39,17 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                              style="display: none">
                             <div class="progress-bar progress-bar-success"></div>
                         </div>
-                        <?php
+                        
+                        <?= humhub\modules\file\widgets\UploadButton::widget([
+                            'id' => 'cfilesUploadFiles',
+                            'progress' => '#cfiles_progress',
+                            'url' => $contentContainer->createUrl('/cfiles/upload', ['fid' => $currentFolder->id]),
+                            'preview' => '#fileList',
+                            'tooltip' => false,
+                            'dropZone' => '#cfiles-form'
+                        ])?>
+                        
+                        <?php /**
                         $icon = '<i class="glyphicon glyphicon-plus"></i> ';
                         $buttons = [];
                         $buttons[] = '<span class="split-button fileinput-button btn btn-success overflow-ellipsis">' .
@@ -62,7 +72,7 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                                 'class' => 'btn btn-success overflow-ellipsis',
                             ]
                                 ]
-                        );
+                        );*/
                         ?>
                     </div>
                 <?php endif; ?>
@@ -148,9 +158,10 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
             <?php endif; ?>
         </div>
         <hr id="files-action-menu-divider">
+        <?= \humhub\modules\file\widgets\UploadProgress::widget(['id' => 'cfiles_progress']) ?>
         <div class="row">
-            <div class="col-sm-12" id="fileList">
-                <?php echo $fileList; ?>
+            <div class="col-sm-12" id="fileList" data-ui-widget="cfiles.FileList">
+                <?= $fileList; ?>
             </div>
         </div>
     </div>
