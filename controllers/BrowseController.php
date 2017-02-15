@@ -2,7 +2,7 @@
 
 /**
  * @link https://www.humhub.org/
- * @copyright Copyright (c) 2015 HumHub GmbH & Co. KG
+ * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
  * @license https://www.humhub.com/licences
  */
 
@@ -11,6 +11,7 @@ namespace humhub\modules\cfiles\controllers;
 use Yii;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\post\models\Post;
+use humhub\modules\file\handler\FileHandlerCollection;
 
 /**
  * Description of BrowseController
@@ -64,12 +65,17 @@ class BrowseController extends BaseController
                 break;
         }
 
+
+        $fileHandlerImport = FileHandlerCollection::getByType(FileHandlerCollection::TYPE_IMPORT);
+        $fileHandlerCreate = FileHandlerCollection::getByType(FileHandlerCollection::TYPE_CREATE);
+
         $fileList = $this->renderFileList(true, $filesOrder, $foldersOrder);
         return $this->render('index', [
                     'contentContainer' => $this->contentContainer,
                     'currentFolder' => $this->getCurrentFolder(),
                     'fileList' => $fileList['view'],
-                    'itemCount' => $fileList['itemCount']
+                    'itemCount' => $fileList['itemCount'],
+                    'fileHandlers' => array_merge($fileHandlerCreate, $fileHandlerImport),
         ]);
     }
 
