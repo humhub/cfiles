@@ -253,7 +253,7 @@ class File extends FileSystemItem
 
     public function getUrl($download = false)
     {
-        return $this->baseFile->getUrl(['download' => $download]);
+        return $this->parentFolder->getUrl();
     }
 
     public static function getUserById($id)

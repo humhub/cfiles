@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use humhub\modules\file\libs\FileHelper;
 use humhub\modules\like\widgets\LikeLink;
 use humhub\modules\comment\widgets\CommentLink;
 ?>
@@ -17,23 +18,10 @@ use humhub\modules\comment\widgets\CommentLink;
         <td class="text-left">
             <div class="title">
                 <i class="fa <?php echo $iconClass; ?> fa-fw"></i>&nbsp;
-                <?php if ($type === "image") : ?>
-                    <a class="preview-link" data-toggle="lightbox"
-                       data-parent="#bs-table"
-                       data-pjax-prevent="1"
-                       data-ui-gallery="FilesModule-Gallery-<?php echo $parentFolderId; ?>"
-                       href="<?php echo $url; ?>#.jpeg"
-                       data-footer='
-                       <button 
-
-                       type="button" class="btn btn-primary"
-                       data-dismiss="modal"><?php echo Yii::t('FileModule.base', 'Close'); ?></button>'>
-                           <?php echo $title; ?>
-                    </a>
-                <?php else : ?>
-                    <a data-pjax-prevent="1" href="<?php echo $url; ?>">
-                        <?php echo $title; ?>
-                    </a>
+                <?php if ($type != 'folder' && $contentObject !== null): ?>
+                    <?= FileHelper::createLink($contentObject->baseFile); ?>
+                <?php else: ?>
+                    <a data-pjax-prevent="1" href="<?= $url; ?>"><?= Html::encode($title); ?></a>
                 <?php endif; ?>
             </div>
         </td>

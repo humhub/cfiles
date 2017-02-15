@@ -1,6 +1,7 @@
 <?php
 /* @var $previewImage \humhub\modules\file\converter\PreviewImage */
 
+use humhub\modules\file\libs\FileHelper;
 use humhub\libs\Html;
 ?>
 
@@ -12,8 +13,8 @@ use humhub\libs\Html;
     <?php endif; ?>
 </div>
 
-<strong><?= Html::encode($fileName); ?></strong><br />
-<small><?= Yii::t('FileModule.base', 'Size: {size}', ['size' => Yii::$app->formatter->asShortSize($fileSize, 1)]); ?></small><br />
+<strong><?= FileHelper::createLink($file, null, ['style' => 'text-decoration: underline']); ?></strong><br />
+<small><?= Yii::t('CfilesModule.base', 'Size: {size}', ['size' => Yii::$app->formatter->asShortSize($fileSize, 1)]); ?></small><br />
 
 <?php if (!empty($cFile->description)): ?>
     <br />
@@ -22,7 +23,6 @@ use humhub\libs\Html;
 <?php endif; ?>
 
 <br />
-<?= Html::a(Yii::t('FileModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default']); ?>
+<?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default']); ?>
 
 <div class="clearfix"></div>
-<br />

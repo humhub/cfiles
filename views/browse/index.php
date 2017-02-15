@@ -3,6 +3,7 @@
 use yii\helpers\Html;
 use humhub\models\Setting;
 use humhub\modules\cfiles\widgets\DropdownButton;
+use humhub\modules\file\widgets\FileHandlerButtonDropdown;
 
 $bundle = \humhub\modules\cfiles\assets\Assets::register($this);
 $this->registerJsVar('cfilesUploadUrl', $contentContainer->createUrl('/cfiles/upload', ['fid' => $currentFolder->id]));
@@ -39,40 +40,46 @@ $this->registerJsVar('cfilesMoveUrl', $contentContainer->createUrl('/cfiles/move
                              style="display: none">
                             <div class="progress-bar progress-bar-success"></div>
                         </div>
-                        
-                        <?= humhub\modules\file\widgets\UploadButton::widget([
-                            'id' => 'cfilesUploadFiles',
-                            'progress' => '#cfiles_progress',
-                            'url' => $contentContainer->createUrl('/cfiles/upload', ['fid' => $currentFolder->id]),
-                            'preview' => '#fileList',
-                            'tooltip' => false,
-                            'dropZone' => '#cfiles-form'
-                        ])?>
-                        
+
+                        <div class="btn">
+                            <?php
+                            $uploadButton = humhub\modules\file\widgets\UploadButton::widget([
+                                        'id' => 'cfilesUploadFiles',
+                                        'progress' => '#cfiles_progress',
+                                        'url' => $contentContainer->createUrl('/cfiles/upload', ['fid' => $currentFolder->id]),
+                                        'preview' => '#fileList',
+                                        'tooltip' => false,
+                                        'dropZone' => '#cfiles-form'
+                                    ])
+                            ?>
+
+                            <?= FileHandlerButtonDropdown::widget(['primaryButton' => $uploadButton, 'handlers' => $fileHandlers, 'cssButtonClass' => 'btn-default']); ?>
+                        </div>
+
                         <?php /**
-                        $icon = '<i class="glyphicon glyphicon-plus"></i> ';
-                        $buttons = [];
-                        $buttons[] = '<span class="split-button fileinput-button btn btn-success overflow-ellipsis">' .
-                                $icon .
-                                Yii::t('CfilesModule.base', 'Add file(s)') .
-                                '<input id="fileupload" type="file" name="files[]" multiple>' .
-                                '</span>';
-                        if (!Setting::Get('disableZipSupport', 'cfiles')):
-                            $buttons[] = '<span class="fileinput-button btn btn-success overflow-ellipsis">' .
-                                    $icon .
-                                    Yii::t('CfilesModule.base', 'Upload ZIP') .
-                                    '<input id="zipupload" type="file" name="files[]" multiple>' .
-                                    '</span>';
-                        endif;
-                        echo DropdownButton::widget([
-                            'label' => \Yii::t('CfilesModule.base', 'Upload'),
-                            'buttons' => $buttons,
-                            'icon' => $icon,
-                            'options' => [
-                                'class' => 'btn btn-success overflow-ellipsis',
-                            ]
-                                ]
-                        );*/
+                          $icon = '<i class="glyphicon glyphicon-plus"></i> ';
+                          $buttons = [];
+                          $buttons[] = '<span class="split-button fileinput-button btn btn-success overflow-ellipsis">' .
+                          $icon .
+                          Yii::t('CfilesModule.base', 'Add file(s)') .
+                          '<input id="fileupload" type="file" name="files[]" multiple>' .
+                          '</span>';
+                          if (!Setting::Get('disableZipSupport', 'cfiles')):
+                          $buttons[] = '<span class="fileinput-button btn btn-success overflow-ellipsis">' .
+                          $icon .
+                          Yii::t('CfilesModule.base', 'Upload ZIP') .
+                          '<input id="zipupload" type="file" name="files[]" multiple>' .
+                          '</span>';
+                          endif;
+                          echo DropdownButton::widget([
+                          'label' => \Yii::t('CfilesModule.base', 'Upload'),
+                          'buttons' => $buttons,
+                          'icon' => $icon,
+                          'options' => [
+                          'class' => 'btn btn-success overflow-ellipsis',
+                          ]
+                          ]
+                          ); */
                         ?>
                     </div>
                 <?php endif; ?>
