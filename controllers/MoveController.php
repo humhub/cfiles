@@ -51,7 +51,7 @@ class MoveController extends BaseController
         }
         if (is_array($selectedItems) && !empty($selectedItems)) {
             foreach ($selectedItems as $itemId) {
-                $item = $this->module->getItemById($itemId);
+                $item = \humhub\modules\cfiles\models\FileSystemItem::getItemById($itemId);
                 if ($item !== null) {
                     if ($item->parent_folder_id == $destFolderId) {
                         $errorMsgs[] = Yii::t('CfilesModule.base', 'Moving to the same folder is not valid. Choose a valid parent folder for %title%.', [
@@ -93,10 +93,11 @@ class MoveController extends BaseController
             foreach ($selectedDatabaseItems as $item) {
                 $item->save();
             }
+            
+            $this->view->saved();
             return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse', [
                                 'fid' => $destFolderId
             ]));
         }
     }
-
 }

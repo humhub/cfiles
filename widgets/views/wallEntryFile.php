@@ -23,6 +23,7 @@ use humhub\libs\Html;
 <?php endif; ?>
 
 <br />
-<?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default']); ?>
+
+<?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default', 'data-ui-loader' => '']); ?>
 
 <div class="clearfix"></div>

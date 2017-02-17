@@ -82,7 +82,7 @@ class ZipController extends UploadController
         // download selected items if there are some
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
-                $item = $this->module->getItemById($itemId);
+                $item = \humhub\modules\cfiles\models\FileSystemItem::getItemById($itemId);
                 if ($item !== null) {
                     $items[] = $item;
                 }

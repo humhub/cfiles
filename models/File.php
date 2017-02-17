@@ -16,7 +16,6 @@ use humhub\modules\content\models\Content;
  */
 class File extends FileSystemItem
 {
-
     /**
      * @inheritdoc
      */
@@ -253,14 +252,17 @@ class File extends FileSystemItem
 
     public function getUrl($download = false)
     {
-        return $this->parentFolder->getUrl();
+        return \humhub\modules\file\handler\DownloadFileHandler::getUrl($this->baseFile, $download);
+    }
+    
+    public function getEditUrl()
+    {
+        return $this->content->container->createUrl('/cfiles/edit/file', ['id' => $this->getItemId()]);
     }
 
     public static function getUserById($id)
     {
-        return User::findOne([
-                    'id' => $id
-        ]);
+        return User::findOne(['id' => $id]);
     }
 
     /**
@@ -342,6 +344,42 @@ class File extends FileSystemItem
     public function getContentDescription()
     {
         return $this->getTitle();
+    }
+    
+    /**
+     * Load all posted files from the database and get an array of them.
+     *
+     * @param array $filesOrder
+     *            orderBy array appended to the files query
+     * @param array $foldersOrder
+     *            currently unused
+     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
+     */
+    public static function getPostedFiles($contentContainer, $filesOrder = NULL, $foldersOrder = NULL)
+    {
+        // set ordering default
+        if (!$filesOrder) {
+            $filesOrder = ['file.updated_at' => SORT_DESC, 'file.title' => SORT_ASC];
+        }
+
+        // Get Posted Files
+        $query = \humhub\modules\file\models\File::find();
+        // join comments to the file if available
+        $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id AND file.object_model=' . Yii::$app->db->quoteValue(Comment::className()) . ')');
+        // join parent post of comment or file
+        $query->join('LEFT JOIN', 'content', '(comment.object_model=content.object_model AND comment.object_id=content.object_id) OR (file.object_model=content.object_model AND file.object_id=content.object_id)');
+        
+        $query->andWhere(['content.contentcontainer_id' => $contentContainer->contentContainerRecord->id]);
+        
+        // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
+        $query->andWhere(
+        ['or',
+            ['=', 'comment.object_model', \humhub\modules\post\models\Post::className()],
+            ['=', 'file.object_model', \humhub\modules\post\models\Post::className() ]
+        ]);
+        
+        // Get Files from comments
+        return ['postedFiles' => $query->orderBy($filesOrder)->all()];
     }
 
 }

@@ -46,29 +46,6 @@ class Module extends ContentContainerModule
         return [];
     }
 
-    public function getItemById($itemId)
-    {
-        $params = explode('_', $itemId);
-        if (sizeof($params) < 2)
-            return null;
-        list ($type, $id) = explode('_', $itemId);
-
-        if ($type == 'file') {
-            return models\File::findOne([
-                        'id' => $id
-            ]);
-        } elseif ($type == 'folder') {
-            return models\Folder::findOne([
-                        'id' => $id
-            ]);
-        } elseif ($type == 'baseFile') {
-            return \humhub\modules\file\models\File::findOne([
-                        'id' => $id
-            ]);
-        }
-        return null;
-    }
-
     public function disable()
     {
         foreach (Folder::find()->all() as $key => $folder) {

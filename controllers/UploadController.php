@@ -88,7 +88,7 @@ class UploadController extends BrowseController
                     ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
                     Yii::$app->search->update($searchFile); // update index with title
 
-                    $this->files[] =$humhubFile->getInfoArray();
+                    $this->files[] = $humhubFile->getInfoArray();
                 } else {
                     $count = 0;
                     $messages = "";
@@ -116,6 +116,30 @@ class UploadController extends BrowseController
         $response['files'] = $this->files;
         $response['fileList'] = $this->renderFileList();
         return $response;
+    }
+
+    public function actionImport()
+    {
+        if (!$this->canWrite()) {
+            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
+        }
+
+        $fid = Yii::$app->request->get('fid');
+
+        $guids = Yii::$app->request->post('guids');
+        
+        //check if this guid is already taken
+        
+        $file = new File(['parent_folder_id' => $fid]);
+        $file->content->container = $this->contentContainer;
+        
+        if($file->save()) {
+            $file->fileManager->attach($guids);
+        }
+        
+        return $this->asJson([
+            'success' => true
+        ]);
     }
 
 }

@@ -14,7 +14,6 @@ use humhub\modules\user\models\User;
  */
 abstract class FileSystemItem extends \humhub\modules\content\components\ContentActiveRecord implements \humhub\modules\cfiles\ItemInterface, \humhub\modules\search\interfaces\Searchable
 {
-
     /**
      * @inheritdoc
      */
@@ -92,6 +91,65 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
     public function getEditor()
     {
         return User::findOne(['id' => $this->content->updated_by]);
+    }
+    
+    public function getMoveUrl()
+    {
+        return $this->content->container->createUrl('/cfiles/move', ['init' => 1]);
+    }
+
+    /**
+     * Determines this item is an editable folder.
+     * 
+     * @param \humhub\modules\cfiles\models\FileSystemItem $item
+     * @return boolean
+     */
+    public function isEditableFolder()
+    {
+        return ($this instanceof Folder) && !($this->isRoot() || $this->isAllPostedFiles());
+    }
+
+    /**
+     * Determines if this item is deletable. The root folder and posted files folder is not deletable.
+     * @return boolean
+     */
+    public function isDeletable()
+    {
+        if ($this instanceof Folder) {
+            return !($this->isRoot() || $this->isAllPostedFiles());
+        }
+        return true;
+    }
+
+    /**
+     * Returns a FileSystemItem instance by the given item id of form {type}_{id}
+     * @param string $itemId item id of form {type}_{id}
+     * @return FileSystemItem
+     */
+    public static function getItemById($itemId)
+    {
+        $params = explode('_', $itemId);
+
+        if (sizeof($params) < 2) {
+            return null;
+        }
+
+        list ($type, $id) = explode('_', $itemId);
+
+        if ($type == 'file') {
+            return File::findOne([
+                        'id' => $id
+            ]);
+        } elseif ($type == 'folder') {
+            return Folder::findOne([
+                        'id' => $id
+            ]);
+        } elseif ($type == 'baseFile') {
+            return File::findOne([
+                        'id' => $id
+            ]);
+        }
+        return null;
     }
 
 }

@@ -32,52 +32,25 @@ class EditController extends BrowseController
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
 
-        $itemId = Yii::$app->request->get('id');
         $fromWall = Yii::$app->request->get('fromWall');
-        $folder = $this->module->getItemById($itemId);
-        $cancel = Yii::$app->request->get('cancel');
+        $folder = \humhub\modules\cfiles\models\FileSystemItem::getItemById(Yii::$app->request->get('id'));
 
-        if ($cancel) {
+        if (Yii::$app->request->get('cancel')) {
             return $this->renderAjaxContent($folder->getWallOut());
         }
 
-        // the new / edited folders title
-        $title = trim(Yii::$app->request->post('Folder')['title']);
-        Yii::$app->request->post('Folder')['title'] = $title;
-
-        // if not a folder has to be created
-        if (empty($folder) || !($folder instanceof Folder)) {
-            $titleChanged = true;
-            // create a new folder
-            $folder = new Folder();
+        // create new folder if no folder was found or folder is not editable.
+        if (!$folder || !$folder->isEditableFolder($folder)) {
+            $folder = new Folder(['parent_folder_id' => $this->getCurrentFolder()->id]);
             $folder->content->container = $this->contentContainer;
-            $folder->parent_folder_id = $this->getCurrentFolder()->id;
-        } else {
-            $titleChanged = $title !== $folder->title;
         }
-        // check if a folder with the given parent id and title exists
-        $query = Folder::find()->contentContainer($this->contentContainer)
-                ->readable()
-                ->where([
-            'cfiles_folder.title' => $title,
-            'cfiles_folder.parent_folder_id' => $folder->parent_folder_id
-        ]);
-        $similarFolder = $query->one();
 
-        // if a similar folder exists and a new folder should be created, add an error to the model.
-        if (!empty($similarFolder) && $titleChanged) {
-            $folder->title = $title;
-            $folder->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
-        } elseif ($folder->load(Yii::$app->request->post()) && $folder->validate() && $folder->save()) {
-            // if there is no folder with the same name, try to save the current folder
+        if ($folder->load(Yii::$app->request->post()) && $folder->save()) {
             if ($fromWall) {
-                return $this->renderAjaxContent($folder->getWallOut([
-                                    'justEdited' => true
-                ]));
+                return $this->renderAjaxContent($folder->getWallOut(['justEdited' => true]));
             } else {
-                return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', [
-                                    'fid' => $folder->id
-                ]));
+                $this->view->saved();
+                return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $folder->id]));
             }
         }
 
@@ -101,30 +74,25 @@ class EditController extends BrowseController
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
 
-        $itemId = Yii::$app->request->get('id');
         $fromWall = Yii::$app->request->get('fromWall');
-        $file = $this->module->getItemById($itemId);
-        $cancel = Yii::$app->request->get('cancel');
-
-        if ($cancel) {
-            return $this->renderAjaxContent($file->getWallOut());
-        }
+        $file = \humhub\modules\cfiles\models\FileSystemItem::getItemById(Yii::$app->request->get('id'));
 
         // if not return cause this should not happen
         if (empty($file) || !($file instanceof File)) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Cannot edit non existing file.'));
         }
+        
+        if (Yii::$app->request->get('cancel')) {
+            return $this->renderAjaxContent($file->getWallOut());
+        }
 
         // if there is no folder with the same name, try to save the current folder
-        if ($file->load(Yii::$app->request->post()) && $file->validate() && $file->save()) {
+        if ($file->load(Yii::$app->request->post()) && $file->save()) {
             if ($fromWall) {
-                return $this->renderAjaxContent($file->getWallOut([
-                                    'justEdited' => true
-                ]));
+                return $this->renderAjaxContent($file->getWallOut(['justEdited' => true]));
             } else {
-                return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', [
-                                    'fid' => $this->getCurrentFolder()->id
-                ]));
+                $this->view->saved();
+                return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $file->parent_folder_id]));
             }
         }
 
@@ -132,24 +100,8 @@ class EditController extends BrowseController
         return $this->renderPartial(($fromWall ? 'wall_edit_file' : 'modal_edit_file'), [
                     'file' => $file,
                     'contentContainer' => $this->contentContainer,
-                    'currentFolderId' => $this->getCurrentFolder()->id,
+                    'currentFolderId' => $file->parent_folder_id,
                     'fromWall' => $fromWall
         ]);
     }
-
-    private function isEditable($item)
-    {
-        if ($item === null) {
-            return false;
-        }
-        if ($item instanceof Folder) {
-            if ($item->isRoot() || $item->isAllPostedFiles()) {
-                return false;
-            }
-        } elseif ($item instanceof \humhub\modules\file\models\File) {
-            return false;
-        }
-        return true;
-    }
-
 }

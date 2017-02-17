@@ -36,7 +36,6 @@ class Folder extends FileSystemItem
         return 'cfiles_folder';
     }
 
-
     /**
      * @inheritdoc
      */
@@ -70,10 +69,36 @@ class Folder extends FileSystemItem
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
             ['title', 'required'],
+            ['title', 'trim'],
             ['title', 'string', 'max' => 255],
             ['title', 'noSpaces'],
-            ['description', 'string', 'max' => 255]
+            ['description', 'string', 'max' => 255],
+            ['title', 'uniqueTitle']
         ];
+    }
+    
+    /**
+     * Makes sure that after an title change there is no equal title for the given container in the given parent folder.
+     * 
+     * @param type $attribute
+     * @param type $params
+     * @param type $validator
+     * @return null
+     */
+    public function uniqueTitle($attribute, $params, $validator)
+    {
+        if(!$this->hasTitleChanged()) {
+            return;
+        }
+        
+        $query = self::find()->contentContainer($this->content->container)->readable()->where([
+            'cfiles_folder.title' => $this->title,
+            'cfiles_folder.parent_folder_id' => $this->parent_folder_id
+        ]);
+        
+        if(!empty($query->one())) {
+            $this->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
+        }
     }
 
     /**
@@ -99,6 +124,11 @@ class Folder extends FileSystemItem
     public function getFolders()
     {
         return $this->hasMany(Folder::className(), ['parent_folder_id' => 'id'])->orderBy(['title' => SORT_ASC]);
+    }
+    
+    public function hasTitleChanged()
+    {
+        return $this->isNewRecord || $this->getOldAttribute('title') != $this->title;
     }
 
     public function beforeDelete()
@@ -134,7 +164,7 @@ class Folder extends FileSystemItem
         return 0;
     }
 
-    public function getUrl()
+    public function getUrl($download = false)
     {
         if (empty($this->content->container)) {
             return "";
@@ -142,6 +172,11 @@ class Folder extends FileSystemItem
         return $this->content->container->createUrl('/cfiles/browse/index', [
                     'fid' => $this->id
         ]);
+    }
+    
+    public function getEditUrl()
+    {
+        return $this->content->container->createUrl('/cfiles/edit/folder', ['id' => $this->getItemId()]);
     }
 
     public function noSpaces($attribute, $params)
@@ -241,6 +276,20 @@ class Folder extends FileSystemItem
     }
 
     /**
+     * Returns the folder path as ordered array.
+     * @return Folder[]
+     */
+    public function getCrumb()
+    {
+        $parent = $this;
+        do {
+            $crumb[] = $parent;
+            $parent = $parent->parentFolder;
+        } while ($parent != null);
+        return array_reverse($crumb);
+    }
+
+    /**
      * @inheritdoc
      */
     public function getContentDescription()
@@ -278,6 +327,49 @@ class Folder extends FileSystemItem
         }
 
         parent::validateParentFolderId($attribute, $params);
+    }
+
+    public function getItems($filesOrder = ['title' => SORT_ASC], $foldersOrder = ['title' => SORT_ASC])
+    {
+        return [
+            'specialFolders' => $this->getSpecialFolders(),
+            'folders' => $this->getSubFolders($foldersOrder),
+            'files' => $this->getSubFiles($filesOrder)
+        ];
+    }
+
+    protected function getSpecialFolders($order = ['title' => SORT_ASC])
+    {
+        $specialFoldersQuery = Folder::find()->contentContainer($this->content->container)->readable();
+        $specialFoldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->id]);
+        $specialFoldersQuery->andWhere(['is not', 'cfiles_folder.type', null]);
+        return $specialFoldersQuery->all();
+    }
+
+    protected function getSubFolders($order = ['title' => SORT_ASC])
+    {
+        $foldersQuery = Folder::find()->contentContainer($this->content->container)->readable();
+        $foldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->id]);
+
+        // do not return any folders here that are root or allpostedfiles
+        $foldersQuery->andWhere(
+                ['or',
+                    ['cfiles_folder.type' => null],
+                    ['and',
+                        ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_POSTED],
+                        ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_ROOT]
+                    ]
+        ]);
+        $foldersQuery->orderBy($order);
+        return $foldersQuery->all();
+    }
+
+    protected function getSubFiles($order = ['title' => SORT_ASC])
+    {
+        $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->content->container)->readable();
+        $filesQuery->andWhere(['cfiles_file.parent_folder_id' => $this->id]);
+        $filesQuery->orderBy($order);
+        return $filesQuery->all();
     }
 
 }

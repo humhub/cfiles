@@ -11,7 +11,6 @@ namespace humhub\modules\cfiles\controllers;
 use Yii;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\post\models\Post;
-use humhub\modules\file\handler\FileHandlerCollection;
 
 /**
  * Description of BrowseController
@@ -65,113 +64,37 @@ class BrowseController extends BaseController
                 break;
         }
 
-
-        $fileHandlerImport = FileHandlerCollection::getByType(FileHandlerCollection::TYPE_IMPORT);
-        $fileHandlerCreate = FileHandlerCollection::getByType(FileHandlerCollection::TYPE_CREATE);
-
-        $fileList = $this->renderFileList(true, $filesOrder, $foldersOrder);
         return $this->render('index', [
-                    'contentContainer' => $this->contentContainer,
-                    'currentFolder' => $this->getCurrentFolder(),
-                    'fileList' => $fileList['view'],
-                    'itemCount' => $fileList['itemCount'],
-                    'fileHandlers' => array_merge($fileHandlerCreate, $fileHandlerImport),
+                'contentContainer' => $this->contentContainer,
+                'folder' => $this->getCurrentFolder(),
+                'canWrite' => $this->canWrite()
+        ]);
+    }
+    
+    public function actionFileList() 
+    {
+        return $this->asJson([
+            'output' => $this->renderFileList()
         ]);
     }
 
     /**
-     * Returns file list
+     * Returns rendered file list.
      *
      * @param boolean $withItemCount true -> also calculate and return the item count.
      * @param array $filesOrder orderBy array appended to the files query
      * @param array $foldersOrder orderBy array appended to the folders query
      * @return array|string the rendered view or an array of the rendered view and the itemCount.
      */
-    protected function renderFileList($withItemCount = false, $filesOrder = NULL, $foldersOrder = NULL)
+    protected function renderFileList($filesOrder = null, $foldersOrder = null)
     {
-        if ($this->getCurrentFolder()->isAllPostedFiles()) {
-            return $this->renderAllPostedFilesList($withItemCount, $filesOrder, $foldersOrder);
-        }
-
-        $items = $this->getItemsList($filesOrder, $foldersOrder);
-
-        $view = $this->renderPartial('@cfiles/views/browse/fileList', [
-            'items' => $items,
+        return \humhub\modules\cfiles\widgets\FileList::widget([
+            'folder' => $this->getCurrentFolder(),
             'contentContainer' => $this->contentContainer,
-            'crumb' => $this->generateCrumb(),
-            'errorMessages' => $this->errorMessages,
-            'currentFolder' => $this->getCurrentFolder(),
+            'canWrite' => $this->canWrite(),
+            'filesOrder' => $filesOrder,
+            'foldersOrder' => $foldersOrder
         ]);
-        if ($withItemCount) {
-            return [
-                'view' => $view,
-                'itemCount' => count($items, COUNT_RECURSIVE)
-            ];
-        } else {
-            return $view;
-        }
-    }
-
-    /**
-     * Load all posted files from the database and get an array of them.
-     *
-     * @param array $filesOrder
-     *            orderBy array appended to the files query
-     * @param array $foldersOrder
-     *            currently unused
-     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
-     */
-    protected function getAllPostedFilesList($filesOrder = NULL, $foldersOrder = NULL)
-    {
-        // set ordering default
-        if (!$filesOrder) {
-            $filesOrder = ['file.updated_at' => SORT_DESC, 'file.title' => SORT_ASC];
-        }
-
-        // Get Posted Files
-        $query = \humhub\modules\file\models\File::find();
-        // join comments to the file if available
-        $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id AND file.object_model=' . Yii::$app->db->quoteValue(Comment::className()) . ')');
-        // join parent post of comment or file
-        $query->join('LEFT JOIN', 'content', '(comment.object_model=content.object_model AND comment.object_id=content.object_id) OR (file.object_model=content.object_model AND file.object_id=content.object_id)');
-        if (version_compare(Yii::$app->version, '1.1', 'lt')) {
-            // select only the one for the given content container for Yii version < 1.1
-            if ($this->contentContainer instanceof \humhub\modules\user\models\User) {
-                $query->andWhere([
-                    'content.user_id' => $this->contentContainer->id
-                ]);
-                $query->andWhere([
-                    'IS',
-                    'content.space_id',
-                    new \yii\db\Expression('NULL')
-                ]);
-            } else {
-                $query->andWhere([
-                    'content.space_id' => $this->contentContainer->id
-                ]);
-            }
-        } else {
-            // select only the one for the given content container for Yii version >= 1.1
-            $query->andWhere([
-                'content.contentcontainer_id' => $this->contentContainer->contentContainerRecord->id
-            ]);
-        }
-        // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
-        $query->andWhere([
-            'or',
-            [
-                '=',
-                'comment.object_model',
-                Post::className()
-            ],
-            [
-                '=',
-                'file.object_model',
-                Post::className()
-            ]
-        ]);
-        // Get Files from comments
-        return ['postedFiles' => $query->orderBy($filesOrder)->all()];
     }
 
     /**
@@ -185,7 +108,7 @@ class BrowseController extends BaseController
      *            currently unused
      * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
      */
-    protected function renderAllPostedFilesList($withItemCount = false, $filesOrder = NULL, $foldersOrder = NULL)
+    protected function renderAllPostedFilesList($withItemCount = false, $filesOrder = null, $foldersOrder = null)
     {
         $items = $this->getAllPostedFilesList($filesOrder, $foldersOrder);
 

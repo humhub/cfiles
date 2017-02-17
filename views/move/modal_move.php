@@ -1,9 +1,6 @@
 <?php
 
-use yii\helpers\Html;
 use humhub\compat\CActiveForm;
-
-$this->registerJs('initDirectoryList();', \yii\web\View::POS_END);
 
 function renderFolder($folder)
 {
@@ -19,32 +16,26 @@ function renderFolder($folder)
 }
 ?>
 
-<div class="modal-dialog modal-dialog-small animated fadeIn">
-    <div class="modal-content">
-        <?php $form = CActiveForm::begin(); ?>
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"
-                    aria-hidden="true">&times;</button>
-            <h4 class="modal-title" id="myModalLabel">
-                <?php echo Yii::t('CfilesModule.base', '<strong>Move</strong> files'); ?>
-            </h4>
-        </div>
+<?php \humhub\widgets\ModalDialog::begin([
+    'header' => Yii::t('CfilesModule.base', '<strong>Move</strong> files'),
+    'size' => 'small',
+    'animation' => 'fadeIn'
+]) ?>
 
+    <?php $form = CActiveForm::begin(); ?>
         <div class="modal-body">
             <?php if (!empty($errorMsgs)) : ?>
                 <div class="alert alert-danger">
                     <ul>
-                        <?php
-                        foreach ($errorMsgs as $error) :
-                            echo "<li>$error</li>";
-                        endforeach;
-                        ?>
+                        <?php foreach ($errorMsgs as $error) : ?>
+                           <?= "<li>$error</li>" ?>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
             <?php endif; ?>
             <br />
-            <div class="directory-list">
-                <div class="selectable" id="<?php echo $rootFolder->id; ?>"><?php echo Yii::t('CfilesModule.base', '/ (root)'); ?></div>
+            <div id="cfiles-directory-list" data-ui-widget="cfiles.DirectoryList" data-ui-init class="directory-list">
+                <div class="selectable" id="<?php echo $rootFolder->id; ?>"><?= Yii::t('CfilesModule.base', '/ (root)'); ?></div>
                 <ul>
                     <?php
                     foreach ($folders as $dir) :
@@ -55,8 +46,7 @@ function renderFolder($folder)
                 </ul>
             </div>
 
-            <input id="input-hidden-selectedFolder" type="hidden"
-                   name="destfid" value="<?php echo $selectedFolderId ?>" />
+            <input id="input-hidden-selectedFolder" type="hidden" name="destfid" value="<?= $selectedFolderId ?>" />
 
             <?php
             if (is_array($selectedItems)) {
@@ -65,32 +55,20 @@ function renderFolder($folder)
                 }
             }
             ?>
-            <div class="modal-footer">
-                <?php
-                // FIXME: v1.2 deprecated, delete if no longer needed
-//             echo \humhub\widgets\AjaxButton::widget([
-//                 'label' => Yii::t('CfilesModule.base', 'Save'),
-//                 'ajaxOptions' => [
-//                     'type' => 'POST',
-//                     'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
-//                     'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); openDirectory($("#input-hidden-selectedFolder").val()); selectDirectory($("#input-hidden-selectedFolder").val()); }'),
-//                     'url' => $contentContainer->createUrl('/cfiles/move', [])
-//                 ],
-//                 'htmlOptions' => [
-//                     'class' => 'btn btn-primary'
-//                 ]
-//             ]);
-                ?>
+            
+        </div>
+        <div class="modal-footer">
                 <a href="#" class="btn btn-primary"
                    data-action-click="ui.modal.submit"
+                   data-ui-loader
                    data-action-url="<?= $contentContainer->createUrl('/cfiles/move', []) ?>">
                        <?= Yii::t('CfilesModule.base', 'Save'); ?>
                 </a>
+            
                 <button type="button" class="btn btn-primary"
                         data-dismiss="modal"><?php echo Yii::t('CfilesModule.base', 'Close'); ?></button>
 
             </div>
-            <?php CActiveForm::end() ?>
-        </div>
-    </div>
-</div>
+    <?php CActiveForm::end() ?>
+
+<?php \humhub\widgets\ModalDialog::end()?>
