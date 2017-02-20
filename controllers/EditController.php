@@ -89,7 +89,7 @@ class EditController extends BrowseController
         // if there is no folder with the same name, try to save the current folder
         if ($file->load(Yii::$app->request->post()) && $file->save()) {
             if ($fromWall) {
-                return $this->renderAjaxContent($file->getWallOut(['justEdited' => true]));
+                return $this->asJson(['success' => true]);
             } else {
                 $this->view->saved();
                 return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $file->parent_folder_id]));
@@ -97,7 +97,7 @@ class EditController extends BrowseController
         }
 
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
-        return $this->renderPartial(($fromWall ? 'wall_edit_file' : 'modal_edit_file'), [
+        return $this->renderPartial('modal_edit_file', [
                     'file' => $file,
                     'contentContainer' => $this->contentContainer,
                     'currentFolderId' => $file->parent_folder_id,

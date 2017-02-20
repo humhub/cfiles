@@ -270,14 +270,11 @@ humhub.module('cfiles', function (module, require, $) {
     FolderView.prototype.setSource = function (uploadComponent) {
         var that = this;
         this.source = uploadComponent;
-        this.source.on('humhub:file:uploadStart', function(evt, data) {
-            that.loader();
-        }).on('humhub:file:uploadEnd', function (evt, response) {
+        this.source.on('humhub:file:uploadEnd', function (evt, response) {
             that.replaceFileList(response.result.fileList);
             if (response.result.infomessages && response.result.infomessages.length) {
                 that.statusInfo(response.result.infomessages);
             }
-            that.loader(false);
         });
     };
 

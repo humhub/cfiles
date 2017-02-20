@@ -26,6 +26,11 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
     /**
      * @inheritdoc
      */
+    public $editMode = self::EDIT_MODE_MODAL;
+    
+    /**
+     * @inheritdoc
+     */
     public function run()
     {
         $cFile = $this->contentObject;
