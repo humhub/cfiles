@@ -364,8 +364,12 @@ class Folder extends FileSystemItem
         return $foldersQuery->all();
     }
 
-    protected function getSubFiles($order = ['title' => SORT_ASC])
+    protected function getSubFiles($order = null)
     {
+        if(!$order) {
+            $order = 'file.file_name ASC';
+        }
+        
         $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->content->container)->readable();
         $filesQuery->andWhere(['cfiles_file.parent_folder_id' => $this->id]);
         $filesQuery->orderBy($order);
