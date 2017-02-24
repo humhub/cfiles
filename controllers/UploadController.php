@@ -135,6 +135,12 @@ class UploadController extends BrowseController
         
         if($file->save()) {
             $file->fileManager->attach($guids);
+            
+            foreach ($file->fileManager->findAll() as $baseFile) {
+                $baseFile->show_in_stream = false;
+                $baseFile->save();
+            }
+            
         }
         
         return $this->asJson([
