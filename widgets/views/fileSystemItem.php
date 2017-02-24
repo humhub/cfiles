@@ -27,6 +27,8 @@ use humhub\modules\comment\widgets\CommentLink;
                     <?php if ($type === "image") : ?>
                         <a href="<?= $url; ?>" class="preview-link" data-ui-gallery="FilesModule-Gallery-<?= $parentFolderId; ?>" style="display:none;"></a>
                     <?php endif; ?>
+                <?php elseif ($this->context->baseFile !== null): ?>
+                    <?= FileHelper::createLink($this->context->baseFile); ?>
                 <?php else: ?>
                     <a href="<?= $url; ?>"><?= Html::encode($title); ?></a>
                 <?php endif; ?>

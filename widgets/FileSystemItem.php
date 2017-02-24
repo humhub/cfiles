@@ -36,6 +36,7 @@ class FileSystemItem extends \yii\base\Widget
     public $creator;
     public $editor;
     public $updatedAt;
+    public $baseFile;
 
     /** Content Object used for the Like/Comment widgets */
     public $contentObject;

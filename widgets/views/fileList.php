@@ -74,6 +74,7 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                     'url' => $file->getUrl(),
                     'wallUrl' => \humhub\modules\cfiles\models\File::getBasePost($file)->getUrl(),
                     'canWrite' => $canWrite,
+                    'baseFile' => $file,
                     'iconClass' => \humhub\modules\cfiles\models\File::getIconClassByExt($file->getExtension()),
                     'title' => $file->file_name,
                     'size' => $file->size,
