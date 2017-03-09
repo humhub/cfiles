@@ -12,9 +12,9 @@ use Yii;
 use humhub\modules\space\models\Space;
 
 /**
- * WriteAccess Permission
+ * ManageFiles Permissions
  */
-class WriteAccess extends \humhub\libs\BasePermission
+class ManageFiles extends \humhub\libs\BasePermission
 {
 
     /**
@@ -24,7 +24,6 @@ class WriteAccess extends \humhub\libs\BasePermission
         Space::USERGROUP_OWNER,
         Space::USERGROUP_ADMIN,
         Space::USERGROUP_MODERATOR,
-        Space::USERGROUP_MEMBER,
     ];
 
     /**
@@ -45,7 +44,7 @@ class WriteAccess extends \humhub\libs\BasePermission
      */
     public function getTitle()
     {
-        return Yii::t('CfilesModule.permissions', 'Add files');
+        return Yii::t('CfilesModule.permissions', 'Manage files');
     }
 
     /**
@@ -53,7 +52,7 @@ class WriteAccess extends \humhub\libs\BasePermission
      */
     public function getDescription()
     {
-        return Yii::t('CfilesModule.permissions', 'Allows the user to upload new files and create folders');
+        return Yii::t('CfilesModule.permissions', 'Allows the user to modify or delete any files.');
     }
 
 }

@@ -14,6 +14,7 @@ use yii\helpers\Url;
 
 class Module extends ContentContainerModule
 {
+
     public $resourcesPath = 'resources';
 
     const ALL_POSTED_FILES_TITLE = 'Files from the stream';
@@ -39,7 +40,8 @@ class Module extends ContentContainerModule
     {
         if ($contentContainer instanceof Space) {
             return [
-                new permissions\WriteAccess()
+                new permissions\WriteAccess(),
+                new permissions\ManageFiles(),
             ];
         }
 

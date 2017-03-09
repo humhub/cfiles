@@ -5,6 +5,10 @@ namespace humhub\modules\cfiles\models;
 use Yii;
 use yii\helpers\Url;
 use humhub\modules\user\models\User;
+use humhub\modules\content\components\ContentActiveRecord;
+use humhub\modules\cfiles\ItemInterface;
+use humhub\modules\search\interfaces\Searchable;
+use humhub\modules\cfiles\permissions\ManageFiles;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -12,8 +16,9 @@ use humhub\modules\user\models\User;
  * @property integer $id
  * @property integer $folder_id
  */
-abstract class FileSystemItem extends \humhub\modules\content\components\ContentActiveRecord implements \humhub\modules\cfiles\ItemInterface, \humhub\modules\search\interfaces\Searchable
+abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface, Searchable
 {
+
     /**
      * @inheritdoc
      */
@@ -92,7 +97,7 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
     {
         return User::findOne(['id' => $this->content->updated_by]);
     }
-    
+
     public function getMoveUrl()
     {
         return $this->content->container->createUrl('/cfiles/move', ['init' => 1]);
@@ -150,6 +155,15 @@ abstract class FileSystemItem extends \humhub\modules\content\components\Content
             ]);
         }
         return null;
+    }
+
+    public function canEdit(User $user)
+    {
+        if ($this->content->container->permissionManager->can(new ManageFiles())) {
+            return true;
+        }
+
+        return false;
     }
 
 }

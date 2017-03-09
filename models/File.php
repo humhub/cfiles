@@ -16,6 +16,7 @@ use humhub\modules\content\models\Content;
  */
 class File extends FileSystemItem
 {
+
     /**
      * @inheritdoc
      */
@@ -250,11 +251,24 @@ class File extends FileSystemItem
         return $this->baseFile->size;
     }
 
-    public function getUrl($download = false)
+    /**
+     * Returns the URL to the folder where this file is located
+     */
+    public function getUrl()
     {
-        return \humhub\modules\file\handler\DownloadFileHandler::getUrl($this->baseFile, $download);
+        if ($this->parentFolder === null) {
+            Yii::warning('Could not get parent folder for file id: ' . $this->id, 'cfiles');
+            return '';
+        }
+
+        return $this->parentFolder->getUrl();
     }
-    
+
+    public function getDownloadUrl($forceDownload = false)
+    {
+        return \humhub\modules\file\handler\DownloadFileHandler::getUrl($this->baseFile, $forceDownload);
+    }
+
     public function getEditUrl()
     {
         return $this->content->container->createUrl('/cfiles/edit/file', ['id' => $this->getItemId()]);
@@ -345,7 +359,7 @@ class File extends FileSystemItem
     {
         return $this->getTitle();
     }
-    
+
     /**
      * Load all posted files from the database and get an array of them.
      *
@@ -368,16 +382,16 @@ class File extends FileSystemItem
         $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id AND file.object_model=' . Yii::$app->db->quoteValue(Comment::className()) . ')');
         // join parent post of comment or file
         $query->join('LEFT JOIN', 'content', '(comment.object_model=content.object_model AND comment.object_id=content.object_id) OR (file.object_model=content.object_model AND file.object_id=content.object_id)');
-        
+
         $query->andWhere(['content.contentcontainer_id' => $contentContainer->contentContainerRecord->id]);
-        
+
         // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
         $query->andWhere(
-        ['or',
-            ['=', 'comment.object_model', \humhub\modules\post\models\Post::className()],
-            ['=', 'file.object_model', \humhub\modules\post\models\Post::className() ]
+                ['or',
+                    ['=', 'comment.object_model', \humhub\modules\post\models\Post::className()],
+                    ['=', 'file.object_model', \humhub\modules\post\models\Post::className()]
         ]);
-        
+
         // Get Files from comments
         return ['postedFiles' => $query->orderBy($filesOrder)->all()];
     }

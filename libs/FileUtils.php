@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\libs;
 
+use humhub\modules\file\models\File;
 use humhub\modules\file\libs\ImageConverter;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\models\Content;
@@ -158,7 +159,7 @@ class FileUtils
      * @param number $maxDimension limit maximum with/height.
      * @return string the thumbnail's url or null if an error occured.
      */
-    public static function getSquareThumbnailUrlFromFile($basefile = null, $maxDimension = 1000)
+    public static function getSquareThumbnailUrlFromFile(File $basefile = null, $maxDimension = 1000)
     {
         if ($basefile === null) {
             return;
