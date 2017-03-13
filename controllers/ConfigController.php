@@ -28,7 +28,7 @@ class ConfigController extends \humhub\modules\admin\components\Controller
     public function actionIndex()
     {
         $form = new ConfigureForm();
-        $form->disableZipSupport = Setting::Get('disableZipSupport', 'cfiles');
+        $form->disableZipSupport = !$this->module->isZipSupportEnabled();
 
         if ($form->load(Yii::$app->request->post()) && $form->validate()) {
             Setting::Set('disableZipSupport', $form->disableZipSupport, 'cfiles');

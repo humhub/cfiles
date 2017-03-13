@@ -9,7 +9,6 @@ use humhub\modules\content\components\ContentContainerModule;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\File;
-use humhub\modules\content\models\Content;
 use yii\helpers\Url;
 
 class Module extends ContentContainerModule
@@ -48,6 +47,9 @@ class Module extends ContentContainerModule
         return [];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function disable()
     {
         foreach (Folder::find()->all() as $key => $folder) {
@@ -59,6 +61,9 @@ class Module extends ContentContainerModule
         parent::disable();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function disableContentContainer(ContentContainerActiveRecord $container)
     {
 
@@ -102,11 +107,27 @@ class Module extends ContentContainerModule
         ]);
     }
 
+    /**
+     * Loads user by given ID (Helper)
+     * 
+     * @param int $id the user id
+     * @return User|null the user
+     */
     public static function getUserById($id)
     {
-        return User::findOne([
-                    'id' => $id
-        ]);
+        return User::findOne(['id' => $id]);
+    }
+
+    /**
+     * Determines ZIP Support is enabled or not
+     * 
+     * @return boolean is ZIP support enabled
+     */
+    public function isZipSupportEnabled()
+    {
+        $zipEnabled = !$this->settings->get('disableZipSupport');
+
+        return $zipEnabled;
     }
 
 }

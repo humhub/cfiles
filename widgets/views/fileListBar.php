@@ -1,5 +1,6 @@
 <?php
- use yii\helpers\Html;
+
+use yii\helpers\Html;
 ?>
 
 <div class="panel panel-default" style="margin-bottom:10px;">
