@@ -214,6 +214,15 @@ humhub.module('cfiles', function (module, require, $) {
         });
     };
 
+    FolderView.prototype.zipSelection = function (evt) {
+        var $form = $('#cfiles-form');
+        $form.attr("action", evt.$trigger.data('action-url'));
+        $form.attr("method", "post");
+        $form.submit();
+
+        evt.finish();
+    };
+
     FolderView.prototype.reloadFileList = function () {
         var that = this;
         this.loader();
@@ -432,55 +441,3 @@ humhub.module('cfiles', function (module, require, $) {
         DirectoryList: DirectoryList
     });
 });
-
-// TODO: Implenent zip support!
-
-/*$(function () {
- 
- /**
- * Bind event actions.
- *
- $("#zip-selected-button").click(function (event) {
- event.preventDefault();
- $form = $('#cfiles-form');
- $form.attr("action", $(this).attr("href"));
- $form.attr("method", "post");
- $form.attr("enctype", "multipart/form-data");
- $form.submit();
- });
- 
- /**
- * Install uploader
- *
- $('#zipupload').fileupload(
- {
- dropZone: $([]),
- url: cfilesZipUploadUrl,
- dataType: 'json',
- done: function (e, data) {
- $.each(data.result.files, function (index, file) {
- $('#fileList').html(file.fileList);
- });
- updateLogs(data.result.errormessages,
- data.result.warningmessages,
- data.result.infomessages);
- },
- fail: function (e, data) {
- updateLogs(data.jqXHR.responseJSON.message, null, null);
- },
- start: function (e, data) {
- clearLog();
- },
- success: function (e, data) {
- $('#progress').hide();
- $("#zipupload").parents(".btn-group").click();
- },
- progressall: function (e, data) {
- var progress = parseInt(50, 10);
- $('#progress').show();
- $('#progress .progress-bar').css('width', progress + '%');
- }
- }).prop('disabled', !$.support.fileInput).parent().addClass(
- $.support.fileInput ? undefined : 'disabled');
- 
- });*/

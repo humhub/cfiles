@@ -128,6 +128,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Returns a FileSystemItem instance by the given item id of form {type}_{id}
+     * 
      * @param string $itemId item id of form {type}_{id}
      * @return FileSystemItem
      */
@@ -140,20 +141,16 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         }
 
         list ($type, $id) = explode('_', $itemId);
-
         if ($type == 'file') {
-            return File::findOne([
-                        'id' => $id
-            ]);
+            return File::find()->andWhere(['cfiles_file.id' => $id])->readable()->one();
         } elseif ($type == 'folder') {
-            return Folder::findOne([
-                        'id' => $id
-            ]);
-        } elseif ($type == 'baseFile') {
-            return File::findOne([
-                        'id' => $id
-            ]);
+            return Folder::find()->andWhere(['cfiles_folder.id' => $id])->readable()->one();
         }
+
+        //elseif ($type == 'baseFile') {
+        //    return File::findOne(['id' => $id]);
+        //}
+
         return null;
     }
 
