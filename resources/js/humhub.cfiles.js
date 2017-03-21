@@ -337,7 +337,10 @@ humhub.module('cfiles', function (module, require, $) {
     };
 
     FileItem.prototype.edit = function () {
-        modal.global.load({'url': this.editUrl});
+        modal.global.load({
+            'url': this.editUrl,
+        	'dataType': 'html'
+        });
     };
 
     FileItem.prototype.move = function () {
