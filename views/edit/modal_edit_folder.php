@@ -26,7 +26,7 @@ $header = ($folder->isNewRecord)
                    data-ui-loader
                    data-action-click="ui.modal.submit"
                    type="submit"
-                   data-action-url="<?= $contentContainer->createUrl('/cfiles/edit/folder', ['fid' => $currentFolderId, 'id' => $folder->getItemId(), 'fromWall' => $fromWall]) ?>">
+                   data-action-url="<?= $contentContainer->createUrl('/cfiles/edit/folder', ['fid' => $currentFolderId, 'id' => $folder->getItemId()]) ?>">
                        <?= Yii::t('CfilesModule.base', 'Save'); ?>
                 </button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal">

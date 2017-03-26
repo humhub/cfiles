@@ -27,8 +27,7 @@ class Assets extends AssetBundle
     ];
     
     public $js = [
-        'js/humhub.cfiles.js',
-        'js/directorylist.js'
+        'js/humhub.cfiles.js'
     ];
 
     public function init()

@@ -194,7 +194,6 @@ humhub.module('cfiles', function (module, require, $) {
         } else {
             $('#directory-toggle').show();
         }
-
     };
 
     FolderView.prototype.deleteSelection = function (evt) {
@@ -205,6 +204,7 @@ humhub.module('cfiles', function (module, require, $) {
                 // submit selected item id's to action-url
                 client.submit(evt, {'dataType': 'html'}).then(function (response) {
                     that.replaceFileList(response.html);
+                    module.log.success('saved');
                 }).catch(function (e) {
                     module.log.error(e, true);
                 }).finally(function () {

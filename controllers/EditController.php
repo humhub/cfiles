@@ -32,7 +32,6 @@ class EditController extends BrowseController
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
 
-        $fromWall = Yii::$app->request->get('fromWall');
         $folder = \humhub\modules\cfiles\models\FileSystemItem::getItemById(Yii::$app->request->get('id'));
 
         if (Yii::$app->request->get('cancel')) {
@@ -46,20 +45,15 @@ class EditController extends BrowseController
         }
 
         if ($folder->load(Yii::$app->request->post()) && $folder->save()) {
-            if ($fromWall) {
-                return $this->renderAjaxContent($folder->getWallOut(['justEdited' => true]));
-            } else {
-                $this->view->saved();
-                return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $folder->id]));
-            }
+            $this->view->saved();
+            return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $folder->id]));
         }
 
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
-        return $this->renderPartial(($fromWall ? 'wall_edit_folder' : 'modal_edit_folder'), [
+        return $this->renderPartial('modal_edit_folder', [
                     'folder' => $folder,
                     'contentContainer' => $this->contentContainer,
                     'currentFolderId' => $this->getCurrentFolder()->id,
-                    'fromWall' => $fromWall
         ]);
     }
 
@@ -81,7 +75,7 @@ class EditController extends BrowseController
         if (empty($file) || !($file instanceof File)) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Cannot edit non existing file.'));
         }
-        
+
         if (Yii::$app->request->get('cancel')) {
             return $this->renderAjaxContent($file->getWallOut());
         }
@@ -104,4 +98,5 @@ class EditController extends BrowseController
                     'fromWall' => $fromWall
         ]);
     }
+
 }
