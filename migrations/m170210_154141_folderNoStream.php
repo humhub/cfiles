@@ -7,7 +7,12 @@ class m170210_154141_folderNoStream extends Migration
 
     public function up()
     {
-        $this->dropColumn('cfiles_folder', 'has_wall_entry');
+        try {
+            $this->dropColumn('cfiles_folder', 'has_wall_entry');
+        } catch (Exception $ex) {
+            Yii::error("Could not drop haswall entry column", 'cfiles');
+        }
+
         $this->db->createCommand('UPDATE content c ' .
                 'LEFT JOIN cfiles_folder f ON f.id=c.object_id AND c.object_model=:folderClass ' .
                 'SET c.stream_channel = NULL ' .

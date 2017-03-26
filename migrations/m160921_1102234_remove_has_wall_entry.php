@@ -7,7 +7,11 @@ class m160921_1102234_remove_has_wall_entry extends Migration
 
     public function up()
     {
-        $this->dropColumn('cfiles_folder', 'has_wall_entry');
+        try {
+            $this->dropColumn('cfiles_folder', 'has_wall_entry');
+        } catch (Exception $ex) {
+            Yii::error("Could not drop haswall entry column", 'cfiles');
+        }
     }
 
     public function down()

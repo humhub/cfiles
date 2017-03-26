@@ -76,10 +76,10 @@ class Folder extends FileSystemItem
             ['title', 'uniqueTitle']
         ];
     }
-    
+
     /**
      * Makes sure that after an title change there is no equal title for the given container in the given parent folder.
-     * 
+     *
      * @param type $attribute
      * @param type $params
      * @param type $validator
@@ -87,16 +87,16 @@ class Folder extends FileSystemItem
      */
     public function uniqueTitle($attribute, $params, $validator)
     {
-        if(!$this->hasTitleChanged()) {
+        if (!$this->hasTitleChanged()) {
             return;
         }
-        
+
         $query = self::find()->contentContainer($this->content->container)->readable()->where([
             'cfiles_folder.title' => $this->title,
             'cfiles_folder.parent_folder_id' => $this->parent_folder_id
         ]);
-        
-        if(!empty($query->one())) {
+
+        if (!empty($query->one())) {
             $this->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
         }
     }
@@ -125,7 +125,7 @@ class Folder extends FileSystemItem
     {
         return $this->hasMany(Folder::className(), ['parent_folder_id' => 'id'])->orderBy(['title' => SORT_ASC]);
     }
-    
+
     public function hasTitleChanged()
     {
         return $this->isNewRecord || $this->getOldAttribute('title') != $this->title;
@@ -164,16 +164,15 @@ class Folder extends FileSystemItem
         return 0;
     }
 
-    public function getUrl($download = false)
+    public function getUrl()
     {
         if (empty($this->content->container)) {
             return "";
         }
-        return $this->content->container->createUrl('/cfiles/browse/index', [
-                    'fid' => $this->id
-        ]);
+
+        return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id]);
     }
-    
+
     public function getEditUrl()
     {
         return $this->content->container->createUrl('/cfiles/edit/folder', ['id' => $this->getItemId()]);
@@ -309,7 +308,7 @@ class Folder extends FileSystemItem
 
     /**
      * Validate parent folder id
-     * 
+     *
      * @param string $attribute the attribute name
      * @param array $params
      */
@@ -366,10 +365,10 @@ class Folder extends FileSystemItem
 
     protected function getSubFiles($order = null)
     {
-        if(!$order) {
+        if (!$order) {
             $order = 'file.file_name ASC';
         }
-        
+
         $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->content->container)->readable();
         $filesQuery->andWhere(['cfiles_file.parent_folder_id' => $this->id]);
         $filesQuery->orderBy($order);

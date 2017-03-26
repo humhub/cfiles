@@ -27,9 +27,7 @@ class BrowseController extends BaseController
     public function actionRedirect()
     {
         $fid = (int) Yii::$app->request->get('id', self::ROOT_ID);
-        return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', [
-                            'fid' => $fid
-        ]));
+        return $this->redirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $fid]));
     }
 
     public function actionIndex()
@@ -65,16 +63,16 @@ class BrowseController extends BaseController
         }
 
         return $this->render('index', [
-                'contentContainer' => $this->contentContainer,
-                'folder' => $this->getCurrentFolder(),
-                'canWrite' => $this->canWrite()
+                    'contentContainer' => $this->contentContainer,
+                    'folder' => $this->getCurrentFolder(),
+                    'canWrite' => $this->canWrite()
         ]);
     }
-    
-    public function actionFileList() 
+
+    public function actionFileList()
     {
         return $this->asJson([
-            'output' => $this->renderFileList()
+                    'output' => $this->renderFileList()
         ]);
     }
 
@@ -89,45 +87,12 @@ class BrowseController extends BaseController
     protected function renderFileList($filesOrder = null, $foldersOrder = null)
     {
         return \humhub\modules\cfiles\widgets\FileList::widget([
-            'folder' => $this->getCurrentFolder(),
-            'contentContainer' => $this->contentContainer,
-            'canWrite' => $this->canWrite(),
-            'filesOrder' => $filesOrder,
-            'foldersOrder' => $foldersOrder
+                    'folder' => $this->getCurrentFolder(),
+                    'contentContainer' => $this->contentContainer,
+                    'canWrite' => $this->canWrite(),
+                    'filesOrder' => $filesOrder,
+                    'foldersOrder' => $foldersOrder
         ]);
-    }
-
-    /**
-     * Render all posted files from the database and get an array of them.
-     *
-     * @param boolean $withItemCount
-     *            true -> also calculate and return the item count.
-     * @param array $filesOrder
-     *            orderBy array appended to the files query
-     * @param array $foldersOrder
-     *            currently unused
-     * @return Ambigous <multitype:, multitype:\yii\db\ActiveRecord >
-     */
-    protected function renderAllPostedFilesList($withItemCount = false, $filesOrder = null, $foldersOrder = null)
-    {
-        $items = $this->getAllPostedFilesList($filesOrder, $foldersOrder);
-
-        $view = $this->renderPartial('@humhub/modules/cfiles/views/browse/fileList', [
-            'items' => $items,
-            'contentContainer' => $this->contentContainer,
-            'crumb' => $this->generateCrumb(),
-            'errorMessages' => $this->errorMessages,
-            'currentFolder' => $this->getCurrentFolder(),
-        ]);
-
-        if ($withItemCount) {
-            return [
-                'view' => $view,
-                'itemCount' => count($items, COUNT_RECURSIVE)
-            ];
-        } else {
-            return $view;
-        }
     }
 
 }

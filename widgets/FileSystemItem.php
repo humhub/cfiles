@@ -17,7 +17,7 @@ class FileSystemItem extends \yii\base\Widget
 {
 
     /**
-     * @var \humhub\modules\cfiles\models\FileSystemItem 
+     * @var \humhub\modules\cfiles\models\FileSystemItem
      */
     public $item;
     public $canWrite;
@@ -36,6 +36,7 @@ class FileSystemItem extends \yii\base\Widget
     public $creator;
     public $editor;
     public $updatedAt;
+    public $baseFile;
 
     /** Content Object used for the Like/Comment widgets */
     public $contentObject;
@@ -55,38 +56,38 @@ class FileSystemItem extends \yii\base\Widget
             $this->id = $this->item->getItemId();
         }
 
-        if (!$this->downloadUrl) {
-            $this->downloadUrl = $this->item->getUrl(true);
+        if (!$this->downloadUrl && $this->item instanceof File) {
+            $this->downloadUrl = $this->item->getDownloadUrl();
         }
 
         if (!$this->url) {
-            $this->url = $this->item->getUrl(false);
+            $this->url = $this->item->getUrl();
         }
 
         if (!$this->wallUrl) {
             $this->wallUrl = $this->item->getWallUrl();
         }
-        
+
         if (!$this->iconClass) {
             $this->iconClass = $this->item->getIconClass();
         }
-        
+
         if (!$this->title) {
-            $this->title =  $this->item->getTitle();
+            $this->title = $this->item->getTitle();
         }
-        
+
         if ($this->size === null) {
             $this->size = $this->item->getSize();
         }
-        
+
         if ($this->creator === null) {
             $this->creator = $this->item->getCreator();
         }
-        
+
         if (!$this->editor === null) {
             $this->editor = $this->item->getEditor();
         }
-        
+
         if (!$this->updatedAt) {
             $this->updatedAt = $this->item->content->updated_at;
         }

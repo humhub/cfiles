@@ -22,8 +22,8 @@ interface ItemInterface
     public function getSize();
 
     public function getCreator();
-    
-    public function getUrl($download = false);
+
+    public function getUrl();
 
     public function getEditUrl();
 }

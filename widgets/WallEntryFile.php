@@ -27,7 +27,7 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
      * @inheritdoc
      */
     public $editMode = self::EDIT_MODE_MODAL;
-    
+
     /**
      * @inheritdoc
      */
@@ -35,13 +35,18 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
     {
         $cFile = $this->contentObject;
 
+        $folderUrl = '#';
+        if ($cFile->parentFolder !== null) {
+            $folderUrl = $cFile->parentFolder->getUrl();
+        }
+
         return $this->render('wallEntryFile', [
                     'cFile' => $cFile,
                     'fileName' => $cFile->getTitle(),
                     'fileSize' => $cFile->getSize(),
                     'file' => $cFile->baseFile,
                     'previewImage' => new PreviewImage(),
-                    'folderUrl' => $cFile->parentFolder->getUrl(),
+                    'folderUrl' => $folderUrl,
                     'mimeIconClass' => MimeHelper::getMimeIconClassByExtension($cFile->baseFile)
         ]);
     }
