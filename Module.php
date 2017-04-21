@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @link https://www.humhub.org/
+ * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
+ * @license https://www.humhub.com/licences
+ */
+
 namespace humhub\modules\cfiles;
 
 use Yii;
@@ -15,11 +21,6 @@ class Module extends ContentContainerModule
 {
 
     public $resourcesPath = 'resources';
-
-    const ALL_POSTED_FILES_TITLE = 'Files from the stream';
-    const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';
-    const ROOT_TITLE = 'Root';
-    const ROOT_DESCRIPTION = 'The root folder is the entry point that contains all available files.';
 
     /**
      * @inheritdoc
@@ -102,9 +103,7 @@ class Module extends ContentContainerModule
      */
     public function getConfigUrl()
     {
-        return Url::to([
-                    '/cfiles/config'
-        ]);
+        return Url::to(['/cfiles/config']);
     }
 
     /**
