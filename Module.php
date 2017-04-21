@@ -108,7 +108,7 @@ class Module extends ContentContainerModule
 
     /**
      * Loads user by given ID (Helper)
-     * 
+     *
      * @param int $id the user id
      * @return User|null the user
      */
@@ -119,7 +119,7 @@ class Module extends ContentContainerModule
 
     /**
      * Determines ZIP Support is enabled or not
-     * 
+     *
      * @return boolean is ZIP support enabled
      */
     public function isZipSupportEnabled()

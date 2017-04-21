@@ -100,8 +100,8 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             }
             return true;
         }
-        
-		return false;
+
+        return false;
     }
 
     /**
@@ -146,8 +146,8 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                     ->where(['type' => Folder::TYPE_FOLDER_ROOT])
                     ->one();
         }
-        
-		return $this->_rootFolder;
+
+        return $this->_rootFolder;
     }
 
     protected function getAllPostedFilesFolder()
@@ -160,8 +160,8 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                     ])
                     ->one();
         }
-        
-		return $this->_allPostedFilesFolder;
+
+        return $this->_allPostedFilesFolder;
     }
 
     /**
@@ -177,14 +177,14 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             $crumb[] = $parent;
             $parent = $parent->parentFolder;
         } while ($parent != null);
-        
-		return array_reverse($crumb);
+
+        return array_reverse($crumb);
     }
 
     /**
      * Generate the maximum depth directory structure originating from a given folder id.
      *
-     * @param int $parentId            
+     * @param int $parentId
      * @return array [['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ...]
      */
     protected function getFolderList($parentId = self::ROOT_ID, $orderBy = NULL)
