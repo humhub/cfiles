@@ -1,11 +1,12 @@
-<?php 
-use yii\helpers\Html; 
+<?php
+
+use yii\helpers\Html;
 use humhub\compat\CActiveForm;
 ?>
 
 <div class="modal-dialog modal-dialog-small animated fadeIn">
     <div class="modal-content">
-        <?php $form=CActiveForm::begin(); ?>
+        <?php $form = CActiveForm::begin(); ?>
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h4 class="modal-title" id="myModalLabel">
@@ -17,7 +18,7 @@ use humhub\compat\CActiveForm;
             <br />
             <?php echo Yii::t('CfilesModule.base', 'Do you really want to delete this %number% item(s) with all subcontent?', ['%number%' => count($selectedItems)]); ?>
         </div>
-        
+
         <?php
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $index => $item) {
@@ -27,7 +28,7 @@ use humhub\compat\CActiveForm;
         ?>
 
         <div class="modal-footer">
-            <?php 
+            <?php
             // FIXME: v1.2 deprecated, delete if no longer needed
 //             echo \humhub\widgets\AjaxButton::widget([
 //                     'label' => Yii::t('CfilesModule.base', 'Delete'),
@@ -46,19 +47,21 @@ use humhub\compat\CActiveForm;
 //                 ]); 
             ?>
             <a href="#" class="btn btn-primary"
-                data-action-click="cfiles.deleteFiles"
-                data-action-url="<?= $contentContainer->createUrl('/cfiles/delete', [
-                    'fid' => $currentFolder->id,
-                    'confirm' => true,
-                ]) ?>">
-                <?= Yii::t('CfilesModule.base', 'Delete'); ?>
+               data-action-click="cfiles.deleteFiles"
+               data-action-url="<?=
+               $contentContainer->createUrl('/cfiles/delete', [
+                   'fid' => $currentFolder->id,
+                   'confirm' => true,
+               ])
+               ?>">
+                   <?= Yii::t('CfilesModule.base', 'Delete'); ?>
             </a>
             <button type="button" class="btn btn-primary"
-                data-dismiss="modal">
-                <?php echo Yii::t( 'CfilesModule.base', 'Close'); ?>
+                    data-dismiss="modal">
+                        <?php echo Yii::t('CfilesModule.base', 'Close'); ?>
             </button>
 
         </div>
-        <?php CActiveForm::end()?>
+        <?php CActiveForm::end() ?>
     </div>
 </div>

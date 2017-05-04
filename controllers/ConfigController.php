@@ -5,6 +5,7 @@
  * @copyright Copyright (c) 2015 HumHub GmbH & Co. KG
  * @license https://www.humhub.com/licences
  */
+
 namespace humhub\modules\cfiles\controllers;
 
 use Yii;
@@ -27,14 +28,15 @@ class ConfigController extends \humhub\modules\admin\components\Controller
     public function actionIndex()
     {
         $form = new ConfigureForm();
-        $form->disableZipSupport = Setting::Get('disableZipSupport', 'cfiles');
-        
+        $form->disableZipSupport = !$this->module->isZipSupportEnabled();
+
         if ($form->load(Yii::$app->request->post()) && $form->validate()) {
             Setting::Set('disableZipSupport', $form->disableZipSupport, 'cfiles');
         }
-        
+
         return $this->render('index', array('model' => $form));
     }
+
 }
 
 ?>

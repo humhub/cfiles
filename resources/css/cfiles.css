@@ -32,9 +32,8 @@
   direction: ltr;
   cursor: pointer;
 }
+
 .panel .panel-body .files-action-menu .btn {
-  width: 100%;
-  padding: 8px 16px !important;
   font-size: 1em !important;
   font-weight: normal !important;
 }
@@ -51,7 +50,7 @@
   background-color: #286090 !important;
 }
 .panel .panel-body .files-action-menu .btn-group {
-  width: 100%;
+ 
 }
 .panel .panel-body .files-action-menu .btn-group .split-toggle {
   width: auto !important;
@@ -74,7 +73,7 @@
 .panel .panel-body .files-action-menu .dropdown-menu {
   padding: 0;
   margin: 0;
-  width: 100%;
+  min-width: 100%;
 }
 .panel .panel-body .files-action-menu .dropdown-menu li {
   padding: 0;
@@ -144,6 +143,25 @@
   margin-top: 2px;
   margin-bottom: 2px;
 }
+
+#bs-table.table>thead>tr>th, 
+#bs-table.table>tbody>tr>th, 
+#bs-table.table>tfoot>tr>th, 
+#bs-table.table>thead>tr>td, 
+#bs-table.table>tbody>tr>td, 
+#bs-table.table>tfoot>tr>td {
+  padding: 10px 5px 5px 5px;
+}
+
+#bs-table.table>thead>tr>th label, 
+#bs-table.table>tbody>tr>th label, 
+#bs-table.table>tfoot>tr>th label, 
+#bs-table.table>thead>tr>td label, 
+#bs-table.table>tbody>tr>td label, 
+#bs-table.table>tfoot>tr>td label {
+  margin-bottom: 0px;
+}
+
 @media (max-width: 419px) {
   .hidden-xxs {
     display: none !important;

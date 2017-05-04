@@ -10,14 +10,7 @@ namespace humhub\modules\cfiles\controllers;
 
 use Yii;
 use yii\web\HttpException;
-use yii\web\UploadedFile;
-use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\content\models\Content;
-use humhub\modules\content\components\ContentActiveRecord;
-use humhub\modules\comment\models\Comment;
-use yii\helpers\FileHelper;
-use humhub\models\Setting;
 
 /**
  * Description of BrowseController
@@ -33,38 +26,21 @@ class DeleteController extends BrowseController
      */
     public function actionIndex()
     {
-        if(!$this->canWrite()) {
+        if (!$this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
+        
         $selectedItems = Yii::$app->request->post('selected');
-        if(!Yii::$app->request->get('confirm')) {
-            return $this->renderPartial('modal_delete', [
-                'contentContainer' => $this->contentContainer,
-                'selectedItems' => $selectedItems,
-                'currentFolder' => $this->getCurrentFolder(),
-                ]);
-        }
+        
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
-                $item = $this->module->getItemById($itemId);
-                if ($this->isDeletable($item)) {
+                $item = \humhub\modules\cfiles\models\FileSystemItem::getItemById($itemId);
+                if ($item && $item->isDeletable()) {
                     $item->delete();
                 }
             }
         }
 
         return $this->renderFileList();
-    }
-    
-    private function isDeletable($item) {
-        if($item === null) {
-            return false;
-        }
-        if($item instanceof Folder) {
-            if($item->isRoot() || $item->isAllPostedFiles()) {
-                return false;
-            }
-        }
-        return true;
     }
 }

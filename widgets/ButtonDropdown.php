@@ -1,9 +1,11 @@
 <?php
+
 /**
  * @link http://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
  * @license http://www.yiiframework.com/license/
  */
+
 namespace humhub\modules\cfiles\widgets;
 
 use yii\helpers\ArrayHelper;
@@ -78,7 +80,7 @@ class ButtonDropdown extends Widget
         ]);
         $options = $this->containerOptions;
         $tag = ArrayHelper::remove($options, 'tag', 'div');
-        
+
         $this->registerPlugin('button');
         return implode("\n", [
             Html::beginTag($tag, $options),
@@ -97,7 +99,7 @@ class ButtonDropdown extends Widget
     {
         $button = '';
         $splitButton = '';
-        
+
         if (is_string($this->button)) {
             $button = $this->button;
         } else {
@@ -109,19 +111,19 @@ class ButtonDropdown extends Widget
                 ]);
             } else {
                 Html::addCssClass($options, [
-                'widget' => 'btn',
-                'class' => 'split-button'
-                    ]);
+                    'widget' => 'btn',
+                    'class' => 'split-button'
+                ]);
             }
             $label = isset($this->button['label']) ? $this->button['label'] : null;
             $button = Button::widget([
-                'label' => (isset($this->button['encodeLabel']) && $this->button['encodeLabel'] ? Html::encode($label) : $label) . '  <span class="caret"></span>',
-                'encodeLabel' => false,
-                'options' => $options,
-                'view' => $this->getView()
+                        'label' => (isset($this->button['encodeLabel']) && $this->button['encodeLabel'] ? Html::encode($label) : $label) . '  <span class="caret"></span>',
+                        'encodeLabel' => false,
+                        'options' => $options,
+                        'view' => $this->getView()
             ]);
-         }
-        if (! empty($this->splitButton)) {
+        }
+        if (!empty($this->splitButton)) {
             if (is_string($this->splitButton)) {
                 $splitButton = $this->splitButton;
             } else {
@@ -135,10 +137,10 @@ class ButtonDropdown extends Widget
                     'class' => 'split-toggle'
                 ]);
                 $splitButton = Button::widget([
-                    'label' => isset($this->splitButton['label']) ? $this->splitButton['label'] : '<span class="caret"></span>',
-                    'encodeLabel' => false,
-                    'options' => $options,
-                    'view' => $this->getView()
+                            'label' => isset($this->splitButton['label']) ? $this->splitButton['label'] : '<span class="caret"></span>',
+                            'encodeLabel' => false,
+                            'options' => $options,
+                            'view' => $this->getView()
                 ]);
             }
         }
@@ -155,7 +157,8 @@ class ButtonDropdown extends Widget
         $config = $this->dropdown;
         $config['clientOptions'] = false;
         $config['view'] = $this->getView();
-        
+
         return Dropdown::widget($config);
     }
+
 }

@@ -9,17 +9,18 @@ use humhub\modules\content\components\ContentContainerModule;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\File;
-use humhub\modules\content\models\Content;
 use yii\helpers\Url;
 
 class Module extends ContentContainerModule
 {
 
+    public $resourcesPath = 'resources';
+
     const ALL_POSTED_FILES_TITLE = 'Files from the stream';
     const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';
     const ROOT_TITLE = 'Root';
     const ROOT_DESCRIPTION = 'The root folder is the entry point that contains all available files.';
-    
+
     /**
      * @inheritdoc
      */
@@ -38,35 +39,17 @@ class Module extends ContentContainerModule
     {
         if ($contentContainer instanceof Space) {
             return [
-                new permissions\WriteAccess()
+                new permissions\WriteAccess(),
+                new permissions\ManageFiles(),
             ];
         }
 
         return [];
     }
 
-    public function getItemById($itemId)
-    {
-        $params = explode('_', $itemId);
-        if(sizeof($params) < 2) return null;
-        list ($type, $id) = explode('_', $itemId);
-
-        if ($type == 'file') {
-            return models\File::findOne([
-                        'id' => $id
-            ]);
-        } elseif ($type == 'folder') {
-            return models\Folder::findOne([
-                        'id' => $id
-            ]);
-        } elseif ($type == 'baseFile') {
-            return \humhub\modules\file\models\File::findOne([
-                        'id' => $id
-            ]);
-        }
-        return null;
-    }
-
+    /**
+     * @inheritdoc
+     */
     public function disable()
     {
         foreach (Folder::find()->all() as $key => $folder) {
@@ -78,6 +61,9 @@ class Module extends ContentContainerModule
         parent::disable();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function disableContentContainer(ContentContainerActiveRecord $container)
     {
 
@@ -117,15 +103,31 @@ class Module extends ContentContainerModule
     public function getConfigUrl()
     {
         return Url::to([
-            '/cfiles/config'
+                    '/cfiles/config'
         ]);
     }
-    
+
+    /**
+     * Loads user by given ID (Helper)
+     * 
+     * @param int $id the user id
+     * @return User|null the user
+     */
     public static function getUserById($id)
     {
-        return User::findOne([
-            'id' => $id
-        ]);
+        return User::findOne(['id' => $id]);
+    }
+
+    /**
+     * Determines ZIP Support is enabled or not
+     * 
+     * @return boolean is ZIP support enabled
+     */
+    public function isZipSupportEnabled()
+    {
+        $zipEnabled = !$this->settings->get('disableZipSupport');
+
+        return $zipEnabled;
     }
 
 }

@@ -3,7 +3,6 @@
 namespace humhub\modules\cfiles;
 
 use Yii;
-use humhub\modules\content\widgets\DeleteLink;
 
 /**
  * Description of WikiEvents
@@ -38,5 +37,6 @@ class Events extends \yii\base\Object
                 ));
             }
         }
-    }    
+    }
+
 }

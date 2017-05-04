@@ -10,21 +10,15 @@ namespace humhub\modules\cfiles\controllers;
 
 use Yii;
 use yii\web\HttpException;
-use yii\web\UploadedFile;
-use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\content\models\Content;
-use humhub\modules\content\components\ContentActiveRecord;
-use humhub\modules\comment\models\Comment;
-use yii\helpers\FileHelper;
-use humhub\models\Setting;
 
 /**
  * Description of BrowseController
  *
  * @author luke, Sebastian Stumpf
  */
-class MoveController extends BaseController {
+class MoveController extends BaseController
+{
 
     /**
      * Action to move files and folders from the current, to another folder.
@@ -32,7 +26,7 @@ class MoveController extends BaseController {
      */
     public function actionIndex()
     {
-        if(!$this->canWrite()) {
+        if (!$this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
         $folder = $this->getCurrentFolder();
@@ -57,7 +51,7 @@ class MoveController extends BaseController {
         }
         if (is_array($selectedItems) && !empty($selectedItems)) {
             foreach ($selectedItems as $itemId) {
-                $item = $this->module->getItemById($itemId);
+                $item = \humhub\modules\cfiles\models\FileSystemItem::getItemById($itemId);
                 if ($item !== null) {
                     if ($item->parent_folder_id == $destFolderId) {
                         $errorMsgs[] = Yii::t('CfilesModule.base', 'Moving to the same folder is not valid. Choose a valid parent folder for %title%.', [
@@ -99,6 +93,8 @@ class MoveController extends BaseController {
             foreach ($selectedDatabaseItems as $item) {
                 $item->save();
             }
+            
+            $this->view->saved();
             return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse', [
                                 'fid' => $destFolderId
             ]));

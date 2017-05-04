@@ -12,12 +12,6 @@ use Yii;
 use yii\web\HttpException;
 use yii\web\UploadedFile;
 use humhub\modules\cfiles\models\File;
-use humhub\modules\cfiles\models\Folder;
-use humhub\modules\content\models\Content;
-use humhub\modules\content\components\ContentActiveRecord;
-use humhub\modules\comment\models\Comment;
-use yii\helpers\FileHelper;
-use humhub\models\Setting;
 
 /**
  * Description of BrowseController
@@ -31,13 +25,14 @@ class UploadController extends BrowseController
 
     /**
      * Action to upload multiple files.
+     *
      * @return multitype:boolean multitype:
      */
     public function actionIndex()
     {
         Yii::$app->response->format = 'json';
-        
-        if(!$this->canWrite()) {
+
+        if (!$this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
 
@@ -49,7 +44,8 @@ class UploadController extends BrowseController
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
 
             // check if the file already exists in this dir
-            $filesQuery = File::find()->contentContainer($this->contentContainer)->joinWith('baseFile')
+            $filesQuery = File::find()->contentContainer($this->contentContainer)
+                    ->joinWith('baseFile')
                     ->readable()
                     ->andWhere([
                 // TODO: sanitize filename??? old function wil no longer work
@@ -62,8 +58,7 @@ class UploadController extends BrowseController
             if (empty($file)) {
                 $file = new File();
                 $humhubFile = new \humhub\modules\file\models\FileUpload();
-            }             // else replace the existing file
-            else {
+            } else {
                 $humhubFile = $file->baseFile;
                 // logging file replacement
                 $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
@@ -85,14 +80,15 @@ class UploadController extends BrowseController
                 if ($file->save()) {
                     $humhubFile->object_model = $file->className();
                     $humhubFile->object_id = $file->id;
+                    $humhubFile->show_in_stream = false;
+
                     $humhubFile->save();
                     $searchFile = File::findOne([
-                        'id' => $file->id
-                        ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
+                                'id' => $file->id
+                    ]); // seach index update does not work if file is not loaded from db again.. Caching problem??
                     Yii::$app->search->update($searchFile); // update index with title
-                    $this->files[] = array_merge($humhubFile->getInfoArray(), [
-                        'fileList' => $this->renderFileList()
-                    ]);
+
+                    $this->files[] = $humhubFile->getInfoArray();
                 } else {
                     $count = 0;
                     $messages = "";
@@ -100,9 +96,7 @@ class UploadController extends BrowseController
                     foreach ($file->errors as $key => $message) {
                         $messages .= ($count ++ ? ' | ' : '') . $message[0];
                     }
-                    $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', [
-                                '%title%' => $file->title
-                            ]) . $messages;
+                    $response['errormessages'][] = Yii::t('CfilesModule.base', 'Could not save file %title%. ', ['%title%' => $file->title]) . $messages;
                     $response['log'] = true;
                 }
             } else {
@@ -120,6 +114,38 @@ class UploadController extends BrowseController
         }
 
         $response['files'] = $this->files;
+        $response['fileList'] = $this->renderFileList();
         return $response;
     }
+
+    public function actionImport()
+    {
+        if (!$this->canWrite()) {
+            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
+        }
+
+        $fid = Yii::$app->request->get('fid');
+
+        $guids = Yii::$app->request->post('guids');
+        
+        //check if this guid is already taken
+        
+        $file = new File(['parent_folder_id' => $fid]);
+        $file->content->container = $this->contentContainer;
+        
+        if($file->save()) {
+            $file->fileManager->attach($guids);
+            
+            foreach ($file->fileManager->findAll() as $baseFile) {
+                $baseFile->show_in_stream = false;
+                $baseFile->save();
+            }
+            
+        }
+        
+        return $this->asJson([
+            'success' => true
+        ]);
+    }
+
 }

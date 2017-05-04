@@ -1,54 +1,29 @@
-<?php use yii\helpers\Html; use humhub\compat\CActiveForm; ?>
+<?php
 
-<div class="content_edit" id="cfiles_edit_file_<?php echo $file->id;?>">
-    <div class="modal-dialog modal-dialog-small animated fadeIn">
-        <div class="modal-content">
-            <?php $form=CActiveForm::begin(); ?>
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"
-                    aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">
-                    <?php echo Yii::t('CfilesModule.base', '<strong>Edit</strong> file'); ?>
-                </h4>
-            </div>
 
-            <div class="modal-body">
-                <br />
-                <?php echo $form->field($file, 'description'); ?>
-            </div>
+use humhub\compat\CActiveForm;
+?>
 
-            <div class="modal-footer">
-                <?php
-                
-                // echo \humhub\widgets\AjaxButton::widget([
-                // 'label' => Yii::t('CfilesModule.base', 'Save'),
-                // 'ajaxOptions' => [
-                // 'type' => 'POST',
-                // 'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
-                // 'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'),
-                // 'url' => $contentContainer->createUrl('/cfiles/edit/file', [
-                // 'fid' => $currentFolderId,
-                // 'id' => $file->getItemId(),
-                // 'fromWall' => $fromWall
-                // ])
-                // ],
-                // 'htmlOptions' => [
-                // 'class' => 'btn btn-primary'
-                // ]
-                // ]);
-                ?>
-                 <a href="#" class="btn btn-primary"
-                    data-action-click="cfiles.editFiles"
-                    data-action-url="<?=$contentContainer->createUrl('/cfiles/edit/file', ['fid' => $currentFolderId,'id' => $file->getItemId(),'fromWall' => $fromWall])?>">
-                    <?= Yii::t('CfilesModule.base', 'Save'); ?>
-                </a>
-                <button type="button" class="btn btn-primary"
-                    data-dismiss="modal">
-                    <?php echo Yii::t( 'CfilesModule.base', 'Close'); ?>
-                </button>
+<?php \humhub\widgets\ModalDialog::begin([
+    'header' =>  Yii::t('CfilesModule.base', '<strong>Edit</strong> file'),
+    'animation' => 'fadeIn',
+    'size' => 'small']) ?>
 
-            </div>
-            <?php CActiveForm::end()?>
+    <?php $form = CActiveForm::begin(); ?>
+
+        <div class="modal-body">
+            <?= $form->field($file, 'description'); ?>
         </div>
-    </div>
-</div>
+
+        <div class="modal-footer">
+            <button href="#" class="btn btn-primary" data-action-click="ui.modal.submit" data-ui-loader type="submit"
+               data-action-url="<?= $contentContainer->createUrl('/cfiles/edit/file', ['fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => $fromWall]) ?>">
+                   <?= Yii::t('CfilesModule.base', 'Save'); ?>
+            </button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal">
+                <?= Yii::t('CfilesModule.base', 'Close'); ?>
+            </button>
+        </div>
+    <?php CActiveForm::end() ?>
+
+<?php \humhub\widgets\ModalDialog::end() ?>
