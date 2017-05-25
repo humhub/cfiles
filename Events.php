@@ -33,6 +33,7 @@ class Events extends \yii\base\Object
                 $event->sender->addItem(array(
                     'label' => Yii::t('CfilesModule.base', 'Files'),
                     'url' => $event->sender->user->createUrl('/cfiles/browse'),
+                    'icon' => '<i class="fa fa-files-o"></i>',
                     'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
                 ));
             }
