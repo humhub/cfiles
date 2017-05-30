@@ -2,7 +2,7 @@
 
 /**
  * @link https://www.humhub.org/
- * @copyright Copyright (c) 2015 HumHub GmbH & Co. KG
+ * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
  * @license https://www.humhub.com/licences
  */
 
@@ -31,20 +31,19 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     private $_rootFolder = null;
     private $_allPostedFilesFolder = null;
     public $hideSidebar = true;
-    public $errorMessages = array();
+    public $errorMessages = [];
 
     public function beforeAction($action)
     {
-
         if (parent::beforeAction($action)) {
             $newRoot = false;
             // create default folders
             if ($this->getRootFolder() == null) {
                 $this->_rootFolder = new Folder();
                 $this->_rootFolder->type = Folder::TYPE_FOLDER_ROOT;
-                $this->_rootFolder->title = Module::ROOT_TITLE;
+                $this->_rootFolder->title = Yii::t('CfilesModule.base', 'Root');
                 $this->_rootFolder->content->container = $this->contentContainer;
-                $this->_rootFolder->description = Module::ROOT_DESCRIPTION;
+                $this->_rootFolder->description = Yii::t('CfilesModule.base', 'The root folder is the entry point that contains all available files.');
                 $this->_rootFolder->save();
                 $newRoot = true;
                 // update creator of root folder, which should not be the random currently logged in user
@@ -57,8 +56,8 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             if ($this->getAllPostedFilesFolder() == null) {
                 $this->_allPostedFilesFolder = new Folder();
                 $this->_allPostedFilesFolder->type = Folder::TYPE_FOLDER_POSTED;
-                $this->_allPostedFilesFolder->title = Module::ALL_POSTED_FILES_TITLE;
-                $this->_allPostedFilesFolder->description = Module::ALL_POSTED_FILES_DESCRIPTION;
+                $this->_allPostedFilesFolder->title = Yii::t('CfilesModule.base', 'Files from the stream');
+                $this->_allPostedFilesFolder->description = Yii::t('CfilesModule.base', 'You can find all files that have been posted to this stream here.');
                 $this->_allPostedFilesFolder->content->container = $this->contentContainer;
                 $this->_allPostedFilesFolder->parent_folder_id = $this->_rootFolder->id;
                 $this->_allPostedFilesFolder->save();
@@ -101,6 +100,7 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             }
             return true;
         }
+
         return false;
     }
 
@@ -126,9 +126,7 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                 default:
                     $this->_currentFolder = Folder::find()->contentContainer($this->contentContainer)
                             ->readable()
-                            ->where([
-                                'cfiles_folder.id' => $folderId
-                            ])
+                            ->where(['cfiles_folder.id' => $folderId])
                             ->one();
                     if ($this->_currentFolder === null) {
                         throw new HttpException(500, Yii::t('CfilesModule.base', 'An internal error occurred. Could not find folder with id: %id%', [
@@ -145,11 +143,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     {
         if ($this->_rootFolder === null) {
             $this->_rootFolder = Folder::find()->contentContainer($this->contentContainer)
-                    ->where([
-                        'type' => Folder::TYPE_FOLDER_ROOT
-                    ])
+                    ->where(['type' => Folder::TYPE_FOLDER_ROOT])
                     ->one();
         }
+
         return $this->_rootFolder;
     }
 
@@ -163,6 +160,7 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                     ])
                     ->one();
         }
+
         return $this->_allPostedFilesFolder;
     }
 
@@ -179,22 +177,21 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             $crumb[] = $parent;
             $parent = $parent->parentFolder;
         } while ($parent != null);
+
         return array_reverse($crumb);
     }
 
     /**
      * Generate the maximum depth directory structure originating from a given folder id.
      *
-     * @param int $parentId            
+     * @param int $parentId
      * @return array [['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ...]
      */
     protected function getFolderList($parentId = self::ROOT_ID, $orderBy = NULL)
     {
         // set default value
         if (!$orderBy)
-            $orderBy = [
-                'title' => SORT_ASC
-            ];
+            $orderBy = ['title' => SORT_ASC];
 
         // map 0 to this containers root folder id
         if ($parentId === self::ROOT_ID) {
@@ -208,11 +205,8 @@ abstract class BaseController extends \humhub\modules\content\components\Content
         // do not return any subfolders here that are root or allpostedfiles
         $foldersQuery->andWhere([
             'or',
-            [
-                'cfiles_folder.type' => null
-            ],
-            [
-                'and',
+            ['cfiles_folder.type' => null],
+            ['and',
                 [
                     '<>',
                     'cfiles_folder.type',
@@ -250,14 +244,10 @@ abstract class BaseController extends \humhub\modules\content\components\Content
     {
         // set default value
         if (!$filesOrder) {
-            $filesOrder = [
-                'title' => SORT_ASC
-            ];
+            $filesOrder = ['title' => SORT_ASC];
         }
         if (!$foldersOrder) {
-            $foldersOrder = [
-                'title' => SORT_ASC
-            ];
+            $foldersOrder = ['title' => SORT_ASC];
         }
 
         $filesQuery = File::find()->joinWith('baseFile')
@@ -265,21 +255,14 @@ abstract class BaseController extends \humhub\modules\content\components\Content
                 ->readable();
         $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
         $specialFoldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
-        $filesQuery->andWhere([
-            'cfiles_file.parent_folder_id' => $this->getCurrentFolder()->id
-        ]);
+        $filesQuery->andWhere(['cfiles_file.parent_folder_id' => $this->getCurrentFolder()->id]);
         // user maintained folders
-        $foldersQuery->andWhere([
-            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
-        ]);
+        $foldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id]);
         // do not return any folders here that are root or allpostedfiles
         $foldersQuery->andWhere([
             'or',
-            [
-                'cfiles_folder.type' => null
-            ],
-            [
-                'and',
+            ['cfiles_folder.type' => null],
+            ['and',
                 [
                     '<>',
                     'cfiles_folder.type',
@@ -293,9 +276,7 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             ]
         ]);
         // special default folders like the allposted files folder
-        $specialFoldersQuery->andWhere([
-            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
-        ]);
+        $specialFoldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id]);
         $specialFoldersQuery->andWhere([
             'is not',
             'cfiles_folder.type',

@@ -17,7 +17,7 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Description for the wall entry.' => '',
+    'Description' => '',
     'Parent Folder ID' => '',
     'Title' => 'Titolo',
 ];
