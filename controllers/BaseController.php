@@ -42,9 +42,9 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             if ($this->getRootFolder() == null) {
                 $this->_rootFolder = new Folder();
                 $this->_rootFolder->type = Folder::TYPE_FOLDER_ROOT;
-                $this->_rootFolder->title = Module::ROOT_TITLE;
+                $this->_rootFolder->title = Yii::t('CfilesModule.base', 'Root');
                 $this->_rootFolder->content->container = $this->contentContainer;
-                $this->_rootFolder->description = Module::ROOT_DESCRIPTION;
+                $this->_rootFolder->description = Yii::t('CfilesModule.base', 'The root folder is the entry point that contains all available files.');
                 $this->_rootFolder->save();
                 $newRoot = true;
                 // update creator of root folder, which should not be the random currently logged in user
@@ -57,8 +57,8 @@ abstract class BaseController extends \humhub\modules\content\components\Content
             if ($this->getAllPostedFilesFolder() == null) {
                 $this->_allPostedFilesFolder = new Folder();
                 $this->_allPostedFilesFolder->type = Folder::TYPE_FOLDER_POSTED;
-                $this->_allPostedFilesFolder->title = Module::ALL_POSTED_FILES_TITLE;
-                $this->_allPostedFilesFolder->description = Module::ALL_POSTED_FILES_DESCRIPTION;
+                $this->_allPostedFilesFolder->title = Yii::t('CfilesModule.base', 'Files from the stream');
+                $this->_allPostedFilesFolder->description = Yii::t('CfilesModule.base', 'You can find all files that have been posted to this stream here.');
                 $this->_allPostedFilesFolder->content->container = $this->contentContainer;
                 $this->_allPostedFilesFolder->parent_folder_id = $this->_rootFolder->id;
                 $this->_allPostedFilesFolder->save();
