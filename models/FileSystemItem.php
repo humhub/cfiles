@@ -43,6 +43,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         return parent::afterSave($insert, $changedAttributes);
     }
 
+    public function hasAttributeChanged($attributeName)
+    {
+        return $this->hasAttribute($attributeName) && ($this->isNewRecord || $this->getOldAttribute($attributeName) != $this->$attributeName);
+    }
+    
     /**
      * @inheritdoc
      */

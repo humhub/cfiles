@@ -87,7 +87,7 @@ class Folder extends FileSystemItem
      */
     public function uniqueTitle($attribute, $params, $validator)
     {
-        if (!$this->hasTitleChanged()) {
+        if (!($this->hasAttributeChanged('title') || $this->hasAttributeChanged('parent_folder_id'))) {
             return;
         }
 
@@ -97,7 +97,7 @@ class Folder extends FileSystemItem
         ]);
 
         if (!empty($query->one())) {
-            $this->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
+            $this->addError('title', \Yii::t('CfilesModule.base', 'A folder named "%title%" already exists in this directory.', ['%title%' => $this->title]));
         }
     }
 
@@ -124,11 +124,6 @@ class Folder extends FileSystemItem
     public function getFolders()
     {
         return $this->hasMany(Folder::className(), ['parent_folder_id' => 'id'])->orderBy(['title' => SORT_ASC]);
-    }
-
-    public function hasTitleChanged()
-    {
-        return $this->isNewRecord || $this->getOldAttribute('title') != $this->title;
     }
 
     public function beforeDelete()
