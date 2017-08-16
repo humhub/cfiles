@@ -43,14 +43,22 @@ class UploadController extends BrowseController
             $folder = $this->getCurrentFolder();
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
 
-            $file = File::getFileByName($cFile->name, $currentFolderId, $this->contentContainer);
-            if($file) {
-                $response['infomessages'][] = Yii::t('CfilesModule.base', 'A file named %title% already exists.', [
-                            '%title%' => $file->title
+            $counter = 0;
+            $parts = preg_split('~\.(?=[^\.]*$)~', $cFile->name);
+            $origName = $parts[0];
+            $ext = sizeof($parts) == 2 ? '.'.$parts[1] : '';
+            while (File::getFileByName($cFile->name, $currentFolderId, $this->contentContainer)) {
+                $cFile->name = $origName.'('.++$counter.')'.$ext;
+            }
+            
+            if($origName !== $cFile->name) {
+                $response['infomessages'][] = Yii::t('CfilesModule.base', 'A file %origTitle% existed and was renamed to %newTitle%.', [
+                            '%origTitle%' => $origName.$ext,
+                            '%newTitle%' => $cFile->name
                 ]);
                 $response['log'] = true;
-                continue;
-            } 
+            }
+            
             $file = new File();
             $humhubFile = new \humhub\modules\file\models\FileUpload();
             $humhubFile->setUploadedFile($cFile);
