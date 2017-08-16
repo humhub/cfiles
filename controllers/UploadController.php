@@ -43,30 +43,16 @@ class UploadController extends BrowseController
             $folder = $this->getCurrentFolder();
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
 
-            // check if the file already exists in this dir
-            $filesQuery = File::find()->contentContainer($this->contentContainer)
-                    ->joinWith('baseFile')
-                    ->readable()
-                    ->andWhere([
-                // TODO: sanitize filename??? old function wil no longer work
-                'file_name' => $cFile->name,
-                'parent_folder_id' => $currentFolderId
-            ]);
-            $file = $filesQuery->one();
-
-            // if not, initialize new File
-            if (empty($file)) {
-                $file = new File();
-                $humhubFile = new \humhub\modules\file\models\FileUpload();
-            } else {
-                $humhubFile = $file->baseFile;
-                // logging file replacement
-                $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
+            $file = File::getFileByName($cFile->name, $currentFolderId, $this->contentContainer);
+            if($file) {
+                $response['infomessages'][] = Yii::t('CfilesModule.base', 'A file named %title% already exists.', [
                             '%title%' => $file->title
                 ]);
                 $response['log'] = true;
-            }
-
+                continue;
+            } 
+            $file = new File();
+            $humhubFile = new \humhub\modules\file\models\FileUpload();
             $humhubFile->setUploadedFile($cFile);
             if ($humhubFile->validate()) {
 
@@ -76,7 +62,7 @@ class UploadController extends BrowseController
                 if ($folder !== null) {
                     $file->parent_folder_id = $folder->id;
                 }
-
+                
                 if ($file->save()) {
                     $humhubFile->object_model = $file->className();
                     $humhubFile->object_id = $file->id;

@@ -396,4 +396,19 @@ class File extends FileSystemItem
         return ['postedFiles' => $query->orderBy($filesOrder)->all()];
     }
 
+        /**
+     * @return file of given name in given parent folder
+     */
+    public static function getFileByName($name, $parentFolderId, $contentContainer)
+    {
+        $filesQuery = self::find()->contentContainer($contentContainer)
+                ->joinWith('baseFile')
+                ->readable()
+                ->andWhere([
+            'file_name' => $name,
+            'parent_folder_id' => $parentFolderId
+        ]);
+        return $filesQuery->one();
+    }
+    
 }
