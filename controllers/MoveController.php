@@ -71,6 +71,13 @@ class MoveController extends BaseController
                             $errorMsgs[] = $item->errors[$key][0];
                         }
                     }
+                    // check for duplicated files
+                    if($item instanceof \humhub\modules\cfiles\models\File) {
+                        $dup = \humhub\modules\cfiles\models\File::getFileByName($item->title, $destFolderId, $this->contentContainer);
+                        if($dup) {
+                            $errorMsgs[] = Yii::t('CfilesModule.base', 'A file named %title% already exists in the destination folder.', ['%title%' => $dup->title]);
+                        }
+                    }
                 }
             }
         } else {

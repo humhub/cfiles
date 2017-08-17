@@ -82,13 +82,20 @@ class EditController extends BrowseController
             return $this->renderAjaxContent($file->getWallOut());
         }
 
-        // if there is no folder with the same name, try to save the current folder
-        if ($file->load(Yii::$app->request->post()) && $file->save()) {
-            if ($fromWall) {
-                return $this->asJson(['success' => true]);
-            } else {
-                $this->view->saved();
-                return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $file->parent_folder_id]));
+        if ($file->baseFile->load(Yii::$app->request->post()) && $file->baseFile->validate()) {
+            // check for duplicate
+            $dup = File::getFileByName($file->baseFile->file_name, $file->parent_folder_id, $this->contentContainer);
+            if($dup && $dup->id !== $file->id) {
+                $file->baseFile->addErrors(['file_name' => Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.')]);
+            } 
+            // if there is no folder with the same name, try to save the current folder
+            elseif ($file->load(Yii::$app->request->post()) && $file->save()) {
+                if ($fromWall) {
+                    return $this->asJson(['success' => true]);
+                } else {
+                    $this->view->saved();
+                    return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $file->parent_folder_id]));
+                }
             }
         }
 

@@ -12,6 +12,7 @@ use humhub\compat\CActiveForm;
     <?php $form = CActiveForm::begin(); ?>
 
         <div class="modal-body">
+            <?= $form->field($file->baseFile, 'file_name'); ?>
             <?= $form->field($file, 'description'); ?>
         </div>
 

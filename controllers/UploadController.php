@@ -51,26 +51,24 @@ class UploadController extends BrowseController
 
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
 
-            // check if the file already exists in this dir
-            $filesQuery = File::find()->contentContainer($this->contentContainer)
-                    ->joinWith('baseFile')
-                    ->readable()
-                    // TODO: sanitize filename??? old function wil no longer work
-                    ->andWhere(['file_name' => $cFile->name, 'parent_folder_id' => $currentFolderId]);
-
-            $file = $filesQuery->one();
-
-            // if not, initialize new File
-            if (empty($file)) {
-                $file = new File();
-                $humhubFile = new FileUpload();
-            } else {
-                $humhubFile = $file->baseFile;
-                // logging file replacement
-                $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', ['%title%' => $file->title]);
+            $counter = 0;
+            $parts = preg_split('~\.(?=[^\.]*$)~', $cFile->name);
+            $origName = $parts[0];
+            $ext = sizeof($parts) == 2 ? '.'.$parts[1] : '';
+            while (File::getFileByName($cFile->name, $currentFolderId, $this->contentContainer)) {
+                $cFile->name = $origName.'('.++$counter.')'.$ext;
+            }
+            
+            if($origName !== $cFile->name) {
+                $response['infomessages'][] = Yii::t('CfilesModule.base', 'A file %origTitle% existed and was renamed to %newTitle%.', [
+                            '%origTitle%' => $origName.$ext,
+                            '%newTitle%' => $cFile->name
+                ]);
                 $response['log'] = true;
             }
-
+            
+                $file = new File();
+                $humhubFile = new FileUpload();
             $humhubFile->setUploadedFile($cFile);
             if ($humhubFile->validate()) {
 
@@ -80,7 +78,7 @@ class UploadController extends BrowseController
                 if ($folder !== null) {
                     $file->parent_folder_id = $folder->id;
                 }
-
+                
                 if ($file->save()) {
                     $humhubFile->object_model = $file->className();
                     $humhubFile->object_id = $file->id;
