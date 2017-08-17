@@ -1,12 +1,13 @@
 <?php
 
+use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
-use humhub\compat\CActiveForm;
 
 $header = ($folder->isNewRecord) 
         ? Yii::t('CfilesModule.base', '<strong>Create</strong> folder') 
         : Yii::t('CfilesModule.base', '<strong>Edit</strong> folder');
 
+$submitUrl = $contentContainer->createUrl('/cfiles/edit/folder', ['fid' => $currentFolderId, 'id' => $folder->getItemId()]);
 ?>
 
 <?php \humhub\widgets\ModalDialog::begin([
@@ -14,26 +15,18 @@ $header = ($folder->isNewRecord)
     'animation' => 'fadeIn',
     'size' => 'small']) ?>
 
-        <?php $form = CActiveForm::begin(); ?>
+        <?php $form = ActiveForm::begin(); ?>
             <div class="modal-body">
                 <br />
                 <?= $form->field($folder, 'title'); ?>
                 <?= $form->field($folder, 'description'); ?>
+                <?= $form->field($folder, 'visibility')->checkbox() ?>
             </div>
 
             <div class="modal-footer">
-                <button href="#" class="btn btn-primary"
-                   data-ui-loader
-                   data-action-click="ui.modal.submit"
-                   type="submit"
-                   data-action-url="<?= $contentContainer->createUrl('/cfiles/edit/folder', ['fid' => $currentFolderId, 'id' => $folder->getItemId()]) ?>">
-                       <?= Yii::t('CfilesModule.base', 'Save'); ?>
-                </button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal">
-                    <?= Yii::t('CfilesModule.base', 'Close'); ?>
-                </button>
-
+                <?= \humhub\widgets\ModalButton::submitModal($submitUrl)?>
+                <?= \humhub\widgets\ModalButton::cancel() ?>
             </div>
-        <?php CActiveForm::end() ?>
+        <?php ActiveForm::end() ?>
 
 <?php \humhub\widgets\ModalDialog::end() ?>

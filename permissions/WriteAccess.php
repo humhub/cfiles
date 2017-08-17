@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\permissions;
 
+use humhub\modules\user\models\User;
 use Yii;
 use humhub\modules\space\models\Space;
 
@@ -16,6 +17,10 @@ use humhub\modules\space\models\Space;
  */
 class WriteAccess extends \humhub\libs\BasePermission
 {
+    /**
+     * @inheritdoc
+     */
+    protected $moduleId = 'cfiles';
 
     /**
      * @inheritdoc
@@ -25,6 +30,7 @@ class WriteAccess extends \humhub\libs\BasePermission
         Space::USERGROUP_ADMIN,
         Space::USERGROUP_MODERATOR,
         Space::USERGROUP_MEMBER,
+        User::USERGROUP_SELF
     ];
 
     /**
@@ -32,13 +38,11 @@ class WriteAccess extends \humhub\libs\BasePermission
      */
     protected $fixedGroups = [
         Space::USERGROUP_USER,
-        Space::USERGROUP_GUEST
+        Space::USERGROUP_GUEST,
+        User::USERGROUP_SELF,
+        User::USERGROUP_GUEST,
+        User::USERGROUP_FRIEND,
     ];
-
-    /**
-     * @inheritdoc
-     */
-    protected $moduleId = 'cfiles';
 
     /**
      * @inheritdoc

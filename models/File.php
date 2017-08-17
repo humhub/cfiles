@@ -2,6 +2,8 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\file\handler\DownloadFileHandler;
+use humhub\modules\file\models\FileUpload;
 use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
@@ -16,12 +18,6 @@ use humhub\modules\content\models\Content;
  */
 class File extends FileSystemItem
 {
-
-    /**
-     * @inheritdoc
-     */
-    public $autoAddToWall = true;
-
     /**
      * @inheritdoc
      */
@@ -33,6 +29,30 @@ class File extends FileSystemItem
     public static function tableName()
     {
         return 'cfiles_file';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentName()
+    {
+        return Yii::t('CfilesModule.base', "File");
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentDescription()
+    {
+        return $this->getTitle();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getIcon()
+    {
+        return File::getIconClassByExt(strtolower($this->baseFile->getExtension()));
     }
 
     /**
@@ -75,16 +95,18 @@ class File extends FileSystemItem
         return $attributes;
     }
 
+    /**
+     * @return string
+     */
     public function getItemId()
     {
         return 'file_' . $this->id;
     }
 
-    public function getIconClass()
-    {
-        return File::getIconClassByExt(strtolower($this->baseFile->getExtension()));
-    }
-
+    /**
+     * @param string $ext file extension
+     * @return string icon css class for given extension
+     */
     public static function getIconClassByExt($ext)
     {
         if (in_array($ext, [
@@ -150,27 +172,18 @@ class File extends FileSystemItem
         return 'fa-file-o';
     }
 
+    /**
+     * @return string
+     */
     public function getItemType()
     {
         return File::getItemTypeByExt(strtolower($this->baseFile->getExtension()));
     }
 
     /**
-     * Make method from humhub\modules\file\models\File available.
-     *
-     * @param unknown $file_name            
-     * @return string
-     * TODO: check against changes in 1.2
-     * @deprecated will no longer work in 1.2
+     * @param $ext
+     * @return string string
      */
-    public static function sanitizeFilename($filename)
-    {
-        $file = new \humhub\modules\file\models\File();
-        $file->file_name = $filename;
-        $file->sanitizeFilename();
-        return $file->file_name;
-    }
-
     public static function getItemTypeByExt($ext)
     {
         if (in_array($ext, [
@@ -236,6 +249,9 @@ class File extends FileSystemItem
         return 'unknown';
     }
 
+    /**
+     * @return string file title (name)
+     */
     public function getTitle()
     {
         // needs to be checked cause used with uninitialized basefile by search index
@@ -246,6 +262,9 @@ class File extends FileSystemItem
         }
     }
 
+    /**
+     * @return int file size
+     */
     public function getSize()
     {
         return $this->baseFile->size;
@@ -264,19 +283,21 @@ class File extends FileSystemItem
         return $this->parentFolder->getUrl();
     }
 
+    /**
+     * @param bool $forceDownload forces a download for each file type instead of opening in browser
+     * @return string download url
+     */
     public function getDownloadUrl($forceDownload = false)
     {
-        return \humhub\modules\file\handler\DownloadFileHandler::getUrl($this->baseFile, $forceDownload);
+        return DownloadFileHandler::getUrl($this->baseFile, $forceDownload);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getEditUrl()
     {
         return $this->content->container->createUrl('/cfiles/edit/file', ['id' => $this->getItemId()]);
-    }
-
-    public static function getUserById($id)
-    {
-        return User::findOne(['id' => $id]);
     }
 
     /**
@@ -304,9 +325,10 @@ class File extends FileSystemItem
 
     public function getBaseFile()
     {
-        $query = $this->hasOne(\humhub\modules\file\models\FileUpload::className(), [
+        $query = $this->hasOne(FileUpload::className(), [
             'object_id' => 'id'
         ]);
+
         $query->andWhere([
             'file.object_model' => self::className()
         ]);
@@ -342,22 +364,6 @@ class File extends FileSystemItem
     public function getFullPath($separator = '/')
     {
         return $this->getPathFromId($this->id, false, $separator);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentName()
-    {
-        return Yii::t('CfilesModule.base', "File");
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentDescription()
-    {
-        return $this->getTitle();
     }
 
     /**

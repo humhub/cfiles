@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\file\models\FileUpload;
 use Yii;
 use yii\web\HttpException;
 use yii\web\UploadedFile;
@@ -20,8 +21,14 @@ use humhub\modules\cfiles\models\File;
  */
 class UploadController extends BrowseController
 {
+    public function getAccessRules()
+    {
+        return [
+            ['json']
+        ];
+    }
 
-    public $files = array();
+    public $files = [];
 
     /**
      * Action to upload multiple files.
@@ -30,8 +37,6 @@ class UploadController extends BrowseController
      */
     public function actionIndex()
     {
-        Yii::$app->response->format = 'json';
-
         if (!$this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
@@ -41,29 +46,28 @@ class UploadController extends BrowseController
         foreach (UploadedFile::getInstancesByName('files') as $cFile) {
 
             $folder = $this->getCurrentFolder();
+            $folder->addUploadedFile($cFile);
+
+
             $currentFolderId = empty($folder) ? self::ROOT_ID : $folder->id;
 
             // check if the file already exists in this dir
             $filesQuery = File::find()->contentContainer($this->contentContainer)
                     ->joinWith('baseFile')
                     ->readable()
-                    ->andWhere([
-                // TODO: sanitize filename??? old function wil no longer work
-                'file_name' => $cFile->name,
-                'parent_folder_id' => $currentFolderId
-            ]);
+                    // TODO: sanitize filename??? old function wil no longer work
+                    ->andWhere(['file_name' => $cFile->name, 'parent_folder_id' => $currentFolderId]);
+
             $file = $filesQuery->one();
 
             // if not, initialize new File
             if (empty($file)) {
                 $file = new File();
-                $humhubFile = new \humhub\modules\file\models\FileUpload();
+                $humhubFile = new FileUpload();
             } else {
                 $humhubFile = $file->baseFile;
                 // logging file replacement
-                $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', [
-                            '%title%' => $file->title
-                ]);
+                $response['infomessages'][] = Yii::t('CfilesModule.base', '%title% was replaced by a newer version.', ['%title%' => $file->title]);
                 $response['log'] = true;
             }
 
@@ -143,9 +147,7 @@ class UploadController extends BrowseController
             
         }
         
-        return $this->asJson([
-            'success' => true
-        ]);
+        return ['success' => true];
     }
 
 }

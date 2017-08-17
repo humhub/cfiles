@@ -1,0 +1,36 @@
+[01-Aug-2017 15:39:45 UTC] PHP Fatal error:  Cannot declare class GlobalCalendarCest, because the name is already in use in E:\codebase\humhub\modules\calendar\tests\codeception\acceptance\GlobalGuestCalendarCest.php on line 17
+[01-Aug-2017 15:49:17 UTC] PHP Warning:  array_merge(): Argument #2 is not an array in phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Extension.php on line 29
+[01-Aug-2017 15:49:17 UTC] PHP Fatal error:  Uncaught Error: Access to undeclared static property: tests\codeception\_support\HumHubExtension::$excludeActions in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php:164
+Stack trace:
+#0 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(145): Codeception\Lib\ModuleContainer->includeMethodAsAction(Object(tests\codeception\_support\HumHubExtension), Object(ReflectionMethod), NULL)
+#1 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(99): Codeception\Lib\ModuleContainer->getActionsForModule(Object(tests\codeception\_support\HumHubExtension), Array)
+#2 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\SuiteManager.php(67): Codeception\Lib\ModuleContainer->create('tests\\codecepti...')
+#3 phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Codecept.php(185): Codeception\SuiteManager->__construct(Obj in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php on line 164
+[01-Aug-2017 15:49:47 UTC] PHP Warning:  array_merge(): Argument #2 is not an array in phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Extension.php on line 29
+[01-Aug-2017 15:49:47 UTC] PHP Fatal error:  Uncaught Error: Access to undeclared static property: tests\codeception\_support\HumHubExtension::$excludeActions in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php:164
+Stack trace:
+#0 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(145): Codeception\Lib\ModuleContainer->includeMethodAsAction(Object(tests\codeception\_support\HumHubExtension), Object(ReflectionMethod), NULL)
+#1 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(99): Codeception\Lib\ModuleContainer->getActionsForModule(Object(tests\codeception\_support\HumHubExtension), Array)
+#2 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\SuiteManager.php(67): Codeception\Lib\ModuleContainer->create('tests\\codecepti...')
+#3 phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Codecept.php(185): Codeception\SuiteManager->__construct(Obj in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php on line 164
+[01-Aug-2017 15:50:02 UTC] PHP Warning:  array_merge(): Argument #2 is not an array in phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Extension.php on line 29
+[01-Aug-2017 15:50:02 UTC] PHP Fatal error:  Uncaught Error: Access to undeclared static property: tests\codeception\_support\HumHubExtension::$excludeActions in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php:164
+Stack trace:
+#0 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(145): Codeception\Lib\ModuleContainer->includeMethodAsAction(Object(tests\codeception\_support\HumHubExtension), Object(ReflectionMethod), NULL)
+#1 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(99): Codeception\Lib\ModuleContainer->getActionsForModule(Object(tests\codeception\_support\HumHubExtension), Array)
+#2 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\SuiteManager.php(67): Codeception\Lib\ModuleContainer->create('tests\\codecepti...')
+#3 phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Codecept.php(185): Codeception\SuiteManager->__construct(Obj in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php on line 164
+[01-Aug-2017 15:50:32 UTC] PHP Warning:  array_merge(): Argument #2 is not an array in phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Extension.php on line 29
+[01-Aug-2017 15:50:32 UTC] PHP Fatal error:  Uncaught Error: Access to undeclared static property: tests\codeception\_support\HumHubExtension::$excludeActions in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php:164
+Stack trace:
+#0 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(145): Codeception\Lib\ModuleContainer->includeMethodAsAction(Object(tests\codeception\_support\HumHubExtension), Object(ReflectionMethod), NULL)
+#1 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(99): Codeception\Lib\ModuleContainer->getActionsForModule(Object(tests\codeception\_support\HumHubExtension), Array)
+#2 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\SuiteManager.php(67): Codeception\Lib\ModuleContainer->create('tests\\codecepti...')
+#3 phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Codecept.php(185): Codeception\SuiteManager->__construct(Obj in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php on line 164
+[01-Aug-2017 15:51:32 UTC] PHP Warning:  array_merge(): Argument #2 is not an array in phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Extension.php on line 29
+[01-Aug-2017 15:51:32 UTC] PHP Fatal error:  Uncaught Error: Access to undeclared static property: tests\codeception\_support\HumHubExtension::$excludeActions in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php:164
+Stack trace:
+#0 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(145): Codeception\Lib\ModuleContainer->includeMethodAsAction(Object(tests\codeception\_support\HumHubExtension), Object(ReflectionMethod), NULL)
+#1 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php(99): Codeception\Lib\ModuleContainer->getActionsForModule(Object(tests\codeception\_support\HumHubExtension), Array)
+#2 E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\SuiteManager.php(67): Codeception\Lib\ModuleContainer->create('tests\\codecepti...')
+#3 phar://E:/codebase/tools/codeception/codecept.phar/src/Codeception/Codecept.php(185): Codeception\SuiteManager->__construct(Obj in E:\codebase\humhub\master\protected\vendor\codeception\codeception\src\Codeception\Lib\ModuleContainer.php on line 164

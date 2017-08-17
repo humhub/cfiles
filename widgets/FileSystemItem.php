@@ -69,7 +69,7 @@ class FileSystemItem extends \yii\base\Widget
         }
 
         if (!$this->iconClass) {
-            $this->iconClass = $this->item->getIconClass();
+            $this->iconClass = $this->item->getIcon();
         }
 
         if (!$this->title) {

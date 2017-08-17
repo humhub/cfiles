@@ -122,20 +122,6 @@ class FileUtils
     }
 
     /**
-     * Sanitize a filename.
-     *
-     * @param string $file_name            
-     * @return string
-     */
-    public static function sanitizeFilename($filename)
-    {
-        $file = new \humhub\modules\file\models\File();
-        $file->file_name = $filename;
-        $file->sanitizeFilename();
-        return $file->file_name;
-    }
-
-    /**
      * Get the extensions type.
      *
      * @param string $ext

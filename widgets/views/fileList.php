@@ -2,26 +2,27 @@
 
 use yii\helpers\Html;
 use humhub\modules\cfiles\widgets\FileSystemItem;
+
 ?>
 
 <?php if ($itemsInFolder) : ?>
     <div class="table-responsive">
         <table id="bs-table" class="table table-hover">
             <thead>
-                <tr>
-                    <?php if ($itemsSelectable): ?>
-                        <th class="text-center" style="width:38px;">
-                            <?= Html::checkbox('allchk', false, ['class' => 'allselect']); ?>
-                        </th>
-                    <?php endif; ?>
-                    <th class="text-left"><?= Yii::t('CfilesModule.base', 'Name'); ?></th>
-                    <th class="hidden-xs text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
-                    <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
-                    <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
-                        <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
-                    <?php endif; ?>
-                    <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
-                </tr>
+            <tr>
+                <?php if ($itemsSelectable): ?>
+                    <th class="text-center" style="width:38px;">
+                        <?= Html::checkbox('allchk', false, ['class' => 'allselect']); ?>
+                    </th>
+                <?php endif; ?>
+                <th class="text-left"><?= Yii::t('CfilesModule.base', 'Name'); ?></th>
+                <th class="hidden-xs text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
+                <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
+                    <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
+                <?php endif; ?>
+                <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
+            </tr>
             </thead>
 
             <?php foreach ((array_key_exists('specialFolders', $items) ? $items['specialFolders'] : []) as $specialFolder) : ?>
@@ -32,8 +33,8 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                     'socialActionsAvailable' => false,
                     'selectable' => false,
                     'item' => $specialFolder,
-                    'creator' => false, // do not display creator / editr of automatically generated folders
-                    'editor' => false, // do not display creator / editr of automatically generated folders
+                    'creator' => false, // do not display creator / editor of automatically generated folders
+                    'editor' => false, // do not display creator / editor of automatically generated folders
                     'updatedAt' => $specialFolder->isAllPostedFiles() ? "" : $specialFolder->content->updated_at, // do not display timestamp of all posted files folder      
                 ]);
                 ?>
@@ -69,12 +70,12 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                         'size',
                         'timestamp',
                         'creator'
-                            ] : [
+                    ] : [
                         'title',
                         'size',
                         'timestamp',
                         'creator'
-                            ],
+                    ],
                     'id' => 'baseFile_' . $file->id,
                     'downloadUrl' => $file->getUrl() . '&' . http_build_query(['download' => true]),
                     'url' => $file->getUrl(),
@@ -84,8 +85,8 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                     'iconClass' => \humhub\modules\cfiles\models\File::getIconClassByExt($file->getExtension()),
                     'title' => $file->file_name,
                     'size' => $file->size,
-                    'creator' => \humhub\modules\cfiles\models\File::getUserById($file->created_by),
-                    'editor' => \humhub\modules\cfiles\models\File::getUserById($file->updated_by),
+                    'creator' => $file->createdBy,
+                    'editor' => $file->createdBy,
                     'updatedAt' => $file->updated_at
                 ]);
                 ?>
@@ -93,7 +94,7 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
         </table>
     </div>
 <?php else : ?>
-    <br />
+    <br/>
     <div class="folderEmptyMessage">
         <div class="panel">
             <div class="panel-body">

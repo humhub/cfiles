@@ -9,7 +9,7 @@ use humhub\libs\Html;
     <?php if ($previewImage->applyFile($file)): ?>
         <?= $previewImage->renderGalleryLink(['style' => 'padding-right:12px']); ?>
     <?php else: ?>
-        <i class="fa <?= $cFile->getIconClass(); ?> fa-fw" style="font-size:40px"></i>
+        <i class="fa <?= $cFile->getIcon(); ?> fa-fw" style="font-size:40px"></i>
     <?php endif; ?>
 </div>
 

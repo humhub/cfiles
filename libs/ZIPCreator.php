@@ -136,7 +136,7 @@ class ZIPCreator
         if ($folder->isAllPostedFiles()) {
             // Special Handling for "Files from Stream" folder
             foreach (CFile::getPostedFiles($folder->content->container)['postedFiles'] as $baseFile) {
-                $baseFileName = CFile::getUserById($baseFile->created_by)->username . '_' . $baseFile->created_at . '_' . $baseFile->file_name;
+                $baseFileName = $baseFile->createdBy->username . '_' . $baseFile->created_at . '_' . $baseFile->file_name;
                 $this->addFile($baseFile, $path, $baseFileName);
             }
             return;

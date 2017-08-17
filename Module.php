@@ -16,11 +16,6 @@ class Module extends ContentContainerModule
 
     public $resourcesPath = 'resources';
 
-    const ALL_POSTED_FILES_TITLE = 'Files from the stream';
-    const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';
-    const ROOT_TITLE = 'Root';
-    const ROOT_DESCRIPTION = 'The root folder is the entry point that contains all available files.';
-
     /**
      * @inheritdoc
      */
@@ -105,17 +100,6 @@ class Module extends ContentContainerModule
         return Url::to([
                     '/cfiles/config'
         ]);
-    }
-
-    /**
-     * Loads user by given ID (Helper)
-     * 
-     * @param int $id the user id
-     * @return User|null the user
-     */
-    public static function getUserById($id)
-    {
-        return User::findOne(['id' => $id]);
     }
 
     /**

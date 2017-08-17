@@ -8,6 +8,8 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\content\models\Content;
 use Yii;
 use yii\web\HttpException;
 use humhub\modules\cfiles\models\File;
@@ -26,13 +28,13 @@ class EditController extends BrowseController
      *
      * @return string
      */
-    public function actionFolder()
+    public function actionFolder($visibility = Content::VISIBILITY_PRIVATE)
     {
         if (!$this->canWrite()) {
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
 
-        $folder = \humhub\modules\cfiles\models\FileSystemItem::getItemById(Yii::$app->request->get('id'));
+        $folder = FileSystemItem::getItemById(Yii::$app->request->get('id'));
 
         if (Yii::$app->request->get('cancel')) {
             return $this->renderAjaxContent($folder->getWallOut());
@@ -69,7 +71,7 @@ class EditController extends BrowseController
         }
 
         $fromWall = Yii::$app->request->get('fromWall');
-        $file = \humhub\modules\cfiles\models\FileSystemItem::getItemById(Yii::$app->request->get('id'));
+        $file = FileSystemItem::getItemById(Yii::$app->request->get('id'));
 
         // if not return cause this should not happen
         if (empty($file) || !($file instanceof File)) {
