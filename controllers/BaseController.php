@@ -93,7 +93,7 @@ abstract class BaseController extends ContentContainerController
      *
      * @return Folder
      */
-    protected function getCurrentFolder()
+    public function getCurrentFolder()
     {
         if ($this->_currentFolder === null) {
             $folderId = (int) Yii::$app->request->get('fid', self::ROOT_ID);

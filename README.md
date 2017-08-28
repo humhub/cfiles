@@ -7,7 +7,7 @@ Module for managing files inside spaces and on profiles.
 This module will allow you to manage files in a filesystem like structure.
 - upload, download, move, delete files
 - create, delete, move, edit folders
-- autopmatically create/extract a folder structure from a ZIP file (optional, configurable)
+- automatically create/extract a folder structure from a ZIP file (optional, configurable)
 - download files as a zip file (optional, configurable)
 - see an overview of all files that were posted to the user/space stream
 - see details of files like creator, editor, creation date, ...

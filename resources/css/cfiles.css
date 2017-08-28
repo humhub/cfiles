@@ -9,6 +9,17 @@
   border-radius: 0;
   margin: 0;
 }
+
+
+.cfiles-content .breadcrumb li.folder-visibility {
+  float:right;
+}
+
+.cfiles-content .breadcrumb li.folder-visibility:before {
+  content:none;
+  float:right;
+}
+
 .cfiles-content .file-controls {
   font-size: 11px;
   color: #aeaeae;

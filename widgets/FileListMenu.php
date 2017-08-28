@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\cfiles\models\ZipImportHandler;
 use Yii;
 use humhub\modules\file\handler\FileHandlerCollection;
 
@@ -38,6 +39,8 @@ class FileListMenu extends \yii\base\Widget
     public function run()
     {
         $fileHandlerImport = FileHandlerCollection::getByType(FileHandlerCollection::TYPE_IMPORT);
+        array_unshift($fileHandlerImport, new ZipImportHandler());
+
         $fileHandlerCreate = FileHandlerCollection::getByType(FileHandlerCollection::TYPE_CREATE);
 
         return $this->render('fileListMenu', [
@@ -45,7 +48,6 @@ class FileListMenu extends \yii\base\Widget
                     'contentContainer' => $this->contentContainer,
                     'canWrite' => $this->canWrite,
                     'zipEnabled' => Yii::$app->getModule('cfiles')->isZipSupportEnabled(),
-                    'hasItems' => true,
                     'fileHandlers' => array_merge($fileHandlerCreate, $fileHandlerImport),
         ]);
     }

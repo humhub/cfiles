@@ -2,13 +2,14 @@
 
 namespace humhub\modules\cfiles\models;
 
-use humhub\modules\cfiles\libs\FileUtils;
+use humhub\modules\file\libs\ImageConverter;
+use humhub\modules\file\models\FileContent;
+use Yii;
+use yii\base\ModelEvent;
+use yii\db\ActiveQuery;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\user\models\User;
-use Yii;
-use yii\base\InvalidParamException;
-use yii\db\ActiveQuery;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\Content;
 use humhub\modules\search\events\SearchAddEvent;
@@ -23,10 +24,11 @@ use yii\web\UploadedFile;
  * @property string $title
  * @property string $description
  * @property string $type
+ *
+ * @property Folder parentFolder
  */
 class Folder extends FileSystemItem
 {
-
     const TYPE_FOLDER_ROOT = 'root';
     const TYPE_FOLDER_POSTED = 'posted';
 
@@ -35,11 +37,6 @@ class Folder extends FileSystemItem
 
     const ALL_POSTED_FILES_TITLE = 'Files from the stream';
     const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';
-
-    /**
-     * @var int used for edit form
-     */
-    public $visibility;
 
     /**
      * @inheritdoc
@@ -67,7 +64,7 @@ class Folder extends FileSystemItem
      */
     public function getIcon()
     {
-        return 'fa-folder';
+        return'fa-folder';
     }
 
     /**
@@ -75,17 +72,17 @@ class Folder extends FileSystemItem
      */
     public function rules()
     {
-        return [
+
+        return array_merge(parent::rules(), [
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
             ['title', 'required'],
             ['title', 'trim'],
-            ['title', 'string', 'max' => 255],
+            ['title', 'string', 'min' => 1, 'max' => 255],
             ['title', 'noSpaces'],
             ['description', 'string', 'max' => 255],
-            ['title', 'uniqueTitle'],
-            ['visibility', 'integer', 'min' => 0, 'max' => 1],
-        ];
+            ['title', 'uniqueTitle']
+        ]);
     }
 
     /**
@@ -94,20 +91,14 @@ class Folder extends FileSystemItem
      * @param string $attribute
      * @param array $params
      * @param string $validator
-     * @return null
      */
     public function uniqueTitle($attribute, $params, $validator)
     {
-        if (!$this->hasTitleChanged()) {
+        if ($this->isRoot() || !$this->hasTitleChanged()) {
             return;
         }
 
-        $query = self::find()->contentContainer($this->content->container)->readable()->where([
-            'cfiles_folder.title' => $this->title,
-            'cfiles_folder.parent_folder_id' => $this->parent_folder_id
-        ]);
-
-        if (!empty($query->one())) {
+        if ($this->parentFolder->folderExists($this->title)) {
             $this->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
         }
     }
@@ -117,13 +108,23 @@ class Folder extends FileSystemItem
      */
     public function attributeLabels()
     {
-        return [
+        return array_merge(parent::attributeLabels(), [
             'id' => 'ID',
             'parent_folder_id' => Yii::t('CfilesModule.models_Folder', 'Parent Folder ID'),
-            'visibility' => Yii::t('CfilesModule.models_Folder', 'Public'),
             'title' => Yii::t('CfilesModule.models_Folder', 'Title'),
             'description' => Yii::t('CfilesModule.models_Folder', 'Description')
-        ];
+        ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeHints()
+    {
+        if(!$this->isNewRecord) {
+            return ['visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Note: Changes of the folders visibility, will be inherited by all contained files and folders.')];
+        }
+        return parent::attributeHints();
     }
 
     /**
@@ -151,7 +152,7 @@ class Folder extends FileSystemItem
     public function beforeSave($insert)
     {
         if($insert && $this->visibility !== null) {
-            $this->content->visibility === $this->visibility;
+            $this->content->visibility = $this->visibility;
         } else if($this->visibility !== null && $this->visibility != $this->content->visibility) {
             $this->updateVisibility($this->visibility);
         }
@@ -170,13 +171,13 @@ class Folder extends FileSystemItem
         $this->content->visibility = $visibility;
 
         foreach ($this->getSubFiles() as $file) {
-            $file->content->visibility = $this->visibility;
-            $file->save();
+            $file->content->visibility = $visibility;
+            $file->content->save();
         }
 
         foreach ($this->getSubFolders() as $folder) {
             $folder->updateVisibility($visibility);
-            $folder->save();
+            $folder->content->save();
         }
     }
 
@@ -194,14 +195,6 @@ class Folder extends FileSystemItem
         }
 
         return parent::beforeDelete();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function afterFind() {
-        $this->visibility = $this->content->visibility;
-        parent::afterFind();
     }
 
     /**
@@ -260,6 +253,51 @@ class Folder extends FileSystemItem
     }
 
     /**
+     * Generate the maximum depth directory structure originating from a given folder id.
+     *
+     * @param Folder $parentId
+     * @return array [['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ...]
+     */
+    public static function getFolderList($parent, $orderBy = ['title' => SORT_ASC])
+    {
+        $parentId = ($parent instanceof Folder) ? $parent->id : $parent;
+
+        $dirStruc = [];
+        foreach (self::getSubFoldersByParent($parent, $orderBy)->all() as $folder) {
+            $dirStruc[] = ['folder' => $folder, 'subfolders' => self::getFolderlist( $folder, $orderBy)];
+        }
+
+        return $dirStruc;
+    }
+
+    /**
+     * Returns all readable subfolders of the given parent folder.
+     *
+     * @param $contentContainer
+     * @param Folder $parent
+     * @param array $orderBy
+     * @return ActiveQuery
+     */
+    public static function getSubFoldersByParent($parent, $orderBy = ['title' => SORT_ASC])
+    {
+        $query = Folder::find()->contentContainer($parent->content->container)->readable();
+        $query->andWhere(['cfiles_folder.parent_folder_id' => $parent->id]);
+
+        // do not return any subfolders here that are root or allpostedfiles
+        $query->andWhere([
+            'or',
+            ['cfiles_folder.type' => null],
+            ['and',
+                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_POSTED],
+                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_ROOT]
+            ]
+        ]);
+
+        return $query->orderBy($orderBy);
+    }
+
+
+    /**
      * @param ContentContainerActiveRecord $contentContainer
      * @return int
      */
@@ -269,6 +307,8 @@ class Folder extends FileSystemItem
         } else if($contentContainer instanceof Space) {
             return $contentContainer->created_by;
         }
+
+        return null;
     }
 
     /**
@@ -410,41 +450,6 @@ class Folder extends FileSystemItem
         return $path;
     }
 
-   /* public static function getIdFromPath($path, $contentContainer, $separator = '/')
-    {
-        $titles = array_reverse(explode($separator, $path));
-
-        if (sizeof($titles) <= 0) {
-            return null;
-        }
-
-        $folders = Folder::find()->contentContainer($contentContainer)
-                ->readable()
-                ->where([
-                    'title' => $titles[0]
-                ])
-                ->all();
-        if (sizeof($folders) <= 0) {
-            return null;
-        }
-        unset($titles[0]);
-
-        foreach ($titles as $index => $title) {
-            if (sizeof($folders) <= 0) {
-                return null;
-            }
-        }
-
-        $query = $this->hasOne(\humhub\modules\content\models\Content::className(), [
-            'object_id' => 'id'
-        ]);
-        $query->andWhere([
-            'file.object_model' => self::className()
-        ]);
-    }*/
-
-
-
     /**
      * Returns the folder path as ordered array.
      * @return Folder[]
@@ -508,6 +513,14 @@ class Folder extends FileSystemItem
         ];
     }
 
+    /**
+     * @return FileSystemItem[] return all child folders and child files excluding special folders
+     */
+    public function getChildren()
+    {
+        return array_merge($this->getSubFolders(), $this->getSubFiles());
+    }
+
     protected function getSpecialFolders($order = ['title' => SORT_ASC])
     {
         $specialFoldersQuery = Folder::find()->contentContainer($this->content->container)->readable();
@@ -517,24 +530,19 @@ class Folder extends FileSystemItem
     }
 
 
+    /**
+     * @param array $order
+     * @return Folder[]
+     */
     protected function getSubFolders($order = ['title' => SORT_ASC])
     {
-        $foldersQuery = Folder::find()->contentContainer($this->content->container)->readable();
-        $foldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->id]);
-
-        // do not return any folders here that are root or allpostedfiles
-        $foldersQuery->andWhere(
-                ['or',
-                    ['cfiles_folder.type' => null],
-                    ['and',
-                        ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_POSTED],
-                        ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_ROOT]
-                    ]
-        ]);
-        $foldersQuery->orderBy($order);
-        return $foldersQuery->all();
+        return self::getSubFoldersByParent($this, $order)->all();
     }
 
+    /**
+     * @param null $order
+     * @return File[]
+     */
     protected function getSubFiles($order = null)
     {
         if (!$order) {
@@ -547,50 +555,225 @@ class Folder extends FileSystemItem
         return $filesQuery->all();
     }
 
+    /**
+     * Creates and adds the given UploadedFile to this directory.
+     *
+     * Returns the newly created cfiles file.
+     * The calling function has to make sure there are no errors by checking_
+     *
+     * ```php
+     * $file->hasErrors()
+     *```
+     * and
+     *
+     * ```php
+     * $file->baseFile->hasErrors();
+     *```
+     * @param UploadedFile $uploadedFile
+     * @return File
+     */
     public function addUploadedFile(UploadedFile $uploadedFile)
     {
-        $file = $this->findFile($uploadedFile->name);
+        $file = new File($this->content->container, $this->getNewItemVisibility(), [
+            'parent_folder_id' => $this->id
+        ]);
 
-        if(!$file) {
-            $file = new File();
-            $baseFile = new FileUpload();
-            $overwritten = false;
-        } else {
-            $baseFile = $file->baseFile;
-            $overwritten = true;
+        if($file->setUploadedFile($uploadedFile, $this->getAddedFileName($uploadedFile->name))) {
+            $file->save();
         }
 
-        $baseFile->setUploadedFile($uploadedFile);
-        if(!$baseFile->validate()) {
+        return $file;
+    }
+
+    private function getNewItemVisibility()
+    {
+        if($this->isRoot()) {
+            return $this->content->container->getDefaultContentVisibility();
+        }
+
+        return $this->content->visibility;
+    }
+
+    public function addFileFromPath($filename, $filePath)
+    {
+        $file = new File($this->content->container, $this->getNewItemVisibility(), [
+            'parent_folder_id' => $this->id
+        ]);
+
+        $fileContent = new FileContent([
+            'mime_type' => FileHelper::getMimeType($filePath),
+            'size' => filesize($filePath),
+            'show_in_stream' => 0,
+            'file_name' => $this->getAddedFileName($filename)
+        ]);
+
+        if ($fileContent->mime_type == 'image/jpeg') {
+            ImageConverter::TransformToJpeg($filePath, $filePath);
+        }
+
+        $fileContent->newFileContent = stream_get_contents(fopen($filePath, 'r'));
+
+        $file->setFileContent($fileContent);
+        $file->save();
+
+        return $file;
+    }
+
+    /**
+     * Creates a new non persisted folder within this folder.
+     *
+     * @param string|null $title
+     * @param string|null $description
+     * @return Folder
+     */
+    public function newFolder($title = null, $description = null)
+    {
+        return new self($this->content->container, $this->getNewItemVisibility(), [
+            'parent_folder_id' => $this->id,
+            'title' => $title,
+            'description' => $description]);
+    }
+
+
+    /**
+     * Moves the given item into this folder.
+     *
+     * This method checks for duplicate file/folder names.
+     *
+     * If a file with the same title already exists we use a file name index e.g. file(1).txt
+     *
+     * If a folder already exists with the same title we merge all sub items into the existing folder
+     *
+     *
+     * @param FileSystemItem $item
+     * @return bool
+     */
+    public function moveItem(FileSystemItem $item)
+    {
+        if($item instanceof Folder && !$item->isEditableFolder()) {
+            $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'Folder {name} given folder is not editable!', ['name' => $item->getTitle()]));
             return false;
         }
 
-        $file->parent_folder_id = $this->id;
-        if ($file->save()) {
-            $baseFile->object_model = $file->className();
-            $baseFile->object_id = $file->id;
-            $baseFile->show_in_stream = false;
-            $baseFile->save();
-            $result = FileHelper::getFileInfos($baseFile);
-            $result['overwritten'] = $overwritten;
-            return $result;
-        } else {
-            return ['errors' => $file->errors];
+        if($item->getItemId() === $this->getItemId()) {
+            $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'Folder {name} can\'t be moved to itself!', ['name' => $item->getTitle()]));
+            return false;
         }
+
+        if($item instanceof File && $item->parent_folder_id === $this->id) {
+            return true;
+        }
+
+        // We ignore invalid items and items already residing in the given destination
+        if($item && $item->getItemId() !== $this->getItemId()) {
+            // Note we don't set the content visibility directly to run recursive visibility change in folders
+            $item->visibility = $this->content->visibility;
+            $item->parent_folder_id = $this->id;
+
+            $moveResult = $this->checkForDuplicate($item);
+
+            if(!$moveResult) {
+                // Probably an error when moving subfiles to an existing folder
+                return false;
+            }
+
+            if($item->is($moveResult)) {
+                // Either no duplicate or just simple file rename
+                return $moveResult->save();
+            }
+
+            // Successfully moved subfiles to existing folder with same title
+            return true;
+        }
+
+        return false;
     }
 
-    public function findFile($name)
+    /**
+     * Checks if the given $item title already exists in this folder and renames already existing files or
+     * merges already existing folders.
+     *
+     * This method returns either the item itself in case there was no duplicate or a file duplicate (which was renamed)
+     * or the already existing folder in case the item is a folder with the same title as an existing sub folder,
+     * or null in case there was an error when moving files to an existing subfolder.
+     *
+     * @param FileSystemItem $item
+     * @return FileSystemItem|null
+     */
+    private function checkForDuplicate(FileSystemItem $item)
     {
-        return File::find()->contentContainer($this->contentContainer)
+        $result = null;
+        if($item instanceof File) {
+            $item->setTitle($this->getAddedFileName($item->getTitle()));
+            $result = $item;
+        } else if($item instanceof Folder) {
+            $result = $item;
+
+            $existingFolderWithTitle = $this->findFolderByName($item->title);
+
+            // Check if the folder exists if not, move children to existing subfolder, if there is an error we set §result to null
+            if($existingFolderWithTitle) {
+                $result = $existingFolderWithTitle;
+                foreach ($item->getChildren() as $child) {
+                    // if moving the given item fails we set result to null and add an item error
+                    if(!$existingFolderWithTitle->moveItem($child)) {
+                        $result = null;
+                        foreach ($child->getErrors() as $attribute => $errors) {
+                            $item->addErrors([$child->getTitle() => $errors]);
+                        }
+                    };
+                }
+
+                if($result) {
+                    $item->delete();
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Searches for direct sub files with the given file name and returns an indexed file name in form of
+     * myFile(<index>).txt in case an existing file was found, otherwise the original fileName is returned.
+     *
+     * @param $fileName
+     * @return string either an indexed file name or original filename if no duplicate title was found.
+     */
+    protected function getAddedFileName($fileName)
+    {
+        $counter = 0;
+        $parts = preg_split('~\.(?=[^\.]*$)~', $fileName);
+        $origName = $parts[0];
+        $ext = sizeof($parts) == 2 ? '.' . $parts[1] : '';
+
+        while ($this->fileExists($fileName)) {
+            $fileName = $origName . '(' . ++$counter . ')' . $ext;
+        }
+
+        return $fileName;
+    }
+
+    public function fileExists($name)
+    {
+        return File::find()->joinWith('baseFile')->where(['file_name' => $name, 'parent_folder_id' => $this->id])->count();
+    }
+
+    public function folderExists($name)
+    {
+        return Folder::find()->where(['title' => $name, 'parent_folder_id' => $this->id])->count();
+    }
+
+    public function findFileByName($name)
+    {
+        return File::find()->contentContainer($this->content->container)
             ->joinWith('baseFile')
-            // TODO: sanitize filename??? old function wil no longer work
             ->andWhere(['file_name' => $name, 'parent_folder_id' => $this->id])->one();
     }
 
-    public function findFolder($name)
+    public function findFolderByName($name)
     {
-        return Folder::find()->contentContainer($this->contentContainer)
-            // TODO: sanitize filename??? old function wil no longer work
+        return Folder::find()->contentContainer($this->content->container)
             ->andWhere(['title' => $name, 'parent_folder_id' => $this->id])->one();
     }
 }

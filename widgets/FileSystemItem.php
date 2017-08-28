@@ -9,6 +9,8 @@
 namespace humhub\modules\cfiles\widgets;
 
 use humhub\modules\cfiles\models\File;
+use humhub\modules\cfiles\models\Folder;
+use Yii;
 
 /**
  * @inheritdoc
@@ -23,7 +25,7 @@ class FileSystemItem extends \yii\base\Widget
     public $canWrite;
     public $selectable = true;
     public $socialActionsAvailable = true;
-    public $columns = ['select', 'title', 'size', 'timestamp', 'likesncomments', 'creator'];
+    public $columns = ['select', 'visibility', 'title', 'size', 'timestamp', 'likesncomments', 'creator'];
     public $parentFolderId;
     public $type;
     public $id;
@@ -37,6 +39,10 @@ class FileSystemItem extends \yii\base\Widget
     public $editor;
     public $updatedAt;
     public $baseFile;
+    public $visibilityIcon;
+    public $visibilityTitle;
+    public $description;
+
 
     /** Content Object used for the Like/Comment widgets */
     public $contentObject;
@@ -58,6 +64,8 @@ class FileSystemItem extends \yii\base\Widget
 
         if (!$this->downloadUrl && $this->item instanceof File) {
             $this->downloadUrl = $this->item->getDownloadUrl();
+        } else if(!$this->downloadUrl && $this->item instanceof Folder) {
+            $this->downloadUrl = $this->item->getUrl();
         }
 
         if (!$this->url) {
@@ -65,7 +73,7 @@ class FileSystemItem extends \yii\base\Widget
         }
 
         if (!$this->wallUrl) {
-            $this->wallUrl = $this->item->getWallUrl();
+            $this->wallUrl = $this->item->content->container->createUrl(null, ['contentId' => $this->item->content->id]);
         }
 
         if (!$this->iconClass) {
@@ -92,7 +100,36 @@ class FileSystemItem extends \yii\base\Widget
             $this->updatedAt = $this->item->content->updated_at;
         }
 
+        if(!$this->description) {
+            $this->description = $this->item->description;
+        }
+
+        if(!($this->item instanceof Folder) || $this->item->type !== Folder::TYPE_FOLDER_POSTED) {
+            $this->setVisibilityOptions();
+        }
+
         parent::init();
+    }
+
+    private function setVisibilityOptions()
+    {
+        if(!$this->visibilityIcon) {
+            $this->visibilityIcon = $this->item->content->isPublic() ? 'fa-unlock-alt': 'fa-lock' ;
+        }
+
+        if(!$this->visibilityTitle) {
+            if($this->contentObject && $this->contentObject instanceof Folder) {
+                $this->visibilityTitle = $this->item->content->isPublic()
+                    ? Yii::t('CfilesModule.base', 'This folder is public.')
+                    : Yii::t('CfilesModule.base', 'This folder is private.') ;
+            }
+
+            if($this->contentObject && $this->contentObject instanceof File) {
+                $this->visibilityTitle = $this->item->content->isPublic()
+                    ?  Yii::t('CfilesModule.base', 'This file is public.')
+                    : Yii::t('CfilesModule.base', 'This file is private.') ;
+            }
+        }
     }
 
     /**
@@ -118,8 +155,11 @@ class FileSystemItem extends \yii\base\Widget
                     'size' => $this->size,
                     'creator' => $this->creator,
                     'editor' => $this->editor,
+                    'description' => $this->description,
                     'updatedAt' => $this->updatedAt,
-                    'contentObject' => $this->contentObject
+                    'contentObject' => $this->contentObject,
+                    'visibilityIcon' => $this->visibilityIcon,
+                    'visibilityTitle' => $this->visibilityTitle,
         ]);
     }
 

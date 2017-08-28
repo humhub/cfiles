@@ -8,7 +8,9 @@
 
 namespace humhub\modules\cfiles\libs;
 
+use humhub\modules\file\libs\FileHelper;
 use Yii;
+use yii\web\UploadedFile;
 use ZipArchive;
 use yii\base\Exception;
 use yii\helpers\BaseFileHelper;
@@ -22,7 +24,7 @@ use humhub\modules\cfiles\models\FileSystemItem;
  *
  * @author Luke
  */
-class ZIPCreator
+class ZIPCreator extends ZipUtil
 {
 
     /**
@@ -103,15 +105,17 @@ class ZIPCreator
             $file = $file->baseFile;
         }
 
+        if(!$file) {
+            return;
+        }
+
         if ($fileName === null) {
             $filePath = $path . DIRECTORY_SEPARATOR . $file->file_name;
         } else {
             $filePath = $path . DIRECTORY_SEPARATOR . $fileName;
         }
+
         $filePath = $this->fixPath($filePath);
-
-
-        Yii::info("Added file to ZIP Archive: " . $filePath, 'cfiles');
 
         $realFilePath = $file->store->get();
         if (is_file($realFilePath)) {
@@ -129,18 +133,7 @@ class ZIPCreator
     {
         $path = $this->fixPath($path . DIRECTORY_SEPARATOR . $folder->title);
 
-        Yii::info("Added folder:" . $path, 'cfiles');
-
         $this->archive->addEmptyDir($path);
-
-        if ($folder->isAllPostedFiles()) {
-            // Special Handling for "Files from Stream" folder
-            foreach (CFile::getPostedFiles($folder->content->container)['postedFiles'] as $baseFile) {
-                $baseFileName = $baseFile->createdBy->username . '_' . $baseFile->created_at . '_' . $baseFile->file_name;
-                $this->addFile($baseFile, $path, $baseFileName);
-            }
-            return;
-        }
 
         $subFiles = CFile::find()->where(['parent_folder_id' => $folder->id])->all();
         $subFolders = Folder::find()->where(['parent_folder_id' => $folder->id])->all();
@@ -154,47 +147,4 @@ class ZIPCreator
             $this->addFolder($folder, $path);
         }
     }
-
-    /**
-     * Cleanup all previously created zip files.
-     */
-    protected function cleanup()
-    {
-        $files = BaseFileHelper::findFiles($this->getTempPath(), [
-                    'filter' => function ($path) {
-                        return time() - filemtime($path) > 30 ? true : false;
-                    },
-                    'recursive' => true
-        ]);
-        foreach ($files as $file) {
-            unlink($file);
-        }
-    }
-
-    /**
-     * Get the output path of the base temporary folder used for packing and unpacking zip data for all users.
-     *
-     * @return string @runtime/temp/[guid]
-     */
-    protected function getTempPath()
-    {
-        // init output directory
-        $outputPath = Yii::getAlias('@runtime/cfiles-temp');
-        if (!is_dir($outputPath)) {
-            mkdir($outputPath);
-        }
-        return $outputPath;
-    }
-
-    /**
-     * Fixes ZIP location path, removes trailling slash
-     * 
-     * @param string $path
-     * @return string the fixed path
-     */
-    protected function fixPath($path)
-    {
-        return ltrim($path, DIRECTORY_SEPARATOR);
-    }
-
 }

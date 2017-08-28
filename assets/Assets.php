@@ -14,7 +14,7 @@ class Assets extends AssetBundle
 {
 
     public $publishOptions = [
-        'forceCopy' => false
+        'forceCopy' => true
     ];
     
     public $css = [

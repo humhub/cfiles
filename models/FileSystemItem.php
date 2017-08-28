@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\content\models\Content;
 use Yii;
 use yii\helpers\Url;
 use humhub\modules\user\models\User;
@@ -14,10 +15,41 @@ use humhub\modules\cfiles\permissions\ManageFiles;
  * This is the model class for table "cfiles_file".
  *
  * @property integer $id
- * @property integer $folder_id
+ * @property integer $parent_folder_id
+ * @property string description
  */
 abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface, Searchable
 {
+    /**
+     * @var int used for edit form
+     */
+    public $visibility;
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            ['visibility', 'integer', 'min' => 0, 'max' => 1]
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return ['visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Is Public')];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterFind() {
+        $this->visibility = $this->content->visibility;
+        parent::afterFind();
+    }
 
     /**
      * @inheritdoc
@@ -25,7 +57,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function beforeSave($insert)
     {
         if ($this->parent_folder_id == "") {
-            $this->parent_folder_id = 0;
+            $this->parent_folder_id = null;
         }
 
         return parent::beforeSave($insert);
@@ -39,13 +71,23 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         // this should set the editor and edit date of all parent folders if sth. inside of them has changed
         if (!empty($this->parentFolder)) {
             $this->parentFolder->save();
+            if($this->parentFolder->content->isPrivate() && $this->content->isPublic()) {
+                $this->content->visibility = Content::VISIBILITY_PRIVATE;
+                $this->content->save();
+            }
         }
-        return parent::afterSave($insert, $changedAttributes);
+
+        parent::afterSave($insert, $changedAttributes);
     }
 
     public function hasAttributeChanged($attributeName)
     {
         return $this->hasAttribute($attributeName) && ($this->isNewRecord || $this->getOldAttribute($attributeName) != $this->$attributeName);
+    }
+
+    public function is(FileSystemItem $item)
+    {
+        return $this->getItemId() === $item->getItemId();
     }
     
     /**
@@ -64,8 +106,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function getWallUrl()
     {
-        $permaLink = Url::to(['/content/perma', 'id' => $this->content->id], true);
-        return $permaLink;
+        return $this->getUrl();
     }
 
     /**
@@ -93,16 +134,25 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         }
     }
 
+    /**
+     * @return User
+     */
     public function getCreator()
     {
         return User::findOne(['id' => $this->content->created_by]);
     }
 
+    /**
+     * @return User
+     */
     public function getEditor()
     {
         return User::findOne(['id' => $this->content->updated_by]);
     }
 
+    /**
+     * @return string
+     */
     public function getMoveUrl()
     {
         return $this->content->container->createUrl('/cfiles/move', ['init' => 1]);
@@ -116,6 +166,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function isEditableFolder()
     {
+        // TODO: not that clean...
         return ($this instanceof Folder) && !($this->isRoot() || $this->isAllPostedFiles());
     }
 

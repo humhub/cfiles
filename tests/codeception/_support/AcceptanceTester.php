@@ -27,28 +27,98 @@ class AcceptanceTester extends \AcceptanceTester
 {
     use _generated\AcceptanceTesterActions;
 
+    public function seeInCrumb($text)
+    {
+        $this->waitForText($text, null,'#cfiles-crumb');
+    }
+
+    public function dontSeeInCrumb($text)
+    {
+        $this->dontSee($text, '#cfiles-crumb');
+    }
+
+    public function seeInFileList($text)
+    {
+        $this->waitForText($text, null, '#fileList');
+    }
+
+    public function dontSeeInFileList($text)
+    {
+        $this->dontSee($text, '#fileList');
+    }
+
+    public function openFolder($text)
+    {
+        $this->click($text, '#fileList');
+        $this->seeInCrumb($text);
+    }
+
+    public function amInRoot()
+    {
+        $this->click('.fa-home', '#cfiles-crumb');
+        $this->waitForText('Files from the stream', null, '#fileList');
+    }
+
+    public function uploadFile($file = "test.txt")
+    {
+        $this->attachFile('#cfilesUploadFiles', $file);
+        $this->waitForText($file, null, '#fileList');
+    }
+
+    public function rightClickFolder($id)
+    {
+        $this->clickWithRightButton('[data-cfiles-item="folder_'.$id.'"]');
+    }
+
+    public function rightClickFile($id)
+    {
+        $this->clickWithRightButton('[data-cfiles-item="file_'.$id.'"]');
+    }
+
+    public function clickFileContext($id, $menuItem)
+    {
+        $this->rightClickFile($id);
+        $this->waitForText($menuItem,null, '#contextMenuFile');
+        $this->click($menuItem, '#contextMenuFile');
+    }
+
+    public function clickFolderContext($id, $menuItem)
+    {
+        $this->rightClickFolder($id);
+        $this->waitForText($menuItem,null, '#contextMenuFolder');
+        $this->click($menuItem, '#contextMenuFolder');
+    }
+
+    public function importZip($file = "test.zip")
+    {
+        $this->attachFile('#cfilesUploadZipFile', $file);
+        $this->waitForText($file, null, '#fileList');
+    }
+
+    public function initCfilesOnSpace($guid = 1)
+    {
+        $this->enableModule($guid, 'cfiles');
+        $this->waitForText('Files', null, '.layout-nav-container');
+
+        $this->click('Files', '.layout-nav-container');
+        $this->waitForText('Files from the stream');
+    }
    /**
     * Define custom actions here
     */
-   public function createEventToday($title = 'My Test Entry', $description = 'My Test Entry Description', $startTime = null, $endTime = null, $save = true)
+   public function createFolder($title = 'test', $description = 'test description', $isPublic = false)
    {
-       $this->waitForElementVisible('.fc-today');
-       $this->click('.fc-today');
-       $this->waitForText('Create event');
+       $this->click('Add directory', '.files-action-menu');
 
-       $this->fillField('CalendarEntry[title]', $title);
-       $this->fillField('CalendarEntry[description]', $description);
+       $this->waitForText('Create folder', null,'#globalModal');
+       $this->fillField('Folder[title]', $title);
+       $this->fillField('Folder[description]', $description);
 
-       if($startTime) {
-           $this->click('[for="calendarentry-all_day"]');
-           $this->wait(1);
-           $this->fillField('#calendarentryform-start_time', $startTime);
-           $this->fillField('#calendarentryform-start_time', $endTime);
+       if($isPublic) {
+           $this->click('[for="folder-visibility"]');
        }
 
-       if($save) {
-           $this->click('Save', '#globalModal');
-           $this->wait(1);
-       }
+       $this->click('Save', '#globalModal');
+       $this->waitForText('This folder is empty.');
    }
 }

@@ -109,9 +109,7 @@ class Module extends ContentContainerModule
      */
     public function isZipSupportEnabled()
     {
-        $zipEnabled = !$this->settings->get('disableZipSupport');
-
-        return $zipEnabled;
+        return !$this->settings->get('disableZipSupport');
     }
 
 }

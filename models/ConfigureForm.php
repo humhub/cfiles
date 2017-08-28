@@ -15,6 +15,12 @@ class ConfigureForm extends \yii\base\Model
 
     public $disableZipSupport;
 
+    public function init()
+    {
+        $this->disableZipSupport = !Yii::$app->getModule('cfiles')->isZipSupportEnabled();
+        parent::init();
+    }
+
     /**
      * Declares the validation rules.
      */
@@ -35,6 +41,16 @@ class ConfigureForm extends \yii\base\Model
         return [
             'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support'),
         ];
+    }
+
+    public function save()
+    {
+        if(!$this->validate()) {
+            return false;
+        }
+
+        Yii::$app->getModule('cfiles')->settings->set('disableZipSupport', $this->disableZipSupport);
+        return true;
     }
 
 }

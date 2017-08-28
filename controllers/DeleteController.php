@@ -10,7 +10,7 @@ namespace humhub\modules\cfiles\controllers;
 
 use Yii;
 use yii\web\HttpException;
-use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\models\FileSystemItem;
 
 /**
  * Description of BrowseController
@@ -22,7 +22,7 @@ class DeleteController extends BrowseController
 
     /**
      * Action to delete a file or folder.
-     * @return Ambigous <\humhub\modules\cfiles\controllers\type, string>
+     * @return string
      */
     public function actionIndex()
     {
@@ -30,11 +30,11 @@ class DeleteController extends BrowseController
             throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
         }
         
-        $selectedItems = Yii::$app->request->post('selected');
+        $selectedItems = Yii::$app->request->post('selection');
         
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
-                $item = \humhub\modules\cfiles\models\FileSystemItem::getItemById($itemId);
+                $item = FileSystemItem::getItemById($itemId);
                 if ($item && $item->isDeletable()) {
                     $item->delete();
                 }

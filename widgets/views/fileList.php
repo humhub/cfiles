@@ -1,7 +1,14 @@
 <?php
 
+use humhub\modules\cfiles\models\File;
+use humhub\widgets\LinkPager;
 use yii\helpers\Html;
 use humhub\modules\cfiles\widgets\FileSystemItem;
+
+/* @var $itemsInFolder boolean */
+/* @var $itemsSelectable boolean */
+/* @var $canWrite boolean */
+/* @var $folder \humhub\modules\cfiles\models\Folder */
 
 ?>
 
@@ -9,25 +16,32 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
     <div class="table-responsive">
         <table id="bs-table" class="table table-hover">
             <thead>
-            <tr>
-                <?php if ($itemsSelectable): ?>
-                    <th class="text-center" style="width:38px;">
-                        <?= Html::checkbox('allchk', false, ['class' => 'allselect']); ?>
-                    </th>
-                <?php endif; ?>
-                <th class="text-left"><?= Yii::t('CfilesModule.base', 'Name'); ?></th>
-                <th class="hidden-xs text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
-                <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
-                <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
-                    <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
-                <?php endif; ?>
-                <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
-            </tr>
+                <tr>
+                    <?php if ($itemsSelectable): ?>
+                        <th class="text-center" style="width:38px;">
+                            <?= Html::checkbox('allchk', false, ['class' => 'allselect']); ?>
+                        </th>
+                    <?php endif; ?>
+
+                    <th class="text-left"><?= Yii::t('CfilesModule.base', 'Name'); ?></th>
+
+                    <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
+                        <th class="hidden-xxs"></th>
+                    <?php endif ?>
+
+                    <th class="hidden-xs text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
+                    <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
+
+                    <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
+                        <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
+                    <?php endif; ?>
+
+                    <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
+                </tr>
             </thead>
 
             <?php foreach ((array_key_exists('specialFolders', $items) ? $items['specialFolders'] : []) as $specialFolder) : ?>
-                <?=
-                FileSystemItem::widget([
+                <?= FileSystemItem::widget([
                     'parentFolderId' => $folder->id,
                     'canWrite' => $canWrite,
                     'socialActionsAvailable' => false,
@@ -39,19 +53,19 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                 ]);
                 ?>
             <?php endforeach; ?>
+
             <?php foreach ((array_key_exists('folders', $items) ? $items['folders'] : []) as $folderItem) : ?>
-                <?=
-                FileSystemItem::widget([
+                <?= FileSystemItem::widget([
                     'parentFolderId' => $folder->id,
                     'canWrite' => $canWrite,
                     'contentObject' => $folderItem,
-                    'item' => $folderItem
+                    'item' => $folderItem,
                 ]);
                 ?>
             <?php endforeach; ?>
+
             <?php foreach ((array_key_exists('files', $items) ? $items['files'] : []) as $file) : ?>
-                <?=
-                FileSystemItem::widget([
+                <?= FileSystemItem::widget([
                     'parentFolderId' => $folder->id,
                     'canWrite' => $canWrite,
                     'contentObject' => $file,
@@ -59,18 +73,12 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                 ]);
                 ?>
             <?php endforeach; ?>
+
             <?php foreach ((array_key_exists('postedFiles', $items) ? $items['postedFiles'] : []) as $file) : ?>
-                <?=
-                FileSystemItem::widget([
+                <?= FileSystemItem::widget([
                     'parentFolderId' => $folder->id,
-                    'type' => \humhub\modules\cfiles\models\File::getItemTypeByExt($file->getExtension()),
-                    'columns' => $itemsSelectable ? [
-                        'select',
-                        'title',
-                        'size',
-                        'timestamp',
-                        'creator'
-                    ] : [
+                    'type' => File::getItemTypeByExt($file->getExtension()),
+                    'columns' =>  [
                         'title',
                         'size',
                         'timestamp',
@@ -79,10 +87,10 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                     'id' => 'baseFile_' . $file->id,
                     'downloadUrl' => $file->getUrl() . '&' . http_build_query(['download' => true]),
                     'url' => $file->getUrl(),
-                    'wallUrl' => \humhub\modules\cfiles\models\File::getBasePost($file)->getUrl(),
+                    'wallUrl' => File::getBasePost($file)->getUrl(),
                     'canWrite' => $canWrite,
                     'baseFile' => $file,
-                    'iconClass' => \humhub\modules\cfiles\models\File::getIconClassByExt($file->getExtension()),
+                    'iconClass' => File::getIconClassByExt($file->getExtension()),
                     'title' => $file->file_name,
                     'size' => $file->size,
                     'creator' => $file->createdBy,
@@ -92,6 +100,11 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                 ?>
             <?php endforeach; ?>
         </table>
+        <?php if($folder->isAllPostedFiles() && isset($items['pages'])) :?>
+            <div class="text-center">
+                <?= LinkPager::widget(['pagination' => $items['pages']]); ?>
+            </div>
+        <?php endif; ?>
     </div>
 <?php else : ?>
     <br/>

@@ -5,7 +5,7 @@ namespace humhub\modules\cfiles\widgets;
 /**
  * Widget for rendering the file list bar.
  */
-class FileListBar extends \yii\base\Widget
+class BreadcrumbBar extends \yii\base\Widget
 {
     
     /**
@@ -24,7 +24,7 @@ class FileListBar extends \yii\base\Widget
      */
     public function run()
     {
-        return $this->render('fileListBar', [
+        return $this->render('breadcrumbBar', [
             'folder' => $this->folder,
             'contentContainer' => $this->contentContainer
         ]);

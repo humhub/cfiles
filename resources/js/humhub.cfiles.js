@@ -110,6 +110,7 @@ humhub.module('cfiles', function (module, require, $) {
                         item.edit();
                         break;
                     case 'download':
+                        debugger;
                         document.location.href = item.url;
                         break;
                     case 'show-image':
@@ -122,9 +123,7 @@ humhub.module('cfiles', function (module, require, $) {
                         item.move();
                         break;
                     case 'zip':
-                        // TODO: Implement
-                        var url = that.options.cfilesDownloadArchiveUrl.replace('--folderId--', item.id.split('_')[1]);
-                        document.location.href = url;
+                        that.downloadZip(item);
                         break;
                     default:
                         module.log.warn("Unkown action " + action);
@@ -132,6 +131,18 @@ humhub.module('cfiles', function (module, require, $) {
                 }
             }
         });
+    };
+
+    FolderView.prototype.downloadZip = function (item) {
+        var that = this;
+        var $form = $('#cfiles-form');
+        $input = item.$.find('.item-selection').find('input');
+        $oldVal = $input.prop('checked');
+        $input.prop('checked', true);
+        $form.attr("action", that.options.downloadArchiveUrl);
+        $form.attr("method", "post");
+        $form.submit();
+        $input.prop('checked', $oldVal);
     };
 
     FolderView.prototype.deleteItem = function (item) {
@@ -143,7 +154,7 @@ humhub.module('cfiles', function (module, require, $) {
                     url: that.options.deleteUrl,
                     dataType: 'html',
                     data: {
-                        'selected[]': item.id
+                        'selection[]': item.id
                     }
                 }).then(function (response) {
                     that.replaceFileList(response.html);
@@ -219,7 +230,6 @@ humhub.module('cfiles', function (module, require, $) {
         $form.attr("action", evt.$trigger.data('action-url'));
         $form.attr("method", "post");
         $form.submit();
-
         evt.finish();
     };
 
@@ -343,11 +353,10 @@ humhub.module('cfiles', function (module, require, $) {
     FileItem.prototype.move = function () {
         var that = this;
         var fid = $('#cfiles-folderView').data('fid') || 0;
-
         modal.global.post({
             'url': that.moveUrl,
             'data': {
-                'selected[]': that.id
+                'selection[]': that.id
             },
             'dataType': 'html'
         }).then(function () {
@@ -386,7 +395,7 @@ humhub.module('cfiles', function (module, require, $) {
         $('.directory-list .selectable').click(function () {
             $('.directory-list .selectedFolder').removeClass('selectedFolder');
             $(this).addClass('selectedFolder');
-            $('#input-hidden-selectedFolder').val($(this).attr('id'));
+            $('#input-hidden-selectedFolder').val($(this).data('id'));
         });
 
         // handle open close subfolders
@@ -426,7 +435,7 @@ humhub.module('cfiles', function (module, require, $) {
         var item = $('#' + $id);
         item.addClass('selectedFolder');
         $('#input-hidden-selectedFolder').val($id);
-    }
+    };
 
     var unload = function () {
         event.off('humhub:file:created.cfiles');

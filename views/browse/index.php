@@ -1,6 +1,8 @@
 <?php
 
 use yii\helpers\Html;
+use humhub\modules\cfiles\widgets\FolderView;
+use humhub\modules\cfiles\widgets\FileListContextMenu;
 
 /* @var $folder humhub\modules\cfiles\models\Folder */
 /* @var $contentContainer humhub\components\View */
@@ -18,19 +20,18 @@ $this->registerJsConfig('cfiles', [
 ?>
 
 <?= Html::beginForm(null, null, ['data-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
-<div id="cfiles-container" class="panel panel-default cfiles-content">
+    <div id="cfiles-container" class="panel panel-default cfiles-content">
 
-    <div class="panel-body">
+        <div class="panel-body">
 
-        <?=
-        humhub\modules\cfiles\widgets\FolderView::widget([
-            'contentContainer' => $contentContainer,
-            'folder' => $folder,
-            'canWrite' => $canWrite])
-        ?>
+            <?=  FolderView::widget([
+                'contentContainer' => $contentContainer,
+                'folder' => $folder,
+                'canWrite' => $canWrite
+            ])?>
 
+        </div>
     </div>
-</div>
-<?php echo Html::endForm(); ?>
+<?= Html::endForm(); ?>
 
-<?= humhub\modules\cfiles\widgets\FileListContextMenu::widget(['folder' => $folder, 'canWrite' => $canWrite]); ?>
+<?= FileListContextMenu::widget(['folder' => $folder, 'canWrite' => $canWrite]); ?>

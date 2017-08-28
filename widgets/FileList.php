@@ -5,6 +5,7 @@ namespace humhub\modules\cfiles\widgets;
 use Yii;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\FileSystemItem;
+use yii\data\Pagination;
 
 /**
  * Widget for rendering the file list.
@@ -51,11 +52,10 @@ class FileList extends \yii\base\Widget
 
         return $this->render('fileList', [
                     'items' => $this->items,
-                    'contentContainer' => $this->contentContainer,
                     'folder' => $this->folder,
                     'itemsSelectable' => !$this->folder->isAllPostedFiles(),
                     'itemsInFolder' => $this->hasItemsInFolder(),
-                    'canWrite' => $this->canWrite
+                    'canWrite' => $this->canWrite,
         ]);
     }
 
@@ -74,8 +74,14 @@ class FileList extends \yii\base\Widget
      */
     protected function getItems()
     {
-        return ($this->folder->isAllPostedFiles()) ? File::getPostedFiles($this->contentContainer, $this->filesOrder) :
-                $this->folder->getItems($this->filesOrder, $this->foldersOrder);
+        if($this->folder->isAllPostedFiles()) {
+            $query = File::getPostedFiles($this->contentContainer);
+            $countQuery = clone $query;
+            $pages = new Pagination(['totalCount' => $countQuery->count()]);
+            return ['postedFiles' => $query->offset($pages->offset)->limit($pages->limit)->all(), 'pages' => $pages];
+        } else {
+            return $this->folder->getItems($this->filesOrder, $this->foldersOrder);
+        }
     }
 
     /**
@@ -86,7 +92,7 @@ class FileList extends \yii\base\Widget
      */
     public static function getSelectedItems()
     {
-        $selectedItems = Yii::$app->request->post('selected');
+        $selectedItems = Yii::$app->request->post('selection');
 
         $items = [];
 

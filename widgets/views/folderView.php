@@ -1,5 +1,10 @@
 <?php
 
+use humhub\modules\cfiles\widgets\BreadcrumbBar;
+use humhub\modules\cfiles\widgets\FileListMenu;
+use humhub\modules\cfiles\widgets\FileList;
+use humhub\modules\cfiles\widgets\FileSelectionMenu;
+use humhub\modules\file\widgets\UploadProgress;
 use yii\helpers\Html;
 
 /* @var $this humhub\components\View */
@@ -10,26 +15,22 @@ use yii\helpers\Html;
 
 <?= Html::beginTag('div', $options) ?>
 
-<?= \humhub\modules\cfiles\widgets\FileListBar::widget(['folder' => $folder, 'contentContainer' => $contentContainer]) ?>
+<?= BreadcrumbBar::widget(['folder' => $folder, 'contentContainer' => $contentContainer]) ?>
 
-<?= \humhub\modules\file\widgets\UploadProgress::widget(['id' => 'cfiles_progress']) ?>
+<?= UploadProgress::widget(['id' => 'cfiles_progress']) ?>
 
-<?=
-humhub\modules\cfiles\widgets\FileListMenu::widget([
+<?= FileListMenu::widget([
     'folder' => $folder,
     'contentContainer' => $contentContainer,
     'canWrite' => $canWrite,
-])
-?>
+]) ?>
 
 <div id="fileList">
-    <?=
-    humhub\modules\cfiles\widgets\FileList::widget([
+    <?= FileList::widget([
         'folder' => $folder,
         'contentContainer' => $contentContainer,
         'canWrite' => $canWrite
-    ])
-    ?>
+    ])?>
 </div>
 
 <?= Html::endTag('div') ?>

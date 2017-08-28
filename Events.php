@@ -2,41 +2,41 @@
 
 namespace humhub\modules\cfiles;
 
+use humhub\modules\cfiles\models\File;
 use Yii;
+use yii\base\Object;
 
 /**
- * Description of WikiEvents
+ * cfiles Events
  *
  * @author luke
  */
-class Events extends \yii\base\Object
+class Events extends Object
 {
 
     public static function onSpaceMenuInit($event)
     {
-        if ($event->sender->space !== null && $event->sender->space->isModuleEnabled('cfiles') && $event->sender->space->isMember()) {
-            $event->sender->addItem(array(
+
+        if ($event->sender->space !== null && $event->sender->space->isModuleEnabled('cfiles')) {
+            $event->sender->addItem([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'group' => 'modules',
                 'url' => $event->sender->space->createUrl('/cfiles/browse'),
                 'icon' => '<i class="fa fa-files-o"></i>',
                 'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
-            ));
+            ]);
         }
     }
 
     public static function onProfileMenuInit($event)
     {
         if ($event->sender->user !== null && $event->sender->user->isModuleEnabled('cfiles')) {
-
-            if ($event->sender->user->canAccessPrivateContent()) {
-                $event->sender->addItem(array(
-                    'label' => Yii::t('CfilesModule.base', 'Files'),
-                    'url' => $event->sender->user->createUrl('/cfiles/browse'),
-                    'icon' => '<i class="fa fa-files-o"></i>',
-                    'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
-                ));
-            }
+            $event->sender->addItem([
+                'label' => Yii::t('CfilesModule.base', 'Files'),
+                'url' => $event->sender->user->createUrl('/cfiles/browse'),
+                'icon' => '<i class="fa fa-files-o"></i>',
+                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
+            ]);
         }
     }
 

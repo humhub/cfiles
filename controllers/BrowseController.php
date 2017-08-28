@@ -34,7 +34,6 @@ class BrowseController extends BaseController
     {
         $orderBy = Yii::$app->request->get('order_by');
         $sortOrder = Yii::$app->request->get('sort_order');
-
         $filesOrder = NULL;
         $foldersOrder = NULL;
 
@@ -71,9 +70,7 @@ class BrowseController extends BaseController
 
     public function actionFileList()
     {
-        return $this->asJson([
-                    'output' => $this->renderFileList()
-        ]);
+        return $this->asJson(['output' => $this->renderFileList()]);
     }
 
     /**
@@ -84,7 +81,7 @@ class BrowseController extends BaseController
      * @param array $foldersOrder orderBy array appended to the folders query
      * @return array|string the rendered view or an array of the rendered view and the itemCount.
      */
-    protected function renderFileList($filesOrder = null, $foldersOrder = null)
+    public function renderFileList($filesOrder = null, $foldersOrder = null)
     {
         return \humhub\modules\cfiles\widgets\FileList::widget([
                     'folder' => $this->getCurrentFolder(),

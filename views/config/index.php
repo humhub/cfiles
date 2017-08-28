@@ -14,7 +14,7 @@ use yii\helpers\Html;
             <?= $form->field($model, 'disableZipSupport')->checkbox(null, false); ?>
         </div>
         <div class="form-group">
-            <?= Html::submitButton('Submit', ['class' => 'btn btn-primary']) ?>
+            <?= Html::submitButton(Yii::t('base', 'Save'), ['class' => 'btn btn-primary', 'data-ui-loader' => '']) ?>
         </div>
         <?php ActiveForm::end(); ?>
     </div>

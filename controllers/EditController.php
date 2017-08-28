@@ -9,6 +9,7 @@
 namespace humhub\modules\cfiles\controllers;
 
 use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\models\Content;
 use Yii;
 use yii\web\HttpException;
@@ -22,26 +23,24 @@ use humhub\modules\cfiles\models\Folder;
  */
 class EditController extends BrowseController
 {
+    public function getAccessRules()
+    {
+        return [
+            ['permission' => [WriteAccess::class]]
+        ];
+    }
 
     /**
      * Action to edit a given folder.
      *
      * @return string
      */
-    public function actionFolder($visibility = Content::VISIBILITY_PRIVATE)
+    public function actionFolder($id = null, $visibility = Content::VISIBILITY_PRIVATE)
     {
-        if (!$this->canWrite()) {
-            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
-        }
-
-        $folder = FileSystemItem::getItemById(Yii::$app->request->get('id'));
-
-        if (Yii::$app->request->get('cancel')) {
-            return $this->renderAjaxContent($folder->getWallOut());
-        }
+        $folder = FileSystemItem::getItemById($id);
 
         // create new folder if no folder was found or folder is not editable.
-        if (!$folder || !$folder->isEditableFolder($folder)) {
+        if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder($folder)) {
             $folder = new Folder(['parent_folder_id' => $this->getCurrentFolder()->id]);
             $folder->content->container = $this->contentContainer;
         }
@@ -53,9 +52,9 @@ class EditController extends BrowseController
 
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
         return $this->renderPartial('modal_edit_folder', [
-                    'folder' => $folder,
-                    'contentContainer' => $this->contentContainer,
-                    'currentFolderId' => $this->getCurrentFolder()->id,
+            'folder' => $folder,
+            'contentContainer' => $this->contentContainer,
+            'currentFolderId' => $this->getCurrentFolder()->id,
         ]);
     }
 
@@ -64,32 +63,21 @@ class EditController extends BrowseController
      *
      * @return string
      */
-    public function actionFile()
+    public function actionFile($id, $fromWall = 0)
     {
-        if (!$this->canWrite()) {
-            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
-        }
-
-        $fromWall = Yii::$app->request->get('fromWall');
-        $file = FileSystemItem::getItemById(Yii::$app->request->get('id'));
+        $file = FileSystemItem::getItemById($id);
 
         // if not return cause this should not happen
         if (empty($file) || !($file instanceof File)) {
-            throw new HttpException(401, Yii::t('CfilesModule.base', 'Cannot edit non existing file.'));
-        }
-
-        if (Yii::$app->request->get('cancel')) {
-            return $this->renderAjaxContent($file->getWallOut());
+            throw new HttpException(404, Yii::t('CfilesModule.base', 'Cannot edit non existing file.'));
         }
 
         if ($file->baseFile->load(Yii::$app->request->post()) && $file->baseFile->validate()) {
             // check for duplicate
             $dup = File::getFileByName($file->baseFile->file_name, $file->parent_folder_id, $this->contentContainer);
-            if($dup && $dup->id !== $file->id) {
+            if ($dup && $dup->id !== $file->id) {
                 $file->baseFile->addErrors(['file_name' => Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.')]);
-            } 
-            // if there is no folder with the same name, try to save the current folder
-            elseif ($file->load(Yii::$app->request->post()) && $file->save()) {
+            } elseif ($file->load(Yii::$app->request->post()) && $file->save()) {
                 if ($fromWall) {
                     return $this->asJson(['success' => true]);
                 } else {
@@ -101,10 +89,10 @@ class EditController extends BrowseController
 
         // if it could not be saved successfully, or the formular was empty, render the edit folder modal
         return $this->renderPartial('modal_edit_file', [
-                    'file' => $file,
-                    'contentContainer' => $this->contentContainer,
-                    'currentFolderId' => $file->parent_folder_id,
-                    'fromWall' => $fromWall
+            'file' => $file,
+            'contentContainer' => $this->contentContainer,
+            'currentFolderId' => $file->parent_folder_id,
+            'fromWall' => $fromWall
         ]);
     }
 

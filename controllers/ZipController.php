@@ -8,29 +8,46 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\cfiles\actions\UploadZipAction;
 use Yii;
 use yii\web\HttpException;
 use humhub\modules\cfiles\libs\ZIPCreator;
 use humhub\modules\cfiles\widgets\FileList;
+use yii\web\UploadedFile;
 
 /**
  * ZipController
  *
  * @author Sebastian Stumpf
  */
-class ZipController extends BaseController
+class ZipController extends BrowseController
 {
 
-    /**
-     * @inheritdoc
-     */
-    public function init()
+    public function getAccessRules()
     {
-        parent::init();
+        return [
+            ['checkZipSupport']
+        ];
+    }
 
+    public function actions()
+    {
+        return [
+            'upload' => [
+                'class' => UploadZipAction::class,
+            ],
+        ];
+    }
+
+    public function checkZipSupport($rule, $access)
+    {
         if (!$this->module->isZipSupportEnabled()) {
-            throw new HttpException(404, Yii::t('CfilesModule.base', 'ZIP support is not enabled.'));
+            $access->code = 404;
+            $access->reason = Yii::t('CfilesModule.base', 'ZIP support is not enabled.');
+            return false;
         }
+
+        return true;
     }
 
     /**
@@ -53,5 +70,4 @@ class ZipController extends BaseController
 
         return Yii::$app->response->sendFile($zip->getZipFile(), (count($items) == 1) ? $items[0]->title . '.zip' : 'files.zip');
     }
-
 }

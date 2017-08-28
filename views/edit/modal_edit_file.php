@@ -1,30 +1,34 @@
 <?php
 
 
-use humhub\compat\CActiveForm;
+use humhub\widgets\ModalButton;
+use yii\bootstrap\ActiveForm;
+use humhub\widgets\ModalDialog;
+
+/* @var $file \humhub\modules\cfiles\models\File */
+/* @var $currentFolderId integer */
+/* @var $fromWall boolean */
+
+$submitUrl = $contentContainer->createUrl('/cfiles/edit/file', ['fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => $fromWall]);
 ?>
 
-<?php \humhub\widgets\ModalDialog::begin([
+<?php ModalDialog::begin([
     'header' =>  Yii::t('CfilesModule.base', '<strong>Edit</strong> file'),
     'animation' => 'fadeIn',
     'size' => 'small']) ?>
 
-    <?php $form = CActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin(); ?>
 
         <div class="modal-body">
             <?= $form->field($file->baseFile, 'file_name'); ?>
             <?= $form->field($file, 'description'); ?>
+            <?= $form->field($file, 'visibility')->checkbox(['disabled' => $file->parentFolder->content->isPrivate()]) ?>
         </div>
 
         <div class="modal-footer">
-            <button href="#" class="btn btn-primary" data-action-click="ui.modal.submit" data-ui-loader type="submit"
-               data-action-url="<?= $contentContainer->createUrl('/cfiles/edit/file', ['fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => $fromWall]) ?>">
-                   <?= Yii::t('CfilesModule.base', 'Save'); ?>
-            </button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal">
-                <?= Yii::t('CfilesModule.base', 'Close'); ?>
-            </button>
+            <?= ModalButton::submitModal($submitUrl) ?>
+            <?= ModalButton::cancel() ?>
         </div>
-    <?php CActiveForm::end() ?>
+    <?php ActiveForm::end() ?>
 
-<?php \humhub\widgets\ModalDialog::end() ?>
+<?php ModalDialog::end() ?>

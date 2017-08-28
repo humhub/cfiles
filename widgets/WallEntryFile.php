@@ -41,13 +41,11 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
         }
 
         return $this->render('wallEntryFile', [
-                    'cFile' => $cFile,
-                    'fileName' => $cFile->getTitle(),
-                    'fileSize' => $cFile->getSize(),
-                    'file' => $cFile->baseFile,
-                    'previewImage' => new PreviewImage(),
-                    'folderUrl' => $folderUrl,
-                    'mimeIconClass' => MimeHelper::getMimeIconClassByExtension($cFile->baseFile)
+            'cFile' => $cFile,
+            'fileSize' => $cFile->getSize(),
+            'file' => $cFile->baseFile,
+            'previewImage' => new PreviewImage(),
+            'folderUrl' => $folderUrl,
         ]);
     }
 
