@@ -69,7 +69,7 @@ class File extends FileSystemItem
     public function rules()
     {
         $rules = [
-            [['parent_folder_id', 'baseFile'], 'required'],
+            [['parent_folder_id'], 'required'],
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
             ['description', 'string', 'max' => 255]
@@ -130,12 +130,12 @@ class File extends FileSystemItem
 
     public function afterSave($insert, $changedAttributes)
     {
-        if($insert) {
+        if($insert && $this->baseFile) {
             $this->baseFile->setPolymorphicRelation($this);
         }
 
         // Required if title has changed.
-        if($insert || ($this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name)) {
+        if($this->baseFile && ($insert ||  ($this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name))) {
             $this->baseFile->save(false);
         }
 

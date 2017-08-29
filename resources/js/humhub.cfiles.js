@@ -110,7 +110,6 @@ humhub.module('cfiles', function (module, require, $) {
                         item.edit();
                         break;
                     case 'download':
-                        debugger;
                         document.location.href = item.url;
                         break;
                     case 'show-image':

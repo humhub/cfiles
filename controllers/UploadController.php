@@ -37,20 +37,14 @@ class UploadController extends BrowseController
         ];
     }
 
-    public function actionImport()
+    public function actionImport($fid)
     {
-        if (!$this->canWrite()) {
-            throw new HttpException(401, Yii::t('CfilesModule.base', 'Insufficient rights to execute this action.'));
-        }
-
-        $fid = Yii::$app->request->get('fid');
-
-        $guids = Yii::$app->request->post('guids');
-
-        //check if this guid is already taken
+        //Todo: check if this guid is already taken
 
         $file = new File(['parent_folder_id' => $fid]);
         $file->content->container = $this->contentContainer;
+
+        $guids = Yii::$app->request->post('guids');
 
         if ($file->save()) {
             $file->fileManager->attach($guids);
