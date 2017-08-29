@@ -2,7 +2,7 @@ Module Filemanager
 =================
 Module for managing files inside spaces and on profiles.
 
-##Description
+## Description
 
 This module will allow you to manage files in a filesystem like structure.
 - upload, download, move, delete files
