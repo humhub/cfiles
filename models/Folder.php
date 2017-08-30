@@ -215,7 +215,11 @@ class Folder extends FileSystemItem
         ]);
 
         $root->content->created_by = self::getContainerOwnerId($contentContainer);
-
+        // v1.1 and earlier compatibility check
+        if(property_exists($root->content, 'muteDefaultSocialActivities')) {
+            $root->content->muteDefaultSocialActivities = true;
+        }
+        
         if($root->save()) {
             return $root;
         }
@@ -235,7 +239,7 @@ class Folder extends FileSystemItem
         if(!$root || !empty(self::getPostedFilesFolder($contentContainer))) {
             return false;
         }
-
+        
         $postedFilesFolder = new self($contentContainer, Content::VISIBILITY_PUBLIC, [
             'type' => self::TYPE_FOLDER_POSTED,
             'title' => self::ALL_POSTED_FILES_TITLE,
@@ -244,7 +248,11 @@ class Folder extends FileSystemItem
         ]);
 
         $postedFilesFolder->content->created_by = self::getContainerOwnerId($contentContainer);
-
+        // v1.1 and earlier compatibility check
+        if(property_exists($root->content, 'muteDefaultSocialActivities')) {
+            $postedFilesFolder->content->muteDefaultSocialActivities = true;
+        }
+        
         if($postedFilesFolder->save()) {
             return $postedFilesFolder;
         }
