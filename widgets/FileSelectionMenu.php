@@ -44,6 +44,8 @@ class FileSelectionMenu extends Widget
         $moveSelectionUrl = $this->contentContainer->createUrl('/cfiles/move', ['init' => 1, 'fid' => $this->folder->id]);
 
         $zipSelectionUrl = $this->contentContainer->createUrl('/cfiles/zip/download');
+        $makePrivateUrl = $this->contentContainer->createUrl('/cfiles/edit/make-private');
+        $makePublicUrl = $this->contentContainer->createUrl('/cfiles/edit/make-public');
 
         return $this->render('fileSelectionMenu', [
             'deleteSelectionUrl' => $deleteSelectionUrl,
@@ -51,6 +53,9 @@ class FileSelectionMenu extends Widget
             'moveSelectionUrl' => $moveSelectionUrl,
             'zipSelectionUrl' => $zipSelectionUrl,
             'canWrite' => $this->canWrite,
-            'zipEnabled' =>  Yii::$app->getModule('cfiles')->isZipSupportEnabled()]);
+            'zipEnabled' =>  Yii::$app->getModule('cfiles')->isZipSupportEnabled(),
+            'makePrivateUrl' => $makePrivateUrl,
+            'makePublicUrl' => $makePublicUrl,
+        ]);
     }
 }

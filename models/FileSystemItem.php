@@ -35,6 +35,8 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         ];
     }
 
+    abstract function updateVisibility($visibility);
+
     /**
      * @inheritdoc
      */

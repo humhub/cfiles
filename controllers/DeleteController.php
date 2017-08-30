@@ -35,7 +35,7 @@ class DeleteController extends BrowseController
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = FileSystemItem::getItemById($itemId);
-                if ($item && $item->isDeletable()) {
+                if ($item && $item->isDeletable() && $item->content->container->id === $this->contentContainer->id) {
                     $item->delete();
                 }
             }

@@ -224,6 +224,19 @@ humhub.module('cfiles', function (module, require, $) {
         });
     };
 
+    FolderView.prototype.changeSelectionVisibility = function (evt) {
+        var that = this;
+        this.loader();
+        client.submit(evt, {'dataType': 'html'}).then(function (response) {
+            that.replaceFileList(response.html);
+            module.log.success('saved');
+        }).catch(function (e) {
+            module.log.error(e, true);
+        }).finally(function () {
+            that.loader(false);
+        });
+    };
+
     FolderView.prototype.zipSelection = function (evt) {
         var $form = $('#cfiles-form');
         $form.attr("action", evt.$trigger.data('action-url'));

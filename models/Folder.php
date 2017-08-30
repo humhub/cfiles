@@ -162,7 +162,7 @@ class Folder extends FileSystemItem
     /**
      * @param $visibility
      */
-    protected function updateVisibility($visibility)
+    public function updateVisibility($visibility)
     {
         if($visibility === null) {
             return;

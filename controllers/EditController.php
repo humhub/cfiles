@@ -9,6 +9,7 @@
 namespace humhub\modules\cfiles\controllers;
 
 use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\models\forms\SelectionForm;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\models\Content;
 use Yii;
@@ -35,9 +36,13 @@ class EditController extends BrowseController
      *
      * @return string
      */
-    public function actionFolder($id = null, $visibility = Content::VISIBILITY_PRIVATE)
+    public function actionFolder($id = null)
     {
         $folder = FileSystemItem::getItemById($id);
+
+        if($folder && $folder->content->container->id !== $this->contentContainer->id) {
+            throw new HttpException(404);
+        }
 
         // create new folder if no folder was found or folder is not editable.
         if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder($folder)) {
@@ -67,6 +72,10 @@ class EditController extends BrowseController
     {
         $file = FileSystemItem::getItemById($id);
 
+        if($file && $file->content->container->id !== $this->contentContainer->id) {
+            throw new HttpException(404);
+        }
+
         // if not return cause this should not happen
         if (empty($file) || !($file instanceof File)) {
             throw new HttpException(404, Yii::t('CfilesModule.base', 'Cannot edit non existing file.'));
@@ -94,6 +103,40 @@ class EditController extends BrowseController
             'currentFolderId' => $file->parent_folder_id,
             'fromWall' => $fromWall
         ]);
+    }
+
+    /**
+     * @return string
+     */
+    public function actionMakePrivate()
+    {
+        return $this->updateVisibility(new SelectionForm(), Content::VISIBILITY_PRIVATE);
+    }
+
+    /**
+     * @return string
+     */
+    public function actionMakePublic()
+    {
+        return $this->updateVisibility(new SelectionForm(), Content::VISIBILITY_PUBLIC);
+    }
+
+    /**
+     * @param SelectionForm $model
+     * @param $visibility
+     * @return string
+     */
+    private function updateVisibility(SelectionForm $model, $visibility)
+    {
+        foreach ($model->selection as $itemId) {
+            $item = FileSystemItem::getItemById($itemId);
+            if($item && $item->content->container->id === $this->contentContainer->id) {
+                $item->updateVisibility($visibility);
+                $item->content->save();
+            }
+        }
+
+        return $this->renderFileList();
     }
 
 }
