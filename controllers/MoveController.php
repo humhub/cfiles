@@ -35,8 +35,9 @@ class MoveController extends BaseController
      * Action to move files and folders from the current, to another folder.
      * @return string
      */
-    public function actionIndex()
+    public function actionIndex($fid) //Make sure an $fid is given otherwise the root folder is used as default
     {
+
         $model = new MoveForm([
             'root' => $this->getRootFolder(),
             'sourceFolder' => $this->getCurrentFolder()

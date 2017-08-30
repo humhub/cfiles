@@ -650,6 +650,10 @@ class Folder extends FileSystemItem
      */
     public function moveItem(FileSystemItem $item)
     {
+        if(!$item) {
+            return false;
+        }
+
         if($item instanceof Folder && !$item->isEditableFolder()) {
             $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'Folder {name} given folder is not editable!', ['name' => $item->getTitle()]));
             return false;
@@ -660,33 +664,29 @@ class Folder extends FileSystemItem
             return false;
         }
 
-        if($item instanceof File && $item->parent_folder_id === $this->id) {
-            return true;
-        }
-
         // We ignore invalid items and items already residing in the given destination
-        if($item && $item->getItemId() !== $this->getItemId()) {
-            // Note we don't set the content visibility directly to run recursive visibility change in folders
-            $item->visibility = $this->content->visibility;
-            $item->parent_folder_id = $this->id;
-
-            $moveResult = $this->checkForDuplicate($item);
-
-            if(!$moveResult) {
-                // Probably an error when moving subfiles to an existing folder
-                return false;
-            }
-
-            if($item->is($moveResult)) {
-                // Either no duplicate or just simple file rename
-                return $moveResult->save();
-            }
-
-            // Successfully moved subfiles to existing folder with same title
+        if($item->hasParent($this) || $item->is($this)) {
             return true;
         }
 
-        return false;
+        // Note we don't set the content visibility directly to run recursive visibility change in folders
+        $item->visibility = $this->content->visibility;
+        $item->parent_folder_id = $this->id;
+
+        $moveResult = $this->checkForDuplicate($item);
+
+        if(!$moveResult) {
+            // Probably an error when moving subfiles to an existing folder
+            return false;
+        }
+
+        if($item->is($moveResult)) {
+            // Either no duplicate or just simple file rename
+            return $moveResult->save();
+        }
+
+        // Successfully moved subfiles to existing folder with same title
+        return true;
     }
 
     /**

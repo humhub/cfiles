@@ -91,6 +91,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     {
         return $this->getItemId() === $item->getItemId();
     }
+
+    public function hasParent(FileSystemItem $folder)
+    {
+        return $folder instanceof Folder && $folder->id === $this->parent_folder_id;
+    }
     
     /**
      * @inheritdoc
@@ -150,14 +155,6 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function getEditor()
     {
         return User::findOne(['id' => $this->content->updated_by]);
-    }
-
-    /**
-     * @return string
-     */
-    public function getMoveUrl()
-    {
-        return $this->content->container->createUrl('/cfiles/move', ['init' => 1]);
     }
 
     /**

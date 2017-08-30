@@ -32,6 +32,7 @@ class FileSystemItem extends \yii\base\Widget
     public $downloadUrl;
     public $url;
     public $wallUrl;
+    public $moveUrl;
     public $iconClass;
     public $title;
     public $size;
@@ -108,6 +109,10 @@ class FileSystemItem extends \yii\base\Widget
             $this->setVisibilityOptions();
         }
 
+        if($this->item && $this->canWrite) {
+            $this->moveUrl =  $this->item->content->container->createUrl('/cfiles/move', ['fid' => $this->parentFolderId]);
+        }
+
         parent::init();
     }
 
@@ -149,7 +154,7 @@ class FileSystemItem extends \yii\base\Widget
                     'url' => $this->url,
                     'wallUrl' => $this->wallUrl,
                     'editUrl' => ($this->item && $this->canWrite) ? $this->item->getEditUrl() : null,
-                    'moveUrl' => ($this->item && $this->canWrite) ? $this->item->getMoveUrl() : null,
+                    'moveUrl' => $this->moveUrl,
                     'iconClass' => $this->iconClass,
                     'title' => $this->title,
                     'size' => $this->size,
