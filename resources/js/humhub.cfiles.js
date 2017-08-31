@@ -112,11 +112,11 @@ humhub.module('cfiles', function (module, require, $) {
                     case 'download':
                         document.location.href = item.url;
                         break;
-                    case 'show-image':
-                        item.$.find('.preview-link').click();
-                        break;
                     case 'show-post':
                         document.location.href = item.wallUrl;
+                        break;
+                    case 'show-url':
+                        that.showUrl(item);
                         break;
                     case 'move-files':
                         item.move();
@@ -130,6 +130,27 @@ humhub.module('cfiles', function (module, require, $) {
                 }
             }
         });
+    };
+
+    FolderView.prototype.showUrl = function (item) {
+        var options = module.config.showUrlModal;
+        options.url = item.options.cfilesUrlFull;
+
+        options.head = item.options.cfilesType === 'folder' ? options.headFolder : options.headFile;
+
+        modal.global.set({
+            header: options.head,
+            body: string.template(module.templates.showUrlModalBody, options),
+            footer: string.template(module.templates.showUrlModalFooter, options),
+            size: 'normal'
+        });
+
+        modal.global.show();
+    };
+
+    module.templates = {
+        showUrlModalBody: '<div class="clearfix"><textarea rows="3" class="form-control file-url-input" spellcheck="false" readonly>{url}</textarea><p class="help-block pull-right"><a href="#" data-action-click="copyToClipboard" data-action-target=".file-url-input"><i class="fa fa-clipboard" aria-hidden="true"></i> {info}</a></p></div>',
+        showUrlModalFooter: '<a href="#" data-modal-close class="btn btn-default">{buttonClose}</a>'
     };
 
     FolderView.prototype.downloadZip = function (item) {

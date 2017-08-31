@@ -40,12 +40,12 @@ class FileSelectionMenu extends Widget
 
     public function run()
     {
-        $deleteSelectionUrl = $this->contentContainer->createUrl('/cfiles/delete', ['fid' => $this->folder->id]);
-        $moveSelectionUrl = $this->contentContainer->createUrl('/cfiles/move', ['init' => 1, 'fid' => $this->folder->id]);
+        $deleteSelectionUrl = $this->folder->createUrl('/cfiles/delete');
+        $moveSelectionUrl = $this->folder->createUrl('/cfiles/move', ['init' => 1]);
 
-        $zipSelectionUrl = $this->contentContainer->createUrl('/cfiles/zip/download');
-        $makePrivateUrl = $this->contentContainer->createUrl('/cfiles/edit/make-private');
-        $makePublicUrl = $this->contentContainer->createUrl('/cfiles/edit/make-public');
+        $zipSelectionUrl = $this->folder->createUrl('/cfiles/zip/download');
+        $makePrivateUrl = $this->folder->createUrl('/cfiles/edit/make-private');
+        $makePublicUrl = $this->folder->createUrl('/cfiles/edit/make-public');
 
         return $this->render('fileSelectionMenu', [
             'deleteSelectionUrl' => $deleteSelectionUrl,

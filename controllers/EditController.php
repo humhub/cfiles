@@ -46,20 +46,18 @@ class EditController extends BrowseController
 
         // create new folder if no folder was found or folder is not editable.
         if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder($folder)) {
-            $folder = new Folder(['parent_folder_id' => $this->getCurrentFolder()->id]);
+            $folder = $this->getCurrentFolder()->newFolder();
             $folder->content->container = $this->contentContainer;
         }
 
         if ($folder->load(Yii::$app->request->post()) && $folder->save()) {
             $this->view->saved();
-            return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $folder->id]));
+            return $this->htmlRedirect($folder->createUrl('/cfiles/browse/index'));
         }
 
-        // if it could not be saved successfully, or the formular was empty, render the edit folder modal
         return $this->renderPartial('modal_edit_folder', [
             'folder' => $folder,
-            'contentContainer' => $this->contentContainer,
-            'currentFolderId' => $this->getCurrentFolder()->id,
+            'submitUrl' => $this->getCurrentFolder()->createUrl('/cfiles/edit/folder', ['id' => $folder->getItemId()])
         ]);
     }
 
@@ -82,9 +80,8 @@ class EditController extends BrowseController
         }
 
         if ($file->baseFile->load(Yii::$app->request->post()) && $file->baseFile->validate()) {
-            // check for duplicate
-            $dup = File::getFileByName($file->baseFile->file_name, $file->parent_folder_id, $this->contentContainer);
-            if ($dup && $dup->id !== $file->id) {
+            $duplicate = File::getFileByName($file->baseFile->file_name,  $file->parent_folder_id, $this->contentContainer);
+            if($duplicate && !$duplicate->is($file)) {
                 $file->baseFile->addErrors(['file_name' => Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.')]);
             } elseif ($file->load(Yii::$app->request->post()) && $file->save()) {
                 if ($fromWall) {
@@ -96,12 +93,9 @@ class EditController extends BrowseController
             }
         }
 
-        // if it could not be saved successfully, or the formular was empty, render the edit folder modal
         return $this->renderPartial('modal_edit_file', [
             'file' => $file,
-            'contentContainer' => $this->contentContainer,
-            'currentFolderId' => $file->parent_folder_id,
-            'fromWall' => $fromWall
+            'submitUrl' =>  $this->contentContainer->createUrl('/cfiles/edit/file', ['fid' => $file->parent_folder_id, 'id' => $file->getItemId(), 'fromWall' => $fromWall]),
         ]);
     }
 

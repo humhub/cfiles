@@ -10,3 +10,6 @@ Changelog
 - Enh: rename files
 - Fix: Zip support not working
 - Enh: Posted files pagination
+- Enh: Make posted files/root folder translatabl
+- Enh: Addes Show Url context item
+- Enh: Use of foreign keys

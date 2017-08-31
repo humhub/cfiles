@@ -6,10 +6,8 @@ use yii\bootstrap\ActiveForm;
 use humhub\widgets\ModalDialog;
 
 /* @var $file \humhub\modules\cfiles\models\File */
-/* @var $currentFolderId integer */
-/* @var $fromWall boolean */
+/* @var $submitUrl string */
 
-$submitUrl = $contentContainer->createUrl('/cfiles/edit/file', ['fid' => $currentFolderId, 'id' => $file->getItemId(), 'fromWall' => $fromWall]);
 ?>
 
 <?php ModalDialog::begin([

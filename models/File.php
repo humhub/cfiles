@@ -5,6 +5,7 @@ namespace humhub\modules\cfiles\models;
 use humhub\components\behaviors\PolymorphicRelation;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\file\handler\DownloadFileHandler;
+use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\FileContent;
 use humhub\modules\file\models\FileUpload;
 use Yii;
@@ -12,6 +13,7 @@ use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\models\Content;
 use yii\db\ActiveQuery;
+use yii\helpers\Url;
 use yii\web\UploadedFile;
 
 /**
@@ -60,7 +62,7 @@ class File extends FileSystemItem
      */
     public function getIcon()
     {
-        return File::getIconClassByExt(strtolower($this->baseFile->getExtension()));
+        return File::getIconClassByExt(strtolower(FileHelper::getExtension($this->baseFile)));
     }
 
     /**
@@ -74,6 +76,8 @@ class File extends FileSystemItem
             ['parent_folder_id', 'validateParentFolderId'],
             ['description', 'string', 'max' => 255]
         ];
+
+
 
         if($this->parentFolder && $this->parentFolder->content->isPublic()) {
             $rules[] = ['visibility', 'integer', 'min' => 0, 'max' => 1];
@@ -151,6 +155,7 @@ class File extends FileSystemItem
         }
 
         if(!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
+            // For user profile files we use Content::VISIBILITY_OWNER isntead of private
             $this->content->visibility = $visibility;
         }
     }
@@ -237,7 +242,7 @@ class File extends FileSystemItem
      */
     public function getItemType()
     {
-        return File::getItemTypeByExt(strtolower($this->baseFile->getExtension()));
+        return File::getItemTypeByExt(FileHelper::getExtension($this->baseFile));
     }
 
     /**
@@ -322,6 +327,14 @@ class File extends FileSystemItem
         }
     }
 
+    /**
+     * @return string
+     */
+    function getDescription()
+    {
+        return $this->description;
+    }
+
     public function setTitle($title)
     {
         if (!empty($this->baseFile)) {
@@ -350,13 +363,23 @@ class File extends FileSystemItem
         return $this->parentFolder->getUrl();
     }
 
+    public function getFullUrl()
+    {
+        return $this->getDownloadUrl(true, true);
+    }
+
     /**
      * @param bool $forceDownload forces a download for each file type instead of opening in browser
      * @return string download url
      */
-    public function getDownloadUrl($forceDownload = false)
+    public function getDownloadUrl($forceDownload = false, $scheme = true)
     {
-        return DownloadFileHandler::getUrl($this->baseFile, $forceDownload);
+        if(!$scheme) {
+            return DownloadFileHandler::getUrl($this->baseFile, $forceDownload);
+        } else {
+            // Todo can be removed after v1.2.3 then call DownloadFileHandler::getUrl($this->baseFile, $forceDownload, $scheme)
+            return Url::to(['/file/file/download', 'guid' => $this->baseFile->guid, 'download' => $forceDownload], $scheme);
+        }
     }
 
     /**

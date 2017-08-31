@@ -9,6 +9,7 @@
 namespace humhub\modules\cfiles\controllers;
 
 use Yii;
+use yii\db\Expression;
 use yii\web\HttpException;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerController;
@@ -41,7 +42,7 @@ abstract class BaseController extends ContentContainerController
         $newRoot = false;
 
         // create default folders
-        if ($this->getRootFolder() == null) {
+        if (!$this->getRootFolder()) {
             $this->_rootFolder = Folder::initRoot($this->contentContainer);
             $newRoot = true;
         }
@@ -50,38 +51,11 @@ abstract class BaseController extends ContentContainerController
             $this->_allPostedFilesFolder = Folder::initPostedFilesFolder($this->contentContainer);
         }
 
-        // TODO: remove or make simple update query...
+        // TODO: In a future version, we should handle this within a migration and remove the line
         // next step is to shift all former root subfiles which have parent_folder_id == 0 (up to module version v.9.7) to the generated root folder
         // this should not be a problem if the migration was broken, because it only affects entries with parent_folder_id==0
         if ($newRoot) {
-            $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->contentContainer);
-            $foldersQuery = Folder::find()->contentContainer($this->contentContainer);
-
-            $filesQuery->andWhere([
-                'cfiles_file.parent_folder_id' => 0
-            ]);
-
-            // user maintained folders
-            $foldersQuery->andWhere([
-                'cfiles_folder.parent_folder_id' => 0
-            ]);
-
-            // do not return any folders here that are root or allpostedfiles
-            $foldersQuery->andWhere([
-                'cfiles_folder.type' => null
-            ]);
-
-            $rootsubfiles = $filesQuery->all();
-            $rootsubfolders = $foldersQuery->all();
-
-            foreach ($rootsubfiles as $file) {
-                $file->parent_folder_id = $this->_rootFolder->id;
-                $file->save();
-            }
-            foreach ($rootsubfolders as $folder) {
-                $folder->parent_folder_id = $this->_rootFolder->id;
-                $folder->save();
-            }
+            $this->_rootFolder->migrateFromOldStructure();
         }
 
         return true;

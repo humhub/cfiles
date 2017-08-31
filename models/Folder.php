@@ -26,6 +26,10 @@ use yii\web\UploadedFile;
  * @property string $type
  *
  * @property Folder parentFolder
+ * @property Folder[] subFolders
+ * @property Folder[] specialFolders
+ * @property File[] subFiles
+ *
  */
 class Folder extends FileSystemItem
 {
@@ -73,7 +77,7 @@ class Folder extends FileSystemItem
     public function rules()
     {
 
-        return array_merge(parent::rules(), [
+        $result = array_merge(parent::rules(), [
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
             ['title', 'required'],
@@ -83,6 +87,12 @@ class Folder extends FileSystemItem
             ['description', 'string', 'max' => 255],
             ['title', 'uniqueTitle']
         ]);
+
+        if(!$this->isRoot()) {
+            $result[] = ['parent_folder_id', 'required'];
+        }
+
+        return $result;
     }
 
     /**
@@ -195,6 +205,37 @@ class Folder extends FileSystemItem
         }
 
         return parent::beforeDelete();
+    }
+
+    /**
+     * In older versions there was no actual root folder, all root files and folders had parent_folder_id 0 or null.
+     * This function can be executed for newly created root folders and will move all files/folders to the new root.
+     */
+    public function migrateFromOldStructure()
+    {
+        if(!$this->isRoot()) {
+            return;
+        }
+
+        $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->content->container)
+            ->andWhere(['OR', ['IS', 'cfiles_file.parent_folder_id', new \yii\db\Expression('NULL')], ['cfiles_file.parent_folder_id' => 0]]);
+
+        $foldersQuery = Folder::find()->contentContainer($this->content->container)
+            ->andWhere(['OR', ['IS', 'cfiles_folder.parent_folder_id', new \yii\db\Expression('NULL')], ['cfiles_folder.parent_folder_id' => 0]])
+            ->andWhere(['IS', 'cfiles_folder.type', new \yii\db\Expression('NULL')]);
+
+        $rootsubfiles = $filesQuery->all();
+        $rootsubfolders = $foldersQuery->all();
+
+        foreach ($rootsubfiles as $file) {
+            $file->parent_folder_id = $this->id;
+            $file->save();
+        }
+
+        foreach ($rootsubfolders as $folder) {
+            $folder->parent_folder_id = $this->id;
+            $folder->save();
+        }
     }
 
     /**
@@ -373,12 +414,36 @@ class Folder extends FileSystemItem
 
     public function getTitle()
     {
+        if($this->isRoot()) {
+            return  Yii::t('CfilesModule.base', 'Root');
+        } else if($this->isAllPostedFiles()) {
+            return  Yii::t('CfilesModule.base', 'Files from the stream');
+        }
+
         return $this->title;
+    }
+
+    public function getDescription()
+    {
+        if($this->isRoot()) {
+            return  Yii::t('CfilesModule.base', 'The root folder is the entry point that contains all available files.');
+        } else if($this->isAllPostedFiles()) {
+            return  Yii::t('CfilesModule.base', 'You can find all files that have been posted to this stream here.');
+        }
+
+        return $this->description;
     }
 
     public function getSize()
     {
         return 0;
+    }
+
+    public function createUrl($route = null, $params = [], $scheme = false)
+    {
+        $params = (is_array($params)) ? $params : [];
+        $params['fid'] = $this->id;
+        return $this->content->container->createUrl($route, $params, $scheme);
     }
 
     public function getUrl()
@@ -389,6 +454,16 @@ class Folder extends FileSystemItem
 
         return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id]);
     }
+
+    public function getFullUrl()
+    {
+        if (empty($this->content->container)) {
+            return "";
+        }
+
+        return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id], true);
+    }
+
 
     public function getEditUrl()
     {
@@ -504,15 +579,6 @@ class Folder extends FileSystemItem
         parent::validateParentFolderId($attribute, $params);
     }
 
-    public function getItems($filesOrder = ['title' => SORT_ASC], $foldersOrder = ['title' => SORT_ASC])
-    {
-        return [
-            'specialFolders' => $this->getSpecialFolders(),
-            'folders' => $this->getSubFolders($foldersOrder),
-            'files' => $this->getSubFiles($filesOrder)
-        ];
-    }
-
     /**
      * @return FileSystemItem[] return all child folders and child files excluding special folders
      */
@@ -521,7 +587,11 @@ class Folder extends FileSystemItem
         return array_merge($this->getSubFolders(), $this->getSubFiles());
     }
 
-    protected function getSpecialFolders($order = ['title' => SORT_ASC])
+    /**
+     * @param array $order
+     * @return Folder[]
+     */
+    public function getSpecialFolders()
     {
         $specialFoldersQuery = Folder::find()->contentContainer($this->content->container)->readable();
         $specialFoldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->id]);
@@ -531,19 +601,18 @@ class Folder extends FileSystemItem
 
 
     /**
-     * @param array $order
      * @return Folder[]
      */
-    protected function getSubFolders($order = ['title' => SORT_ASC])
+    public function getSubFolders()
     {
-        return self::getSubFoldersByParent($this, $order)->all();
+        return self::getSubFoldersByParent($this)->all();
     }
 
     /**
      * @param null $order
      * @return File[]
      */
-    protected function getSubFiles($order = null)
+    public function getSubFiles($order = null)
     {
         if (!$order) {
             $order = 'file.file_name ASC';
@@ -712,7 +781,7 @@ class Folder extends FileSystemItem
             $existingFolderWithTitle = $this->findFolderByName($item->title);
 
             // Check if the folder exists if not, move children to existing subfolder, if there is an error we set §result to null
-            if($existingFolderWithTitle) {
+            if($existingFolderWithTitle && !$existingFolderWithTitle->is($item)) {
                 $result = $existingFolderWithTitle;
                 foreach ($item->getChildren() as $child) {
                     // if moving the given item fails we set result to null and add an item error

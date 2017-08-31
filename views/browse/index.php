@@ -15,6 +15,13 @@ $this->registerJsConfig('cfiles', [
         'confirm.delete' => Yii::t('CfilesModule.base', 'Do you really want to delete this {number} item(s) with all subcontent?'),
         'confirm.delete.header' => Yii::t('CfilesModule.base', '<strong>Confirm</strong> delete file'),
         'confirm.delete.confirmText' => Yii::t('CfilesModule.base', 'Delete')
+    ],
+    'showUrlModal' => [
+        'head' => Yii::t('CfilesModule.base', '<strong>File</strong> url'),
+        'headFile' => Yii::t('CfilesModule.base', '<strong>File</strong> download url'),
+        'headFolder' => Yii::t('CfilesModule.base', '<strong>Folder</strong> url'),
+        'info' => Yii::t('base', 'Copy to clipboard'),
+        'buttonClose' => Yii::t('base', 'Close'),
     ]
 ]);
 ?>

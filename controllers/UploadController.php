@@ -8,6 +8,8 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\components\ActiveRecord;
+use humhub\modules\cfiles\models\Folder;
 use Yii;
 use yii\web\HttpException;
 use humhub\modules\cfiles\actions\UploadAction;
@@ -39,23 +41,55 @@ class UploadController extends BrowseController
 
     public function actionImport($fid)
     {
-        //Todo: check if this guid is already taken
-
-        $file = new File(['parent_folder_id' => $fid]);
-        $file->content->container = $this->contentContainer;
-
         $guids = Yii::$app->request->post('guids');
+        $guids = is_string($guids) ? array_map('trim', explode(',', $guids)) : $guids;
 
-        if ($file->save()) {
-            $file->fileManager->attach($guids);
-
-            foreach ($file->fileManager->findAll() as $baseFile) {
-                $baseFile->show_in_stream = false;
-                $baseFile->save();
-            }
-
+        if(!is_array($guids)) {
+            throw new HttpException(400);
         }
 
-        return $this->asJson(['success' => true]);
+        $folder = Folder::findOne($fid);
+
+        $errors = [];
+
+        foreach ($guids as $guid) {
+            $cFile = \humhub\modules\file\models\File::findOne(['guid' => $guid]);
+
+            if(!$cFile) {
+                $errors[] = Yii::t('Cfiles.base', 'Could not import file with guid {guid}. File not found', ['guid' => $guid]);
+                Yii::error(Yii::t('Cfiles.base', 'Could not import file with guid {guid}. File not found', ['guid' => $guid]));
+                continue;
+            }
+
+            $cFile->show_in_stream = false;
+
+            $file = new File($this->contentContainer);
+            $file->setFileContent($cFile);
+            $folder->moveItem($file);
+
+            if($file->hasErrors()) {
+                $erros[] = $this->actionResponseError($file);
+            }
+
+            if($file->baseFile->hasErrors()) {
+                $erros[] = $this->actionResponseError($file->baseFile);
+            }
+        }
+
+        if($errors) {
+            array_unshift($errors, Yii::t('CfilesModule.base', 'Some files could not be imported: ') );
+        }
+
+        return $this->asJson(['success' => empty($errors), 'errors' => $errors]);
+    }
+
+    public function actionResponseError(ActiveRecord $record)
+    {
+        $errorMsg = Yii::t('CfilesModule.base', 'Some files could not be imported: ');
+        foreach ($record->getErrors() as $key => $errors) {
+            foreach ($errors as $error) {
+                $errorMsg .= $error.' ';
+            }
+        }
     }
 }

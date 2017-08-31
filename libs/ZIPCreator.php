@@ -8,12 +8,9 @@
 
 namespace humhub\modules\cfiles\libs;
 
-use humhub\modules\file\libs\FileHelper;
 use Yii;
-use yii\web\UploadedFile;
 use ZipArchive;
 use yii\base\Exception;
-use yii\helpers\BaseFileHelper;
 use humhub\modules\file\models\File;
 use humhub\modules\cfiles\models\File as CFile;
 use humhub\modules\cfiles\models\Folder;

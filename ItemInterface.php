@@ -23,5 +23,7 @@ interface ItemInterface
 
     public function getUrl();
 
+    public function getFullUrl();
+
     public function getEditUrl();
 }

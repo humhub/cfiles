@@ -1,6 +1,7 @@
 <?php
 
 use humhub\modules\cfiles\models\File;
+use humhub\modules\file\libs\FileHelper;
 use humhub\widgets\LinkPager;
 use yii\helpers\Html;
 use humhub\modules\cfiles\widgets\FileSystemItem;
@@ -9,6 +10,8 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
 /* @var $itemsSelectable boolean */
 /* @var $canWrite boolean */
 /* @var $folder \humhub\modules\cfiles\models\Folder */
+/* @var $rows \humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow[] */
+/* @var $pagination \yii\data\Pagination */
 
 ?>
 
@@ -16,93 +19,44 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
     <div class="table-responsive">
         <table id="bs-table" class="table table-hover">
             <thead>
-                <tr>
-                    <?php if ($itemsSelectable): ?>
-                        <th class="text-center" style="width:38px;">
-                            <?= Html::checkbox('allchk', false, ['class' => 'allselect']); ?>
-                        </th>
-                    <?php endif; ?>
+            <tr>
+                <?php if ($itemsSelectable): ?>
+                    <th class="text-center" style="width:38px;">
+                        <?= Html::checkbox('allchk', false, ['class' => 'allselect']); ?>
+                    </th>
+                <?php endif; ?>
 
-                    <th class="text-left"><?= Yii::t('CfilesModule.base', 'Name'); ?></th>
+                <th class="text-left"><?= Yii::t('CfilesModule.base', 'Name'); ?></th>
 
-                    <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
-                        <th class="hidden-xxs"></th>
-                    <?php endif ?>
+                <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
+                    <th class="hidden-xxs"></th>
+                <?php endif ?>
 
-                    <th class="hidden-xs text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
-                    <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <th class="hidden-xs text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
+                <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
 
-                    <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
-                        <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
-                    <?php endif; ?>
+                <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
+                    <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
+                <?php endif; ?>
 
-                    <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
-                </tr>
+                <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
+            </tr>
             </thead>
 
-            <?php foreach ((array_key_exists('specialFolders', $items) ? $items['specialFolders'] : []) as $specialFolder) : ?>
+            <?php foreach ($rows as $row) : ?>
                 <?= FileSystemItem::widget([
-                    'parentFolderId' => $folder->id,
+                    'row' => $row,
                     'canWrite' => $canWrite,
-                    'socialActionsAvailable' => false,
-                    'selectable' => false,
-                    'item' => $specialFolder,
-                    'creator' => false, // do not display creator / editor of automatically generated folders
-                    'editor' => false, // do not display creator / editor of automatically generated folders
-                    'updatedAt' => $specialFolder->isAllPostedFiles() ? "" : $specialFolder->content->updated_at, // do not display timestamp of all posted files folder      
+                    'itemsSelectable' => $itemsSelectable
                 ]);
                 ?>
             <?php endforeach; ?>
 
-            <?php foreach ((array_key_exists('folders', $items) ? $items['folders'] : []) as $folderItem) : ?>
-                <?= FileSystemItem::widget([
-                    'parentFolderId' => $folder->id,
-                    'canWrite' => $canWrite,
-                    'contentObject' => $folderItem,
-                    'item' => $folderItem,
-                ]);
-                ?>
-            <?php endforeach; ?>
 
-            <?php foreach ((array_key_exists('files', $items) ? $items['files'] : []) as $file) : ?>
-                <?= FileSystemItem::widget([
-                    'parentFolderId' => $folder->id,
-                    'canWrite' => $canWrite,
-                    'contentObject' => $file,
-                    'item' => $file
-                ]);
-                ?>
-            <?php endforeach; ?>
-
-            <?php foreach ((array_key_exists('postedFiles', $items) ? $items['postedFiles'] : []) as $file) : ?>
-                <?= FileSystemItem::widget([
-                    'parentFolderId' => $folder->id,
-                    'type' => File::getItemTypeByExt($file->getExtension()),
-                    'columns' =>  [
-                        'title',
-                        'size',
-                        'timestamp',
-                        'creator'
-                    ],
-                    'id' => 'baseFile_' . $file->id,
-                    'downloadUrl' => $file->getUrl() . '&' . http_build_query(['download' => true]),
-                    'url' => $file->getUrl(),
-                    'wallUrl' => File::getBasePost($file)->getUrl(),
-                    'canWrite' => $canWrite,
-                    'baseFile' => $file,
-                    'iconClass' => File::getIconClassByExt($file->getExtension()),
-                    'title' => $file->file_name,
-                    'size' => $file->size,
-                    'creator' => $file->createdBy,
-                    'editor' => $file->createdBy,
-                    'updatedAt' => $file->updated_at
-                ]);
-                ?>
-            <?php endforeach; ?>
         </table>
-        <?php if($folder->isAllPostedFiles() && isset($items['pages'])) :?>
+        <?php if ($pagination) : ?>
             <div class="text-center">
-                <?= LinkPager::widget(['pagination' => $items['pages']]); ?>
+                <?= LinkPager::widget(['pagination' => $pagination]); ?>
             </div>
         <?php endif; ?>
     </div>

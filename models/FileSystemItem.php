@@ -36,6 +36,9 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     }
 
     abstract function updateVisibility($visibility);
+    abstract function getSize();
+    abstract  function getItemType();
+    abstract function getDescription();
 
     /**
      * @inheritdoc
@@ -52,6 +55,18 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         $this->visibility = $this->content->visibility;
         parent::afterFind();
     }
+
+    public function handleContentSave($evt, $content = null)
+    {
+        /* @var $content Content */
+        $content = ($content) ? $content : $evt->sender;
+        if($evt->sender->container instanceof User && $evt->sender->isPrivate()) {
+            $evt->sender->visibility = Content::VISIBILITY_OWNER;
+        }
+
+        return true;
+    }
+
 
     /**
      * @inheritdoc
@@ -146,7 +161,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function getCreator()
     {
-        return User::findOne(['id' => $this->content->created_by]);
+        return User::findOne($this->content->created_by);
     }
 
     /**
@@ -154,7 +169,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function getEditor()
     {
-        return User::findOne(['id' => $this->content->updated_by]);
+        return User::findOne($this->content->updated_by);
     }
 
     /**

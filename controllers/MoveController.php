@@ -37,7 +37,6 @@ class MoveController extends BaseController
      */
     public function actionIndex($fid) //Make sure an $fid is given otherwise the root folder is used as default
     {
-
         $model = new MoveForm([
             'root' => $this->getRootFolder(),
             'sourceFolder' => $this->getCurrentFolder()
@@ -51,7 +50,7 @@ class MoveController extends BaseController
 
         if($model->save()) {
             $this->view->saved();
-            return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse', ['fid' => $model->destination->id]));
+            return $this->htmlRedirect($model->destination->createUrl('/cfiles/browse'));
         } else {
             $errorMsg = Yii::t('CfilesModule.base', 'Some files could not be moved: ');
             foreach ($model->getErrors() as $key => $errors) {
@@ -61,7 +60,7 @@ class MoveController extends BaseController
             }
 
             $this->view->error($errorMsg);
-            return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse', ['fid' => $model->sourceFolder->id]));
+            return $this->htmlRedirect($model->sourceFolder->createUrl('/cfiles/browse'));
         }
     }
 }

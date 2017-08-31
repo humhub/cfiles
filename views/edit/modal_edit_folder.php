@@ -4,11 +4,13 @@ use humhub\widgets\ModalButton;
 use humhub\widgets\ModalDialog;
 use yii\bootstrap\ActiveForm;
 
+/* @var $folder \humhub\modules\cfiles\models\Folder */
+/* @var $submitUrl string */
+
 $header = ($folder->isNewRecord) 
         ? Yii::t('CfilesModule.base', '<strong>Create</strong> folder') 
         : Yii::t('CfilesModule.base', '<strong>Edit</strong> folder');
 
-$submitUrl = $contentContainer->createUrl('/cfiles/edit/folder', ['fid' => $currentFolderId, 'id' => $folder->getItemId()]);
 ?>
 
 <?php ModalDialog::begin([

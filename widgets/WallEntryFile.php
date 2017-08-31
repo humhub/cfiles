@@ -56,12 +56,14 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
      */
     public function getEditUrl()
     {
-        if (parent::getEditUrl() === "") {
+        if (empty(parent::getEditUrl())) {
             return "";
         }
+
         if ($this->contentObject instanceof File) {
             return $this->contentObject->content->container->createUrl($this->editRoute, ['id' => $this->contentObject->getItemId(), 'fromWall' => true]);
-        }
+    }
+
         return "";
     }
 

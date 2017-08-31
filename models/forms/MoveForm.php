@@ -91,7 +91,7 @@ class MoveForm extends SelectionForm
      */
     public function getMoveUrl()
     {
-        return $this->contentContainer->createUrl('/cfiles/move', ['fid' => $this->sourceFolder->id]);
+        return $this->sourceFolder->createUrl('/cfiles/move');
     }
 
     /**

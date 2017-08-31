@@ -1,123 +1,95 @@
 <?php
 
-use humhub\modules\content\models\Content;
-use yii\helpers\Html;
+use humhub\libs\Html;
+use humhub\modules\cfiles\models\rows\FileSystemItemRow;
+use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\like\widgets\LikeLink;
-use humhub\modules\comment\widgets\CommentLink;
+use humhub\modules\user\widgets\Image;
+use humhub\widgets\TimeAgo;
 
-/* @var $id string */
-/* @var $type string */
-/* @var $downloadUrl string */
-/* @var $wallUrl string */
-/* @var $url string */
-/* @var $size integer */
-/* @var $updatedAt string */
-/* @var $editUrl string */
-/* @var $moveUrl string */
-/* @var $moveUrl string */
-/* @var $iconClass string */
-/* @var $contentObject \humhub\modules\cfiles\models\FileSystemItem */
-/* @var $parentFolderId integer */
-/* @var $visibilityIcon string */
-/* @var $visibilityTitle string */
-/* @var $selectable boolean */
-/* @var $socialActionsAvailable boolean */
-/* @var $columns string[] */
-/* @var $description string[] */
-/* @var $creator \humhub\modules\user\models\User */
-/* @var $editor \humhub\modules\user\models\User */
+
+/* @var $row \humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow */
+/* @var $canWrite boolean */
 
 ?>
 
 <tr data-ui-widget="cfiles.FileItem"
-    data-cfiles-item="<?= $id ?>"
-    data-cfiles-type="<?= $type; ?>"
-    data-cfiles-url="<?= $downloadUrl; ?>"
-    data-cfiles-wall-url="<?= $wallUrl; ?>"
-    data-cfiles-edit-url="<?= $editUrl ?>"
-    data-cfiles-move-url="<?= $moveUrl ?>">
+    data-cfiles-item="<?= $row->getItemId() ?>"
+    data-cfiles-type="<?= $row->getType(); ?>"
+    data-cfiles-url="<?= $row->getUrl(); ?>"
+    data-cfiles-url-full="<?= $row->getDisplayUrl(); ?>"
+    data-cfiles-wall-url="<?= $row->getWallUrl(); ?>"
+    data-cfiles-edit-url="<?= ($canWrite) ? $row->getEditUrl() : '' ?>"
+    data-cfiles-move-url="<?= ($canWrite) ? $row->getMoveUrl() : '' ?>">
 
-    <?php if (in_array('select', $columns)): ?>
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SELECT)) : ?>
         <td class="item-selection text-muted text-center">
-            <?= $selectable ? Html::checkbox('selection[]', false, ['value' => $id, 'class' => 'multiselect']) : ''; ?>
+            <?= $row->isSelectable() ? Html::checkbox('selection[]', false, ['value' => $row->getItemId(), 'class' => 'multiselect']) : ''; ?>
         </td>
     <?php endif; ?>
-    <?php if (in_array('title', $columns)): ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TITLE)) : ?>
         <td class="text-left">
             <div class="title" style="position:relative">
-                <i class="fa <?= $iconClass; ?>"></i>&nbsp;
-                <?php if ($type != 'folder' && $contentObject !== null): ?>
-                    <?= FileHelper::createLink($contentObject->baseFile, [], ['class' => 'tt', 'title' => $description]); ?>
-                    <?php if ($type === "image") : ?>
-                        <a href="<?= $url; ?>" class="preview-link" data-ui-gallery="FilesModule-Gallery-<?= $parentFolderId; ?>" style="display:none;" class="tt" title="<?= $description ?>"></a>
-                    <?php endif; ?>
-                <?php elseif ($this->context->baseFile !== null): ?>
-                    <?= FileHelper::createLink($this->context->baseFile, ['class' => 'tt', 'title' => $description]); ?>
+                <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
+                <?php if ($row->getType() === "image") : ?>
+                    <a href="<?= $row->getUrl(); ?>" data-ui-gallery="FilesModule-Gallery-<?= $row->getParentFolderId(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
+                <?php elseif ($row->getBaseFile() !== null) : ?>
+                    <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]); ?>
                 <?php else: ?>
-                    <a href="<?= $url; ?>" class="tt" title="<?= $description ?>"><?= Html::encode($title); ?></a>
+                    <a href="<?= $row->getLinkUrl(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
                 <?php endif; ?>
             </div>
         </td>
     <?php endif; ?>
-    <?php if (in_array('visibility', $columns)): ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_VISIBILITY)) : ?>
         <td class="hidden-xs text-muted text-right">
-            <i class="fa <?= $visibilityIcon ?> fa-fw tt" title="<?= $visibilityTitle ?>"></i>
+            <i class="fa <?= $row->getVisibilityIcon() ?> fa-fw tt" title="<?= $row->getVisibilityTitle() ?>"></i>
         </td>
     <?php endif; ?>
-    <?php if (in_array('size', $columns)): ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SIZE)) : ?>
         <td class="hidden-xs text-right">
             <div class="size pull-right">
-                <?php if ($size == 0): ?>
+                <?php if (!$row->getSize()) : ?>
                     -
-                <?php else: ?>
-                    <?= Yii::$app->formatter->asShortSize($size, 1); ?>
+                <?php else : ?>
+                    <?= Yii::$app->formatter->asShortSize($row->getSize(), 1); ?>
                 <?php endif; ?>
             </div>
         </td>
     <?php endif; ?>
-    <?php if (in_array('timestamp', $columns)): ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TIMESTAMP)) : ?>
         <td class="hidden-xxs text-right">
             <div class="timestamp pull-right">
-                <?= $updatedAt ? \humhub\widgets\TimeAgo::widget(['timestamp' => $updatedAt]) : ""; ?>
+                <?= $row->getUpdatedAt() ? TimeAgo::widget(['timestamp' => $row->getUpdatedAt()]) : ""; ?>
             </div>
         </td>
     <?php endif; ?>
-    <?php if (in_array('likesncomments', $columns)): ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SOCIAL)): ?>
         <td class="text-right">
-            <?php if ($socialActionsAvailable): ?>
+            <?php if ($row->isSocialActionsAvailable()): ?>
                 <div class="file-controls pull-right">
-                    <?= LikeLink::widget(['object' => $contentObject]); ?>
+                    <?= LikeLink::widget(['object' => $row->getModel()]); ?>
                     |
-                    <?= CommentLink::widget(['object' => $contentObject, 'mode' => CommentLink::MODE_POPUP]); ?>
+                    <?= CommentLink::widget(['object' => $row->getModel(), 'mode' => CommentLink::MODE_POPUP]); ?>
                 </div>
             <?php endif; ?>
         </td>
     <?php endif; ?>
-    <?php if (in_array('creator', $columns)): ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_CREATOR)): ?>
         <td class="hidden-xxs text-right">
             <div class="creator pull-right">
-                <?php if (!empty($creator)): ?>
-                    <a href="<?= $creator->createUrl(); ?>"> <img
-                                class="img-rounded tt img_margin"
-                                src="<?= $creator->getProfileImage()->getUrl(); ?>"
-                                width="21" height="21" alt="21x21"
-                                data-src="holder.js/21x21"
-                                style="width: 21px; height: 21px;"
-                                data-original-title="<?= (!empty($editor) && $creator->id !== $editor->id ? Yii::t('CfilesModule.base', 'created:') . ' ' : '') . $creator->getDisplayName(); ?>"
-                                data-placement="top" title="" data-toggle="tooltip">
-                    </a>
+                <?php if (!empty($row->getCreator())): ?>
+                    <?= Image::widget(['user' => $row->getCreator(), 'width' => 21, 'showTooltip' => true]) ?>
                 <?php endif; ?>
-                <?php if (!empty($editor) && $creator->id !== $editor->id): ?>
-                    <a href="<?= $editor->createUrl(); ?>"> <img
-                                class="img-rounded tt img_margin"
-                                src="<?= $editor->getProfileImage()->getUrl(); ?>"
-                                width="21" height="21" alt="21x21"
-                                data-src="holder.js/21x21"
-                                style="width: 21px; height: 21px;"
-                                data-original-title="<?= Yii::t('CfilesModule.base', 'changed:') . ' ' . $editor->getDisplayName(); ?>"
-                                data-placement="top" title="" data-toggle="tooltip">
-                    </a>
+                <?php if (!empty($row->getEditor()) && !$row->getCreator()->is($row->getEditor())): ?>
+                    <?= Image::widget(['user' => $row->getEditor(), 'width' => 21, 'showTooltip' => true]) ?>
                 <?php endif; ?>
             </div>
         </td>

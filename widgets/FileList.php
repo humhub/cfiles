@@ -2,7 +2,12 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow;
+use humhub\modules\cfiles\models\rows\BaseFileRow;
+use humhub\modules\cfiles\models\rows\FolderRow;
+use humhub\modules\cfiles\models\rows\SpecialFolderRow;
 use Yii;
+use humhub\modules\cfiles\models\rows\FileRow;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\FileSystemItem;
 use yii\data\Pagination;
@@ -39,48 +44,72 @@ class FileList extends \yii\base\Widget
     public $foldersOrder;
 
     /**
-     * @var array All file items of the current folder sorted by item type.
+     * @var AbstractFileSystemItemRow[] All file items of the current folder sorted by item type.
      */
-    protected $items;
+    protected $rows;
+
+    /**
+     * @var Pagination
+     */
+    protected $pagination;
 
     /**
      * @inheritdoc
      */
     public function run()
     {
-        $this->items = $this->getItems();
+        if($this->folder->isAllPostedFiles()) {
+            $this->setPostedFilesRows();
+        } else {
+            $this->setSystemItemRows();
+        }
+
+        $itemsSelectable = !$this->folder->isAllPostedFiles() && ($this->canWrite || Yii::$app->getModule('cfiles')->isZipSupportEnabled());
 
         return $this->render('fileList', [
-                    'items' => $this->items,
+                    'rows' => $this->rows,
+                    'pagination' => $this->pagination,
                     'folder' => $this->folder,
-                    'itemsSelectable' => !$this->folder->isAllPostedFiles(),
-                    'itemsInFolder' => $this->hasItemsInFolder(),
+                    'itemsSelectable' => $itemsSelectable,
+                    'itemsInFolder' => count($this->rows),
                     'canWrite' => $this->canWrite,
         ]);
     }
 
-    /**
-     * Determines if the there are any file items in the current folder.
-     * @return boolean
-     */
-    protected function hasItemsInFolder()
+    protected function setPostedFilesRows()
     {
-        return array_key_exists('specialFolders', $this->items) && sizeof($this->items['specialFolders']) > 0 || array_key_exists('folders', $this->items) && sizeof($this->items['folders']) > 0 || array_key_exists('files', $this->items) && sizeof($this->items['files']) > 0 || array_key_exists('postedFiles', $this->items) && sizeof($this->items['postedFiles']) > 0;
+        $query = File::getPostedFiles($this->contentContainer);
+        $countQuery = clone $query;
+        $this->pagination = new Pagination(['totalCount' => $countQuery->count()]);
+
+        $files = $query->offset($this->pagination->offset)->limit($this->pagination->limit)->all();
+
+        $this->rows =  [];
+        foreach ($files as $file) {
+            $this->rows[] = new BaseFileRow(['parentFolder' => $this->folder, 'baseFile' => $file]);
+        }
     }
 
     /**
      * Returns all file items of the current folder sorted by item type.
      * @return array
      */
-    protected function getItems()
+    protected function setSystemItemRows()
     {
-        if($this->folder->isAllPostedFiles()) {
-            $query = File::getPostedFiles($this->contentContainer);
-            $countQuery = clone $query;
-            $pages = new Pagination(['totalCount' => $countQuery->count()]);
-            return ['postedFiles' => $query->offset($pages->offset)->limit($pages->limit)->all(), 'pages' => $pages];
-        } else {
-            return $this->folder->getItems($this->filesOrder, $this->foldersOrder);
+        $this->rows = [];
+
+
+
+        foreach ($this->folder->getSpecialFolders() as $specialFolder) {
+            $this->rows[] = new SpecialFolderRow(['item' => $specialFolder]);
+        }
+
+        foreach ($this->folder->getSubFolders() as $subFolder) {
+            $this->rows[] = new FolderRow(['item' => $subFolder]);
+        }
+
+        foreach ($this->folder->getSubFiles() as $subFile) {
+            $this->rows[] = new FileRow(['item' => $subFile]);
         }
     }
 

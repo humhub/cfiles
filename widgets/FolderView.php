@@ -1,6 +1,7 @@
 <?php
 
 namespace humhub\modules\cfiles\widgets;
+
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 
@@ -38,17 +39,22 @@ class FolderView extends \humhub\widgets\JsWidget
     /**
      * @inheritdoc
      */
+    public $init = true;
+
+    /**
+     * @inheritdoc
+     */
     public function getData()
     {
         return [
             'fid' => $this->folder->id,
-            'upload-url' => $this->contentContainer->createUrl('/cfiles/upload', ['fid' => $this->folder->id]),
-            'reload-file-list-url' => $this->contentContainer->createUrl('/cfiles/browse/file-list', ['fid' => $this->folder->id]),
-            'delete-url' => $this->contentContainer->createUrl('/cfiles/delete', ['fid' => $this->folder->id]),
-            'zip-upload-url' => $this->contentContainer->createUrl('/cfiles/zip/upload', ['fid' => $this->folder->id]),
-            'download-archive-url' => $this->contentContainer->createUrl('/cfiles/zip/download'),
-            'move-url' => $this->contentContainer->createUrl('/cfiles/move', ['init' => 1]),  
-            'import-url' => $this->contentContainer->createUrl('/cfiles/upload/import', ['fid' => $this->folder->id]),  
+            'upload-url' => $this->folder->createUrl('/cfiles/upload'),
+            'reload-file-list-url' => $this->folder->createUrl('/cfiles/browse/file-list'),
+            'delete-url' => $this->folder->createUrl('/cfiles/delete'),
+            'zip-upload-url' => $this->folder->createUrl('/cfiles/zip/upload'),
+            'download-archive-url' => $this->folder->createUrl('/cfiles/zip/download'),
+            'move-url' => $this->folder->createUrl('/cfiles/move'),
+            'import-url' => $this->folder->createUrl('/cfiles/upload/import'),
         ];
     }
 
