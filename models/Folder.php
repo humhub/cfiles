@@ -256,7 +256,7 @@ class Folder extends FileSystemItem
         ]);
 
         $root->content->created_by = self::getContainerOwnerId($contentContainer);
-        // v1.1 and earlier compatibility check
+        // v1.2.2 and earlier compatibility check
         if(property_exists($root->content, 'muteDefaultSocialActivities')) {
             $root->content->muteDefaultSocialActivities = true;
         }
@@ -289,7 +289,7 @@ class Folder extends FileSystemItem
         ]);
 
         $postedFilesFolder->content->created_by = self::getContainerOwnerId($contentContainer);
-        // v1.1 and earlier compatibility check
+        // v1.2.2 and earlier compatibility check
         if(property_exists($root->content, 'muteDefaultSocialActivities')) {
             $postedFilesFolder->content->muteDefaultSocialActivities = true;
         }
