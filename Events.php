@@ -3,7 +3,9 @@
 namespace humhub\modules\cfiles;
 
 use humhub\modules\cfiles\models\File;
+use humhub\modules\cfiles\models\Folder;
 use Yii;
+use yii\base\Event;
 use yii\base\Object;
 
 /**
@@ -25,6 +27,41 @@ class Events extends Object
                 'icon' => '<i class="fa fa-files-o"></i>',
                 'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
             ]);
+        }
+    }
+
+    /**
+     * Callback to validate module database records.
+     *
+     * @param Event $event
+     */
+    public static function onIntegrityCheck($event)
+    {
+        $integrityController = $event->sender;
+        $integrityController->showTestHeadline("CFile Module (" . File::find()->count() . " entries)");
+
+        foreach (File::find()->all() as $file) {
+            /* @var $file \humhub\modules\cfiles\models\File */
+
+            // If parent_folder_id is 0 or null its an old root child which is not merged yet.
+            if (!empty($file->parent_folder_id) && empty($file->parentFolder)) {
+                if ($integrityController->showFix("Deleting cfile id " . $file->id . " without existing parent!")) {
+                    $file->delete();
+                }
+            }
+        }
+
+        $integrityController->showTestHeadline("CFile Module (" . File::find()->count() . " entries)");
+
+        foreach (Folder::find()->all() as $folder) {
+            /* @var $file \humhub\modules\cfiles\models\File */
+
+            // If parent_folder_id is 0 or null its either an old root child which is not merged yet or an root directory.
+            if (!empty($folder->parent_folder_id) && empty($folder->parentFolder)) {
+                if ($integrityController->showFix("Deleting cfile folder id " . $folder->id . " without existing parent!")) {
+                    $folder->delete();
+                }
+            }
         }
     }
 
