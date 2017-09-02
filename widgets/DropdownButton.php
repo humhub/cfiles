@@ -2,7 +2,9 @@
 
 namespace humhub\modules\cfiles\widgets;
 
-class DropdownButton extends \yii\base\Widget
+use yii\base\Widget;
+
+class DropdownButton extends Widget
 {
 
     public $buttons;
@@ -26,13 +28,13 @@ class DropdownButton extends \yii\base\Widget
                             'items' => $items
                         ],
                         'splitButton' => $this->split ? [
-                    'visible' => true,
-                    'options' => $this->options
+                            'visible' => true,
+                            'options' => $this->options
                         ] : null,
                         'button' => $this->split ? $this->buttons[0] : [
-                    'encodeLabel' => false,
-                    'label' => $this->icon . $this->label,
-                    'options' => $this->options
+                            'encodeLabel' => false,
+                            'label' => $this->icon . $this->label,
+                            'options' => $this->options
                         ]
             ]);
         } elseif (count($this->buttons) > 0) {
@@ -41,5 +43,3 @@ class DropdownButton extends \yii\base\Widget
     }
 
 }
-
-?>
