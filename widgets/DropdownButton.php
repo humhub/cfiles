@@ -2,7 +2,7 @@
 
 namespace humhub\modules\cfiles\widgets;
 
-use \yii\base\Widget;
+use yii\base\Widget;
 
 class DropdownButton extends Widget
 {
