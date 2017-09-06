@@ -6,15 +6,7 @@
  *
  */
 
-/**
- * Created by PhpStorm.
- * User: buddha
- * Date: 26.08.2017
- * Time: 17:06
- */
-
 namespace humhub\modules\cfiles\models;
-
 
 use Yii;
 use humhub\modules\file\handler\BaseFileHandler;
@@ -31,7 +23,7 @@ class ZipImportHandler extends BaseFileHandler
     public function getLinkAttributes()
     {
         return [
-            'label' => Yii::t('FileModule.base', 'Import Zip'),
+            'label' => Yii::t('CfilesModule.base', 'Import Zip'),
             'data-action-click' => 'file.upload',
             'data-action-target' => '#cfilesUploadZipFile',
         ];
