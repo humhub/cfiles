@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\controllers;
 
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\forms\SelectionForm;
+use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\models\Content;
 use Yii;
@@ -27,7 +28,7 @@ class EditController extends BrowseController
     public function getAccessRules()
     {
         return [
-            ['permission' => [WriteAccess::class]]
+            ['permission' => [WriteAccess::class, ManageFiles::class]]
         ];
     }
 
