@@ -207,6 +207,25 @@ class Folder extends FileSystemItem
         return parent::beforeDelete();
     }
 
+    public function getVisibilityTitle()
+    {
+        if(Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
+            if($this->content->container->isCurrentuser()) {
+                $privateText =  Yii::t('CfilesModule.base', 'This folder is only visible for you and your friends.');
+            } else {
+                $privateText =  Yii::t('CfilesModule.base', 'This folder is protected.');
+            }
+
+            return  $this->content->isPublic()
+                ?  Yii::t('CfilesModule.base', 'This folder is public.')
+                : $privateText;
+        }
+
+        return  $this->content->isPublic()
+            ?  Yii::t('CfilesModule.base', 'This folder is public.')
+            : Yii::t('CfilesModule.base', 'This folder is private.');
+    }
+
     /**
      * In older versions there was no actual root folder, all root files and folders had parent_folder_id 0 or null.
      * This function can be executed for newly created root folders and will move all files/folders to the new root.

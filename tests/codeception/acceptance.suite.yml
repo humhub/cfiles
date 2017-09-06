@@ -21,4 +21,5 @@ modules:
         WebDriver:
             url: http://localhost:8080/
             browser: firefox
+            #window_size: 1024x768
             restart: false

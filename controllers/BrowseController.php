@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\controllers;
 
 use Yii;
 use humhub\modules\cfiles\widgets\FileList;
+use yii\web\HttpException;
 
 /**
  * Description of BrowseController
@@ -20,9 +21,14 @@ class BrowseController extends BaseController
 {
     public function actionIndex()
     {
+        $currentFolder = $this->getCurrentFolder();
+        if(!$currentFolder->content->canView()) {
+            throw new HttpException(403);
+        }
+
         return $this->render('index', [
                     'contentContainer' => $this->contentContainer,
-                    'folder' => $this->getCurrentFolder(),
+                    'folder' => $currentFolder,
                     'canWrite' => $this->canWrite()
         ]);
     }

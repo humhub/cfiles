@@ -39,6 +39,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     abstract function getSize();
     abstract  function getItemType();
     abstract function getDescription();
+    abstract function getVisibilityTitle();
 
     /**
      * @inheritdoc

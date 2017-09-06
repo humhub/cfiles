@@ -33,15 +33,7 @@ class FileRow extends FileSystemItemRow
         return $this->item->getDownloadUrl(true);
     }
 
-    /**
-     * @return string
-     */
-    public function getVisibilityTitle()
-    {
-       return  $this->item->content->isPublic()
-           ?  Yii::t('CfilesModule.base', 'This file is public.')
-           : Yii::t('CfilesModule.base', 'This file is private.');
-    }
+
 
     /**
      * @inheritdoc

@@ -54,7 +54,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     public function getColumns()
     {
         //self::COLUMN_VISIBILITY
-        return [self::COLUMN_TITLE, self::COLUMN_SIZE, self::COLUMN_TIMESTAMP, self::COLUMN_CREATOR];
+        return [self::COLUMN_TITLE, self::COLUMN_VISIBILITY, self::COLUMN_SIZE, self::COLUMN_TIMESTAMP, self::COLUMN_CREATOR];
     }
 
     /**
@@ -70,7 +70,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
      */
     public function getType()
     {
-        return FileHelper::getExtension($this->baseFile);
+        return File::getItemTypeByExt(FileHelper::getExtension($this->baseFile));
     }
 
     /**
@@ -207,9 +207,9 @@ class BaseFileRow extends AbstractFileSystemItemRow
      */
     public function getVisibilityTitle()
     {
-        return  $this->getModel()->content->isPublic()
-            ?  Yii::t('CfilesModule.base', 'This file is public.')
-            : Yii::t('CfilesModule.base', 'This file is private.');
+        $file = new File();
+        $file->populateRelation('content', $this->getModel()->content);
+        return $file->getVisibilityTitle();
     }
 
     /**

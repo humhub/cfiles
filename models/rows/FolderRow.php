@@ -34,16 +34,6 @@ class FolderRow extends FileSystemItemRow
     }
 
     /**
-     * @return string
-     */
-    public function getVisibilityTitle()
-    {
-       return  $this->item->content->isPublic()
-           ? Yii::t('CfilesModule.base', 'This folder is public.')
-           : Yii::t('CfilesModule.base', 'This folder is private.');
-    }
-
-    /**
      * @inheritdoc
      */
     public function getBaseFile()

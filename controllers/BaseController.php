@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\content\models\Content;
 use Yii;
 use yii\db\Expression;
 use yii\web\HttpException;
@@ -45,10 +46,17 @@ abstract class BaseController extends ContentContainerController
         if (!$this->getRootFolder()) {
             $this->_rootFolder = Folder::initRoot($this->contentContainer);
             $newRoot = true;
+        } else if($this->getRootFolder()->content->isPrivate()) {
+            // Make sure older root folders are public by default.
+            $this->getRootFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
+            $this->getRootFolder()->content->save();
         }
 
         if ($this->getAllPostedFilesFolder() == null) {
             $this->_allPostedFilesFolder = Folder::initPostedFilesFolder($this->contentContainer);
+        } else if($this->getAllPostedFilesFolder()->content->isPrivate()) {
+            $this->getAllPostedFilesFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
+            $this->getAllPostedFilesFolder()->content->save();
         }
 
         // TODO: In a future version, we should handle this within a migration and remove the line

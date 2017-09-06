@@ -180,4 +180,12 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     {
         return $this->item->content->isPublic() ? 'fa-unlock-alt': 'fa-lock';
     }
+
+    /**
+     * @return string
+     */
+    public function getVisibilityTitle()
+    {
+        return $this->item->getVisibilityTitle();
+    }
 }

@@ -27,7 +27,7 @@ $visibilityIcon = $folder->content->isPublic() ? 'fa-unlock-alt': 'fa-lock' ;
                 </li>
             <?php endforeach; ?>
             <?php if(!$folder->isRoot()) : ?>
-                <li class="folder-visibility tt" data-placement="left"  title="<?= $visibilityTitle ?>">
+                <li class="folder-visibility tt" data-placement="left"  title="<?= $folder->getVisibilityTitle() ?>">
                     <i class="fa <?= $visibilityIcon ?> fa-lg"></i>
                 </li>
             <?php endif; ?>

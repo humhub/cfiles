@@ -160,6 +160,25 @@ class File extends FileSystemItem
         }
     }
 
+    public function getVisibilityTitle()
+    {
+        if(Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
+            if($this->content->container->isCurrentuser()) {
+                $privateText =  Yii::t('CfilesModule.base', 'This file is only visible for you and your friends.');
+            } else {
+                $privateText =  Yii::t('CfilesModule.base', 'This file is protected.');
+            }
+
+            return  $this->content->isPublic()
+                ?  Yii::t('CfilesModule.base', 'This file is public.')
+                : $privateText;
+        }
+
+        return  $this->content->isPublic()
+            ?  Yii::t('CfilesModule.base', 'This file is public.')
+            : Yii::t('CfilesModule.base', 'This file is private.');
+    }
+
     /**
      * @return string
      */

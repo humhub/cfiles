@@ -28,9 +28,8 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
 
                 <th class="text-left"><?= Yii::t('CfilesModule.base', 'Name'); ?></th>
 
-                <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
-                    <th class="hidden-xxs"></th>
-                <?php endif ?>
+
+                <th class="hidden-xxs"></th>
 
                 <th class="hidden-xs text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
                 <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
