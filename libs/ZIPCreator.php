@@ -48,7 +48,7 @@ class ZIPCreator extends ZipUtil
 
         $code = $this->archive->open($this->tempFile, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
         if ($code !== true) {
-            throw new \yii\base\Exception(Yii::t('CfilesModule.base', 'Opening archive failed with error code %code%.', ['%code%' => $code]));
+            throw new Exception(Yii::t('CfilesModule.base', 'Opening archive failed with error code %code%.', ['%code%' => $code]));
         }
     }
 
@@ -102,7 +102,7 @@ class ZIPCreator extends ZipUtil
             $file = $file->baseFile;
         }
 
-        if(!$file) {
+        if (!$file) {
             return;
         }
 
