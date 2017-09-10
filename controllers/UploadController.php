@@ -8,13 +8,14 @@
 
 namespace humhub\modules\cfiles\controllers;
 
-use humhub\components\ActiveRecord;
-use humhub\modules\cfiles\models\Folder;
 use Yii;
 use yii\web\HttpException;
+use humhub\components\ActiveRecord;
+use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\actions\UploadAction;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\models\File;
+use humhub\modules\file\models\File as ModelFile;
 
 /**
  * Description of BrowseController
@@ -44,7 +45,7 @@ class UploadController extends BrowseController
         $guids = Yii::$app->request->post('guids');
         $guids = is_string($guids) ? array_map('trim', explode(',', $guids)) : $guids;
 
-        if(!is_array($guids)) {
+        if (!is_array($guids)) {
             throw new HttpException(400);
         }
 
@@ -53,9 +54,9 @@ class UploadController extends BrowseController
         $errors = [];
 
         foreach ($guids as $guid) {
-            $cFile = \humhub\modules\file\models\File::findOne(['guid' => $guid]);
+            $cFile = ModelFile::findOne(['guid' => $guid]);
 
-            if(!$cFile) {
+            if (!$cFile) {
                 $errors[] = Yii::t('Cfiles.base', 'Could not import file with guid {guid}. File not found', ['guid' => $guid]);
                 Yii::error(Yii::t('Cfiles.base', 'Could not import file with guid {guid}. File not found', ['guid' => $guid]));
                 continue;
@@ -67,16 +68,16 @@ class UploadController extends BrowseController
             $file->setFileContent($cFile);
             $folder->moveItem($file);
 
-            if($file->hasErrors()) {
-                $erros[] = $this->actionResponseError($file);
+            if ($file->hasErrors()) {
+                $errors[] = $this->actionResponseError($file);
             }
 
-            if($file->baseFile->hasErrors()) {
-                $erros[] = $this->actionResponseError($file->baseFile);
+            if ($file->baseFile->hasErrors()) {
+                $errors[] = $this->actionResponseError($file->baseFile);
             }
         }
 
-        if($errors) {
+        if ($errors) {
             array_unshift($errors, Yii::t('CfilesModule.base', 'Some files could not be imported: ') );
         }
 
