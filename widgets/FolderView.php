@@ -4,11 +4,12 @@ namespace humhub\modules\cfiles\widgets;
 
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\widgets\JsWidget;
 
 /**
  * Widget for rendering the file list bar.
  */
-class FolderView extends \humhub\widgets\JsWidget
+class FolderView extends JsWidget
 {
 
     /**
@@ -30,11 +31,6 @@ class FolderView extends \humhub\widgets\JsWidget
      * @var Folder
      */
     public $folder;
-
-    /**
-     * @var boolean
-     */
-    public $canWrite;
 
     /**
      * @inheritdoc
@@ -65,7 +61,6 @@ class FolderView extends \humhub\widgets\JsWidget
         return $this->render('folderView', [
             'folder' => $this->folder,
             'options' => $this->getOptions(),
-            'canWrite' => $this->canWrite,
             'contentContainer' => $this->contentContainer
         ]);
     }

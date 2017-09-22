@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\cfiles\permissions\ManageFiles;
 use Yii;
 
 /**
@@ -15,21 +16,17 @@ class FileListContextMenu extends \yii\base\Widget
      */
     public $folder;
     
-    /**
-     * Determines if the user has write permissions.
-     * @var boolean 
-     */
-    public $canWrite;
-    
 
     /**
      * @inheritdoc
      */
     public function run()
     {
+        $canWrite = $this->folder->content->container->can(ManageFiles::class);
+
         return $this->render('fileListContextMenu', [
             'folder' => $this->folder,
-            'canWrite' => $this->canWrite,
+            'canWrite' => $canWrite,
             'zipEnabled' => !Yii::$app->getModule('cfiles')->settings->get('disableZipSupport'),
         ]);
     }

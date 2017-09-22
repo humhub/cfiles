@@ -3,6 +3,8 @@
 namespace humhub\modules\cfiles\widgets;
 
 use humhub\modules\cfiles\models\ZipImportHandler;
+use humhub\modules\cfiles\permissions\ManageFiles;
+use humhub\modules\cfiles\permissions\WriteAccess;
 use Yii;
 use humhub\modules\file\handler\FileHandlerCollection;
 
@@ -23,10 +25,6 @@ class FileListMenu extends \yii\base\Widget
      */
     public $contentContainer;
 
-    /**
-     * @var boolean Determines if the user has write permissions.
-     */
-    public $canWrite;
 
     /**
      * @var integer FileList item count.
@@ -42,12 +40,12 @@ class FileListMenu extends \yii\base\Widget
         array_unshift($fileHandlerImport, new ZipImportHandler());
 
         $fileHandlerCreate = FileHandlerCollection::getByType(FileHandlerCollection::TYPE_CREATE);
+        $canUpload = $this->contentContainer->can(WriteAccess::class);
 
         return $this->render('fileListMenu', [
                     'folder' => $this->folder,
                     'contentContainer' => $this->contentContainer,
-                    'canWrite' => $this->canWrite,
-                    'zipEnabled' => Yii::$app->getModule('cfiles')->isZipSupportEnabled(),
+                    'canUpload' => $canUpload,
                     'fileHandlers' => array_merge($fileHandlerCreate, $fileHandlerImport),
         ]);
     }

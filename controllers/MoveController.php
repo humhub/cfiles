@@ -27,7 +27,7 @@ class MoveController extends BaseController
     public function getAccessRules()
     {
         return [
-            ['permission' => [WriteAccess::class, ManageFiles::class]]
+            ['permission' => [ManageFiles::class]]
         ];
     }
 

@@ -51,7 +51,6 @@ class BrowseController extends BaseController
         return FileList::widget([
                     'folder' => $this->getCurrentFolder(),
                     'contentContainer' => $this->contentContainer,
-                    'canWrite' => $this->canWrite(),
                     'filesOrder' => $filesOrder,
                     'foldersOrder' => $foldersOrder
         ]);

@@ -9,7 +9,7 @@ use humhub\widgets\ModalButton;
 
 /* @var $folder \humhub\modules\cfiles\models\Folder */
 /* @var $contentContainer \humhub\modules\content\components\ContentContainerActiveRecord */
-/* @var $canWrite boolean */
+/* @var $canUpload boolean */
 /* @var $zipEnabled boolean */
 /* @var $fileHandlers humhub\modules\file\handler\BaseFileHandler[] */
 
@@ -26,7 +26,6 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
     <?= FileSelectionMenu::widget([
         'folder' => $folder,
         'contentContainer' => $contentContainer,
-        'canWrite' => $canWrite,
     ]);?>
 
     <?php if($folder->parentFolder) : ?>
@@ -38,7 +37,7 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
         <div style="display:block;" class="pull-right">
 
             <!-- Directory dropdown -->
-            <?php if ($canWrite): ?>
+            <?php if ($canUpload): ?>
                 <div class="btn-group">
                     <?= ModalButton::defaultType(Yii::t('CfilesModule.base', 'Add directory'))->load($addFolderUrl)->icon('fa-folder')->cssClass('dropdown-toggle')?>
                     <?php if (!$folder->isRoot()): ?>
@@ -55,7 +54,7 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
             <?php endif; ?>    
 
             <!-- Upload Dropdown -->
-            <?php if ($canWrite): ?>
+            <?php if ($canUpload): ?>
                 <?php  $uploadButton = UploadButton::widget([
                             'id' => 'cfilesUploadFiles',
                             'progress' => '#cfiles_progress',

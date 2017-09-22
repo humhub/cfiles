@@ -28,7 +28,8 @@ class EditController extends BrowseController
     public function getAccessRules()
     {
         return [
-            ['permission' => [WriteAccess::class, ManageFiles::class]]
+            ['permission' => [WriteAccess::class, ManageFiles::class], 'actions' => ['folder', 'file']],
+            ['permission' => ManageFiles::class, 'actions' => ['make-private', 'make-private']]
         ];
     }
 
@@ -40,6 +41,10 @@ class EditController extends BrowseController
     public function actionFolder($id = null)
     {
         $folder = FileSystemItem::getItemById($id);
+
+        if($folder && !$folder->content->canEdit()) {
+            throw new HttpException(403);
+        }
 
         if($folder && $folder->content->container->id !== $this->contentContainer->id) {
             throw new HttpException(404);
@@ -78,6 +83,10 @@ class EditController extends BrowseController
         // if not return cause this should not happen
         if (empty($file) || !($file instanceof File)) {
             throw new HttpException(404, Yii::t('CfilesModule.base', 'Cannot edit non existing file.'));
+        }
+
+        if(!$file->content->canEdit()) {
+            throw new HttpException(403);
         }
 
         if ($file->baseFile->load(Yii::$app->request->post()) && $file->baseFile->validate()) {

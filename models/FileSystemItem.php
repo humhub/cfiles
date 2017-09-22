@@ -28,6 +28,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     /**
      * @inheritdoc
      */
+    public $managePermission = ManageFiles::class;
+
+    /**
+     * @inheritdoc
+     */
     public function rules()
     {
         return [

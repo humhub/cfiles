@@ -6,8 +6,6 @@
  *
  */
 
-use humhub\widgets\Link;
-
 /**  @var $canWrite boolean * */
 /**  @var $zipEnabled boolean * */
 /**  @var $deleteSelectionUrl string * */

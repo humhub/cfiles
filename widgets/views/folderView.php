@@ -9,7 +9,6 @@ use yii\helpers\Html;
 
 /* @var $this humhub\components\View */
 /* @var $contentContainer humhub\components\View */
-/* @var $canWrite boolean */
 /* @var $folder humhub\modules\cfiles\models\Folder */
 ?>
 
@@ -22,14 +21,12 @@ use yii\helpers\Html;
 <?= FileListMenu::widget([
     'folder' => $folder,
     'contentContainer' => $contentContainer,
-    'canWrite' => $canWrite,
 ]) ?>
 
 <div id="fileList">
     <?= FileList::widget([
         'folder' => $folder,
         'contentContainer' => $contentContainer,
-        'canWrite' => $canWrite
     ])?>
 </div>
 

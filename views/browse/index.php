@@ -33,12 +33,11 @@ $this->registerJsConfig('cfiles', [
 
             <?=  FolderView::widget([
                 'contentContainer' => $contentContainer,
-                'folder' => $folder,
-                'canWrite' => $canWrite
+                'folder' => $folder
             ])?>
 
         </div>
     </div>
 <?= Html::endForm(); ?>
 
-<?= FileListContextMenu::widget(['folder' => $folder, 'canWrite' => $canWrite]); ?>
+<?= FileListContextMenu::widget(['folder' => $folder]); ?>

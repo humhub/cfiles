@@ -18,6 +18,7 @@ namespace humhub\modules\cfiles\widgets;
 
 use humhub\components\Widget;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use Yii;
 
@@ -33,11 +34,6 @@ class FileSelectionMenu extends Widget
      */
     public $contentContainer;
 
-    /**
-     * @var boolean
-     */
-    public $canWrite;
-
     public function run()
     {
         $deleteSelectionUrl = $this->folder->createUrl('/cfiles/delete');
@@ -47,12 +43,14 @@ class FileSelectionMenu extends Widget
         $makePrivateUrl = $this->folder->createUrl('/cfiles/edit/make-private');
         $makePublicUrl = $this->folder->createUrl('/cfiles/edit/make-public');
 
+        $canWrite = $this->contentContainer->can(ManageFiles::class);
+
         return $this->render('fileSelectionMenu', [
             'deleteSelectionUrl' => $deleteSelectionUrl,
             'folder' => $this->folder,
             'moveSelectionUrl' => $moveSelectionUrl,
             'zipSelectionUrl' => $zipSelectionUrl,
-            'canWrite' => $this->canWrite,
+            'canWrite' => $canWrite,
             'zipEnabled' =>  Yii::$app->getModule('cfiles')->isZipSupportEnabled(),
             'makePrivateUrl' => $makePrivateUrl,
             'makePublicUrl' => $makePublicUrl,

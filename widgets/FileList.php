@@ -6,6 +6,7 @@ use humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow;
 use humhub\modules\cfiles\models\rows\BaseFileRow;
 use humhub\modules\cfiles\models\rows\FolderRow;
 use humhub\modules\cfiles\models\rows\SpecialFolderRow;
+use humhub\modules\cfiles\permissions\ManageFiles;
 use Yii;
 use humhub\modules\cfiles\models\rows\FileRow;
 use humhub\modules\cfiles\models\File;
@@ -27,11 +28,6 @@ class FileList extends \yii\base\Widget
      * @var \humhub\modules\content\components\ContentContainerActiveRecord Current content container.
      */
     public $contentContainer;
-
-    /**
-     * @var boolean determines if the current user has write permissions. 
-     */
-    public $canWrite;
 
     /**
      * @var array file order option used by file query.
@@ -64,7 +60,8 @@ class FileList extends \yii\base\Widget
             $this->setSystemItemRows();
         }
 
-        $itemsSelectable = !$this->folder->isAllPostedFiles() && ($this->canWrite || Yii::$app->getModule('cfiles')->isZipSupportEnabled());
+        $canWrite = $this->contentContainer->can(ManageFiles::class);
+        $itemsSelectable = !$this->folder->isAllPostedFiles() && ($canWrite || Yii::$app->getModule('cfiles')->isZipSupportEnabled());
 
         return $this->render('fileList', [
                     'rows' => $this->rows,
@@ -72,7 +69,7 @@ class FileList extends \yii\base\Widget
                     'folder' => $this->folder,
                     'itemsSelectable' => $itemsSelectable,
                     'itemsInFolder' => count($this->rows),
-                    'canWrite' => $this->canWrite,
+                    'canWrite' => $canWrite,
         ]);
     }
 
