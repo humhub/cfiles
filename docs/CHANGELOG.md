@@ -1,9 +1,17 @@
 Changelog
 =========
+
+0.11.4 - 13 October, 2017
+-------------------------
+- Fix: Missing WallEntry layout for search results
+- Enh: Updated translations
+
 0.11.3
+------
 - Fix: Fixed mixed Permissions check
 
-0.11 
+0.11.0 
+------
 - Enh: Editable folder/file visibility
 - Enh: Guest support
 - Enh: Added back button in sub folders

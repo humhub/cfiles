@@ -33,14 +33,18 @@ use yii\web\UploadedFile;
  */
 class Folder extends FileSystemItem
 {
+
     const TYPE_FOLDER_ROOT = 'root';
     const TYPE_FOLDER_POSTED = 'posted';
-
     const ROOT_TITLE = 'Root';
     const ROOT_DESCRIPTION = 'The root folder is the entry point that contains all available files.';
-
     const ALL_POSTED_FILES_TITLE = 'Files from the stream';
     const ALL_POSTED_FILES_DESCRIPTION = 'You can find all files that have been posted to this stream here.';
+
+    /**
+     * @inheritdoc
+     */
+    public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFolder";
 
     /**
      * @inheritdoc
@@ -88,7 +92,7 @@ class Folder extends FileSystemItem
             ['title', 'uniqueTitle']
         ]);
 
-        if(!$this->isRoot()) {
+        if (!$this->isRoot()) {
             $result[] = ['parent_folder_id', 'required'];
         }
 
@@ -131,7 +135,7 @@ class Folder extends FileSystemItem
      */
     public function attributeHints()
     {
-        if(!$this->isNewRecord) {
+        if (!$this->isNewRecord) {
             return ['visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Note: Changes of the folders visibility, will be inherited by all contained files and folders.')];
         }
         return parent::attributeHints();
@@ -161,9 +165,9 @@ class Folder extends FileSystemItem
      */
     public function beforeSave($insert)
     {
-        if($insert && $this->visibility !== null) {
+        if ($insert && $this->visibility !== null) {
             $this->content->visibility = $this->visibility;
-        } else if($this->visibility !== null && $this->visibility != $this->content->visibility) {
+        } else if ($this->visibility !== null && $this->visibility != $this->content->visibility) {
             $this->updateVisibility($this->visibility);
         }
         return parent::beforeSave($insert);
@@ -174,7 +178,7 @@ class Folder extends FileSystemItem
      */
     public function updateVisibility($visibility)
     {
-        if($visibility === null) {
+        if ($visibility === null) {
             return;
         }
 
@@ -209,21 +213,17 @@ class Folder extends FileSystemItem
 
     public function getVisibilityTitle()
     {
-        if(Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
-            if($this->content->container->isCurrentuser()) {
-                $privateText =  Yii::t('CfilesModule.base', 'This folder is only visible for you and your friends.');
+        if (Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
+            if ($this->content->container->isCurrentuser()) {
+                $privateText = Yii::t('CfilesModule.base', 'This folder is only visible for you and your friends.');
             } else {
-                $privateText =  Yii::t('CfilesModule.base', 'This folder is protected.');
+                $privateText = Yii::t('CfilesModule.base', 'This folder is protected.');
             }
 
-            return  $this->content->isPublic()
-                ?  Yii::t('CfilesModule.base', 'This folder is public.')
-                : $privateText;
+            return $this->content->isPublic() ? Yii::t('CfilesModule.base', 'This folder is public.') : $privateText;
         }
 
-        return  $this->content->isPublic()
-            ?  Yii::t('CfilesModule.base', 'This folder is public.')
-            : Yii::t('CfilesModule.base', 'This folder is private.');
+        return $this->content->isPublic() ? Yii::t('CfilesModule.base', 'This folder is public.') : Yii::t('CfilesModule.base', 'This folder is private.');
     }
 
     /**
@@ -232,16 +232,16 @@ class Folder extends FileSystemItem
      */
     public function migrateFromOldStructure()
     {
-        if(!$this->isRoot()) {
+        if (!$this->isRoot()) {
             return;
         }
 
         $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->content->container)
-            ->andWhere(['OR', ['IS', 'cfiles_file.parent_folder_id', new \yii\db\Expression('NULL')], ['cfiles_file.parent_folder_id' => 0]]);
+                ->andWhere(['OR', ['IS', 'cfiles_file.parent_folder_id', new \yii\db\Expression('NULL')], ['cfiles_file.parent_folder_id' => 0]]);
 
         $foldersQuery = Folder::find()->contentContainer($this->content->container)
-            ->andWhere(['OR', ['IS', 'cfiles_folder.parent_folder_id', new \yii\db\Expression('NULL')], ['cfiles_folder.parent_folder_id' => 0]])
-            ->andWhere(['IS', 'cfiles_folder.type', new \yii\db\Expression('NULL')]);
+                ->andWhere(['OR', ['IS', 'cfiles_folder.parent_folder_id', new \yii\db\Expression('NULL')], ['cfiles_folder.parent_folder_id' => 0]])
+                ->andWhere(['IS', 'cfiles_folder.type', new \yii\db\Expression('NULL')]);
 
         $rootsubfiles = $filesQuery->all();
         $rootsubfolders = $foldersQuery->all();
@@ -264,7 +264,7 @@ class Folder extends FileSystemItem
      */
     public static function initRoot(ContentContainerActiveRecord $contentContainer)
     {
-        if(!empty(self::getRoot($contentContainer))) {
+        if (!empty(self::getRoot($contentContainer))) {
             return false;
         }
 
@@ -276,11 +276,11 @@ class Folder extends FileSystemItem
 
         $root->content->created_by = self::getContainerOwnerId($contentContainer);
         // v1.2.2 and earlier compatibility check
-        if(property_exists($root->content, 'muteDefaultSocialActivities')) {
+        if (property_exists($root->content, 'muteDefaultSocialActivities')) {
             $root->content->muteDefaultSocialActivities = true;
         }
-        
-        if($root->save()) {
+
+        if ($root->save()) {
             return $root;
         }
 
@@ -296,10 +296,10 @@ class Folder extends FileSystemItem
     {
         $root = self::getRoot($contentContainer);
 
-        if(!$root || !empty(self::getPostedFilesFolder($contentContainer))) {
+        if (!$root || !empty(self::getPostedFilesFolder($contentContainer))) {
             return false;
         }
-        
+
         $postedFilesFolder = new self($contentContainer, Content::VISIBILITY_PUBLIC, [
             'type' => self::TYPE_FOLDER_POSTED,
             'title' => self::ALL_POSTED_FILES_TITLE,
@@ -309,11 +309,11 @@ class Folder extends FileSystemItem
 
         $postedFilesFolder->content->created_by = self::getContainerOwnerId($contentContainer);
         // v1.2.2 and earlier compatibility check
-        if(property_exists($root->content, 'muteDefaultSocialActivities')) {
+        if (property_exists($root->content, 'muteDefaultSocialActivities')) {
             $postedFilesFolder->content->muteDefaultSocialActivities = true;
         }
-        
-        if($postedFilesFolder->save()) {
+
+        if ($postedFilesFolder->save()) {
             return $postedFilesFolder;
         }
 
@@ -332,7 +332,7 @@ class Folder extends FileSystemItem
 
         $dirStruc = [];
         foreach (self::getSubFoldersByParent($parent, $orderBy)->all() as $folder) {
-            $dirStruc[] = ['folder' => $folder, 'subfolders' => self::getFolderlist( $folder, $orderBy)];
+            $dirStruc[] = ['folder' => $folder, 'subfolders' => self::getFolderlist($folder, $orderBy)];
         }
 
         return $dirStruc;
@@ -364,15 +364,15 @@ class Folder extends FileSystemItem
         return $query->orderBy($orderBy);
     }
 
-
     /**
      * @param ContentContainerActiveRecord $contentContainer
      * @return int
      */
-    private static function getContainerOwnerId(ContentContainerActiveRecord $contentContainer) {
-        if($contentContainer instanceof User) {
+    private static function getContainerOwnerId(ContentContainerActiveRecord $contentContainer)
+    {
+        if ($contentContainer instanceof User) {
             return $contentContainer->id;
-        } else if($contentContainer instanceof Space) {
+        } else if ($contentContainer instanceof Space) {
             return $contentContainer->created_by;
         }
 
@@ -441,10 +441,10 @@ class Folder extends FileSystemItem
 
     public function getTitle()
     {
-        if($this->isRoot()) {
-            return  Yii::t('CfilesModule.base', 'Root');
-        } else if($this->isAllPostedFiles()) {
-            return  Yii::t('CfilesModule.base', 'Files from the stream');
+        if ($this->isRoot()) {
+            return Yii::t('CfilesModule.base', 'Root');
+        } else if ($this->isAllPostedFiles()) {
+            return Yii::t('CfilesModule.base', 'Files from the stream');
         }
 
         return $this->title;
@@ -452,10 +452,10 @@ class Folder extends FileSystemItem
 
     public function getDescription()
     {
-        if($this->isRoot()) {
-            return  Yii::t('CfilesModule.base', 'The root folder is the entry point that contains all available files.');
-        } else if($this->isAllPostedFiles()) {
-            return  Yii::t('CfilesModule.base', 'You can find all files that have been posted to this stream here.');
+        if ($this->isRoot()) {
+            return Yii::t('CfilesModule.base', 'The root folder is the entry point that contains all available files.');
+        } else if ($this->isAllPostedFiles()) {
+            return Yii::t('CfilesModule.base', 'You can find all files that have been posted to this stream here.');
         }
 
         return $this->description;
@@ -490,7 +490,6 @@ class Folder extends FileSystemItem
 
         return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id], true);
     }
-
 
     public function getEditUrl()
     {
@@ -626,7 +625,6 @@ class Folder extends FileSystemItem
         return $specialFoldersQuery->all();
     }
 
-
     /**
      * @return Folder[]
      */
@@ -659,12 +657,12 @@ class Folder extends FileSystemItem
      *
      * ```php
      * $file->hasErrors()
-     *```
+     * ```
      * and
      *
      * ```php
      * $file->baseFile->hasErrors();
-     *```
+     * ```
      * @param UploadedFile $uploadedFile
      * @return File
      */
@@ -674,7 +672,7 @@ class Folder extends FileSystemItem
             'parent_folder_id' => $this->id
         ]);
 
-        if($file->setUploadedFile($uploadedFile, $this->getAddedFileName($uploadedFile->name))) {
+        if ($file->setUploadedFile($uploadedFile, $this->getAddedFileName($uploadedFile->name))) {
             $file->save();
         }
 
@@ -683,7 +681,7 @@ class Folder extends FileSystemItem
 
     private function getNewItemVisibility()
     {
-        if($this->isRoot()) {
+        if ($this->isRoot()) {
             return $this->content->container->getDefaultContentVisibility();
         }
 
@@ -730,7 +728,6 @@ class Folder extends FileSystemItem
             'description' => $description]);
     }
 
-
     /**
      * Moves the given item into this folder.
      *
@@ -746,22 +743,22 @@ class Folder extends FileSystemItem
      */
     public function moveItem(FileSystemItem $item)
     {
-        if(!$item) {
+        if (!$item) {
             return false;
         }
 
-        if($item instanceof Folder && !$item->isEditableFolder()) {
+        if ($item instanceof Folder && !$item->isEditableFolder()) {
             $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'Folder {name} given folder is not editable!', ['name' => $item->getTitle()]));
             return false;
         }
 
-        if($item->getItemId() === $this->getItemId()) {
+        if ($item->getItemId() === $this->getItemId()) {
             $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'Folder {name} can\'t be moved to itself!', ['name' => $item->getTitle()]));
             return false;
         }
 
         // We ignore invalid items and items already residing in the given destination
-        if($item->hasParent($this) || $item->is($this)) {
+        if ($item->hasParent($this) || $item->is($this)) {
             return true;
         }
 
@@ -771,12 +768,12 @@ class Folder extends FileSystemItem
 
         $moveResult = $this->checkForDuplicate($item);
 
-        if(!$moveResult) {
+        if (!$moveResult) {
             // Probably an error when moving subfiles to an existing folder
             return false;
         }
 
-        if($item->is($moveResult)) {
+        if ($item->is($moveResult)) {
             // Either no duplicate or just simple file rename
             return $moveResult->save();
         }
@@ -799,20 +796,20 @@ class Folder extends FileSystemItem
     private function checkForDuplicate(FileSystemItem $item)
     {
         $result = null;
-        if($item instanceof File) {
+        if ($item instanceof File) {
             $item->setTitle($this->getAddedFileName($item->getTitle()));
             $result = $item;
-        } else if($item instanceof Folder) {
+        } else if ($item instanceof Folder) {
             $result = $item;
 
             $existingFolderWithTitle = $this->findFolderByName($item->title);
 
             // Check if the folder exists if not, move children to existing subfolder, if there is an error we set §result to null
-            if($existingFolderWithTitle && !$existingFolderWithTitle->is($item)) {
+            if ($existingFolderWithTitle && !$existingFolderWithTitle->is($item)) {
                 $result = $existingFolderWithTitle;
                 foreach ($item->getChildren() as $child) {
                     // if moving the given item fails we set result to null and add an item error
-                    if(!$existingFolderWithTitle->moveItem($child)) {
+                    if (!$existingFolderWithTitle->moveItem($child)) {
                         $result = null;
                         foreach ($child->getErrors() as $attribute => $errors) {
                             $item->addErrors([$child->getTitle() => $errors]);
@@ -820,7 +817,7 @@ class Folder extends FileSystemItem
                     };
                 }
 
-                if($result) {
+                if ($result) {
                     $item->delete();
                 }
             }
@@ -863,13 +860,14 @@ class Folder extends FileSystemItem
     public function findFileByName($name)
     {
         return File::find()->contentContainer($this->content->container)
-            ->joinWith('baseFile')
-            ->andWhere(['file_name' => $name, 'parent_folder_id' => $this->id])->one();
+                        ->joinWith('baseFile')
+                        ->andWhere(['file_name' => $name, 'parent_folder_id' => $this->id])->one();
     }
 
     public function findFolderByName($name)
     {
         return Folder::find()->contentContainer($this->content->container)
-            ->andWhere(['title' => $name, 'parent_folder_id' => $this->id])->one();
+                        ->andWhere(['title' => $name, 'parent_folder_id' => $this->id])->one();
     }
+
 }
