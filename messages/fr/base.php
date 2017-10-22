@@ -48,7 +48,7 @@ return array (
   'Moving to this folder is invalid.' => 'Déplacer dans ce dossier n\'est pas possible.',
   'Name' => 'Nom',
   'Open' => 'Ouvrir',
-  'Open file folder' => 'Ouvrir le fichier du dossier',
+  'Open file folder' => 'Ouvrir le dossier du fichier',
   'Opening archive failed with error code %code%.' => 'L\'ouverture de l\'archive a échoué avec le code erreur %code%.',
   'Please select a valid destination folder for %title%.' => 'Merci de choisir un dossier de destination valide pour %title%.',
   'Root' => 'Racine',
