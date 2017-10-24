@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.11.5 - (Unreleased)
+---------------------
+- Fix: Temporary files deletion on ZIP creation
+
 0.11.4 - 13 October, 2017
 -------------------------
 - Fix: Missing WallEntry layout for search results
