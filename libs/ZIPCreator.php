@@ -41,7 +41,7 @@ class ZIPCreator extends ZipUtil
      */
     public function __construct()
     {
-        #$this->cleanup();
+        $this->cleanup();
 
         $this->archive = new ZipArchive();
         $this->tempFile = $this->getTempPath() . DIRECTORY_SEPARATOR . time();
