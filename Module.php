@@ -16,6 +16,9 @@ class Module extends ContentContainerModule
 
     public $resourcesPath = 'resources';
 
+    const UPLOAD_BEHAVIOUR_INDEX = 0;
+    const UPLOAD_BEHAVIOUR_REPLACE = 1;
+
     /**
      * @inheritdoc
      */
@@ -109,7 +112,17 @@ class Module extends ContentContainerModule
      */
     public function isZipSupportEnabled()
     {
-        return !$this->settings->get('disableZipSupport');
+        return !$this->settings->get('disableZipSupport', false);
+    }
+
+    /**
+     * Determines ZIP Support is enabled or not
+     *
+     * @return boolean is ZIP support enabled
+     */
+    public function getUploadBehaviour()
+    {
+        return $this->settings->get('uploadBehaviour', self::UPLOAD_BEHAVIOUR_INDEX);
     }
 
 }

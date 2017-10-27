@@ -309,7 +309,7 @@ class Folder extends FileSystemItem
 
         $postedFilesFolder->content->created_by = self::getContainerOwnerId($contentContainer);
         // v1.2.2 and earlier compatibility check
-        if(property_exists($root->content, 'muteDefaultSocialActivities')) {
+        if(property_exists($postedFilesFolder->content, 'muteDefaultSocialActivities')) {
             $postedFilesFolder->content->muteDefaultSocialActivities = true;
         }
         
@@ -668,17 +668,39 @@ class Folder extends FileSystemItem
      * @param UploadedFile $uploadedFile
      * @return File
      */
-    public function addUploadedFile(UploadedFile $uploadedFile)
+    public function addUploadedFile(UploadedFile $uploadedFile, $replace = false)
     {
-        $file = new File($this->content->container, $this->getNewItemVisibility(), [
-            'parent_folder_id' => $this->id
-        ]);
 
-        if($file->setUploadedFile($uploadedFile, $this->getAddedFileName($uploadedFile->name))) {
+        // Get file instance either an existing one if $replace = true and a file already exists or a new one
+        $file = $this->getFileInstance($uploadedFile, $replace);
+
+        $fileName = (!$replace) ? $this->getAddedFileName($uploadedFile->name) : $uploadedFile->name;
+
+        if($file->setUploadedFile($uploadedFile, $fileName)) {
             $file->save();
         }
 
         return $file;
+    }
+
+    /**
+     * @param UploadedFile $uploadedFile
+     * @param bool $replace
+     */
+    private function getFileInstance(UploadedFile $uploadedFile, $replace = false)
+    {
+        $result = null;
+        if($replace) {
+            $result = $this->findFileByName($uploadedFile->name);
+        }
+
+        if(!$result) {
+            $result = new File($this->content->container, $this->getNewItemVisibility(), [
+                'parent_folder_id' => $this->id
+            ]);
+        }
+
+        return $result;
     }
 
     private function getNewItemVisibility()

@@ -1,8 +1,14 @@
 <?php
-/* @var $previewImage \humhub\modules\file\converter\PreviewImage */
 
 use humhub\modules\file\libs\FileHelper;
 use humhub\libs\Html;
+
+
+/* @var $previewImage \humhub\modules\file\converter\PreviewImage */
+/* @var $cFile \humhub\modules\cfiles\models\File */
+/* @var $file  \humhub\modules\file\models\File */
+/* @var $fileSize  integer */
+/* @var $folderUrl  string*/
 
 ?>
 

@@ -95,8 +95,6 @@ class FileList extends \yii\base\Widget
     {
         $this->rows = [];
 
-
-
         foreach ($this->folder->getSpecialFolders() as $specialFolder) {
             $this->rows[] = new SpecialFolderRow(['item' => $specialFolder]);
         }
@@ -114,7 +112,6 @@ class FileList extends \yii\base\Widget
      * Returns a list of selected items
      * 
      * @return \humhub\modules\cfiles\models\FileSystemItem[]
-     * @throws HttpException
      */
     public static function getSelectedItems()
     {

@@ -3,6 +3,7 @@
 namespace humhub\modules\cfiles\models;
 
 use Yii;
+use humhub\modules\cfiles\Module;
 
 /**
  * ConfigureForm defines the configurable fields.
@@ -14,11 +15,22 @@ class ConfigureForm extends \yii\base\Model
 {
 
     public $disableZipSupport;
+    public $uploadBehaviour;
 
     public function init()
     {
-        $this->disableZipSupport = !Yii::$app->getModule('cfiles')->isZipSupportEnabled();
         parent::init();
+        $module = $this->getModule();
+        $this->disableZipSupport = !$module->isZipSupportEnabled();
+        $this->uploadBehaviour = $module->getUploadBehaviour();
+    }
+
+    /**
+     * @return Module
+     */
+    public function getModule()
+    {
+        return Yii::$app->getModule('cfiles');
     }
 
     /**
@@ -28,6 +40,7 @@ class ConfigureForm extends \yii\base\Model
     {
         return [
             ['disableZipSupport', 'boolean'],
+            ['uploadBehaviour', 'integer'],
         ];
     }
 
@@ -40,6 +53,14 @@ class ConfigureForm extends \yii\base\Model
     {
         return [
             'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support'),
+            'uploadBehaviour' => Yii::t('CfilesModule.base', 'Upload behaviour for existing file names'),
+        ];
+    }
+
+    public function attributeHints()
+    {
+        return [
+            'uploadBehaviour' => Yii::t('CfilesModule.base', '<strong>Note:</strong> The replacement behaviour is currently not supported for zip imports.')
         ];
     }
 
@@ -49,8 +70,9 @@ class ConfigureForm extends \yii\base\Model
             return false;
         }
 
-        Yii::$app->getModule('cfiles')->settings->set('disableZipSupport', $this->disableZipSupport);
+        $module = $this->getModule();
+        $module->settings->set('disableZipSupport', $this->disableZipSupport);
+        $module->settings->set('uploadBehaviour', $this->uploadBehaviour);
         return true;
     }
-
 }

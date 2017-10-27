@@ -1,9 +1,15 @@
 Changelog
 =========
+0.11.4
+----------------
+- Enh: Added upload behaviour settings (Index/Replace) in module config
+
 0.11.3
+----------------
 - Fix: Fixed mixed Permissions check
 
 0.11 
+----------------
 - Enh: Editable folder/file visibility
 - Enh: Guest support
 - Enh: Added back button in sub folders

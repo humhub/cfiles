@@ -35,7 +35,6 @@ class ConfigController extends \humhub\modules\admin\components\Controller
 
         return $this->render('index', ['model' => $form]);
     }
-
 }
 
 ?>

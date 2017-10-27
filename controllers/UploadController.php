@@ -34,9 +34,7 @@ class UploadController extends BrowseController
     public function actions()
     {
         return [
-            'index' => [
-                'class' => UploadAction::class,
-            ],
+            'index' => ['class' => UploadAction::class]
         ];
     }
 

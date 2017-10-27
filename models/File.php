@@ -8,6 +8,7 @@ use humhub\modules\file\handler\DownloadFileHandler;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\FileContent;
 use humhub\modules\file\models\FileUpload;
+use humhub\modules\search\events\SearchAddEvent;
 use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
@@ -77,8 +78,6 @@ class File extends FileSystemItem
             ['description', 'string', 'max' => 255]
         ];
 
-
-
         if($this->parentFolder && $this->parentFolder->content->isPublic()) {
             $rules[] = ['visibility', 'integer', 'min' => 0, 'max' => 1];
         }
@@ -110,13 +109,13 @@ class File extends FileSystemItem
         if ($this->baseFile) {
             $attributes['name'] = $this->getTitle();
         }
-        $this->trigger(self::EVENT_SEARCH_ADD, new \humhub\modules\search\events\SearchAddEvent($attributes));
+        $this->trigger(self::EVENT_SEARCH_ADD, new SearchAddEvent($attributes));
         return $attributes;
     }
 
     public function setUploadedFile(UploadedFile $uploadedFile, $title = null)
     {
-        $baseFile = new FileUpload(['show_in_stream' => false,]);
+        $baseFile = new FileUpload(['show_in_stream' => false]);
         $baseFile->setUploadedFile($uploadedFile);
 
         if($title) {
@@ -128,18 +127,22 @@ class File extends FileSystemItem
 
     public function setFileContent(\humhub\modules\file\models\File $fileContent)
     {
+        if($this->baseFile) {
+            $this->baseFile->delete();
+        }
+
         $this->populateRelation('baseFile', $fileContent);
         return $this->baseFile->validate();
     }
 
     public function afterSave($insert, $changedAttributes)
     {
-        if($insert && $this->baseFile) {
+        if($insert && $this->baseFile || ($this->baseFile && $this->baseFile->isNewRecord)) {
             $this->baseFile->setPolymorphicRelation($this);
         }
 
         // Required if title has changed.
-        if($this->baseFile && ($insert ||  ($this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name))) {
+        if($this->baseFile && ($insert ||  ($this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name || $this->baseFile->isNewRecord))) {
             $this->baseFile->save(false);
         }
 
