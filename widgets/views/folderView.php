@@ -29,5 +29,4 @@ use yii\helpers\Html;
         'contentContainer' => $contentContainer,
     ])?>
 </div>
-
 <?= Html::endTag('div') ?>

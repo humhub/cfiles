@@ -19,6 +19,13 @@ use Yii;
 
 class FileRow extends FileSystemItemRow
 {
+    const DEFAULT_ORDER = 'file.file_name ASC';
+
+    const ORDER_MAPPING = [
+        self::ORDER_TYPE_NAME => 'file.file_name',
+        self::ORDER_TYPE_UPDATED_AT => 'file.updated_at',
+        self::ORDER_TYPE_SIZE => 'cast(file.size as unsigned)',
+    ];
 
     /**
      * @var \humhub\modules\cfiles\models\File
@@ -32,8 +39,6 @@ class FileRow extends FileSystemItemRow
     {
         return $this->item->getDownloadUrl(true);
     }
-
-
 
     /**
      * @inheritdoc

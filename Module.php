@@ -2,6 +2,8 @@
 
 namespace humhub\modules\cfiles;
 
+use humhub\modules\cfiles\models\rows\FileSystemItemRow;
+use humhub\modules\cfiles\models\rows\SpecialFolderRow;
 use Yii;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
@@ -15,6 +17,29 @@ class Module extends ContentContainerModule
 {
 
     public $resourcesPath = 'resources';
+
+    /**
+     * @var string sort name as 'name', 'size', 'updated_at'
+     * @see FileSystemItemRow::ORDER_MAPPING
+     */
+    public $defaultSort = FileSystemItemRow::ORDER_TYPE_NAME;
+    public $defaultOrder = 'ASC';
+
+    /**
+     * @var string sort name as 'name', 'size', 'updated_at'
+     * @see FileSystemItemRow::ORDER_MAPPING
+     */
+    public $defaultPostedFilesSort = FileSystemItemRow::ORDER_TYPE_UPDATED_AT;
+    public $defaultPostedFilesOrder = 'ASC';
+
+    /**
+     * @var string default order of file entries e.g.:  'file.updated_at ASC' or 'title ASC'
+     */
+    public $defaultFolderOrder = 'title ASC';
+
+    const ORDER_NAME = 'name';
+    const ORDER_UPDATED_AT = 'updated_at';
+    const ORDER_SIZE = 'size';
 
     const UPLOAD_BEHAVIOUR_INDEX = 0;
     const UPLOAD_BEHAVIOUR_REPLACE = 1;

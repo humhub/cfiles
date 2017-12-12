@@ -21,6 +21,14 @@ use Yii;
 
 class BaseFileRow extends AbstractFileSystemItemRow
 {
+    const DEFAULT_ORDER = 'file.file_name ASC';
+
+    const ORDER_MAPPING = [
+        self::ORDER_TYPE_NAME => 'file.file_name',
+        self::ORDER_TYPE_UPDATED_AT => 'file.updated_at',
+        self::ORDER_TYPE_SIZE => 'cast(file.size as unsigned)',
+    ];
+
     /**
      * @var \humhub\modules\cfiles\models\Folder
      */

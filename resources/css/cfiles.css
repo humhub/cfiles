@@ -10,7 +10,6 @@
   margin: 0;
 }
 
-
 .cfiles-content .breadcrumb li.folder-visibility {
   float:right;
 }
@@ -171,6 +170,19 @@
 #bs-table.table>tbody>tr>td label, 
 #bs-table.table>tfoot>tr>td label {
   margin-bottom: 0px;
+}
+
+#fileList [data-ui-sort] {
+  font-weight:bold;
+  cursor: pointer;
+}
+
+#fileList [data-ui-order="ASC"]:after {
+  content: "\25bc";
+}
+
+#fileList [data-ui-order="DESC"]:after {
+  content: "\25b2";
 }
 
 @media (max-width: 419px) {

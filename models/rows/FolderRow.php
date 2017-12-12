@@ -20,6 +20,14 @@ use Yii;
 class FolderRow extends FileSystemItemRow
 {
 
+    const DEFAULT_ORDER = 'title ASC';
+
+    const ORDER_MAPPING = [
+        self::ORDER_TYPE_NAME => 'title',
+        self::ORDER_TYPE_UPDATED_AT => 'content.updated_at',
+        self::ORDER_TYPE_SIZE => null,
+    ];
+
     /**
      * @var \humhub\modules\cfiles\models\Folder
      */

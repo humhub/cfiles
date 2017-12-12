@@ -481,16 +481,10 @@ class File extends FileSystemItem
      *
      * @param $contentContainer ContentContainerActiveRecord
      * @param array $filesOrder orderBy array appended to the files query
-     * @param array $foldersOrder currently unused
      * @return ActiveQuery
      */
-    public static function getPostedFiles($contentContainer, $filesOrder = NULL, $foldersOrder = NULL)
+    public static function getPostedFiles($contentContainer, $filesOrder = ['file.updated_at' => SORT_ASC, 'file.title' => SORT_ASC])
     {
-        // set ordering default
-        if (!$filesOrder) {
-            $filesOrder = ['file.updated_at' => SORT_DESC, 'file.title' => SORT_ASC];
-        }
-
         // Get Posted Files
         $query = \humhub\modules\file\models\File::find();
         // join comments to the file if available

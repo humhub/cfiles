@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\models\rows;
 
 use humhub\modules\file\models\File;
 use yii\base\Model;
+use ZendSearch\Lucene\Storage\File\AbstractFile;
 
 /**
  * Created by PhpStorm.
@@ -27,6 +28,25 @@ abstract class AbstractFileSystemItemRow extends Model
     const COLUMN_TIMESTAMP = 'timestamp';
     const COLUMN_SOCIAL = 'social';
     const COLUMN_CREATOR = 'creator';
+
+    const ORDER_TYPE_NAME = 'name';
+    const ORDER_TYPE_UPDATED_AT = 'updated_at';
+    const ORDER_TYPE_SIZE = 'size';
+
+    /**
+     * The default database sort query with order definition e.g. 'title ASC' in string or array format
+     */
+    const DEFAULT_ORDER = null;
+
+    /**
+     * Maps abstract sort names to actual database sort query fields (without order) for this row type.
+     * Null is given, if this sorting is not supported by this row type.
+     */
+    const ORDER_MAPPING = [
+        self::ORDER_TYPE_NAME => null,
+        self::ORDER_TYPE_UPDATED_AT => null,
+        self::ORDER_TYPE_SIZE => null,
+    ];
 
     const DEFAULT_COLUMNS = [
         self::COLUMN_SELECT,
@@ -58,6 +78,23 @@ abstract class AbstractFileSystemItemRow extends Model
      * @return array
      */
     public abstract function getColumns();
+
+    /**
+     * Returns the actual database order for a given sort type. This function should return the default
+     * order if the orderType is not supported by this Rowtype.
+     * @param string $sort
+     * @return string|array
+     * @see AbstractFileSystemItemRow::ORDER_MAPPING
+     */
+    public static function translateOrder($sort = null, $order = 'ASC') {
+        $result = static::DEFAULT_ORDER;
+
+        if($sort && array_key_exists($sort, static::ORDER_MAPPING)) {
+            $result = static::ORDER_MAPPING[$sort] ? static::ORDER_MAPPING[$sort].' '.$order : $result;
+        }
+
+        return $result;
+    }
 
     /**
      * @param $column

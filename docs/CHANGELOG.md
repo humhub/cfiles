@@ -1,10 +1,14 @@
 Changelog
 =========
+0.11.7
+----------------
+- Enh: Added FolderView sort + default sorting configuration + remember user sort settings.
+
 0.11.6
 ----------------
 - Enh: Added upload behaviour settings (Index/Replace) in module config
 
-0.11.5 - (Unreleased)
+0.11.5
 ---------------------
 - Fix: Temporary files deletion on ZIP creation
 

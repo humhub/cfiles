@@ -20,8 +20,17 @@ humhub.module('cfiles', function (module, require, $) {
         this.fid = this.$.data('fid');
 
         this.initFileList();
+        this.initSort();
         this.initEvents();
         this.initContextMenu();
+    };
+
+    FolderView.prototype.initSort = function () {
+        var $sortColumn = this.$fileList.find('[data-ui-order]');
+        if($sortColumn.length) {
+            this.sort = $sortColumn.data('ui-sort');
+            this.order = $sortColumn.data('ui-order');
+        }
     };
 
     FolderView.prototype.initEvents = function () {
@@ -58,13 +67,16 @@ humhub.module('cfiles', function (module, require, $) {
 
         this.$.on('change', '.multiselect', function () {
             that.checkButtons();
-        });
-
-        this.$.on('change', '.allselect', function () {
+        }).on('change', '.allselect', function () {
             that.$fileList.find('.multiselect').each(function () {
                 $(this).prop('checked', $('.allselect').prop('checked'));
             });
             that.checkButtons();
+        }).on('click', '[data-ui-sort]', function() {
+            var $this = $(this);
+            that.sort = $this.data('ui-sort');
+            that.order = $this.data('ui-order') === 'ASC' ? 'DESC' : 'ASC';
+            that.reloadFileList();
         });
 
     };
@@ -269,7 +281,10 @@ humhub.module('cfiles', function (module, require, $) {
     FolderView.prototype.reloadFileList = function () {
         var that = this;
         this.loader();
-        return client.get(this.options.reloadFileListUrl).then(function (response) {
+
+        var cfg = (this.sort) ? {data: {sort: this.sort, order: this.order}} :  undefined;
+
+        return client.get(this.options.reloadFileListUrl, cfg).then(function (response) {
             that.replaceFileList(response.output);
         }).catch(function (e) {
             module.log.error(e, true);
