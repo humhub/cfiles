@@ -28,15 +28,15 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                     </th>
                 <?php endif; ?>
 
-                <th class="text-left" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_NAME ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_NAME ? 'data-ui-order="'.$order.'"' : '' ?>>
+                <th class="text-left" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_NAME ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_NAME ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>>
                     <?= Yii::t('CfilesModule.base', 'Name'); ?>
                 </th>
 
 
                 <th class="hidden-xxs"></th>
 
-                <th class="hidden-xs text-right" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_SIZE ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_SIZE ? 'data-ui-order="'.$order.'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
-                <th class="hidden-xxs text-right"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_UPDATED_AT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_UPDATED_AT ? 'data-ui-order="'.$order.'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <th class="hidden-xs text-right" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_SIZE ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_SIZE ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
+                <th class="hidden-xxs text-right"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_UPDATED_AT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_UPDATED_AT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
 
                 <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
                     <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
