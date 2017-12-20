@@ -1,19 +1,24 @@
 Changelog
 =========
+
+0.11.9  (December 20, 2017)
+---------------------------
+- Enh: Updated translations
+
 0.11.7
-----------------
+------
 - Enh: Added FolderView sort + default sorting configuration + remember user sort settings.
 
 0.11.6
-----------------
+------
 - Enh: Added upload behaviour settings (Index/Replace) in module config
 
 0.11.5
----------------------
+------
 - Fix: Temporary files deletion on ZIP creation
 
-0.11.4 - 13 October, 2017
--------------------------
+0.11.4  (13 October, 2017)
+--------------------------
 - Fix: Missing WallEntry layout for search results
 - Enh: Updated translations
 
