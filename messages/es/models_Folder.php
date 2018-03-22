@@ -17,7 +17,7 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Description' => '',
-    'Parent Folder ID' => '',
-    'Title' => '',
+    'Description' => 'Descripción',
+    'Parent Folder ID' => 'ID de la carpeta padre',
+    'Title' => 'Título',
 ];

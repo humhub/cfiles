@@ -17,8 +17,8 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Add files' => '',
-    'Allows the user to modify or delete any files.' => '',
-    'Allows the user to upload new files and create folders' => '',
-    'Manage files' => '',
+    'Add files' => 'Agregar archivos',
+    'Allows the user to modify or delete any files.' => 'Permite al usuario modificar o eliminar cualquier archivo.',
+    'Allows the user to upload new files and create folders' => 'Permite al usuario subir nuevos archivos y crear carpetas.',
+    'Manage files' => 'Admministrar archivos',
 ];

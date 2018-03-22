@@ -17,6 +17,6 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Is Public' => '',
-    'Note: Changes of the folders visibility, will be inherited by all contained files and folders.' => '',
+    'Is Public' => 'Es público',
+    'Note: Changes of the folders visibility, will be inherited by all contained files and folders.' => 'Nota: Al cambiar la visibilidad, todos los archivos y subcarpetas heredarán esta configuración.',
 ];

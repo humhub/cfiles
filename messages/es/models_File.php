@@ -17,5 +17,5 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Folder ID' => '',
+    'Folder ID' => 'ID de la Carpeta',
 ];
