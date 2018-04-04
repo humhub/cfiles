@@ -6,6 +6,7 @@
         "files"
     ],
     "version": "0.11.9",
+    "versionForkTctp": "tuclase.01",
     "humhub": {
         "minVersion": "1.2.2"
     },
