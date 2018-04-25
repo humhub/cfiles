@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.11.10  (April 25, 2018)
+---------------------------
+- Fix: Yii 2.0.14 compatibility (https://github.com/yiisoft/yii2/issues/15875)
+
+
 0.11.9  (December 20, 2017)
 ---------------------------
 - Enh: Updated translations
