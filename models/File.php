@@ -34,6 +34,12 @@ class File extends FileSystemItem
      */
     public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFile";
 
+
+    /**
+     * @var File
+     */
+    protected $_setFileContent = null;
+
     /**
      * @inheritdoc
      */
@@ -127,16 +133,26 @@ class File extends FileSystemItem
 
     public function setFileContent(\humhub\modules\file\models\File $fileContent)
     {
+
         if($this->baseFile) {
             $this->baseFile->delete();
         }
 
         $this->populateRelation('baseFile', $fileContent);
+
+        // Temp Fix: https://github.com/yiisoft/yii2/issues/15875
+        $this->_setFileContent = $fileContent;
+
         return $this->baseFile->validate();
     }
 
     public function afterSave($insert, $changedAttributes)
     {
+        // Temp Fix: https://github.com/yiisoft/yii2/issues/15875
+        if ($this->_setFileContent !== null) {
+            $this->populateRelation('baseFile', $this->_setFileContent);
+        }
+
         if($insert && $this->baseFile || ($this->baseFile && $this->baseFile->isNewRecord)) {
             $this->baseFile->setPolymorphicRelation($this);
         }
