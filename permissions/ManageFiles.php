@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\permissions;
 
 use Yii;
 use humhub\modules\space\models\Space;
+use humhub\modules\user\models\User;
 
 /**
  * ManageFiles Permissions
@@ -24,6 +25,7 @@ class ManageFiles extends \humhub\libs\BasePermission
         Space::USERGROUP_OWNER,
         Space::USERGROUP_ADMIN,
         Space::USERGROUP_MODERATOR,
+        User::USERGROUP_SELF
     ];
 
     /**
@@ -31,7 +33,8 @@ class ManageFiles extends \humhub\libs\BasePermission
      */
     protected $fixedGroups = [
         Space::USERGROUP_USER,
-        Space::USERGROUP_GUEST
+        Space::USERGROUP_GUEST,
+        User::USERGROUP_SELF
     ];
 
     /**
