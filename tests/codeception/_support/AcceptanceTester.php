@@ -95,14 +95,19 @@ class AcceptanceTester extends \AcceptanceTester
         $this->waitForText($file, null, '#fileList');
     }
 
-    public function initCfilesOnSpace($guid = 1)
+    public function enableCfilesOnSpace($guid = 1)
     {
         $this->enableModule($guid, 'cfiles');
-        $this->waitForText('Files', null, '.layout-nav-container');
 
+        $this->amOnSpace($guid);
+        $this->expectTo('see files in the space nav');
+        $this->waitForText('Files', 30, '.layout-nav-container');
+
+        $this->amGoingTo('open files module');
         $this->click('Files', '.layout-nav-container');
         $this->waitForText('Files from the stream');
     }
+
    /**
     * Define custom actions here
     */

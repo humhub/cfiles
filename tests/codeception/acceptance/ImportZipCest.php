@@ -8,27 +8,16 @@
 
 use cfiles\AcceptanceTester;
 
-/**
- * Created by PhpStorm.
- * User: buddha
- * Date: 27.08.2017
- * Time: 20:59
- */
-
 class ImportZipCest
 {
     public function testUploadFile(AcceptanceTester $I)
     {
         $I->amAdmin();
         $I->wantToTest('the import a zip file');
-        $I->enableModule(1, 'cfiles');
-        $I->waitForText('Files', null, '.layout-nav-container');
-
-        $I->click('Files', '.layout-nav-container');
-        $I->waitForText('Files from the stream');
+        $I->amGoingTo('install the cfiles module for space 1');
+        $I->enableCfilesOnSpace();
 
         $I->createFolder('test');
-
         $I->wait(1);
 
         $I->attachFile('#cfilesUploadFiles', 'test.txt');

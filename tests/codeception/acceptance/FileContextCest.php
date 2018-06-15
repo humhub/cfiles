@@ -16,10 +16,10 @@ class FileContextCest
     {
         $I->amAdmin();
         $I->wantToTest('the visibility of folders');
-        $I->initCfilesOnSpace();
+        $I->amGoingTo('install the cfiles module for space 1');
+        $I->enableCfilesOnSpace();
 
         $I->uploadFile();
-
         $I->wait(1);
 
         $I->amGoingTo('edit my file per context menu');
