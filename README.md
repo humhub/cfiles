@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/humhub/humhub-modules-cfiles.svg?branch=master)](https://travis-ci.org/humhub/humhub-modules-cfiles)
+
 Module Filemanager 
 =================
 Module for managing files inside spaces and on profiles.

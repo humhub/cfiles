@@ -16,11 +16,8 @@ class UploadAndMoveCest
     {
         $I->amAdmin();
         $I->wantToTest('the upload entry');
-        $I->enableModule(1, 'cfiles');
-        $I->waitForText('Files', null, '.layout-nav-container');
-
-        $I->click('Files', '.layout-nav-container');
-        $I->waitForText('Files from the stream');
+        $I->amGoingTo('install the cfiles module for space 1');
+        $I->enableCfilesOnSpace();
 
         $I->attachFile('#cfilesUploadFiles', 'test.txt');
         $I->waitForText('test.txt', null, '#fileList');

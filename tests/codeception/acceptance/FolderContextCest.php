@@ -16,7 +16,8 @@ class FolderContextCest
     {
         $I->amAdmin();
         $I->wantToTest('the visibility of folders');
-        $I->initCfilesOnSpace();
+        $I->amGoingTo('install the cfiles module for space 1');
+        $I->enableCfilesOnSpace();
 
         $I->createFolder('context', 'context test');
         $I->uploadFile();
