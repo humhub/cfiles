@@ -6,14 +6,14 @@ use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use Yii;
 use yii\base\Event;
-use yii\base\Object;
+
 
 /**
  * cfiles Events
  *
  * @author luke
  */
-class Events extends Object
+class Events
 {
 
     public static function onSpaceMenuInit($event)
