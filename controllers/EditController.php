@@ -25,13 +25,6 @@ use humhub\modules\cfiles\models\Folder;
  */
 class EditController extends BrowseController
 {
-    public function getAccessRules()
-    {
-        return [
-            ['permission' => [WriteAccess::class, ManageFiles::class], 'actions' => ['folder', 'file']],
-            ['permission' => ManageFiles::class, 'actions' => ['make-private', 'make-private']]
-        ];
-    }
 
     /**
      * Action to edit a given folder.
@@ -134,6 +127,11 @@ class EditController extends BrowseController
     {
         foreach ($model->selection as $itemId) {
             $item = FileSystemItem::getItemById($itemId);
+
+            if(!$item->content->canEdit()) {
+                throw new HttpException(403);
+            }
+
             if ($item && $item->content->container->id === $this->contentContainer->id) {
                 $item->updateVisibility($visibility);
                 $item->content->save();

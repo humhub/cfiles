@@ -66,4 +66,9 @@ class SpecialFolderRow extends FolderRow
     {
         return ($this->item->isAllPostedFiles()) ? '' : parent::getUpdatedAt();
     }
+
+    public function canEdit()
+    {
+        return false;
+    }
 }

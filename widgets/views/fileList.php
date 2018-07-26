@@ -49,7 +49,6 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
             <?php foreach ($rows as $row) : ?>
                 <?= FileSystemItem::widget([
                     'row' => $row,
-                    'canWrite' => $canWrite,
                     'itemsSelectable' => $itemsSelectable
                 ]); ?>
             <?php endforeach; ?>

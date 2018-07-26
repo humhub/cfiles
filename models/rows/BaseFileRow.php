@@ -227,4 +227,13 @@ class BaseFileRow extends AbstractFileSystemItemRow
     {
         return $this->baseFile;
     }
+
+    /**
+     * @return boolean
+     */
+    public function canEdit()
+    {
+        // We do not allow base files to be deleted in the cfiles module
+        return false;
+    }
 }

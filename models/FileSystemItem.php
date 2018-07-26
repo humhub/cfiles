@@ -4,10 +4,8 @@ namespace humhub\modules\cfiles\models;
 
 use humhub\modules\content\models\Content;
 use Yii;
-use yii\helpers\Url;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentActiveRecord;
-use humhub\modules\cfiles\ItemInterface;
 use humhub\modules\search\interfaces\Searchable;
 use humhub\modules\cfiles\permissions\ManageFiles;
 

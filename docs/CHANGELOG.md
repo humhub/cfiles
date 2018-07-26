@@ -1,10 +1,13 @@
 Changelog
 =========
 
+0.11.13  (July 26, 2018)
+-----------------------
+- Fix: Edit/Delete of own files without ManageFiles permission not working
+
 0.11.12  (July 2, 2018)
 -----------------------
 - Fix: PHP 7.2 compatibility issues
-
 
 0.11.11  (April 27, 2018)
 ---------------------------

@@ -15,7 +15,7 @@ class FileContextCest
     public function testFolderContext(AcceptanceTester $I)
     {
         $I->amAdmin();
-        $I->wantToTest('the visibility of folders');
+        $I->wantToTest('the folder context menu');
         $I->amGoingTo('install the cfiles module for space 1');
         $I->enableCfilesOnSpace();
 

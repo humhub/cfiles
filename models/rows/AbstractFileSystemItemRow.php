@@ -212,4 +212,9 @@ abstract class AbstractFileSystemItemRow extends Model
      * @return File
      */
     public abstract function getBaseFile();
+
+    /**
+     * @return boolean
+     */
+    public abstract function canEdit();
 }

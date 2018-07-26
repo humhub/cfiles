@@ -21,16 +21,6 @@ use humhub\modules\cfiles\models\FileSystemItem;
 class DeleteController extends BrowseController
 {
     /**
-     * @inheritdoc
-     */
-    public function getAccessRules()
-    {
-        return [
-            ['permission' => ManageFiles::class]
-        ];
-    }
-
-    /**
      * Action to delete a file or folder.
      * @return string
      */
@@ -41,6 +31,11 @@ class DeleteController extends BrowseController
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = FileSystemItem::getItemById($itemId);
+
+                if(!$item->content->canEdit()) {
+                    throw new HttpException(403);
+                }
+
                 if ($item && $item->isDeletable() && $item->content->container->id === $this->contentContainer->id) {
                     $item->delete();
                 }

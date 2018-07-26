@@ -11,22 +11,24 @@ namespace humhub\modules\cfiles\widgets;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow;
+use humhub\widgets\JsWidget;
 use Yii;
 
 /**
  * @inheritdoc
  */
-class FileSystemItem extends \yii\base\Widget
+class FileSystemItem extends JsWidget
 {
+
+    /**
+     * @inheritdoc
+     */
+    public $jsWidget = 'cfiles.FileItem';
+
     /**
      * @var AbstractFileSystemItemRow
      */
     public $row;
-
-    /**
-     * @var boolean
-     */
-    public $canWrite;
 
     /**
      * @var boolean
@@ -42,9 +44,21 @@ class FileSystemItem extends \yii\base\Widget
 
         return $this->render('fileSystemItem', [
             'row' => $this->row,
-            'canWrite' => $this->canWrite,
-
+            'options' => $this->getOptions()
         ]);
+    }
+
+    public function getData() {
+        return [
+            'cfiles-item' => $this->row->getItemId(),
+            'cfiles-type' => $this->row->getType(),
+            'cfiles-url' => $this->row->getUrl(),
+            'cfiles-editable' => $this->row->canEdit(),
+            'cfiles-url-full' => $this->row->getDisplayUrl(),
+            'cfiles-wall-url' => $this->row->getWallUrl(),
+            'cfiles-edit-url' => ($this->row->canEdit()) ? $this->row->getEditUrl() : '',
+            'cfiles-move-url' => ($this->row->canEdit()) ? $this->row->getMoveUrl() : '',
+        ];
     }
 
 }

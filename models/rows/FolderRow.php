@@ -48,4 +48,12 @@ class FolderRow extends FileSystemItemRow
     {
         return null;
     }
+
+    /**
+     * @return boolean
+     */
+    public function canEdit()
+    {
+        return $this->item->content->canEdit();
+    }
 }

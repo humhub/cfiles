@@ -89,17 +89,35 @@ humhub.module('cfiles', function (module, require, $) {
         var that = this;
         $("#bs-table tr").contextMenu({
             getMenuSelector: function ($invokedOn, settings) {
-                var type = $invokedOn.closest('tr').data('cfiles-type');
-                switch (type) {
+           
+
+                var fileItem = FileItem.instance($invokedOn.closest('tr'));
+                var selector;
+
+                switch (fileItem.options['cfilesType']) {
                     case "folder-posted":
-                        return '#contextMenuAllPostedFiles';
+                        selector = '#contextMenuAllPostedFiles';
+                        break;
                     case "folder":
-                        return '#contextMenuFolder';
+                        selector = '#contextMenuFolder';
+                        break;
                     case "image":
-                        return '#contextMenuImage';
+                        selector = '#contextMenuImage';
+                        break;
                     default:
-                        return '#contextMenuFile';
+                        selector = '#contextMenuFile';
+                        break;
                 }
+
+                var $contextMenu = $(selector);
+
+                if(fileItem.options['cfilesEditable']) {
+                    $contextMenu.find('.editableOnly').show();
+                } else {
+                    $contextMenu.find('.editableOnly').hide();
+                }
+
+                return selector;
             },
             menuSelected: function ($invokedOn, selectedMenu, evt) {
                 evt.preventDefault();
@@ -395,6 +413,7 @@ humhub.module('cfiles', function (module, require, $) {
     };
 
     FileItem.prototype.edit = function () {
+        debugger;
         modal.global.load(this.editUrl);
     };
 

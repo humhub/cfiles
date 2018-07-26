@@ -10,18 +10,12 @@ use humhub\widgets\TimeAgo;
 
 
 /* @var $row \humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow */
+/* @var $optoins array */
 /* @var $canWrite boolean */
 
 ?>
 
-<tr data-ui-widget="cfiles.FileItem"
-    data-cfiles-item="<?= $row->getItemId() ?>"
-    data-cfiles-type="<?= $row->getType(); ?>"
-    data-cfiles-url="<?= $row->getUrl(); ?>"
-    data-cfiles-url-full="<?= $row->getDisplayUrl(); ?>"
-    data-cfiles-wall-url="<?= $row->getWallUrl(); ?>"
-    data-cfiles-edit-url="<?= ($canWrite) ? $row->getEditUrl() : '' ?>"
-    data-cfiles-move-url="<?= ($canWrite) ? $row->getMoveUrl() : '' ?>">
+<?= Html::beginTag('tr', $options) ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SELECT)) : ?>
         <td class="item-selection text-muted text-center">
@@ -94,4 +88,4 @@ use humhub\widgets\TimeAgo;
             </div>
         </td>
     <?php endif; ?>
-</tr>
+<?= Html::endTag('tr') ?>
