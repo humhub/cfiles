@@ -13,4 +13,4 @@ composer global require fxp/composer-asset-plugin
 
 # Install NPM
 curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-apt-get install -y nodejs
+sudo apt-get install -y nodejs
