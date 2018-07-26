@@ -10,3 +10,7 @@ curl -s -L -o chromedriver_linux64.zip https://chromedriver.storage.googleapis.c
 
 # Install composer package
 composer global require fxp/composer-asset-plugin
+
+# Install NPM
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+apt-get install -y nodejs

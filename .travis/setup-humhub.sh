@@ -10,6 +10,8 @@ cd ${HUMHUB_PATH}
 
 git clone --branch ${HUMHUB_VERSION} --depth 1 https://github.com/humhub/humhub.git .
 composer install --prefer-dist --no-interaction
+npm install
+grunt build-assets
 
 cd ${HUMHUB_PATH}/protected/humhub/tests
 
