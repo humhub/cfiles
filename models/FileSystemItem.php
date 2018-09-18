@@ -165,7 +165,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function getCreator()
     {
-        return User::findOne($this->content->created_by);
+        return $this->content->createdBy;
     }
 
     /**
@@ -173,7 +173,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function getEditor()
     {
-        return User::findOne($this->content->updated_by);
+        return $this->content->updatedBy;
     }
 
     /**
