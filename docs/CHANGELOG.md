@@ -1,5 +1,8 @@
 Changelog
 =========
+0.11.14  (September 18, 2018)
+-----------------------
+- Fix: getSearchAttributes() on items without editor or creator fails
 
 0.11.14  (October 2, 2018)
 -----------------------

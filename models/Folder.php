@@ -151,10 +151,16 @@ class Folder extends FileSystemItem
         } else {
             $attributes = [
                 'name' => $this->title,
-                'description' => $this->description,
-                'creator' => $this->getCreator()->getDisplayName(),
-                'editor' => $this->getEditor()->getDisplayName()
+                'description' => $this->description
             ];
+
+            if($this->getCreator()) {
+                $attributes['creator'] = $this->getCreator()->getDisplayName();
+            }
+
+            if($this->getEditor()) {
+                $attributes['editor'] = $this->getEditor()->getDisplayName();
+            }
         }
         $this->trigger(self::EVENT_SEARCH_ADD, new SearchAddEvent($attributes));
         return $attributes;
