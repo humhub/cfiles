@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\content\models\Content;
 use Yii;
 use yii\web\HttpException;
 use humhub\components\ActiveRecord;
@@ -62,7 +63,7 @@ class UploadController extends BrowseController
 
             $cFile->show_in_stream = false;
 
-            $file = new File($this->contentContainer);
+            $file = new File($this->contentContainer, Content::VISIBILITY_PRIVATE);
             $file->setFileContent($cFile);
             $folder->moveItem($file);
 
