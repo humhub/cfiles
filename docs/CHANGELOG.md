@@ -1,12 +1,15 @@
 Changelog
 =========
+
+
+0.11.15  (October 2, 2018)
+-----------------------
+- Fix: Imported file visibility private instead of public
+
+
 0.11.14  (September 18, 2018)
 -----------------------
 - Fix: getSearchAttributes() on items without editor or creator fails
-
-0.11.14  (October 2, 2018)
------------------------
-- Fix: Imported file visibility private instead of public
 
 
 0.11.13  (July 26, 2018)
@@ -22,6 +25,7 @@ Changelog
 0.11.11  (April 27, 2018)
 ---------------------------
 - Fix: Profile files can't be managed
+
 
 0.11.10  (April 25, 2018)
 ---------------------------
