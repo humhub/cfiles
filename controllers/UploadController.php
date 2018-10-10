@@ -63,9 +63,12 @@ class UploadController extends BrowseController
 
             $cFile->show_in_stream = false;
 
-            $file = new File($this->contentContainer, Content::VISIBILITY_PRIVATE);
+            $file = new File($this->contentContainer);
             $file->setFileContent($cFile);
             $folder->moveItem($file);
+
+            $file->visibility = Content::VISIBILITY_PRIVATE;
+            $file->save();
 
             if ($file->hasErrors()) {
                 $errors[] = $this->actionResponseError($file);

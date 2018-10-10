@@ -2,8 +2,13 @@ Changelog
 =========
 
 
+0.11.16  (October 10, 2018)
+---------------------------
+- Fix: Imported file visibility private
+
+
 0.11.15  (October 2, 2018)
------------------------
+--------------------------
 - Fix: Imported file visibility private instead of public
 
 
