@@ -1,6 +1,6 @@
 <?php
 return array (
   'Description' => 'Leírás',
-  'Parent Folder ID' => '',
+  'Parent Folder ID' => 'Szülő mappa azonosító',
   'Title' => 'Név',
 );

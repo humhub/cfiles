@@ -2,6 +2,6 @@
 return array (
   'Add files' => 'Fájlok feltöltése',
   'Allows the user to modify or delete any files.' => 'A felhasználó bármelyik fájlt szerkesztheti vagy törölheti.',
-  'Allows the user to upload new files and create folders' => '',
-  'Manage files' => '',
+  'Allows the user to upload new files and create folders' => 'Engedélyezze a felhasználóknak, hogy feltöltsenek fájlokat, és létrehozhassanak mappákat',
+  'Manage files' => 'Fájlok kezelése',
 );
