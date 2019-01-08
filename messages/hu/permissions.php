@@ -1,7 +1,7 @@
 <?php
 return array (
-  'Add files' => 'Fájlok feltöltése',
-  'Allows the user to modify or delete any files.' => 'A felhasználó bármelyik fájlt szerkesztheti vagy törölheti.',
-  'Allows the user to upload new files and create folders' => 'Engedélyezze a felhasználóknak, hogy feltöltsenek fájlokat, és létrehozhassanak mappákat',
+  'Add files' => 'Fájlok hozzáadása',
+  'Allows the user to modify or delete any files.' => 'Lehetővé teszi a felhasználó számára tetszőleges fájl szerkesztését vagy törlését.',
+  'Allows the user to upload new files and create folders' => 'Lehetővé teszi a felhasználó számára, hogy új fájlokat töltsön fel és mappákat hozzon létre',
   'Manage files' => 'Fájlok kezelése',
 );
