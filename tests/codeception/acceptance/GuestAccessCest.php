@@ -15,9 +15,12 @@ class GuestAccessCest
     public function testGuestAccess(AcceptanceTester $I)
     {
         $I->amAdmin();
+        $I->allowGuestAccess();
+
+        $I->amUser1(true);
         $I->wantToTest('the visibility of folders and files for guests');
-        $I->amGoingTo('install the cfiles module for space 1');
-        $I->enableCfilesOnSpace();
+        $I->amGoingTo('install the cfiles module for space 2');
+        $I->enableCfilesOnSpace(2);
 
         $I->amGoingTo('create a public folder and file');
         $I->createFolder('guest', 'guest test', true);
@@ -28,11 +31,9 @@ class GuestAccessCest
         $I->createFolder('private', 'private test', false);
         $I->uploadFile('test.txt');
 
-        $I->allowGuestAccess();
-
         $I->logout();
 
-        $I->amOnSpace1();
+        $I->amOnSpace2();
         $I->see('Files', '.layout-nav-container');
         $I->click('Files', '.layout-nav-container');
 
