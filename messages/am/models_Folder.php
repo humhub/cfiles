@@ -1,7 +1,6 @@
 <?php
-
-return [
-    'Description' => '',
-    'Parent Folder ID' => '',
-    'Title' => '',
-];
+return array (
+  'Description' => '',
+  'Parent Folder ID' => '',
+  'Title' => 'ርዕስ',
+);
