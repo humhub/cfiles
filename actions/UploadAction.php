@@ -62,7 +62,7 @@ class UploadAction extends \humhub\modules\file\actions\UploadAction
         $errorMessage = Yii::t('FileModule.actions_UploadAction', 'File {fileName} could not be uploaded!', ['fileName' => $file->baseFile->name]);
 
         if(!empty($file->hasErrors())) {
-            $errorMessage = array_values($file->getErrors())[0];
+            $errorMessage = $file->getErrorSummary(false);
         }
 
         return [

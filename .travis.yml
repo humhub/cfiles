@@ -11,7 +11,6 @@ git:
   depth: 3
 
 php:
-  - '5.6'
   - '7.0'
   - '7.1'
   - '7.2'
@@ -21,17 +20,17 @@ env:
     - HUMHUB_PATH=/opt/humhub
   matrix:
     - HUMHUB_VERSION=master
+    - HUMHUB_VERSION=v1.3.0
+    - HUMHUB_VERSION=develop
 
 matrix:
+  allow_failures:
+    - env: HUMHUB_VERSION=develop
   fast_finish: true
-
 
 cache:
   directories:
     - $HOME/.composer/cache
-
-before_install:
-  - chmod +x .travis/*.sh
 
 install:
   - .travis/install-dependencies.sh
@@ -45,7 +44,5 @@ before_script:
 
 script:
   - cd tests
-  - ln -s ${HUMHUB_PATH}/protected/humhub/tests/config/env config/ # create symlink from /opt/humhub to config/
-  - sed -i -e "s|../../../humhub/tests/config/env|config/env|g" codeception.yml # fix relative path for codeception
   - php ${HUMHUB_PATH}/protected/vendor/bin/codecept build
   - php ${HUMHUB_PATH}/protected/vendor/bin/codecept run --env travis
