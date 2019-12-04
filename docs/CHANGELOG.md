@@ -1,5 +1,12 @@
 Changelog
 =========
+
+
+0.11.18 - December 4, 2019
+---------------------------
+- Fix: Social acitivites for virtual (Files from stream and root) folders
+
+
 0.11.17 - June 27, 2019
 ---------------------------
 - Enh: Updated translations
