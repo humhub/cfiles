@@ -281,11 +281,7 @@ class Folder extends FileSystemItem
         ]);
 
         $root->content->created_by = self::getContainerOwnerId($contentContainer);
-        // v1.2.2 and earlier compatibility check
-        if (property_exists($root->content, 'muteDefaultSocialActivities')) {
-            $root->content->muteDefaultSocialActivities = true;
-        }
-
+        $root->silentContentCreation = true;
         if ($root->save()) {
             return $root;
         }
@@ -314,11 +310,7 @@ class Folder extends FileSystemItem
         ]);
 
         $postedFilesFolder->content->created_by = self::getContainerOwnerId($contentContainer);
-        // v1.2.2 and earlier compatibility check
-        if(property_exists($postedFilesFolder->content, 'muteDefaultSocialActivities')) {
-            $postedFilesFolder->content->muteDefaultSocialActivities = true;
-        }
-
+        $postedFilesFolder->silentContentCreation = true;
         if ($postedFilesFolder->save()) {
             return $postedFilesFolder;
         }
