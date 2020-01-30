@@ -48,7 +48,7 @@ return array (
   'Moving to the same folder is not valid.' => '',
   'Moving to this folder is invalid.' => '',
   'Name' => 'Nom',
-  'Open' => '',
+  'Open' => 'Obre',
   'Open file folder' => '',
   'Opening archive failed with error code %code%.' => '',
   'Please select a valid destination folder for %title%.' => '',
