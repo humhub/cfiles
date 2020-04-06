@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.11.19 (April, 06, 2020)
+--------------------
+- Chg: Added 1.5 defer compatibility
+
 
 0.11.18 - December 4, 2019
 ---------------------------
