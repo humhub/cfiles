@@ -7,7 +7,7 @@
  *
  */
 
-namespace humhub\modules\calendar\tests\codeception\fixtures;
+namespace humhub\modules\cfiles\tests\codeception\fixtures;
 
 use humhub\modules\cfiles\models\Folder;
 use yii\test\ActiveFixture;

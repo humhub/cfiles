@@ -413,7 +413,6 @@ humhub.module('cfiles', function (module, require, $) {
     };
 
     FileItem.prototype.edit = function () {
-        debugger;
         modal.global.load(this.editUrl);
     };
 

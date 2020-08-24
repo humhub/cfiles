@@ -10,6 +10,6 @@ return [
     'modules' => ['cfiles'],
     'fixtures' => [
         'default',
-        'files' => \humhub\modules\calendar\tests\codeception\fixtures\FilesFixture::class
+        'files' => \humhub\modules\cfiles\tests\codeception\fixtures\FilesFixture::class
     ]
 ];

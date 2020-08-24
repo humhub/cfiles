@@ -1,9 +1,14 @@
 Changelog
 =========
 
-0.11.19 - Unreleased
+0.11.20 - Unreleased
 --------------------
 - Fix #87: ZIP Upload broken due legency ImageConverter usage
+
+
+0.11.18 - December 4, 2019
+---------------------------
+- Fix: Social acitivites for virtual (Files from stream and root) folders
 
 
 0.11.18 - December 4, 2019
