@@ -2,7 +2,7 @@
 
 namespace humhub\modules\cfiles\models;
 
-use humhub\modules\file\libs\ImageConverter;
+use humhub\modules\file\libs\ImageHelper;
 use humhub\modules\file\models\FileContent;
 use Yii;
 use yii\base\ModelEvent;
@@ -14,6 +14,7 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\Content;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\space\models\Space;
+use yii\imagine\Image;
 use yii\web\UploadedFile;
 
 /**
@@ -718,7 +719,8 @@ class Folder extends FileSystemItem
         ]);
 
         if ($fileContent->mime_type == 'image/jpeg') {
-            ImageConverter::TransformToJpeg($filePath, $filePath);
+            $image = Image::getImagine()->open($filePath);
+            ImageHelper::fixJpegOrientation($image, $filePath);
         }
 
         $fileContent->newFileContent = stream_get_contents(fopen($filePath, 'r'));

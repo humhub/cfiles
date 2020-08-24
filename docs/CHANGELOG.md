@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.11.19 - Unreleased
+--------------------
+- Fix #87: ZIP Upload broken due legency ImageConverter usage
+
 
 0.11.18 - December 4, 2019
 ---------------------------

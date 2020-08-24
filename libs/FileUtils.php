@@ -3,7 +3,6 @@
 namespace humhub\modules\cfiles\libs;
 
 use humhub\modules\file\models\File;
-use humhub\modules\file\libs\ImageConverter;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\models\Content;
 use humhub\modules\post\models\Post;
@@ -136,54 +135,6 @@ class FileUtils
             }
         }
         return 'unknown';
-    }
-
-    /**
-     * Crop an image file to a square thumbnail.
-     * The thumbnail will be saved with the suffix "&lt;width&gt;_thumb_square"
-     * @param File $basefile the file to crop.
-     * @param number $maxDimension limit maximum with/height.
-     * @return string the thumbnail's url or null if an error occured.
-     */
-    public static function getSquareThumbnailUrlFromFile(File $basefile = null, $maxDimension = 1000)
-    {
-        if ($basefile === null) {
-            return;
-        }
-
-        $suffix = $maxDimension . '_thumb_square';
-        $originalFilename = $basefile->getStoredFilePath();
-        $previewFilename = $basefile->getStoredFilePath($suffix);
-
-        // already generated
-        if (is_file($previewFilename)) {
-            return $basefile->getUrl($suffix);
-        }
-
-        // Check file exists & has valid mime type
-        if ($basefile->getMimeBaseType() != "image" || !is_file($originalFilename)) {
-            return "";
-        }
-
-        $imageInfo = @getimagesize($originalFilename);
-
-        // check valid image dimesions
-        if (!isset($imageInfo[0]) || !isset($imageInfo[1])) {
-            return "";
-        }
-
-        // Check if image type is supported
-        if ($imageInfo[2] != IMAGETYPE_PNG && $imageInfo[2] != IMAGETYPE_JPEG && $imageInfo[2] != IMAGETYPE_GIF) {
-            return "";
-        }
-
-        $dim = min($imageInfo[0], $imageInfo[1], $maxDimension);
-        ImageConverter::Resize($originalFilename, $previewFilename, array(
-            'mode' => 'force',
-            'width' => $dim,
-            'height' => $dim
-        ));
-        return $basefile->getUrl($suffix);
     }
 
     /**
