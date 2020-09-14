@@ -27,14 +27,7 @@ class ZipUtil
      */
     protected function cleanup()
     {
-        $files = BaseFileHelper::findFiles($this->getTempPath(), [
-            'filter' => function ($path) {return time() - filemtime($path) > 30 ? true : false;},
-            'recursive' => true,
-        ]);
-
-        foreach ($files as $file) {
-            unlink($file);
-        }
+        BaseFileHelper::removeDirectory($this->getTempPath());
     }
 
     /**
