@@ -40,8 +40,9 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     abstract function updateVisibility($visibility);
     abstract function getSize();
-    abstract  function getItemType();
+    abstract function getItemType();
     abstract function getDescription();
+    abstract function getDownloadCount();
     abstract function getVisibilityTitle();
 
     /**

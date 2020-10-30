@@ -62,7 +62,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     public function getColumns()
     {
         //self::COLUMN_VISIBILITY
-        return [self::COLUMN_TITLE, self::COLUMN_VISIBILITY, self::COLUMN_SIZE, self::COLUMN_TIMESTAMP, self::COLUMN_CREATOR];
+        return [self::COLUMN_TITLE, self::COLUMN_VISIBILITY, self::COLUMN_SIZE, self::COLUMN_TIMESTAMP, self::COLUMN_DOWNLOAD_COUNT, self::COLUMN_CREATOR];
     }
 
     /**
@@ -184,6 +184,14 @@ class BaseFileRow extends AbstractFileSystemItemRow
     public function getDescription()
     {
         return '';
+    }
+
+    /**
+     * @return integer
+     */
+    public function getDownloadCount()
+    {
+        return 0;
     }
 
     /**

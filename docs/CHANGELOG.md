@@ -5,6 +5,7 @@ Changelog
 --------------------
 - Fix #87: ZIP Upload broken due legency ImageConverter usage
 - Fix #74: Remove Temp Directory recursively in cleanup() 
+- Enh #94: Implement Download Counter
 
 
 0.11.18 - December 4, 2019

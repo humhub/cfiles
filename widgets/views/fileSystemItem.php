@@ -64,6 +64,14 @@ use humhub\widgets\TimeAgo;
         </td>
     <?php endif; ?>
 
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_DOWNLOAD_COUNT)) : ?>
+        <td class="hidden-xxs text-right">
+            <div class="pull-right">
+                <?= $row->getDownloadCount(); ?>
+            </div>
+        </td>
+    <?php endif; ?>
+
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SOCIAL)): ?>
         <td class="text-right">
             <?php if ($row->isSocialActionsAvailable()): ?>

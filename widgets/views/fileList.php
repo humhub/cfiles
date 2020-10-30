@@ -37,6 +37,7 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
 
                 <th class="hidden-xs text-right" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_SIZE ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_SIZE ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
                 <th class="hidden-xxs text-right"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_UPDATED_AT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_UPDATED_AT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <th class="hidden-xxs text-right"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Downloads'); ?></th>
 
                 <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
                     <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
