@@ -64,8 +64,9 @@ use humhub\widgets\TimeAgo;
         </td>
     <?php endif; ?>
 
-    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_DOWNLOAD_COUNT)) : ?>
-        <td class="hidden-xxs text-right">
+    <?php if (Yii::$app->getModule('cfiles')->settings->get('displayDownloadCount') &&
+              $row->isRenderColumn(FileSystemItemRow::COLUMN_DOWNLOAD_COUNT)) : ?>
+        <td class="hidden-xs text-right">
             <div class="pull-right">
                 <?= $row->getDownloadCount(); ?>
             </div>

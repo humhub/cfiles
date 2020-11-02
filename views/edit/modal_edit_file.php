@@ -21,6 +21,7 @@ use humhub\widgets\ModalDialog;
             <?= $form->field($file->baseFile, 'file_name'); ?>
             <?= $form->field($file, 'description'); ?>
             <?= $form->field($file, 'visibility')->checkbox(['disabled' => $file->parentFolder->content->isPrivate()]) ?>
+            <?= $form->field($file, 'download_count')->staticControl(['style' => 'display:inline']); ?>
         </div>
 
         <div class="modal-footer">

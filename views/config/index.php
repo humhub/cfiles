@@ -22,6 +22,8 @@ use yii\helpers\Html;
 
             <?= $form->field($model, 'disableZipSupport')->checkbox(null, false); ?>
 
+            <?= $form->field($model, 'displayDownloadCount')->checkbox(null, false); ?>
+
         <?= Button::save()->submit() ?>
         <?php ActiveForm::end(); ?>
     </div>
