@@ -4,7 +4,8 @@ Changelog
 0.11.20 - Unreleased
 --------------------
 - Fix #87: ZIP Upload broken due legency ImageConverter usage
-- Fix #74: Remove Temp Directory recursively in cleanup() 
+- Fix #74: Remove Temp Directory recursively in cleanup()
+- Enh #93: Wall Stream Layout Migration for HumHub 1.7+ 
 
 
 0.11.18 - December 4, 2019

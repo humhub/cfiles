@@ -1,11 +1,11 @@
 <?php
 
 use humhub\libs\Html;
-?>
+use humhub\modules\cfiles\models\Folder;
 
-<div class="pull-left" style="padding-right:12px">
-    <i class="fa fa-folder-o fa-fw" style="font-size:40px"></i>
-</div>
+/* @var $folder Folder */
+/* @var $folderUrl string */
+?>
 
 <strong><?= Html::a(Html::encode($folder->title), $folderUrl); ?></strong><br />
 <br />
