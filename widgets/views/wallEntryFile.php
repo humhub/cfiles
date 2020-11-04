@@ -7,18 +7,16 @@ use humhub\libs\Html;
 /* @var $previewImage \humhub\modules\file\converter\PreviewImage */
 /* @var $cFile \humhub\modules\cfiles\models\File */
 /* @var $file  \humhub\modules\file\models\File */
-/* @var $fileSize  integer */
-/* @var $folderUrl  string*/
+/* @var $fileSize integer */
+/* @var $folderUrl string */
 
 ?>
 
+<?php if ($previewImage->applyFile($file)): ?>
 <div class="pull-left">
-    <?php if ($previewImage->applyFile($file)): ?>
-        <?= $previewImage->renderGalleryLink(['style' => 'padding-right:12px']); ?>
-    <?php else: ?>
-        <i class="fa <?= $cFile->getIcon(); ?> fa-fw" style="font-size:40px"></i>
-    <?php endif; ?>
+    <?= $previewImage->renderGalleryLink(['style' => 'padding-right:12px']); ?>
 </div>
+<?php endif; ?>
 
 <strong><?= FileHelper::createLink($file, null, ['style' => 'text-decoration: underline']); ?></strong><br />
 <small><?= Yii::t('CfilesModule.base', 'Size: {size}', ['size' => Yii::$app->formatter->asShortSize($fileSize, 1)]); ?></small><br />

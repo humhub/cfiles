@@ -8,20 +8,20 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
 use humhub\modules\file\converter\PreviewImage;
 use humhub\modules\cfiles\models\File;
-use humhub\libs\MimeHelper;
 
 /**
  * @inheritdoc
  */
-class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
+class WallEntryFile extends WallStreamModuleEntryWidget
 {
 
     /**
      * @inheritdoc
      */
-    public $editRoute = "/cfiles/edit/file";
+    public $editRoute = '/cfiles/edit/file';
 
     /**
      * @inheritdoc
@@ -29,11 +29,16 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
     public $editMode = self::EDIT_MODE_MODAL;
 
     /**
+     * @var File
+     */
+    public $model;
+
+    /**
      * @inheritdoc
      */
-    public function run()
+    public function renderContent()
     {
-        $cFile = $this->contentObject;
+        $cFile = $this->model;
 
         $folderUrl = '#';
         if ($cFile->parentFolder !== null) {
@@ -57,14 +62,30 @@ class WallEntryFile extends \humhub\modules\content\widgets\WallEntry
     public function getEditUrl()
     {
         if (empty(parent::getEditUrl())) {
-            return "";
+            return '';
         }
 
-        if ($this->contentObject instanceof File) {
-            return $this->contentObject->content->container->createUrl($this->editRoute, ['id' => $this->contentObject->getItemId(), 'fromWall' => true]);
+        if ($this->model instanceof File) {
+            return $this->model->content->container->createUrl($this->editRoute, ['id' => $this->model->getItemId(), 'fromWall' => true]);
+        }
+
+        return '';
     }
 
-        return "";
+    /**
+     * @return string
+     */
+    protected function getIcon()
+    {
+        return $this->model->getIcon();
+    }
+
+    /**
+     * @return string a non encoded plain text title (no html allowed) used in the header of the widget
+     */
+    protected function getTitle()
+    {
+        return $this->model->getTitle();
     }
 
 }

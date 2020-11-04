@@ -9,19 +9,20 @@
 namespace humhub\modules\cfiles\widgets;
 
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
 
 /**
  * Wall Entry for Folder
  * 
  * Used for Search
  */
-class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
+class WallEntryFolder extends WallStreamModuleEntryWidget
 {
 
     /**
      * @inheritdoc
      */
-    public $editRoute = "/cfiles/edit/folder";
+    public $editRoute = '/cfiles/edit/folder';
 
     /**
      * @inheritdoc
@@ -29,14 +30,18 @@ class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
     public $editMode = self::EDIT_MODE_MODAL;
 
     /**
+     * @var Folder
+     */
+    public $model;
+
+    /**
      * @inheritdoc
      */
-    public function run()
+    public function renderContent()
     {
-
         return $this->render('wallEntryFolder', [
-                    'folder' => $this->contentObject,
-                    'folderUrl' => $this->contentObject->getUrl()
+                    'folder' => $this->model,
+                    'folderUrl' => $this->model->getUrl()
         ]);
     }
 
@@ -48,14 +53,30 @@ class WallEntryFolder extends \humhub\modules\content\widgets\WallEntry
     public function getEditUrl()
     {
         if (empty(parent::getEditUrl())) {
-            return "";
+            return '';
         }
 
-        if ($this->contentObject instanceof Folder) {
-            return $this->contentObject->content->container->createUrl($this->editRoute, ['id' => $this->contentObject->getItemId(), 'fromWall' => true]);
+        if ($this->model instanceof Folder) {
+            return $this->model->content->container->createUrl($this->editRoute, ['id' => $this->model->getItemId(), 'fromWall' => true]);
         }
 
-        return "";
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    protected function getIcon()
+    {
+        return $this->model->getIcon();
+    }
+
+    /**
+     * @return string a non encoded plain text title (no html allowed) used in the header of the widget
+     */
+    protected function getTitle()
+    {
+        return $this->model->getTitle();
     }
 
 }
