@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.11.20 - Unreleased
---------------------
+0.11.20 - November 4, 2020
+---------------------------
 - Fix #87: ZIP Upload broken due legency ImageConverter usage
 - Fix #74: Remove Temp Directory recursively in cleanup() 
 - Enh #94: Implement Download Counter
