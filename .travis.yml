@@ -21,7 +21,7 @@ env:
     - HUMHUB_PATH=/opt/humhub
   matrix:
     - HUMHUB_VERSION=master
-    - HUMHUB_VERSION=v1.7.0.beta.1
+    - HUMHUB_VERSION=v1.7.0
     - HUMHUB_VERSION=develop
 
 matrix:
