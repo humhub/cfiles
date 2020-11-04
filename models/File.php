@@ -23,6 +23,7 @@ use yii\web\UploadedFile;
  * @property integer $id
  * @property integer $parent_folder_id
  * @property string $description
+ * @property integer $download_count
  *
  * @property Folder $parentFolder
  * @property \humhub\modules\file\models\File $baseFile
@@ -375,9 +376,17 @@ class File extends FileSystemItem
     /**
      * @return string
      */
-    function getDescription()
+    public function getDescription()
     {
         return $this->description;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getDownloadCount()
+    {
+        return $this->download_count;
     }
 
     public function setTitle($title)
@@ -533,7 +542,7 @@ class File extends FileSystemItem
         return $query->orderBy($filesOrder);
     }
 
-        /**
+    /**
      * @return file of given name in given parent folder
      */
     public static function getFileByName($name, $parentFolderId, $contentContainer)
@@ -546,5 +555,20 @@ class File extends FileSystemItem
             'parent_folder_id' => $parentFolderId
         ]);
         return $filesQuery->one();
+    }
+
+    /**
+     * Get File by guid
+     *
+     * @param $guid
+     * @return array|File|\yii\db\ActiveRecord
+     */
+    public static function getFileByGuid($guid)
+    {
+        return self::find()
+            ->innerJoin('file', 'object_id = ' . self::tableName() . '.id')
+            ->where(['guid' => $guid])
+            ->andWhere(['object_model' => self::class])
+            ->one();
     }
 }

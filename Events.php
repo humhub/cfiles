@@ -4,6 +4,7 @@ namespace humhub\modules\cfiles;
 
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\file\actions\DownloadAction;
 use Yii;
 use yii\base\Event;
 
@@ -74,6 +75,22 @@ class Events
                 'icon' => '<i class="fa fa-files-o"></i>',
                 'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
             ]);
+        }
+    }
+
+    /**
+     * Callback on after file controller action
+     *
+     * @param Event $event
+     */
+    public static function onAfterFileAction(Event $event)
+    {
+        if (isset($event->action) &&
+            $event->action instanceof DownloadAction &&
+            ($downloadedFile = File::getFileByGuid(Yii::$app->request->get('guid')))
+        ) {
+            $downloadedFile->download_count++;
+            $downloadedFile->save();
         }
     }
 

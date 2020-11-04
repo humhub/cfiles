@@ -26,11 +26,13 @@ abstract class AbstractFileSystemItemRow extends Model
     const COLUMN_TITLE = 'title';
     const COLUMN_SIZE = 'size';
     const COLUMN_TIMESTAMP = 'timestamp';
+    const COLUMN_DOWNLOAD_COUNT = 'download_count';
     const COLUMN_SOCIAL = 'social';
     const COLUMN_CREATOR = 'creator';
 
     const ORDER_TYPE_NAME = 'name';
     const ORDER_TYPE_UPDATED_AT = 'updated_at';
+    const ORDER_TYPE_DOWNLOAD_COUNT = 'download_count';
     const ORDER_TYPE_SIZE = 'size';
 
     /**
@@ -45,6 +47,7 @@ abstract class AbstractFileSystemItemRow extends Model
     const ORDER_MAPPING = [
         self::ORDER_TYPE_NAME => null,
         self::ORDER_TYPE_UPDATED_AT => null,
+        self::ORDER_TYPE_DOWNLOAD_COUNT => null,
         self::ORDER_TYPE_SIZE => null,
     ];
 
@@ -54,6 +57,7 @@ abstract class AbstractFileSystemItemRow extends Model
         self::COLUMN_TITLE,
         self::COLUMN_SIZE,
         self::COLUMN_TIMESTAMP,
+        self::COLUMN_DOWNLOAD_COUNT,
         self::COLUMN_SOCIAL,
         self::COLUMN_CREATOR
     ];
@@ -187,6 +191,11 @@ abstract class AbstractFileSystemItemRow extends Model
      * @return string
      */
     public abstract function getDescription();
+
+    /**
+     * @return integer
+     */
+    public abstract function getDownloadCount();
 
     /**
      * @return string

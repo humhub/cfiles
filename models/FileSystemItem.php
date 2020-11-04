@@ -40,8 +40,9 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     abstract function updateVisibility($visibility);
     abstract function getSize();
-    abstract  function getItemType();
+    abstract function getItemType();
     abstract function getDescription();
+    abstract function getDownloadCount();
     abstract function getVisibilityTitle();
 
     /**
@@ -49,7 +50,10 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function attributeLabels()
     {
-        return ['visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Is Public')];
+        return [
+            'visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Is Public'),
+            'download_count' => Yii::t('CfilesModule.models_FileSystemItem', 'Downloads'),
+        ];
     }
 
     /**

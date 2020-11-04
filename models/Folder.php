@@ -460,6 +460,14 @@ class Folder extends FileSystemItem
         return $this->description;
     }
 
+    /**
+     * @return string
+     */
+    public function getDownloadCount()
+    {
+        return '';
+    }
+
     public function getSize()
     {
         return 0;

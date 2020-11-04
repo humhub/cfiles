@@ -176,6 +176,14 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     /**
      * @inheritdoc
      */
+    public function getDownloadCount()
+    {
+        return $this->item->getDownloadCount();
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getVisibilityIcon()
     {
         return $this->item->content->isPublic() ? 'fa-unlock-alt': 'fa-lock';

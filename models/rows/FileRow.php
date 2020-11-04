@@ -24,6 +24,7 @@ class FileRow extends FileSystemItemRow
     const ORDER_MAPPING = [
         self::ORDER_TYPE_NAME => 'file.file_name',
         self::ORDER_TYPE_UPDATED_AT => 'file.updated_at',
+        self::ORDER_TYPE_DOWNLOAD_COUNT => 'cfiles_file.download_count',
         self::ORDER_TYPE_SIZE => 'cast(file.size as unsigned)',
     ];
 
