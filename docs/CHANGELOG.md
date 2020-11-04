@@ -1,11 +1,15 @@
 Changelog
 =========
 
-0.11.20 - Unreleased
+0.12.0 - November 4, 2020
+--------------------------
+- Enh #93: Wall Stream Layout Migration for HumHub 1.7+ 
+
+
+0.11.20 -  November 4, 2020
 --------------------
 - Fix #87: ZIP Upload broken due legency ImageConverter usage
 - Fix #74: Remove Temp Directory recursively in cleanup()
-- Enh #93: Wall Stream Layout Migration for HumHub 1.7+ 
 
 
 0.11.18 - December 4, 2019
