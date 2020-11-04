@@ -150,4 +150,14 @@ class Module extends ContentContainerModule
         return $this->settings->get('uploadBehaviour', self::UPLOAD_BEHAVIOUR_INDEX);
     }
 
+    /**
+     * Determines visible columns
+     *
+     * @return array
+     */
+    public function getDisplayDownloadCount()
+    {
+        return $this->settings->get('displayDownloadCount', false);
+    }
+
 }
