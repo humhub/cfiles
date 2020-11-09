@@ -89,8 +89,7 @@ class Events
             $event->action instanceof DownloadAction &&
             ($downloadedFile = File::getFileByGuid(Yii::$app->request->get('guid')))
         ) {
-            $downloadedFile->download_count++;
-            $downloadedFile->save();
+            $downloadedFile->updateAttributes(['download_count' => $downloadedFile->download_count + 1]);
         }
     }
 

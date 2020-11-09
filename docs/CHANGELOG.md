@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.12.1 - Unreleased
+---------------------------
+- Fix #97: Don’t affect an update date and user on download counter action
+
 0.12.0 - November 4, 2020
 --------------------------
 - Enh #93: Wall Stream Layout Migration for HumHub 1.7+ 
