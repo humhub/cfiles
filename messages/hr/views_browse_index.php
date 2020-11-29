@@ -1,4 +1,4 @@
 <?php
 return array (
-  'Could not save file %title%. ' => 'Nije moguće spremiti datoteku %title%. ',
+  'Could not save file %title%. ' => 'Nije moguće spremiti datoteku %title%.',
 );
