@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.13.0 - Unreleased
+---------------------------
+- Enh #4670: Enable default permissions
+
 0.12.1 - November 9, 2020
 ---------------------------
 - Fix #97: Don’t affect an update date and user on download counter action
