@@ -62,8 +62,8 @@ class Module extends ContentContainerModule
     {
         if ($contentContainer instanceof Space) {
             return [
-                new permissions\WriteAccess(['contentContainer' => $contentContainer]),
-                new permissions\ManageFiles(['contentContainer' => $contentContainer]),
+                new permissions\WriteAccess(),
+                new permissions\ManageFiles(),
             ];
         }
 
