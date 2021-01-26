@@ -4,7 +4,12 @@ namespace humhub\modules\cfiles;
 
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\modules\content\models\ContentContainer;
+use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\actions\DownloadAction;
+use humhub\modules\space\models\Space;
+use humhub\modules\user\models\User;
 use Yii;
 use yii\base\Event;
 
@@ -90,6 +95,50 @@ class Events
             ($downloadedFile = File::getFileByGuid(Yii::$app->request->get('guid')))
         ) {
             $downloadedFile->updateAttributes(['download_count' => $downloadedFile->download_count + 1]);
+        }
+    }
+
+    /**
+     * Callback when user or space is inserted
+     *
+     * @param Event $event
+     */
+    public static function onContentContainerActiveRecordInsert($event)
+    {
+        /**
+         * @var ContentContainerActiveRecord|Space|User $container
+         */
+        $container = $event->sender;
+
+        if ($container instanceof ContentContainerActiveRecord &&
+            $container->isModuleEnabled('cfiles')) {
+            Folder::initRoot($container);
+            Folder::initPostedFilesFolder($container);
+        }
+    }
+
+    /**
+     * Callback when module is enabled first time
+     *
+     * @param Event $event
+     */
+    public static function onContentContainerModuleStateInsert($event)
+    {
+        /**
+         * @var ContentContainerModuleState $moduleState
+         */
+        $moduleState = $event->sender;
+
+        if (!($moduleState instanceof ContentContainerModuleState &&
+            $moduleState->module_id == 'cfiles' &&
+            $moduleState->module_state)) {
+            return;
+        }
+
+        if (($contentContainer = ContentContainer::findOne(['id' => $moduleState->contentcontainer_id])) &&
+            ($container = $contentContainer->getPolymorphicRelation())) {
+            Folder::initRoot($container);
+            Folder::initPostedFilesFolder($container);
         }
     }
 

@@ -4,6 +4,7 @@ Changelog
 0.12.2 - Unreleased
 ---------------------------
 - Enh #4670: Enable default permissions
+- Enh #45: Create root and "posted files" folders on insert container(Space/User) with enable module
 
 0.12.1 - November 9, 2020
 ---------------------------
