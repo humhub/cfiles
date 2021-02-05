@@ -62,6 +62,7 @@ class AcceptanceTester extends \AcceptanceTester
     public function uploadFile($file = "test.txt")
     {
         $this->attachFile('#cfilesUploadFiles', $file);
+        $this->wait(2);
         $this->waitForText($file, null, '#fileList');
     }
 
