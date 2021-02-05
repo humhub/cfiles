@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/humhub/humhub-modules-cfiles.svg?branch=master)](https://travis-ci.org/humhub/humhub-modules-cfiles)
+[![Test Status](https://github.com/humhub/humhub-modules-cfiles/workflows/PHP%20Codeception%20Tests/badge.svg)](https://github.com/humhub/humhub-modules-cfiles/actions)
 
 # Files
 
