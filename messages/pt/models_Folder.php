@@ -1,6 +1,6 @@
 <?php
 return array (
   'Description' => 'Descrição',
-  'Parent Folder ID' => '',
+  'Parent Folder ID' => 'ID Pasta Mãe',
   'Title' => 'Título',
 );
