@@ -1,6 +1,6 @@
 <?php
 return array (
   'Description' => 'Beskrivning',
-  'Parent Folder ID' => 'Överordnad mapp ID',
+  'Parent Folder ID' => 'ID för överordnad mapp',
   'Title' => 'Rubrik',
 );
