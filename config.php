@@ -18,6 +18,7 @@ return [
         [FileController::class, FileController::EVENT_AFTER_ACTION, ['humhub\modules\cfiles\Events', 'onAfterFileAction']],
         [ContentContainerActiveRecord::class, ContentContainerActiveRecord::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerActiveRecordInsert']],
         [ContentContainerModuleState::class, ContentContainerModuleState::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerModuleStateInsert']],
+        ['humhub\modules\rest\Module', 'restApiAddRules', ['humhub\modules\cfiles\Events', 'onRestApiAddRules']],
     ]
 ];
 ?>

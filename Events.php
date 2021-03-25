@@ -8,6 +8,7 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainer;
 use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\actions\DownloadAction;
+use humhub\modules\rest\Module as RestModule;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use Yii;
@@ -140,6 +141,34 @@ class Events
             Folder::initRoot($container);
             Folder::initPostedFilesFolder($container);
         }
+    }
+
+    public static function onRestApiAddRules()
+    {
+        /* @var RestModule $restModule */
+        $restModule = Yii::$app->getModule('rest');
+        $restModule->addRules([
+
+            //File
+            ['pattern' => 'cfiles/files/container/<containerId:\d+>', 'route' => 'cfiles/rest/file/find-by-container', 'verb' => 'GET'],
+            ['pattern' => 'cfiles/files/container/<containerId:\d+>', 'route' => 'cfiles/rest/file/upload', 'verb' => 'POST'],
+            ['pattern' => 'cfiles/file/<id:\d+>', 'route' => 'cfiles/rest/file/view', 'verb' => ['GET', 'HEAD']],
+            ['pattern' => 'cfiles/file/<id:\d+>', 'route' => 'cfiles/rest/file/delete', 'verb' => 'DELETE'],
+
+            //Folder
+            ['pattern' => 'cfiles/folders/container/<containerId:\d+>', 'route' => 'cfiles/rest/folder/find-by-container', 'verb' => 'GET'],
+            ['pattern' => 'cfiles/folders/container/<containerId:\d+>', 'route' => 'cfiles/rest/folder/create', 'verb' => 'POST'],
+            ['pattern' => 'cfiles/folder/<id:\d+>', 'route' => 'cfiles/rest/folder/view', 'verb' => ['GET', 'HEAD']],
+            ['pattern' => 'cfiles/folder/<id:\d+>', 'route' => 'cfiles/rest/folder/update', 'verb' => 'PUT'],
+            ['pattern' => 'cfiles/folder/<id:\d+>', 'route' => 'cfiles/rest/folder/delete', 'verb' => 'DELETE'],
+
+            //Items management
+            ['pattern' => 'cfiles/items/container/<containerId:\d+>/make-public', 'route' => 'cfiles/rest/manage/make-public', 'verb' => 'PATCH'],
+            ['pattern' => 'cfiles/items/container/<containerId:\d+>/make-private', 'route' => 'cfiles/rest/manage/make-private', 'verb' => 'PATCH'],
+            ['pattern' => 'cfiles/items/container/<containerId:\d+>/move', 'route' => 'cfiles/rest/manage/move', 'verb' => 'POST'],
+            ['pattern' => 'cfiles/items/container/<containerId:\d+>/delete', 'route' => 'cfiles/rest/manage/delete', 'verb' => 'DELETE'],
+
+        ], 'cfiles');
     }
 
 }
