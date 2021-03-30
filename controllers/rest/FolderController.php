@@ -71,7 +71,7 @@ class FolderController extends BaseContentController
         $folder->content->container = $container;
 
         if ($folder->load($params) && $folder->save()) {
-            return RestDefinitions::getFolder($folder);
+            return RestDefinitions::getFolder(Folder::findOne(['id' => $folder->id]));
         }
 
         if ($folder->hasErrors()) {
