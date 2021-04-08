@@ -8,7 +8,6 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainer;
 use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\actions\DownloadAction;
-use humhub\modules\rest\Module as RestModule;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use Yii;
@@ -145,7 +144,7 @@ class Events
 
     public static function onRestApiAddRules()
     {
-        /* @var RestModule $restModule */
+        /* @var \humhub\modules\rest\Module $restModule */
         $restModule = Yii::$app->getModule('rest');
         $restModule->addRules([
 
