@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.13.0 - Unreleased
+---------------------------
+- Enh #4751: Hide separator between content links
+
 0.12.2 - Unreleased
 ---------------------------
 - Enh #4670: Enable default permissions

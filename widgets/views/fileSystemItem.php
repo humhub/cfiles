@@ -3,8 +3,8 @@
 use humhub\libs\Html;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\comment\widgets\CommentLink;
+use humhub\modules\content\widgets\ContentObjectLinks;
 use humhub\modules\file\libs\FileHelper;
-use humhub\modules\like\widgets\LikeLink;
 use humhub\modules\user\widgets\Image;
 use humhub\widgets\TimeAgo;
 
@@ -77,9 +77,10 @@ use humhub\widgets\TimeAgo;
         <td class="text-right">
             <?php if ($row->isSocialActionsAvailable()): ?>
                 <div class="file-controls pull-right">
-                    <?= LikeLink::widget(['object' => $row->getModel()]); ?>
-                    |
-                    <?= CommentLink::widget(['object' => $row->getModel(), 'mode' => CommentLink::MODE_POPUP]); ?>
+                    <?= ContentObjectLinks::widget([
+                        'object' => $row->getModel(),
+                        'widgetParams' => [CommentLink::class => ['mode' => CommentLink::MODE_POPUP]],
+                    ]); ?>
                 </div>
             <?php endif; ?>
         </td>
