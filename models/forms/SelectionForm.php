@@ -31,8 +31,16 @@ class SelectionForm extends \yii\base\Model
 
     public function init()
     {
-        if(Yii::$app->request->post()) {
-            $this->selection = Yii::$app->request->post('selection');
+        $selection = Yii::$app->request->post('selection');
+
+        if ($selection === null) {
+            // Try to get param from GET because REST API method $I->sendDelete()
+            // sends params as GET params instead of expected BODY params
+            $selection = Yii::$app->request->get('selection');
+        }
+
+        if (is_array($selection)) {
+            $this->selection = $selection;
         }
     }
 
