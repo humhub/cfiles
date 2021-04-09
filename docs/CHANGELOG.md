@@ -1,19 +1,16 @@
 Changelog
 =========
 
-0.13.0 - Unreleased
----------------------------
+0.13.0 - April 9, 2021
+----------------------
 - Enh #4751: Hide separator between content links
-
-0.12.2 - Unreleased
----------------------------
 - Enh #4670: Enable default permissions
 - Enh #45: Create root and "posted files" folders on insert container(Space/User) with enable module
+- Enh #111: Support RESTful API module
 
 0.12.1 - November 9, 2020
 ---------------------------
 - Fix #97: Don’t affect an update date and user on download counter action
-
 
 0.12.0 - November 4, 2020
 --------------------------
