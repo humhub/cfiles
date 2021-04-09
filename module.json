@@ -13,7 +13,7 @@
     "humhub": {
         "minVersion": "1.8"
     },
-    "homepage": "https://github.com/humhub/humhub-modules-cfiles",
+    "homepage": "https://github.com/humhub/cfiles",
     "authors": [
         {
             "name": "Sebastian Stumpf"
