@@ -6,8 +6,7 @@ on:
 name: Upload to HumHub Marketplace
 
 jobs:
-
-build:
+  build:
     name: Build and Upload Module Package
     runs-on: ubuntu-latest
     steps:
