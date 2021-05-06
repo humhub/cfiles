@@ -594,9 +594,8 @@ class Folder extends FileSystemItem
      * Validate parent folder id
      *
      * @param string $attribute the attribute name
-     * @param array $params
      */
-    public function validateParentFolderId($attribute = 'parent_folder_id', $params)
+    public function validateParentFolderId($attribute = 'parent_folder_id')
     {
         $parent = $this->parentFolder;
 
@@ -609,7 +608,7 @@ class Folder extends FileSystemItem
             $parent = static::findOne(['id' => $parent->parent_folder_id]);
         }
 
-        parent::validateParentFolderId($attribute, $params);
+        parent::validateParentFolderId($attribute);
     }
 
     /**
