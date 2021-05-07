@@ -155,9 +155,8 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      * Check if a parent folder is valid or lies in itsself, etc.
      * 
      * @param string $attribute the parent folder attribute to validate
-     * @param array $params validation option
      */
-    public function validateParentFolderId($attribute = 'parent_folder_id', $params)
+    public function validateParentFolderId($attribute = 'parent_folder_id')
     {
         if ($this->parent_folder_id != 0 && !($this->parentFolder instanceof Folder)) {
             $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->title]));

@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.13.1 - Unreleased
+----------------------
+- Enh #114: Fix for PHP8 - Deprecate required parameters after optional parameters
+
 0.13.0 - April 9, 2021
 ----------------------
 - Enh #4751: Hide separator between content links
