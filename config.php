@@ -1,7 +1,6 @@
 <?php
 
 use humhub\commands\IntegrityController;
-use humhub\components\console\Application;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\controllers\FileController;
@@ -20,7 +19,6 @@ return [
         [ContentContainerActiveRecord::class, ContentContainerActiveRecord::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerActiveRecordInsert']],
         [ContentContainerModuleState::class, ContentContainerModuleState::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerModuleStateInsert']],
         ['humhub\modules\rest\Module', 'restApiAddRules', ['humhub\modules\cfiles\Events', 'onRestApiAddRules']],
-        [Application::class, Application::EVENT_BEFORE_ACTION, ['humhub\modules\cfiles\Events', 'onBeforeConsoleAction']],
     ]
 ];
 ?>
