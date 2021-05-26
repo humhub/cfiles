@@ -4,6 +4,7 @@ Changelog
 0.13.1 - Unreleased
 ----------------------
 - Enh #114: Fix for PHP8 - Deprecate required parameters after optional parameters
+- Fix #117: CLI error when no REST module is installed
 
 0.13.0 - April 9, 2021
 ----------------------
