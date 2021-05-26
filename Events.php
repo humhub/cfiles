@@ -170,13 +170,4 @@ class Events
         ], 'cfiles');
     }
 
-    public static function onBeforeConsoleAction()
-    {
-        /* @var $module Module */
-        $module = Yii::$app->getModule('cfiles');
-
-        // Prevents the Yii HelpCommand from crawling all web controllers and possibly throwing errors at REST endpoints if the REST module is not available.
-        $module->controllerNamespace = 'cfiles/commands';
-    }
-
 }
