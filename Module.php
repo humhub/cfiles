@@ -54,7 +54,7 @@ class Module extends ContentContainerModule
 
         if (Yii::$app instanceof ConsoleApplication) {
             // Prevents the Yii HelpCommand from crawling all web controllers and possibly throwing errors at REST endpoints if the REST module is not available.
-            $this->controllerNamespace = 'mail/commands';
+            $this->controllerNamespace = 'cfiles/commands';
         }
     }
 
