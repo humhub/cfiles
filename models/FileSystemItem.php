@@ -233,6 +233,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     public function canEdit(User $user)
     {
+        // Fixes race condition on newly created files (import vs. onlyoffice)
+        if ($this->content->container === null && $this->content->isNewRecord) {
+            return true;
+        }
+
         if ($this->content->container->permissionManager->can(new ManageFiles())) {
             return true;
         }
