@@ -1,6 +1,7 @@
 <?php
 
 
+use humhub\modules\content\widgets\richtext\RichTextField;
 use humhub\widgets\ModalButton;
 use yii\bootstrap\ActiveForm;
 use humhub\widgets\ModalDialog;
@@ -19,7 +20,7 @@ use humhub\widgets\ModalDialog;
 
         <div class="modal-body">
             <?= $form->field($file->baseFile, 'file_name'); ?>
-            <?= $form->field($file, 'description'); ?>
+            <?= $form->field($file, 'description')->widget(RichTextField::class); ?>
             <?= $form->field($file, 'visibility')->checkbox(['disabled' => $file->parentFolder->content->isPrivate()]) ?>
             <?= $form->field($file, 'download_count')->staticControl(['style' => 'display:inline']); ?>
         </div>
