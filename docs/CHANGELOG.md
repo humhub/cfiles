@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.13.2 - Unreleased
+-----------------------
+- Enh #103: Allow to edit topics from the file edit form
+
+
 0.13.1 - July 29, 2021
 -----------------------
 - Enh #114: Fix for PHP8 - Deprecate required parameters after optional parameters
