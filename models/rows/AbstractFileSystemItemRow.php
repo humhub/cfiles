@@ -29,6 +29,7 @@ abstract class AbstractFileSystemItemRow extends Model
     const COLUMN_DOWNLOAD_COUNT = 'download_count';
     const COLUMN_SOCIAL = 'social';
     const COLUMN_CREATOR = 'creator';
+    const COLUMN_ACTIONS = 'actions';
 
     const ORDER_TYPE_NAME = 'name';
     const ORDER_TYPE_UPDATED_AT = 'updated_at';
@@ -59,7 +60,8 @@ abstract class AbstractFileSystemItemRow extends Model
         self::COLUMN_TIMESTAMP,
         self::COLUMN_DOWNLOAD_COUNT,
         self::COLUMN_SOCIAL,
-        self::COLUMN_CREATOR
+        self::COLUMN_CREATOR,
+        self::COLUMN_ACTIONS
     ];
 
     /**

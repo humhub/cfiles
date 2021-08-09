@@ -6,6 +6,7 @@ use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\content\widgets\ContentObjectLinks;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\user\widgets\Image;
+use humhub\widgets\Button;
 use humhub\widgets\TimeAgo;
 
 
@@ -98,4 +99,16 @@ use humhub\widgets\TimeAgo;
             </div>
         </td>
     <?php endif; ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_ACTIONS)): ?>
+        <td class="file-actions">
+            <?= Button::defaultType()
+                ->icon('list')
+                ->options(['data-contextmenu-toggler' => '#bs-table tr'])
+                ->cssClass('context-icon')
+                ->xs()
+                ->loader(false); ?>
+        </td>
+    <?php endif; ?>
+
 <?= Html::endTag('tr') ?>

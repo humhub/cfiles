@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.14.0 - Unreleased
+-----------------------
+- Enh #100: Add context menu on hover
+
+
 0.13.1 - July 29, 2021
 -----------------------
 - Enh #114: Fix for PHP8 - Deprecate required parameters after optional parameters

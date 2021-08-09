@@ -46,6 +46,7 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                 <?php endif; ?>
 
                 <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
+                <th class="file-actions"></th>
             </tr>
             </thead>
 
