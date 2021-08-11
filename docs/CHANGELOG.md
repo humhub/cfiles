@@ -4,6 +4,7 @@ Changelog
 0.13.2 - Unreleased
 -----------------------
 - Enh #48: Use RichText for file description
+- Enh #103: Allow to edit topics from the file edit form
 
 
 0.13.1 - July 29, 2021

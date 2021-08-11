@@ -2,14 +2,13 @@
 
 namespace humhub\modules\cfiles\models;
 
-use humhub\components\behaviors\PolymorphicRelation;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\handler\DownloadFileHandler;
 use humhub\modules\file\libs\FileHelper;
-use humhub\modules\file\models\FileContent;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\search\events\SearchAddEvent;
+use humhub\modules\topic\models\Topic;
 use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\comment\models\Comment;
@@ -36,11 +35,15 @@ class File extends FileSystemItem
      */
     public $wallEntryClass = "humhub\modules\cfiles\widgets\WallEntryFile";
 
-
     /**
      * @var File
      */
     protected $_setFileContent = null;
+
+    /**
+     * @var array Content topics/tags
+     */
+    public $topics = [];
 
     /**
      * @inheritdoc
@@ -83,7 +86,8 @@ class File extends FileSystemItem
             [['parent_folder_id'], 'required'],
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
-            ['description', 'string', 'max' => 255]
+            ['description', 'string', 'max' => 255],
+            ['topics', 'safe'],
         ];
 
         if($this->parentFolder && $this->parentFolder->content->isPublic()) {
@@ -155,6 +159,15 @@ class File extends FileSystemItem
         return $this->baseFile->validate();
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function afterFind()
+    {
+        $this->topics = Topic::findByContent($this->content);
+        parent::afterFind();
+    }
+
     public function afterSave($insert, $changedAttributes)
     {
         // Temp Fix: https://github.com/yiisoft/yii2/issues/15875
@@ -170,6 +183,9 @@ class File extends FileSystemItem
         if($this->baseFile && ($insert ||  ($this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name || $this->baseFile->isNewRecord))) {
             $this->baseFile->save(false);
         }
+
+        // Save topics
+        Topic::attach($this->content, $this->topics);
 
         $this->updateVisibility($this->visibility);
 

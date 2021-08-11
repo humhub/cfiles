@@ -2,9 +2,10 @@
 
 
 use humhub\modules\content\widgets\richtext\RichTextField;
+use humhub\modules\topic\widgets\TopicPicker;
 use humhub\widgets\ModalButton;
-use yii\bootstrap\ActiveForm;
 use humhub\widgets\ModalDialog;
+use yii\bootstrap\ActiveForm;
 
 /* @var $file \humhub\modules\cfiles\models\File */
 /* @var $submitUrl string */
@@ -21,6 +22,7 @@ use humhub\widgets\ModalDialog;
         <div class="modal-body">
             <?= $form->field($file->baseFile, 'file_name'); ?>
             <?= $form->field($file, 'description')->widget(RichTextField::class); ?>
+            <?= $form->field($file, 'topics')->widget(TopicPicker::class, ['contentContainer' => $file->content->container])->label(false); ?>
             <?= $form->field($file, 'visibility')->checkbox(['disabled' => $file->parentFolder->content->isPrivate()]) ?>
             <?= $form->field($file, 'download_count')->staticControl(['style' => 'display:inline']); ?>
         </div>
