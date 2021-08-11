@@ -3,6 +3,7 @@ Changelog
 
 0.13.2 - Unreleased
 -----------------------
+- Enh #48: Use RichText for file description
 - Enh #103: Allow to edit topics from the file edit form
 
 
