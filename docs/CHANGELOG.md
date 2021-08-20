@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.14.0 - Unreleased
+-----------------------
+- Enh #83: Enable paste/upload files from clipboard
+
+
 0.13.2 - Unreleased
 -----------------------
 - Enh #48: Use RichText for file description

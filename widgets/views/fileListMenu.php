@@ -63,7 +63,8 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
                             'tooltip' => false,
                             'cssButtonClass' => 'btn-success',
                             'label' => Yii::t('CfilesModule.base', 'Add file(s)'),
-                            'dropZone' => '#cfiles-container'
+                            'dropZone' => '#cfiles-container',
+                            'pasteZone' => 'body',
                  ])  ?>
                 <?= FileHandlerButtonDropdown::widget(['primaryButton' => $uploadButton, 'handlers' => $fileHandlers, 'cssButtonClass' => 'btn-success', 'pullRight' => true]); ?>
 
