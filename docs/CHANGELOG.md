@@ -5,6 +5,7 @@ Changelog
 -----------------------
 - Enh #48: Use RichText for file description
 - Enh #103: Allow to edit topics from the file edit form
+- Enh #127: Improve context menu with items from wall stream entry
 
 
 0.13.1 - July 29, 2021
