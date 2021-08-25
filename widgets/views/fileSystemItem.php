@@ -5,14 +5,16 @@ use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\content\widgets\ContentObjectLinks;
 use humhub\modules\file\libs\FileHelper;
+use humhub\modules\stream\assets\StreamAsset;
 use humhub\modules\user\widgets\Image;
 use humhub\widgets\TimeAgo;
 
 
 /* @var $row \humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow */
-/* @var $optoins array */
+/* @var $options array */
 /* @var $canWrite boolean */
 
+StreamAsset::register($this);
 ?>
 
 <?= Html::beginTag('tr', $options) ?>
@@ -35,6 +37,7 @@ use humhub\widgets\TimeAgo;
                     <a href="<?= $row->getLinkUrl(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
                 <?php endif; ?>
             </div>
+            <?= $row->renderWallEntryControls(); ?>
         </td>
     <?php endif; ?>
 

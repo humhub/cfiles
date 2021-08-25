@@ -111,6 +111,15 @@ humhub.module('cfiles', function (module, require, $) {
 
                 var $contextMenu = $(selector);
 
+                $contextMenu.find('li.wall-entry-control').remove();
+                var additionalMenus = $invokedOn.closest('tr').find('.wall-entry-controls li');
+                if (additionalMenus.length > 0) {
+                    $contextMenu.append('<li role="separator" class="divider wall-entry-control"></li>');
+                    additionalMenus.each(function () {
+                        $contextMenu.append('<li class="wall-entry-control">' + $(this).html() + '</li>');
+                    });
+                }
+
                 if(fileItem.options['cfilesEditable']) {
                     $contextMenu.find('.editableOnly').show();
                 } else {

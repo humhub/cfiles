@@ -8,9 +8,15 @@
 
 namespace humhub\modules\cfiles\models\rows;
 
+use humhub\modules\cfiles\widgets\WallEntryFile;
+use humhub\modules\content\widgets\DeleteLink;
+use humhub\modules\content\widgets\EditLink;
+use humhub\modules\content\widgets\LegacyWallEntryControlLink;
+use humhub\modules\content\widgets\PermaLink;
+use humhub\modules\content\widgets\WallEntryControls;
 use humhub\modules\file\models\File;
+use humhub\modules\ui\menu\WidgetMenuEntry;
 use yii\base\Model;
-use ZendSearch\Lucene\Storage\File\AbstractFile;
 
 /**
  * Created by PhpStorm.
@@ -226,4 +232,46 @@ abstract class AbstractFileSystemItemRow extends Model
      * @return boolean
      */
     public abstract function canEdit();
+
+    /**
+     * @return string
+     */
+    public function renderWallEntryControls(): string
+    {
+        if (!($this->item instanceof \humhub\modules\cfiles\models\File)) {
+            return '';
+        }
+
+        $html = '<ul class="wall-entry-controls hidden">';
+
+        $wallEntryControls = new WallEntryControls([
+            'object' => $this->item,
+            'wallEntryWidget' => new WallEntryFile(['model' => $this->item]),
+        ]);
+
+        foreach ($wallEntryControls->getSortedEntries() as $entry) {
+            if (!$this->isRenderableControl($entry)) {
+                continue;
+            }
+
+            if ($entry instanceof LegacyWallEntryControlLink) {
+                $html .= $entry->render();
+            } else {
+                $html .= '<li>' . $entry->render() . '</li>';
+            }
+        }
+
+        $html .= '</ul>';
+
+        return $html;
+    }
+
+    /**
+     * @param WidgetMenuEntry|LegacyWallEntryControlLink $entry
+     * @return bool
+     */
+    private function isRenderableControl($entry): bool
+    {
+        return !isset($entry->widgetClass) || !in_array($entry->widgetClass, [EditLink::class, PermaLink::class, DeleteLink::class]);
+    }
 }

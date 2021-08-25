@@ -1,7 +1,7 @@
 <?php
 /* @var $menus array[] */
 ?>
-
+<div data-ui-widget="stream.StreamEntry">
 <?php foreach ($menus as $menuId => $menuItems) : ?>
 <ul id="<?= $menuId ?>" class="contextMenu dropdown-menu" role="menu" style="display: none">
     <?php foreach ($menuItems as $menuItem) : ?>
@@ -13,3 +13,4 @@
     <?php endforeach; ?>
 </ul>
 <?php endforeach; ?>
+</div>
