@@ -2,13 +2,17 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\cfiles\permissions\ManageFiles;
+use humhub\modules\content\widgets\WallEntryControls;
+use humhub\modules\ui\menu\DropdownDivider;
+use humhub\modules\ui\menu\MenuLink;
 use Yii;
 
 /**
  * Widget for rendering the file list context menu.
  */
-class FileListContextMenu extends \yii\base\Widget
+class FileListContextMenu extends WallEntryControls
 {
     /**
      * Current folder model instance.
@@ -17,82 +21,105 @@ class FileListContextMenu extends \yii\base\Widget
     public $folder;
 
     /**
+     * @var FileSystemItemRow File or Folder row object
+     */
+    public $row;
+
+    /**
      * @inheritdoc
      */
-    public function run()
+    public $template = 'fileListContextMenu';
+
+    /**
+     * @inheritdoc
+     */
+    public function init()
     {
-        return $this->render('fileListContextMenu', [
-            'menus' => $this->getMenus(),
-        ]);
+        if (in_array($this->row->getType(), ['folder', 'folder-posted'])) {
+            $this->initRenderOptions();
+            return; // Don't init external module menu entries for folders on trigger event
+        }
+
+        parent::init();
     }
 
-    private function getMenus(): array
+    public function initControls()
     {
-        return [
-            'contextMenuFolder' => $this->getMenuFolder(),
-            'contextMenuFile' => $this->getMenuFile(),
-            'contextMenuImage' => $this->getMenuImage(),
-            'contextMenuAllPostedFiles' => $this->getMenuAllPostedFiles(),
-        ];
+        $this->renderOptions->disableControlsEntryEdit();
+        $this->renderOptions->disableControlsEntryPermalink();
+        $this->renderOptions->disableControlsEntryDelete();
+
+        switch ($this->row->getType()) {
+            case 'image':
+                $this->initMenuImage();
+                break;
+            case 'folder':
+                $this->initMenuFolder();
+                return; // Don't init core menu entries for folders
+            case 'folder-posted':
+                $this->initMenuAllPostedFiles();
+                return; // Don't init core menu entries for folders
+            default:
+                $this->initMenuFile();
+        }
+
+        parent::initControls();
     }
 
-    private function getMenuFolder(): array
+    private function initMenuFolder()
     {
-        $menu = [
-            $this->getMenu(Yii::t('CfilesModule.base', 'Open'), 'download', 'folder-open'),
-            $this->getMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link'),
-            'separator',
-            $this->getEditableMenu(Yii::t('CfilesModule.base', 'Edit'), 'edit-folder', 'pencil'),
-            $this->getEditableMenu(Yii::t('CfilesModule.base', 'Delete'), 'delete', 'trash'),
-        ];
+        $this->addMenu(Yii::t('CfilesModule.base', 'Open'), 'download', 'folder-open', 10);
+        $this->addMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link', 20);
+        $this->addEntry(new DropdownDivider(['sortOrder' => 25]));
+        if ($this->isEditableRow()) {
+            $this->addMenu(Yii::t('CfilesModule.base', 'Edit'), 'edit-folder', 'pencil', 30);
+            $this->addMenu(Yii::t('CfilesModule.base', 'Delete'), 'delete', 'trash', 40);
+        }
 
         if ($this->canWrite()) {
-            $menu[] = $this->getEditableMenu(Yii::t('CfilesModule.base', 'Move'), 'move-files', 'arrows');
+            $this->addMenu(Yii::t('CfilesModule.base', 'Move'), 'move-files', 'arrows', 50);
         }
 
         if ($this->zipEnabled()) {
-            $menu[] = $this->getMenu(Yii::t('CfilesModule.base', 'Download ZIP'), 'zip', 'file-archive-o');
+            $this->addMenu(Yii::t('CfilesModule.base', 'Download ZIP'), 'zip', 'file-archive-o', 60);
         }
-
-        return $menu;
     }
 
-    private function getMenuFile(): array
+    private function initMenuFile()
     {
-        $menu = [
-            $this->getMenu(Yii::t('CfilesModule.base', 'Download'), 'download', 'cloud-download'),
-            $this->getMenu(Yii::t('CfilesModule.base', 'Show Post'), 'show-post', 'window-maximize'),
-            $this->getMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link'),
-        ];
+        $this->addMenu(Yii::t('CfilesModule.base', 'Download'), 'download', 'cloud-download', 10);
+        $this->addMenu(Yii::t('CfilesModule.base', 'Show Post'), 'show-post', 'window-maximize', 20);
+        $this->addMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link', 30);
 
-        if (!$this->folder->isAllPostedFiles()) {
-            $menu[] = 'separator';
-            $menu[] = $this->getEditableMenu(Yii::t('CfilesModule.base', 'Edit'), 'edit-file', 'pencil');
-            $menu[] = $this->getEditableMenu(Yii::t('CfilesModule.base', 'Delete'), 'delete', 'trash');
+        if (!$this->folder->isAllPostedFiles() && $this->isEditableRow()) {
+            $this->addEntry(new DropdownDivider(['sortOrder' => 35]));
+            $this->addMenu(Yii::t('CfilesModule.base', 'Edit'), 'edit-file', 'pencil', 40);
+            $this->addMenu(Yii::t('CfilesModule.base', 'Delete'), 'delete', 'trash', 50);
             if ($this->canWrite()) {
-                $menu[] = $this->getEditableMenu(Yii::t('CfilesModule.base', 'Move'), 'move-files', 'arrows');
+                $this->addMenu(Yii::t('CfilesModule.base', 'Move'), 'move-files', 'arrows', 60);
             }
         }
-
-        return $menu;
     }
 
-    private function getMenuImage(): array
+    private function initMenuImage()
     {
-        return $this->getMenuFile();
+        $this->initMenuFile();
     }
 
-    private function getMenuAllPostedFiles(): array
+    private function initMenuAllPostedFiles()
     {
-        return [
-            $this->getMenu(Yii::t('CfilesModule.base', 'Open'), 'download', 'folder-open'),
-            $this->getMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link'),
-        ];
+        $this->addMenu(Yii::t('CfilesModule.base', 'Open'), 'download', 'folder-open', 10);
+        $this->addMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link', 20);
+    }
+
+    private function isEditableRow(): bool
+    {
+        return $this->row->item->canEdit();
     }
 
     private function canWrite(): bool
     {
-        return $this->folder->content->container->can(ManageFiles::class);
+        return $this->isEditableRow() && $this->folder->content->container->can(ManageFiles::class);
     }
 
     private function zipEnabled(): bool
@@ -100,19 +127,15 @@ class FileListContextMenu extends \yii\base\Widget
         return !Yii::$app->getModule('cfiles')->settings->get('disableZipSupport');
     }
 
-    private function getMenu(string $label, string $action, string $icon, bool $editable = false): array
+    private function addMenu(string $label, string $action, string $icon, int $sortOrder = 1)
     {
-        return [
+        $this->addEntry(new MenuLink([
             'label' => $label,
-            'action' => $action,
+            'url' => '#',
             'icon' => $icon,
-            'editable' => $editable,
-        ];
-    }
-
-    private function getEditableMenu(string $label, string $action, string $icon): array
-    {
-        return $this->getMenu($label, $action, $icon, true);
+            'sortOrder' => $sortOrder,
+            'htmlOptions' => ['data-action' => $action],
+        ]));
     }
 
 }

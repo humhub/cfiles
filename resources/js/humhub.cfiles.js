@@ -88,45 +88,9 @@ humhub.module('cfiles', function (module, require, $) {
     FolderView.prototype.initContextMenu = function () {
         var that = this;
         $("#bs-table tr").contextMenu({
-            getMenuSelector: function ($invokedOn, settings) {
-           
-
-                var fileItem = FileItem.instance($invokedOn.closest('tr'));
-                var selector;
-
-                switch (fileItem.options['cfilesType']) {
-                    case "folder-posted":
-                        selector = '#contextMenuAllPostedFiles';
-                        break;
-                    case "folder":
-                        selector = '#contextMenuFolder';
-                        break;
-                    case "image":
-                        selector = '#contextMenuImage';
-                        break;
-                    default:
-                        selector = '#contextMenuFile';
-                        break;
-                }
-
-                var $contextMenu = $(selector);
-
-                $contextMenu.find('li.wall-entry-control').remove();
-                var additionalMenus = $invokedOn.closest('tr').find('.wall-entry-controls li');
-                if (additionalMenus.length > 0) {
-                    $contextMenu.append('<li role="separator" class="divider wall-entry-control"></li>');
-                    additionalMenus.each(function () {
-                        $contextMenu.append('<li class="wall-entry-control">' + $(this).html() + '</li>');
-                    });
-                }
-
-                if(fileItem.options['cfilesEditable']) {
-                    $contextMenu.find('.editableOnly').show();
-                } else {
-                    $contextMenu.find('.editableOnly').hide();
-                }
-
-                return selector;
+            getMenuSelector: function ($invokedOn) {
+                $('.contextMenu').hide();
+                return '#' + $invokedOn.closest('tr').attr('id') + ' .contextMenu';
             },
             menuSelected: function ($invokedOn, selectedMenu, evt) {
                 evt.preventDefault();
@@ -134,6 +98,7 @@ humhub.module('cfiles', function (module, require, $) {
 
                 if (!item) {
                     module.log.error('Could not determine item for given context node', $invokedOn);
+                    return;
                 }
 
                 var action = selectedMenu.data('action');

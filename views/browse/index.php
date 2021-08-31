@@ -2,7 +2,6 @@
 
 use yii\helpers\Html;
 use humhub\modules\cfiles\widgets\FolderView;
-use humhub\modules\cfiles\widgets\FileListContextMenu;
 
 /* @var $folder humhub\modules\cfiles\models\Folder */
 /* @var $contentContainer humhub\components\View */
@@ -39,5 +38,3 @@ $this->registerJsConfig('cfiles', [
         </div>
     </div>
 <?= Html::endForm(); ?>
-
-<?= FileListContextMenu::widget(['folder' => $folder]); ?>

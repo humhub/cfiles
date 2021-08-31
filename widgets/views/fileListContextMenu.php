@@ -1,16 +1,21 @@
 <?php
-/* @var $menus array[] */
+
+use humhub\modules\content\widgets\LegacyWallEntryControlLink;
+use humhub\modules\ui\menu\MenuEntry;
+
+/* @var $entries MenuEntry[] */
 ?>
+
 <div data-ui-widget="stream.StreamEntry">
-<?php foreach ($menus as $menuId => $menuItems) : ?>
-<ul id="<?= $menuId ?>" class="contextMenu dropdown-menu" role="menu" style="display: none">
-    <?php foreach ($menuItems as $menuItem) : ?>
-        <?php if (is_array($menuItem)): ?>
-            <li><a tabindex="-1" href="#" data-action="<?= $menuItem['action'] ?>"<?php if ($menuItem['editable']) : ?> class="editableOnly"<?php endif; ?>><i class="fa fa-<?= $menuItem['icon'] ?>"></i><?= $menuItem['label'] ?></a></li>
-        <?php elseif ($menuItem === 'separator') : ?>
-            <li role="separator" class="divider editableOnly"></li>
-        <?php endif; ?>
-    <?php endforeach; ?>
-</ul>
-<?php endforeach; ?>
+    <ul class="contextMenu dropdown-menu">
+        <?php foreach ($entries as $entry) : ?>
+            <?php if($entry instanceof LegacyWallEntryControlLink) : ?>
+                <?= $entry->render() ?>
+            <?php else: ?>
+                <li>
+                    <?= $entry->render() ?>
+                </li>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </ul>
 </div>

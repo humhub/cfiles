@@ -1,7 +1,9 @@
 <?php
 
 use humhub\libs\Html;
+use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
+use humhub\modules\cfiles\widgets\FileListContextMenu;
 use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\content\widgets\ContentObjectLinks;
 use humhub\modules\file\libs\FileHelper;
@@ -9,8 +11,8 @@ use humhub\modules\stream\assets\StreamAsset;
 use humhub\modules\user\widgets\Image;
 use humhub\widgets\TimeAgo;
 
-
-/* @var $row \humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow */
+/* @var $folder Folder */
+/* @var $row FileSystemItemRow */
 /* @var $options array */
 /* @var $canWrite boolean */
 
@@ -37,7 +39,12 @@ StreamAsset::register($this);
                     <a href="<?= $row->getLinkUrl(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
                 <?php endif; ?>
             </div>
-            <?= $row->renderWallEntryControls(); ?>
+            <?= FileListContextMenu::widget([
+                'folder' => $folder,
+                'row' => $row,
+                'object' => $row->item,
+                'wallEntryWidget' => $row->getContext(),
+            ]) ?>
         </td>
     <?php endif; ?>
 

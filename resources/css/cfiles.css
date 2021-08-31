@@ -172,6 +172,11 @@
   margin-bottom: 0px;
 }
 
+#bs-table.table ul.contextMenu li a {
+  font-size: 14px;
+  font-weight: normal;
+}
+
 #fileList [data-ui-sort] {
   font-weight:bold;
   cursor: pointer;

@@ -79,15 +79,15 @@ class AcceptanceTester extends \AcceptanceTester
     public function clickFileContext($id, $menuItem)
     {
         $this->rightClickFile($id);
-        $this->waitForText($menuItem,null, '#contextMenuFile');
-        $this->click($menuItem, '#contextMenuFile');
+        $this->waitForText($menuItem,null, '[data-cfiles-item="file_'.$id.'"] .contextMenu');
+        $this->click($menuItem, '[data-cfiles-item="file_'.$id.'"] .contextMenu');
     }
 
     public function clickFolderContext($id, $menuItem)
     {
         $this->rightClickFolder($id);
-        $this->waitForText($menuItem,null, '#contextMenuFolder');
-        $this->click($menuItem, '#contextMenuFolder');
+        $this->waitForText($menuItem,null, '[data-cfiles-item="folder_'.$id.'"] .contextMenu');
+        $this->click($menuItem, '[data-cfiles-item="folder_'.$id.'"] .contextMenu');
     }
 
     public function importZip($file = "test.zip")

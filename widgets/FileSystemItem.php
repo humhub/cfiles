@@ -8,11 +8,9 @@
 
 namespace humhub\modules\cfiles\widgets;
 
-use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow;
 use humhub\widgets\JsWidget;
-use Yii;
 
 /**
  * @inheritdoc
@@ -24,6 +22,11 @@ class FileSystemItem extends JsWidget
      * @inheritdoc
      */
     public $jsWidget = 'cfiles.FileItem';
+
+    /**
+     * @var Folder
+     */
+    public $folder;
 
     /**
      * @var AbstractFileSystemItemRow
@@ -43,6 +46,7 @@ class FileSystemItem extends JsWidget
         $this->row->showSelect = $this->itemsSelectable;
 
         return $this->render('fileSystemItem', [
+            'folder' => $this->folder,
             'row' => $this->row,
             'options' => $this->getOptions()
         ]);
