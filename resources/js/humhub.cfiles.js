@@ -406,6 +406,26 @@ humhub.module('cfiles', function (module, require, $) {
         });
     };
 
+    FileItem.prototype.reloadEntry = function (entry) {
+        if(!entry) {
+            return;
+        }
+
+        var row = entry.parent('tr');
+        row.loader();
+
+        return client.get(module.config.reloadEntryUrl, {data: {id: row.data('cfiles-item')}}).then(function (response) {
+            if (response.output) {
+                row.$.html($(response.output).html());
+            }
+            return response;
+        }).catch(function (err) {
+            module.log.error(err, true);
+        }).finally(function () {
+            row.loader(false);
+        });
+    }
+
     var _getDirectoryList = function () {
         return Widget.instance('#cfiles-directory-list');
     };

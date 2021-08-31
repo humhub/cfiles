@@ -8,6 +8,10 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\cfiles\models\File;
+use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\models\rows\FileRow;
+use humhub\modules\cfiles\widgets\FileSystemItem;
 use Yii;
 use humhub\modules\cfiles\widgets\FileList;
 use yii\web\HttpException;
@@ -53,6 +57,35 @@ class BrowseController extends BaseController
                     'contentContainer' => $this->contentContainer,
                     'filesOrder' => $filesOrder,
                     'foldersOrder' => $foldersOrder
+        ]);
+    }
+
+    public function actionLoadEntry()
+    {
+        $fileId = Yii::$app->request->get('id');
+        $fileId = strpos($fileId, 'file_') === 0 ? substr($fileId, 5) : 0;
+
+        if ($fileId && ($file = File::findOne(['id' => $fileId]))) {
+            return $this->asJson(['output' => $this->renderFileRow($file)]);
+        }
+
+        return $this->asJson([
+            'success' => false,
+            'error' => Yii::t('CfilesModule.base', 'No file found!')
+        ]);
+    }
+
+    private function renderFileRow(File $file)
+    {
+        if ($file->parent_folder_id) {
+            $folder = Folder::findOne(['id' => $file->parent_folder_id]);
+        } else {
+            $folder = $this->getRootFolder();
+        }
+
+        return FileSystemItem::widget([
+            'folder' => $folder,
+            'row' => new FileRow(['item' => $file]),
         ]);
     }
 

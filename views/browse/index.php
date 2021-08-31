@@ -21,7 +21,8 @@ $this->registerJsConfig('cfiles', [
         'headFolder' => Yii::t('CfilesModule.base', '<strong>Folder</strong> url'),
         'info' => Yii::t('base', 'Copy to clipboard'),
         'buttonClose' => Yii::t('base', 'Close'),
-    ]
+    ],
+    'reloadEntryUrl' => $contentContainer->createUrl('/cfiles/browse/load-entry'),
 ]);
 ?>
 
