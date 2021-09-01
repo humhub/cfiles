@@ -417,6 +417,11 @@ humhub.module('cfiles', function (module, require, $) {
         return client.get(module.config.reloadEntryUrl, {data: {id: row.data('cfiles-item')}}).then(function (response) {
             if (response.output) {
                 row.$.html($(response.output).html());
+                if (response.scripts) {
+                    // Append additional scripts which may show some message in info footer bar
+                    // NOTE: we cannot append them right after </tr> because table structure will be broken
+                    row.$.find('td:first').append(response.scripts);
+                }
             }
             return response;
         }).catch(function (err) {

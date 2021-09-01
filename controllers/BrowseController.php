@@ -66,7 +66,11 @@ class BrowseController extends BaseController
         $fileId = strpos($fileId, 'file_') === 0 ? substr($fileId, 5) : 0;
 
         if ($fileId && ($file = File::findOne(['id' => $fileId]))) {
-            return $this->asJson(['output' => $this->renderFileRow($file)]);
+            return $this->asJson([
+                'output' => $this->renderFileRow($file),
+                // Additional scripts may be generated here in order to display some messages in info footer bar
+                'scripts' => $this->renderAjaxContent(''),
+            ]);
         }
 
         return $this->asJson([
