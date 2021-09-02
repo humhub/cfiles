@@ -84,11 +84,10 @@ class MoveController extends BaseController
             ]);
         }
 
-        // Move the Item to new Folder
-        $droppedItem->parent_folder_id = $targetFolder->id;
-        if (!$droppedItem->save()) {
+        // Move the dropped Item(File/Folder) to the target Folder
+        if (!$targetFolder->moveItem($droppedItem)) {
             return $this->asJson([
-                'error' => Yii::t('CfilesModule.base', 'Could not move the item!'),
+                'error' => $droppedItem->getFirstError($droppedItem->getTitle()) ?? Yii::t('CfilesModule.base', 'Could not move the item!'),
             ]);
         }
 
