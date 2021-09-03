@@ -62,10 +62,7 @@ class BrowseController extends BaseController
 
     public function actionLoadEntry()
     {
-        $fileId = Yii::$app->request->get('id');
-        $fileId = strpos($fileId, 'file_') === 0 ? substr($fileId, 5) : 0;
-
-        if ($fileId && ($file = File::findOne(['id' => $fileId]))) {
+        if ($file = $this->getFileById()) {
             return $this->asJson([
                 'output' => $this->renderFileRow($file),
                 // Additional scripts may be generated here in order to display some messages in info footer bar
@@ -77,6 +74,18 @@ class BrowseController extends BaseController
             'success' => false,
             'error' => Yii::t('CfilesModule.base', 'No file found!')
         ]);
+    }
+
+    private function getFileById(): ?File
+    {
+        $fileId = Yii::$app->request->get('id');
+        $fileId = strpos($fileId, 'file_') === 0 ? substr($fileId, 5) : 0;
+
+        if (empty($fileId)) {
+            return null;
+        }
+
+        return File::find()->readable()->where(['cfiles_file.id' => $fileId])->one();
     }
 
     private function renderFileRow(File $file)

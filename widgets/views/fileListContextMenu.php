@@ -1,6 +1,5 @@
 <?php
 
-use humhub\modules\content\widgets\LegacyWallEntryControlLink;
 use humhub\modules\ui\menu\MenuEntry;
 
 /* @var $entries MenuEntry[] */
@@ -9,13 +8,7 @@ use humhub\modules\ui\menu\MenuEntry;
 <div data-ui-widget="stream.StreamEntry">
     <ul class="contextMenu dropdown-menu">
         <?php foreach ($entries as $entry) : ?>
-            <?php if($entry instanceof LegacyWallEntryControlLink) : ?>
-                <?= $entry->render() ?>
-            <?php else: ?>
-                <li>
-                    <?= $entry->render() ?>
-                </li>
-            <?php endif; ?>
+            <li><?= $entry->render() ?></li>
         <?php endforeach; ?>
     </ul>
 </div>
