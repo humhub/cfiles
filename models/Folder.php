@@ -772,6 +772,15 @@ class Folder extends FileSystemItem
             return false;
         }
 
+        if (!$item->canEdit()) {
+            if ($item instanceof File) {
+                $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'You cannot move the file "{name}"!', ['name' => $item->getTitle()]));
+            } else {
+                $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'You cannot move the folder "{name}"!', ['name' => $item->getTitle()]));
+            }
+            return false;
+        }
+
         if ($item instanceof Folder && !$item->isEditableFolder()) {
             $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'Folder {name} given folder is not editable!', ['name' => $item->getTitle()]));
             return false;

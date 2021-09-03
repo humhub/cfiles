@@ -50,6 +50,7 @@ class FolderView extends JsWidget
             'zip-upload-url' => $this->folder->createUrl('/cfiles/zip/upload'),
             'download-archive-url' => $this->folder->createUrl('/cfiles/zip/download'),
             'move-url' => $this->folder->createUrl('/cfiles/move'),
+            'drop-url' => $this->folder->createUrl('/cfiles/move/drop'),
             'import-url' => $this->folder->createUrl('/cfiles/upload/import'),
         ];
     }
