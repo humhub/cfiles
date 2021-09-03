@@ -8,6 +8,7 @@ humhub.module('cfiles', function (module, require, $) {
     var string = require('util').string;
     var loader = require('ui.loader');
     var event = require('event');
+    var status = require('ui.status');
 
     var FolderView = function (node, options) {
         Widget.call(this, node, options);
@@ -23,6 +24,7 @@ humhub.module('cfiles', function (module, require, $) {
         this.initSort();
         this.initEvents();
         this.initContextMenu();
+        this.initDragDropFiles();
     };
 
     FolderView.prototype.initSort = function () {
@@ -135,6 +137,43 @@ humhub.module('cfiles', function (module, require, $) {
             }
         });
     };
+
+    FolderView.prototype.initDragDropFiles = function () {
+        var that = this;
+
+        var folders = that.$.find('[data-cfiles-item^=folder_]');
+        if (!folders.length) {
+            return;
+        }
+
+        that.$.find('[data-cfiles-item^=folder_], [data-cfiles-item^=file_]').draggable({revert: true});
+
+        folders.droppable({
+            drop: function(event, ui) {
+                var folderItem = that.getItemByNode(event.target);
+                folderItem.loader();
+                ui.draggable.fadeOut(function() {
+                    client.post(that.options.dropUrl, {data: {
+                        targetFolder: $(event.target).data('cfiles-item'),
+                        droppedItem: ui.draggable.data('cfiles-item'),
+                    }}).then(function (response) {
+                        if (response.success) {
+                            status.success(response.success);
+                            $(this).remove();
+                        } else if (response.error) {
+                            status.error(response.error);
+                            ui.draggable.fadeIn();
+                        }
+                    }).catch(function (e) {
+                        ui.draggable.fadeIn();
+                        module.log.error(e, true);
+                    }).finally(function () {
+                        folderItem.loader(false);
+                    });
+                });
+            }
+        });
+    }
 
     FolderView.prototype.showUrl = function (item) {
         var options = module.config.showUrlModal;
@@ -368,6 +407,7 @@ humhub.module('cfiles', function (module, require, $) {
         this.wallUrl = this.$.data('cfiles-wall-url');
         this.editUrl = this.$.data('cfiles-edit-url');
         this.moveUrl = this.$.data('cfiles-move-url');
+        this.dropUrl = this.$.data('cfiles-drop-url');
     };
 
     FileItem.prototype.loader = function (show) {
