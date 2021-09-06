@@ -154,6 +154,10 @@
   margin-bottom: 2px;
 }
 
+#fileList .table-responsive {
+  overflow: initial;
+}
+
 #bs-table.table>thead>tr>th, 
 #bs-table.table>tbody>tr>th, 
 #bs-table.table>tfoot>tr>th, 
