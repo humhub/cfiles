@@ -7,6 +7,7 @@ Changelog
 - Enh #48: Use RichText for file description
 - Enh #103: Allow to edit topics from the file edit form
 - Enh #82: Move files and folders by drag & drop
+- Enh #5274: Deprecate CompatModuleManager
 
 
 0.13.1 - July 29, 2021
