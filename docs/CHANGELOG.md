@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.14.0 (Unreleased)
+---------------------
+- Enh #5274: Deprecate CompatModuleManager
+
+
 0.13.2 - Unreleased
 -----------------------
 - Enh #84: Move files to different Space
