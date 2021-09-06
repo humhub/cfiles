@@ -74,6 +74,14 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     /**
      * @inheritdoc
      */
+    public function getContentId()
+    {
+        return $this->item->content->id;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getLinkUrl()
     {
         return $this->item->getUrl();

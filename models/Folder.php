@@ -2,18 +2,16 @@
 
 namespace humhub\modules\cfiles\models;
 
-use humhub\modules\file\libs\ImageHelper;
-use humhub\modules\file\models\FileContent;
-use Yii;
-use yii\base\ModelEvent;
-use yii\db\ActiveQuery;
-use humhub\modules\file\libs\FileHelper;
-use humhub\modules\file\models\FileUpload;
-use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\Content;
+use humhub\modules\file\libs\ImageHelper;
+use humhub\modules\file\models\FileContent;
+use humhub\modules\file\libs\FileHelper;
+use humhub\modules\user\models\User;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\space\models\Space;
+use Yii;
+use yii\db\ActiveQuery;
 use yii\imagine\Image;
 use yii\web\UploadedFile;
 
@@ -178,6 +176,51 @@ class Folder extends FileSystemItem
             $this->updateVisibility($this->visibility);
         }
         return parent::beforeSave($insert);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterMove(ContentContainerActiveRecord $container = null)
+    {
+        parent::afterMove($container);
+
+        // Move all sub folders and files into the same Container where this Folder has been moved to
+        $this->moveSubFoldersToContainer($container);
+        $this->moveSubFilesToContainer($container);
+    }
+
+    public function moveSubFoldersToContainer(ContentContainerActiveRecord $container = null)
+    {
+        if ($container === null) {
+            $container = $this->content->getContainer();
+        }
+
+        $folders = Folder::find()
+            ->andWhere(['parent_folder_id' => $this->id])
+            ->all();
+
+        foreach ($folders as $folder) {
+            /* @var Folder $folder */
+            $folder->move($container);
+        }
+    }
+
+    public function moveSubFilesToContainer(ContentContainerActiveRecord $container = null)
+    {
+        if ($container === null) {
+            $container = $this->content->getContainer();
+        }
+
+        $files = File::find()
+            ->joinWith('baseFile')
+            ->andWhere(['cfiles_file.parent_folder_id' => $this->id])
+            ->all();
+
+        foreach ($files as $file) {
+            /* @var File $file */
+            $file->move($container);
+        }
     }
 
     /**
@@ -382,6 +425,19 @@ class Folder extends FileSystemItem
      * @param ContentContainerActiveRecord $contentContainer
      * @return Folder the root folder of the given ContentContainerActiveRecord
      */
+    public static function getOrInitRoot(ContentContainerActiveRecord $contentContainer)
+    {
+        if ($root = Folder::getRoot($contentContainer)) {
+            return $root;
+        }
+
+        return Folder::initRoot($contentContainer);
+    }
+
+    /**
+     * @param ContentContainerActiveRecord $contentContainer
+     * @return Folder the root folder of the given ContentContainerActiveRecord
+     */
     public static function getRoot(ContentContainerActiveRecord $contentContainer)
     {
         return self::find()->contentContainer($contentContainer)->andWhere(['type' => self::TYPE_FOLDER_ROOT])->one();
@@ -428,6 +484,14 @@ class Folder extends FileSystemItem
     public function getItemId()
     {
         return $this->getItemType() . '_' . $this->id;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentId()
+    {
+        return $this->content->id;
     }
 
     /**

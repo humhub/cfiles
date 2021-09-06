@@ -55,6 +55,7 @@ class FileSystemItem extends JsWidget
     public function getData() {
         return [
             'cfiles-item' => $this->row->getItemId(),
+            'cfiles-content' => $this->row->getContentId(),
             'cfiles-type' => $this->row->getType(),
             'cfiles-url' => $this->row->getUrl(),
             'cfiles-editable' => $this->row->canEdit(),

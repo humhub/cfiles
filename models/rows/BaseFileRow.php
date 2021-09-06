@@ -90,6 +90,14 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getContentId()
+    {
+        return null;
+    }
+
+    /**
      * @return string
      */
     public function getUrl()

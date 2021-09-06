@@ -136,6 +136,14 @@ humhub.module('cfiles', function (module, require, $) {
                 }
             }
         });
+
+        event.on('humhub:content:afterMove', function (evt, response) {
+            if (response.data.success && response.data.id) {
+                that.$.find('tr[data-cfiles-content=' + response.data.id + ']').fadeOut(function() {
+                    $(this).remove();
+                });
+            }
+        });
     };
 
     FolderView.prototype.initDragDropFiles = function () {

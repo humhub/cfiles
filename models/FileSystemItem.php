@@ -2,12 +2,13 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\cfiles\permissions\ManageFiles;
+use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\Content;
-use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\search\interfaces\Searchable;
-use humhub\modules\cfiles\permissions\ManageFiles;
+use Yii;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -27,6 +28,16 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      * @inheritdoc
      */
     public $managePermission = ManageFiles::class;
+
+    /**
+     * @inheritdocs
+     */
+    public $canMove = true;
+
+    /**
+     * @inheritdocs
+     */
+    public $moduleId = 'cfiles';
 
     /**
      * @inheritdoc
@@ -103,6 +114,37 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         }
 
         parent::afterSave($insert, $changedAttributes);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterMove(ContentContainerActiveRecord $container = null)
+    {
+        parent::afterMove($container);
+        $this->updateParentFolder();
+    }
+
+    /**
+     * Update parent Folder if it is from different Content Container(Space/User)
+     * This File/Folder will be moved into the root Folder of the current Content Container
+     *
+     * @param ContentContainerActiveRecord $container
+     * @return bool True on success moving or if parent Folder is already in the same Content Container
+     */
+    public function updateParentFolder(): bool
+    {
+        $parentFolder = Folder::findOne(['id' => $this->parent_folder_id]);
+        if ($parentFolder && $parentFolder->content->contentcontainer_id == $this->content->contentcontainer_id) {
+            return true;
+        }
+
+        if (!($root = Folder::getOrInitRoot($this->content->getContainer()))) {
+            return false;
+        }
+
+        $this->parent_folder_id = $root->id;
+        return $this->save();
     }
 
     public function hasAttributeChanged($attributeName)

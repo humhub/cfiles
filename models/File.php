@@ -41,16 +41,6 @@ class File extends FileSystemItem
     protected $_setFileContent = null;
 
     /**
-     * @inheritdocs
-     */
-    public $canMove = true;
-
-    /**
-     * @inheritdocs
-     */
-    public $moduleId = 'cfiles';
-
-    /**
      * @var array Content topics/tags
      */
     public $topics = [];
@@ -204,24 +194,6 @@ class File extends FileSystemItem
         RichText::postProcess($this->description, $this);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function afterMove(ContentContainerActiveRecord $container = null) {
-        parent::afterMove($container);
-
-        /* @var $root Folder */
-        $root = Folder::find()
-            ->contentContainer($container)
-            ->andWhere(['type' => Folder::TYPE_FOLDER_ROOT])
-            ->one();
-        if ($root) {
-            // Put the moved file into the root of new container:
-            $this->parent_folder_id = $root->id;
-            $this->save();
-        }
-    }
-
     public function updateVisibility($visibility)
     {
         if ($visibility === null) {
@@ -259,6 +231,14 @@ class File extends FileSystemItem
     public function getItemId()
     {
         return 'file_' . $this->id;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentId()
+    {
+        return $this->content->id;
     }
 
     /**

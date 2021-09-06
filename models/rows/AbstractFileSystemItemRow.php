@@ -132,6 +132,11 @@ abstract class AbstractFileSystemItemRow extends Model
     public abstract function getItemId();
 
     /**
+     * @return int
+     */
+    public abstract function getContentId();
+
+    /**
      * @return string
      */
     public abstract function getUrl();

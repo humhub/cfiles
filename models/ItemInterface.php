@@ -15,6 +15,8 @@ interface ItemInterface
 
     public function getItemId();
 
+    public function getContentId();
+
     public function getTitle();
 
     public function getSize();

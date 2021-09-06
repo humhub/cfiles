@@ -49,6 +49,8 @@ class FileListContextMenu extends WallEntryControls
         $this->renderOptions->disableControlsEntryPermalink();
         $this->renderOptions->disableControlsEntryDelete();
         $this->renderOptions->disableControlsEntryPin();
+        $this->renderOptions->disableControlsEntryMove();
+        $this->renderOptions->disableControlsEntryArchive();
 
         switch ($this->row->getType()) {
             case 'image':
