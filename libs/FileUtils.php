@@ -53,6 +53,7 @@ class FileUtils
         'image' => [
             'ext' => [
                 'jpg',
+                'jpeg',
                 'gif',
                 'bmp',
                 'svg',
