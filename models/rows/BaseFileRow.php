@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\models\rows;
 
+use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\file\libs\FileHelper;
 use Yii;
@@ -78,7 +79,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
      */
     public function getType()
     {
-        return File::getItemTypeByExt(FileHelper::getExtension($this->baseFile));
+        return FileUtils::getItemTypeByExt(FileHelper::getExtension($this->baseFile));
     }
 
     /**
@@ -143,7 +144,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
      */
     public function getIconClass()
     {
-        return File::getIconClassByExt($this->getType());
+        return FileUtils::getIconClassByExt($this->getType());
     }
 
     /**

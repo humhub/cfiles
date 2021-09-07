@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\handler\DownloadFileHandler;
@@ -84,7 +85,7 @@ class File extends FileSystemItem
      */
     public function getIcon()
     {
-        return File::getIconClassByExt(strtolower(FileHelper::getExtension($this->baseFile)));
+        return FileUtils::getIconClassByExt(FileHelper::getExtension($this->baseFile));
     }
 
     /**
@@ -262,149 +263,11 @@ class File extends FileSystemItem
     }
 
     /**
-     * @param string $ext file extension
-     * @return string icon css class for given extension
-     */
-    public static function getIconClassByExt($ext)
-    {
-        if (in_array($ext, [
-                    'html',
-                    'cmd',
-                    'bat',
-                    'xml'
-                ])) {
-            return 'fa-file-code-o';
-        } elseif (in_array($ext, [
-                    'zip',
-                    'rar',
-                    'gz',
-                    'tar'
-                ])) {
-            return "fa-file-archive-o";
-        } elseif (in_array($ext, [
-                    'mp3',
-                    'wav'
-                ])) {
-            return "fa-file-audio-o";
-        } elseif (in_array($ext, [
-                    'xls',
-                    'xlsx'
-                ])) {
-            return "fa-file-excel-o";
-        } elseif (in_array($ext, [
-                    'jpg',
-                    'gif',
-                    'bmp',
-                    'svg',
-                    'tiff',
-                    'png'
-                ])) {
-            return "fa-file-image-o";
-        } elseif (in_array($ext, [
-                    'pdf'
-                ])) {
-            return "fa-file-pdf-o";
-        } elseif (in_array($ext, [
-                    'ppt',
-                    'pptx'
-                ])) {
-            return "fa-file-powerpoint-o";
-        } elseif (in_array($ext, [
-                    'txt',
-                    'log',
-                    'md'
-                ])) {
-            return "fa-file-text-o";
-        } elseif (in_array($ext, [
-                    'mp4',
-                    'mpeg',
-                    'swf'
-                ])) {
-            return "fa-file-video-o";
-        } elseif (in_array($ext, [
-                    'doc',
-                    'docx'
-                ])) {
-            return "fa-file-word-o";
-        }
-        return 'fa-file-o';
-    }
-
-    /**
      * @return string
      */
     public function getItemType()
     {
-        return File::getItemTypeByExt(FileHelper::getExtension($this->baseFile));
-    }
-
-    /**
-     * @param $ext
-     * @return string string
-     */
-    public static function getItemTypeByExt($ext)
-    {
-        if (in_array($ext, [
-                    'html',
-                    'cmd',
-                    'bat',
-                    'xml'
-                ])) {
-            return 'code';
-        } elseif (in_array($ext, [
-                    'zip',
-                    'rar',
-                    'gz',
-                    'tar'
-                ])) {
-            return "archive";
-        } elseif (in_array($ext, [
-                    'mp3',
-                    'wav'
-                ])) {
-            return "audio";
-        } elseif (in_array($ext, [
-                    'xls',
-                    'xlsx'
-                ])) {
-            return "excel";
-        } elseif (in_array($ext, [
-                    'jpg',
-                    'gif',
-                    'bmp',
-                    'svg',
-                    'tiff',
-                    'png'
-                ])) {
-            return "image";
-        } elseif (in_array($ext, [
-                    'pdf'
-                ])) {
-            return "pdf";
-        } elseif (in_array($ext, [
-                    'ppt',
-                    'pptx'
-                ])) {
-            return "powerpoint";
-        } elseif (in_array($ext, [
-                    'txt',
-                    'log',
-                    'md'
-                ])) {
-            return "text";
-        } elseif (in_array($ext, [
-                    'mp4',
-                    'mpeg',
-                    'swf'
-                ])) {
-            return "video";
-        } elseif (in_array($ext, [
-                    'doc',
-                    'docx'
-                ])) {
-            return "word";
-        }
-        return 'unknown';
+        return FileUtils::getItemTypeByExt(FileHelper::getExtension($this->baseFile));
     }
 
     /**
