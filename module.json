@@ -1,15 +1,15 @@
 {
     "id": "cfiles",
     "name": "Files",
-    "description": "Enhance your network with a file managment system",
+    "description": "Enhance your network with a file management system",
     "keywords": [
         "files",
         "docs",
-        "structre",
+        "structure",
         "organisation",
         "sharing"
     ],
-    "version": "0.13.2",
+    "version": "0.13.3",
     "humhub": {
         "minVersion": "1.8"
     },

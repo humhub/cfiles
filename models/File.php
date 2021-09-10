@@ -25,6 +25,7 @@ use yii\web\UploadedFile;
  * @property integer $parent_folder_id
  * @property string $description
  * @property integer $download_count
+ * @property integer $file_id Current file version, NULL - for the latest version
  *
  * @property Folder $parentFolder
  * @property \humhub\modules\file\models\File $baseFile
@@ -143,25 +144,16 @@ class File extends FileSystemItem
         return $attributes;
     }
 
-    public function setUploadedFile(UploadedFile $uploadedFile, $title = null)
+    public function setUploadedFile(UploadedFile $uploadedFile)
     {
         $baseFile = new FileUpload(['show_in_stream' => false]);
         $baseFile->setUploadedFile($uploadedFile);
-
-        if($title) {
-            $baseFile->file_name = $title;
-        }
 
         return $this->setFileContent($baseFile);
     }
 
     public function setFileContent(\humhub\modules\file\models\File $fileContent)
     {
-
-        if($this->baseFile) {
-            $this->baseFile->delete();
-        }
-
         $this->populateRelation('baseFile', $fileContent);
 
         // Temp Fix: https://github.com/yiisoft/yii2/issues/15875
@@ -377,13 +369,10 @@ class File extends FileSystemItem
 
     public function getBaseFile()
     {
-        $query = $this->hasOne(FileUpload::className(), [
-            'object_id' => 'id'
-        ])->andWhere([
-            'file.object_model' => self::className()
-        ]);
-
-        return $query;
+        return $this->hasOne(FileUpload::class, ['object_id' => 'id'])
+            ->andWhere(['file.object_model' => self::class])
+            ->leftJoin(self::tableName() . ' cf_version', 'file.id = cf_version.file_id')
+            ->orderBy(['cf_version.file_id' => SORT_DESC, 'file.id' => SORT_DESC]);
     }
 
     public static function getPathFromId($id, $parentFolderPath = false, $separator = '/', $withRoot = false)
@@ -391,9 +380,7 @@ class File extends FileSystemItem
         if ($id == 0) {
             return $separator;
         }
-        $item = File::findOne([
-                    'id' => $id
-        ]);
+        $item = File::findOne(['id' => $id]);
 
         if (empty($item)) {
             return null;

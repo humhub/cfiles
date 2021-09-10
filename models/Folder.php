@@ -5,10 +5,8 @@ namespace humhub\modules\cfiles\models;
 use humhub\modules\file\libs\ImageHelper;
 use humhub\modules\file\models\FileContent;
 use Yii;
-use yii\base\ModelEvent;
 use yii\db\ActiveQuery;
 use humhub\modules\file\libs\FileHelper;
-use humhub\modules\file\models\FileUpload;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\Content;
@@ -668,15 +666,12 @@ class Folder extends FileSystemItem
      * @param UploadedFile $uploadedFile
      * @return File
      */
-    public function addUploadedFile(UploadedFile $uploadedFile, $replace = false)
+    public function addUploadedFile(UploadedFile $uploadedFile): File
     {
+        // Get file instance either an existing one or a new one
+        $file = $this->getFileInstance($uploadedFile);
 
-        // Get file instance either an existing one if $replace = true and a file already exists or a new one
-        $file = $this->getFileInstance($uploadedFile, $replace);
-
-        $fileName = (!$replace) ? $this->getAddedFileName($uploadedFile->name) : $uploadedFile->name;
-
-        if($file->setUploadedFile($uploadedFile, $fileName)) {
+        if ($file->setUploadedFile($uploadedFile)) {
             $file->save();
         }
 
@@ -685,14 +680,10 @@ class Folder extends FileSystemItem
 
     /**
      * @param UploadedFile $uploadedFile
-     * @param bool $replace
      */
-    private function getFileInstance(UploadedFile $uploadedFile, $replace = false)
+    private function getFileInstance(UploadedFile $uploadedFile)
     {
-        $result = null;
-        if($replace) {
-            $result = $this->findFileByName($uploadedFile->name);
-        }
+        $result = $this->findFileByName($uploadedFile->name);
 
         if(!$result) {
             $result = new File($this->content->container, $this->getNewItemVisibility(), [
@@ -895,7 +886,7 @@ class Folder extends FileSystemItem
     {
         return File::find()->contentContainer($this->content->container)
             ->joinWith('baseFile')
-            ->andWhere(['file_name' => $name, 'parent_folder_id' => $this->id])->one();
+            ->andWhere(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->id])->one();
     }
 
     public function findFolderByName($name)
