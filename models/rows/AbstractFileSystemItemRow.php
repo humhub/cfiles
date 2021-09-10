@@ -10,7 +10,6 @@ namespace humhub\modules\cfiles\models\rows;
 
 use humhub\modules\file\models\File;
 use yii\base\Model;
-use ZendSearch\Lucene\Storage\File\AbstractFile;
 
 /**
  * Created by PhpStorm.
@@ -161,6 +160,11 @@ abstract class AbstractFileSystemItemRow extends Model
      * @return string
      */
     public abstract function getMoveUrl();
+
+    /**
+     * @return string
+     */
+    public abstract function getVersionsUrl();
 
     /**
      * @return string

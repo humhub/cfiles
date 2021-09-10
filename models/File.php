@@ -449,7 +449,7 @@ class File extends FileSystemItem
                 ->readable()
                 ->andWhere([
             'file_name' => $name,
-            'parent_folder_id' => $parentFolderId
+            'cfiles_file.parent_folder_id' => $parentFolderId
         ]);
         return $filesQuery->one();
     }

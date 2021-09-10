@@ -8,11 +8,8 @@
 
 namespace humhub\modules\cfiles\widgets;
 
-use humhub\modules\cfiles\models\File;
-use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow;
 use humhub\widgets\JsWidget;
-use Yii;
 
 /**
  * @inheritdoc
@@ -58,6 +55,7 @@ class FileSystemItem extends JsWidget
             'cfiles-wall-url' => $this->row->getWallUrl(),
             'cfiles-edit-url' => ($this->row->canEdit()) ? $this->row->getEditUrl() : '',
             'cfiles-move-url' => ($this->row->canEdit()) ? $this->row->getMoveUrl() : '',
+            'cfiles-versions-url' => ($this->row->canEdit()) ? $this->row->getVersionsUrl() : '',
         ];
     }
 

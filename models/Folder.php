@@ -874,7 +874,7 @@ class Folder extends FileSystemItem
 
     public function fileExists($name)
     {
-        return File::find()->joinWith('baseFile')->where(['file_name' => $name, 'parent_folder_id' => $this->id])->count();
+        return File::find()->joinWith('baseFile')->where(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->id])->count();
     }
 
     public function folderExists($name)

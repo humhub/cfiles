@@ -156,6 +156,9 @@ humhub.module('cfiles', function (module, require, $) {
                     case 'zip':
                         that.downloadZip(item);
                         break;
+                    case 'versions':
+                        item.versions();
+                        break;
                     default:
                         module.log.warn("Unkown action " + action);
                         break;
@@ -434,6 +437,7 @@ humhub.module('cfiles', function (module, require, $) {
         this.editUrl = this.$.data('cfiles-edit-url');
         this.moveUrl = this.$.data('cfiles-move-url');
         this.dropUrl = this.$.data('cfiles-drop-url');
+        this.versionsUrl = this.$.data('cfiles-versions-url');
     };
 
     FileItem.prototype.loader = function (show) {
@@ -482,6 +486,15 @@ humhub.module('cfiles', function (module, require, $) {
             var fid = $('#cfiles-folderView').data('fid');
             _getDirectoryList().select(fid);
             modal.global.show();
+        }).catch(function (e) {
+            module.log.error(e, true);
+        });
+    };
+
+    FileItem.prototype.versions = function () {
+        modal.global.post({
+            'url': this.versionsUrl,
+            'dataType': 'html'
         }).catch(function (e) {
             module.log.error(e, true);
         });

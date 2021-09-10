@@ -118,6 +118,14 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     }
 
     /**
+     * @return string
+     */
+    public function getVersionsUrl()
+    {
+        return $this->item->content->container->createUrl('/cfiles/version', ['id' => $this->item->id]);
+    }
+
+    /**
      * @inheritdoc
      */
     public function getIconClass()
