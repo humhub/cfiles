@@ -50,11 +50,10 @@ class UploadAndMoveCest
         $I->seeError('Some files could not be moved: Folder NewFolder can\'t be moved to itself!');
 
         $I->see('NewFolder', '#fileList');
-        $I->dontSee('test(1).txt', '#fileList');
         $I->dontSee('test.txt', '#fileList');
 
         $I->click('NewFolder', '#fileList');
         $I->waitForText('test.txt', null, '#fileList');
-        $I->see('test(1).txt', null, '#fileList');
+        $I->see('test.txt', null, '#fileList');
     }
 }
