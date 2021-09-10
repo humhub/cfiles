@@ -24,9 +24,9 @@ class UploadAndMoveCest
 
         $I->wantToTest('the duplicate names entry');
         $I->attachFile('#cfilesUploadFiles', 'test.txt');
-        $I->waitForText('test(1).txt', null, '#fileList');
+        $I->waitForText('test.txt', null, '#fileList');
 
-        $I->wantToTest('the creaton of a folder');
+        $I->wantToTest('the creation of a folder');
         $I->click('Add directory', '.files-action-menu');
 
         $I->waitForText('Create folder', null,'#globalModal');
