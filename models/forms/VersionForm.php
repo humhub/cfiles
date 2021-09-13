@@ -12,11 +12,11 @@ use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\cfiles\models\File;
 use Yii;
 use yii\base\Model;
-use yii\db\ActiveQuery;
 
 /**
  * VersionForm to view current version of the selected file and to switch to another
  *
+ * @property-read null|int $currentVersionFileId
  * @property-read array $versions All versions of the File
  *
  * @author luke
@@ -47,7 +47,8 @@ class VersionForm extends Model
         }
 
         /* @var BaseFile $file */
-        $file = $this->getVersionsQuery()->limit(1)->one();
+        // Get the latest version if not defined yet
+        $file = $this->file->getVersionsQuery()->limit(1)->one();
 
         return $file ? $file->id : null;
     }
@@ -70,14 +71,6 @@ class VersionForm extends Model
         ];
     }
 
-    private function getVersionsQuery(): ActiveQuery
-    {
-        return BaseFile::find()
-            ->where(['object_model' => File::class])
-            ->andWhere(['object_id' => $this->file->id])
-            ->orderBy(['id' => SORT_DESC]);
-    }
-
     /**
      * @return array All versions of the File
      */
@@ -85,7 +78,7 @@ class VersionForm extends Model
     {
         $versions = [];
 
-        foreach ($this->getVersionsQuery()->all() as $versionFile) {
+        foreach ($this->file->getVersionsQuery()->all() as $versionFile) {
             /* @var BaseFile $versionFile */
             $versions[$versionFile->id] = $versionFile->file_name . ': ' .
                 Html::encode($versionFile->createdBy->displayName) .

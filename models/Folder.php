@@ -3,6 +3,7 @@
 namespace humhub\modules\cfiles\models;
 
 use humhub\modules\file\libs\ImageHelper;
+use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileContent;
 use Yii;
 use yii\db\ActiveQuery;
@@ -893,6 +894,22 @@ class Folder extends FileSystemItem
     {
         return Folder::find()->contentContainer($this->content->container)
             ->andWhere(['title' => $name, 'parent_folder_id' => $this->id])->one();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getVersionsQuery(): ?ActiveQuery
+    {
+        return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function hasVersions(): bool
+    {
+        return false;
     }
 
 }

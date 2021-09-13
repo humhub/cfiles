@@ -120,9 +120,11 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     /**
      * @return string
      */
-    public function getVersionsUrl()
+    public function getVersionsUrl(): ?string
     {
-        return $this->item->content->container->createUrl('/cfiles/version', ['id' => $this->item->id]);
+        return $this->item->hasVersions()
+            ? $this->item->content->container->createUrl('/cfiles/version', ['id' => $this->item->id])
+            : null;
     }
 
     /**

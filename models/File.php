@@ -7,6 +7,7 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\handler\DownloadFileHandler;
 use humhub\modules\file\libs\FileHelper;
+use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\topic\models\Topic;
@@ -467,5 +468,24 @@ class File extends FileSystemItem
             ->where(['guid' => $guid])
             ->andWhere(['object_model' => self::class])
             ->one();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getVersionsQuery(): ActiveQuery
+    {
+        return BaseFile::find()
+            ->where(['object_model' => self::class])
+            ->andWhere(['object_id' => $this->id])
+            ->orderBy(['id' => SORT_DESC]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function hasVersions(): bool
+    {
+        return $this->getVersionsQuery()->count() > 1;
     }
 }

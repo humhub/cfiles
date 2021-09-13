@@ -2,12 +2,13 @@
 
 namespace humhub\modules\cfiles\models;
 
-use humhub\modules\content\models\Content;
-use Yii;
-use humhub\modules\user\models\User;
-use humhub\modules\content\components\ContentActiveRecord;
-use humhub\modules\search\interfaces\Searchable;
 use humhub\modules\cfiles\permissions\ManageFiles;
+use humhub\modules\content\components\ContentActiveRecord;
+use humhub\modules\content\models\Content;
+use humhub\modules\user\models\User;
+use humhub\modules\search\interfaces\Searchable;
+use Yii;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -44,6 +45,16 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     abstract function getDescription();
     abstract function getDownloadCount();
     abstract function getVisibilityTitle();
+
+    /**
+     * @return ActiveQuery|null
+     */
+    abstract public function getVersionsQuery(): ?ActiveQuery;
+
+    /**
+     * @return bool Check if the File has at least 1 old version + 1 current version
+     */
+    abstract public function hasVersions(): bool;
 
     /**
      * @inheritdoc

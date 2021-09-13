@@ -43,6 +43,10 @@ class VersionController extends BaseController
             throw new HttpException(404, 'File not found!');
         }
 
+        if (!$file->hasVersions()) {
+            throw new HttpException(403, 'File has no old versions!');
+        }
+
         $model = new VersionForm(['file' => $file]);
 
         if (!$model->load(Yii::$app->request->post())) {

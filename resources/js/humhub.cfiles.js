@@ -119,6 +119,8 @@ humhub.module('cfiles', function (module, require, $) {
                     $contextMenu.find('.editableOnly').hide();
                 }
 
+                $contextMenu.find('[data-action=versions]').toggle(typeof fileItem.options['cfilesVersionsUrl'] !== 'undefined');
+
                 return selector;
             },
             menuSelected: function ($invokedOn, selectedMenu, evt) {
