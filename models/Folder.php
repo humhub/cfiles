@@ -3,7 +3,6 @@
 namespace humhub\modules\cfiles\models;
 
 use humhub\modules\file\libs\ImageHelper;
-use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileContent;
 use Yii;
 use yii\db\ActiveQuery;
@@ -910,6 +909,22 @@ class Folder extends FileSystemItem
     public function hasVersions(): bool
     {
         return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCurrentVersionId(): int
+    {
+        return 0;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getVersionsUrl(int $versionId = 0): ?string
+    {
+        return null;
     }
 
 }

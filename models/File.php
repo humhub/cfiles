@@ -488,4 +488,43 @@ class File extends FileSystemItem
     {
         return $this->getVersionsQuery()->count() > 1;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCurrentVersionId(): int
+    {
+        if ($this->file_id !== null) {
+            return $this->file_id;
+        }
+
+        /* @var BaseFile $file */
+        // Get the latest version if not defined yet
+        $file = $this->getVersionsQuery()->limit(1)->one();
+
+        return $file ? $file->id : 0;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getVersionsUrl(int $versionId = 0): ?string
+    {
+        if (!$this->hasVersions()) {
+            return null;
+        }
+
+        $options = ['id' => $this->id];
+
+        if (!empty($versionId)) {
+            if ($versionId === $this->getCurrentVersionId()) {
+                // No need to switch to already current version
+                return null;
+            }
+
+            $options['version'] = $versionId;
+        }
+
+        return $this->content->container->createUrl('/cfiles/version', $options);
+    }
 }

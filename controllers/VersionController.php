@@ -49,14 +49,14 @@ class VersionController extends BaseController
 
         $model = new VersionForm(['file' => $file]);
 
-        if (!$model->load(Yii::$app->request->post())) {
+        if (!$model->load()) {
             return $this->renderAjax('index', [
                 'model' => $model,
             ]);
         }
 
         if ($model->save()) {
-            $this->view->success(Yii::t('CfilesModule.base','File {fileName} has been switched to version from {fileDateTime}', [
+            $this->view->success(Yii::t('CfilesModule.base','File {fileName} has been reverted to version from {fileDateTime}', [
                 'fileName' => $model->file->baseFile->file_name,
                 'fileDateTime' => Yii::$app->formatter->asDatetime($model->file->baseFile->created_at, 'short'),
             ]));

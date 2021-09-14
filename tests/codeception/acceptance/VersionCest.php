@@ -44,9 +44,8 @@ class VersionCest
         $I->clickFileContext(1, 'Versions');
         $I->waitForText('File versions', null, '#globalModal');
 
-        $I->jsClick('#versionform-version [value=' . $firstVersionFile->id . ']');
-        $I->click('Switch');
-        $I->seeSuccess('File ' . $firstVersionFile->file_name . ' has been switched to version from ' . Yii::$app->formatter->asDatetime($firstVersionFile->created_at, 'short'));
+        $I->jsClick('#version_file_' . $firstVersionFile->id . ' [title="Revert to this version"]');
+        $I->seeSuccess('File ' . $firstVersionFile->file_name . ' has been reverted to version from ' . Yii::$app->formatter->asDatetime($firstVersionFile->created_at, 'short'));
         $I->seeFileSizeOnSpaceStream($firstVersionFile);
     }
 

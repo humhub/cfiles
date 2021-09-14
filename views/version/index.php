@@ -1,7 +1,12 @@
 <?php
+/**
+ * @link https://www.humhub.org/
+ * @copyright Copyright (c) 2021 HumHub GmbH & Co. KG
+ * @license https://www.humhub.com/licences
+ */
 
 use humhub\modules\cfiles\models\forms\VersionForm;
-use humhub\modules\ui\form\widgets\ActiveForm;
+use humhub\modules\cfiles\widgets\VersionsView;
 use humhub\widgets\ModalButton;
 use humhub\widgets\ModalDialog;
 
@@ -10,15 +15,12 @@ use humhub\widgets\ModalDialog;
 
 <?php ModalDialog::begin(['header' => Yii::t('CfilesModule.base', '<strong>File</strong> versions')]) ?>
 
-    <?php $form = ActiveForm::begin(); ?>
-        <div class="modal-body">
-            <?= $form->field($model, 'version')->radioList($model->versions) ?>
-        </div>
+    <div class="modal-body">
+        <?= VersionsView::widget(['file' => $model->file]) ?>
+    </div>
 
-        <div class="modal-footer">
-            <?= ModalButton::submitModal(null, Yii::t('CfilesModule.base', 'Switch'))?>
-            <?= ModalButton::cancel() ?>
-        </div>
-    <?php ActiveForm::end() ?>
+    <div class="modal-footer">
+        <?= ModalButton::cancel(Yii::t('CfilesModule.base', 'Close')) ?>
+    </div>
 
 <?php ModalDialog::end()?>

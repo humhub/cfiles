@@ -37,20 +37,7 @@ class VersionForm extends Model
     {
         parent::init();
 
-        $this->version = $this->getCurrentVersionFileId();
-    }
-
-    private function getCurrentVersionFileId(): ?int
-    {
-        if ($this->file->file_id !== null) {
-            return $this->file->file_id;
-        }
-
-        /* @var BaseFile $file */
-        // Get the latest version if not defined yet
-        $file = $this->file->getVersionsQuery()->limit(1)->one();
-
-        return $file ? $file->id : null;
+        $this->version = $this->file->getCurrentVersionId();
     }
 
     /**
@@ -99,6 +86,21 @@ class VersionForm extends Model
         }
 
         return $versions;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function load($data = null, $formName = null)
+    {
+        if ((int)Yii::$app->request->get('version') > 0) {
+            $data = Yii::$app->request->get();
+            $formName = '';
+        } else {
+            $data = Yii::$app->request->post();
+        }
+
+        return parent::load($data, $formName);
     }
 
     /**

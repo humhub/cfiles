@@ -57,6 +57,16 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     abstract public function hasVersions(): bool;
 
     /**
+     * @return int
+     */
+    abstract public function getCurrentVersionId(): int;
+
+    /**
+     * @return string
+     */
+    abstract public function getVersionsUrl(int $versionId = 0): ?string;
+
+    /**
      * @inheritdoc
      */
     public function attributeLabels()
