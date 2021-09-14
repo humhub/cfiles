@@ -482,10 +482,19 @@ class File extends FileSystemItem
      */
     public function getVersionsQuery(): ActiveQuery
     {
-        return BaseFile::find()
+        $query = BaseFile::find()
             ->where(['object_model' => self::class])
-            ->andWhere(['object_id' => $this->id])
-            ->orderBy(['id' => SORT_DESC]);
+            ->andWhere(['object_id' => $this->id]);
+
+        $orders = [];
+        if ($this->file_id !== null) {
+            // Sort the current version on top
+            $query->addSelect(['*', 'IF(id = ' . $this->file_id . ', 1, 0) AS isCurrentVersion']);
+            $orders['isCurrentVersion'] = SORT_DESC;
+        }
+        $orders['id'] = SORT_DESC;
+
+        return $query->orderBy($orders);
     }
 
     /**
