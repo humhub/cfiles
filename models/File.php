@@ -484,14 +484,6 @@ class File extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function hasVersions(): bool
-    {
-        return $this->getVersionsQuery()->count() > 1;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getCurrentVersionId(): int
     {
         if ($this->file_id !== null) {
@@ -510,10 +502,6 @@ class File extends FileSystemItem
      */
     public function getVersionsUrl(int $versionId = 0): ?string
     {
-        if (!$this->hasVersions()) {
-            return null;
-        }
-
         $options = ['id' => $this->id];
 
         if (!empty($versionId)) {

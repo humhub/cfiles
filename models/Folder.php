@@ -906,14 +906,6 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function hasVersions(): bool
-    {
-        return false;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getCurrentVersionId(): int
     {
         return 0;

@@ -52,11 +52,6 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     abstract public function getVersionsQuery(): ?ActiveQuery;
 
     /**
-     * @return bool Check if the File has at least 1 old version + 1 current version
-     */
-    abstract public function hasVersions(): bool;
-
-    /**
      * @return int
      */
     abstract public function getCurrentVersionId(): int;

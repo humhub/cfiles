@@ -23,8 +23,6 @@ class VersionCest
         $I->attachFile('#cfilesUploadFiles', 'test.txt');
         $I->waitForText('test.txt', null, '#fileList');
         $I->wait(1);
-        $I->rightClickFile(1);
-        $I->dontSee('Versions');
 
         $firstVersionFile = $this->getFile(1);
         $I->seeFileSizeOnSpaceStream($firstVersionFile);
