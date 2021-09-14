@@ -61,7 +61,19 @@ class VersionForm extends Model
         return [
             ['version', 'required'],
             ['version', 'integer'],
+            ['version', 'validateVersion'],
         ];
+    }
+
+    /**
+     * Validate the selected version really exists for the File
+     */
+    public function validateVersion($attribute)
+    {
+        $versionFile = $this->file->getVersionsQuery()->andWhere(['id' => $this->$attribute]);
+        if (!$versionFile->exists()) {
+            $this->addError($attribute, 'The selected version doesn\'t exist for the File!');
+        }
     }
 
     public function attributeHints(): array
