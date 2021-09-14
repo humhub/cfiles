@@ -150,7 +150,14 @@ class File extends FileSystemItem
         $baseFile = new FileUpload(['show_in_stream' => false]);
         $baseFile->setUploadedFile($uploadedFile);
 
-        return $this->setFileContent($baseFile);
+        if (!$this->setFileContent($baseFile)) {
+            return false;
+        }
+
+        // Update version to the current uploaded File
+        $this->file_id = $baseFile->id;
+
+        return true;
     }
 
     public function setFileContent(\humhub\modules\file\models\File $fileContent)
