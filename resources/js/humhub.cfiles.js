@@ -561,9 +561,24 @@ humhub.module('cfiles', function (module, require, $) {
         event.off('humhub:file:modified.cfiles');
     };
 
+    var loadNextPageVersions = function (evt) {
+        var nextPage = evt.$trigger.data('nextPage') || 2;
+        client.get(evt, {data: {page: nextPage}}).then(function(response) {
+            $('.modal-content table tbody').append(response.html);
+            if (response.isLast) {
+                evt.$trigger.parent().remove();
+            } else {
+                evt.$trigger.data('nextPage', nextPage + 1);
+            }
+        }).catch(function(e) {
+            module.log.error(e, true);
+        });
+    }
+
     module.export({
         unload: unload,
         move: move,
+        loadNextPageVersions: loadNextPageVersions,
         FolderView: FolderView,
         FileItem: FileItem,
         DirectoryList: DirectoryList

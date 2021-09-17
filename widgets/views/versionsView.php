@@ -5,13 +5,10 @@
  * @license https://www.humhub.com/licences
  */
 
-use humhub\modules\cfiles\models\File;
-use humhub\modules\cfiles\widgets\VersionItem;
-use humhub\modules\file\models\File as BaseFile;
+use humhub\widgets\Button;
 
-/* @var File $file */
-/* @var BaseFile[] $versions */
-/* @var int $currentVersion */
+/* @var string $versionsRowsHtml */
+/* @var string|false $nextPageVersionsUrl */
 ?>
 <table class="table table-hover">
     <thead>
@@ -23,12 +20,15 @@ use humhub\modules\file\models\File as BaseFile;
         </tr>
     </thead>
     <tbody>
-    <?php foreach ($versions as $versionBaseFile) : ?>
-        <?= VersionItem::widget([
-            'file' => $versionBaseFile,
-            'isCurrent' => ($currentVersion == $versionBaseFile->id),
-            'revertUrl' => $file->getVersionsUrl($versionBaseFile->id),
-        ]) ?>
-    <?php endforeach; ?>
+        <?= $versionsRowsHtml ?>
     </tbody>
 </table>
+<?php if ($nextPageVersionsUrl) : ?>
+    <div class="text-center">
+        <br>
+        <?= Button::defaultType(Yii::t('CfilesModule.base', 'Show older versions'))
+            ->icon('chevron-down')
+            ->action('cfiles.loadNextPageVersions', $nextPageVersionsUrl)
+            ->xs(); ?>
+    </div>
+<?php endif; ?>

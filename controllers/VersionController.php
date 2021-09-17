@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\controllers;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\forms\VersionForm;
 use humhub\modules\cfiles\permissions\ManageFiles;
+use humhub\modules\cfiles\widgets\VersionsView;
 use Yii;
 use yii\web\HttpException;
 
@@ -37,13 +38,7 @@ class VersionController extends BaseController
      */
     public function actionIndex()
     {
-        $file = File::findOne(['id' => Yii::$app->request->get('id')]);
-
-        if (!$file) {
-            throw new HttpException(404, 'File not found!');
-        }
-
-        $model = new VersionForm(['file' => $file]);
+        $model = new VersionForm(['file' => $this->getFile()]);
 
         if (!$model->load()) {
             return $this->renderAjax('index', [
@@ -67,6 +62,33 @@ class VersionController extends BaseController
         }
 
         return $this->htmlRedirect($model->file->content->container->createUrl('/cfiles/browse'));
+    }
+
+    /**
+     * Load file versions for the single requested page
+     */
+    public function actionPage()
+    {
+        $versionsView = new VersionsView([
+            'file' => $this->getFile(),
+            'page' => (int)Yii::$app->request->get('page', 2),
+        ]);
+
+        return $this->asJson([
+            'html' => $versionsView->renderVersions(),
+            'isLast' => $versionsView->isLastPage(),
+        ]);
+    }
+
+    private function getFile(): File
+    {
+        $file = File::findOne(['id' => Yii::$app->request->get('id')]);
+
+        if (!$file) {
+            throw new HttpException(404, 'File not found!');
+        }
+
+        return $file;
     }
 
 }
