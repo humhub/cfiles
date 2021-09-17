@@ -26,7 +26,6 @@ use yii\web\UploadedFile;
  * @property integer $parent_folder_id
  * @property string $description
  * @property integer $download_count
- * @property integer $file_id Current file version, NULL - for the latest version
  *
  * @property Folder $parentFolder
  * @property BaseFile $baseFile
@@ -153,9 +152,6 @@ class File extends FileSystemItem
         if (!$this->setFileContent($baseFile)) {
             return false;
         }
-
-        // Update version to the current uploaded File
-        $this->file_id = $baseFile->id;
 
         return true;
     }
