@@ -8,7 +8,7 @@
 namespace humhub\modules\cfiles\widgets;
 
 use humhub\components\Widget;
-use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\models\File;
 
 /**
  * Widget for rendering file versions table.
@@ -17,7 +17,7 @@ class VersionsView extends Widget
 {
 
     /**
-     * @var FileSystemItem
+     * @var File
      */
     public $file;
 
@@ -27,8 +27,8 @@ class VersionsView extends Widget
     public function run() {
         return $this->render('versionsView', [
             'file' => $this->file,
-            'versions' => $this->file->getVersionsQuery()->all(),
-            'currentVersion' => $this->file->getCurrentVersionId(),
+            'versions' => $this->file->baseFile->getVersions(),
+            'currentVersion' => $this->file->baseFile->id,
         ]);
     }
 

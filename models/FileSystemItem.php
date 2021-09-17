@@ -47,16 +47,6 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     abstract function getVisibilityTitle();
 
     /**
-     * @return ActiveQuery|null
-     */
-    abstract public function getVersionsQuery(): ?ActiveQuery;
-
-    /**
-     * @return int
-     */
-    abstract public function getCurrentVersionId(): int;
-
-    /**
      * @return string
      */
     abstract public function getVersionsUrl(int $versionId = 0): ?string;

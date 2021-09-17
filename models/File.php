@@ -29,7 +29,7 @@ use yii\web\UploadedFile;
  * @property integer $file_id Current file version, NULL - for the latest version
  *
  * @property Folder $parentFolder
- * @property \humhub\modules\file\models\File $baseFile
+ * @property BaseFile $baseFile
  */
 class File extends FileSystemItem
 {
@@ -377,10 +377,8 @@ class File extends FileSystemItem
 
     public function getBaseFile()
     {
-        return $this->hasOne(FileUpload::class, ['object_id' => 'id'])
-            ->andWhere(['file.object_model' => self::class])
-            ->leftJoin(self::tableName() . ' cf_version', 'file.id = cf_version.file_id')
-            ->orderBy(['cf_version.file_id' => SORT_DESC, 'file.id' => SORT_DESC]);
+        return $this->hasOne(BaseFile::class, ['object_id' => 'id'])
+            ->andWhere(['file.object_model' => self::class]);
     }
 
     public static function getPathFromId($id, $parentFolderPath = false, $separator = '/', $withRoot = false)
@@ -480,48 +478,12 @@ class File extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function getVersionsQuery(): ActiveQuery
-    {
-        $query = BaseFile::find()
-            ->where(['object_model' => self::class])
-            ->andWhere(['object_id' => $this->id]);
-
-        $orders = [];
-        if ($this->file_id !== null) {
-            // Sort the current version on top
-            $query->addSelect(['*', 'IF(id = ' . $this->file_id . ', 1, 0) AS isCurrentVersion']);
-            $orders['isCurrentVersion'] = SORT_DESC;
-        }
-        $orders['id'] = SORT_DESC;
-
-        return $query->orderBy($orders);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getCurrentVersionId(): int
-    {
-        if ($this->file_id !== null) {
-            return $this->file_id;
-        }
-
-        /* @var BaseFile $file */
-        // Get the latest version if not defined yet
-        $file = $this->getVersionsQuery()->limit(1)->one();
-
-        return $file ? $file->id : 0;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getVersionsUrl(int $versionId = 0): ?string
     {
         $options = ['id' => $this->id];
 
         if (!empty($versionId)) {
-            if ($versionId === $this->getCurrentVersionId()) {
+            if ($versionId === $this->baseFile->id) {
                 // No need to switch to already current version
                 return null;
             }

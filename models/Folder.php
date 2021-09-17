@@ -898,22 +898,6 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function getVersionsQuery(): ?ActiveQuery
-    {
-        return null;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getCurrentVersionId(): int
-    {
-        return 0;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getVersionsUrl(int $versionId = 0): ?string
     {
         return null;

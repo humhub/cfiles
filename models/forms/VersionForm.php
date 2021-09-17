@@ -37,7 +37,7 @@ class VersionForm extends Model
     {
         parent::init();
 
-        $this->version = $this->file->getCurrentVersionId();
+        $this->version = $this->file->baseFile->id;
     }
 
     /**
@@ -57,8 +57,7 @@ class VersionForm extends Model
      */
     public function validateVersion($attribute)
     {
-        $versionFile = $this->file->getVersionsQuery()->andWhere(['id' => $this->$attribute]);
-        if (!$versionFile->exists()) {
+        if (!$this->file->baseFile->isVersion(File::class, $this->$attribute)) {
             $this->addError($attribute, 'The selected version doesn\'t exist for the File!');
         }
     }
@@ -77,7 +76,7 @@ class VersionForm extends Model
     {
         $versions = [];
 
-        foreach ($this->file->getVersionsQuery()->all() as $versionFile) {
+        foreach ($this->file->baseFile->getVersions() as $versionFile) {
             /* @var BaseFile $versionFile */
             $versions[$versionFile->id] = $versionFile->file_name . ': ' .
                 Html::encode($versionFile->createdBy->displayName) .
@@ -114,9 +113,8 @@ class VersionForm extends Model
             return false;
         }
 
-        $this->file->file_id = $this->version;
-
-        return $this->file->save();
+        return $this->file->baseFile->switchVersion($this->version) &&
+            $this->file->refresh();
     }
 
 }
