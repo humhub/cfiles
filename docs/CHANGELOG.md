@@ -9,6 +9,7 @@ Changelog
 - Enh #82: Move files and folders by drag & drop
 - Enh #5274: Deprecate CompatModuleManager
 - Enh #133: Factorize duplicated code
+- Enh #140: Use widget ContentVisibiltySelect
 
 
 0.13.1 - July 29, 2021
