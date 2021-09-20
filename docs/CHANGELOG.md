@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.14.0 - Unreleased
+-----------------------
+- Enh #121: File versioning
+
+
 0.13.2 - Unreleased
 -----------------------
 - Enh #84: Move files to different Space
@@ -9,7 +14,6 @@ Changelog
 - Enh #82: Move files and folders by drag & drop
 - Enh #5274: Deprecate CompatModuleManager
 - Enh #133: Factorize duplicated code
-- Enh #121: File versioning
 
 
 0.13.1 - July 29, 2021

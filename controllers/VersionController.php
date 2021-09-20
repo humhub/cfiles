@@ -82,10 +82,18 @@ class VersionController extends BaseController
 
     private function getFile(): File
     {
-        $file = File::findOne(['id' => Yii::$app->request->get('id')]);
+        /* @var File $file */
+        $file = File::find()
+            ->readable()
+            ->andWhere(['cfiles_file.id' => Yii::$app->request->get('id')])
+            ->one();
 
         if (!$file) {
             throw new HttpException(404, 'File not found!');
+        }
+
+        if (!$file->canEdit()) {
+            throw new HttpException(403);
         }
 
         return $file;
