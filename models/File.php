@@ -6,6 +6,7 @@ use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\handler\DownloadFileHandler;
+use humhub\modules\file\interfaces\AttachedFileVersioningSupport;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
@@ -30,7 +31,7 @@ use yii\web\UploadedFile;
  * @property Folder $parentFolder
  * @property BaseFile $baseFile
  */
-class File extends FileSystemItem
+class File extends FileSystemItem implements AttachedFileVersioningSupport
 {
     /**
      * @inheritdoc
@@ -182,13 +183,16 @@ class File extends FileSystemItem
             $this->populateRelation('baseFile', $this->_setFileContent);
         }
 
-        if($insert && $this->baseFile || ($this->baseFile && $this->baseFile->isNewRecord)) {
+        $isNewBaseFile = $this->baseFile && ($insert || $this->baseFile->isNewRecord);
+        if ($isNewBaseFile) {
             $this->baseFile->setPolymorphicRelation($this);
         }
 
-        // Required if title has changed.
-        if($this->baseFile && ($insert ||  ($this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name || $this->baseFile->isNewRecord))) {
-            $this->baseFile->save(false);
+        // Insert new base File or Update the existing File if title has been changed.
+        if ($isNewBaseFile || ($this->baseFile && $this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name)) {
+            if ($this->baseFile->save(false) && $isNewBaseFile) {
+                $this->refreshVersions();
+            }
         }
 
         // Save topics
@@ -488,5 +492,34 @@ class File extends FileSystemItem
         }
 
         return $this->content->container->createUrl('/cfiles/version', $options);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function changeVersionByFileId(int $newFileID): bool
+    {
+        if (empty($newFileID)) {
+            return false;
+        }
+
+        $newFile = BaseFile::findOne(['id' => $newFileID]);
+        if (!$newFile) {
+            return false;
+        }
+
+        if (!$this->baseFile->replaceFileWith($newFile)) {
+            return false;
+        }
+
+        return $this->refresh();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function refreshVersions(): bool
+    {
+        return $this->baseFile->useAsCurrentVersion();
     }
 }

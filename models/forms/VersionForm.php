@@ -113,8 +113,7 @@ class VersionForm extends Model
             return false;
         }
 
-        return $this->file->baseFile->switchVersion($this->version) &&
-            $this->file->refresh();
+        return $this->file->changeVersionByFileId($this->version);
     }
 
 }
