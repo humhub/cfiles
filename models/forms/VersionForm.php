@@ -113,7 +113,11 @@ class VersionForm extends Model
             return false;
         }
 
-        return $this->file->changeVersionByFileId($this->version);
+        $newVersionFile = BaseFile::findOne(['id' => $this->version]);
+
+        return $newVersionFile &&
+            $this->file->baseFile->replaceFileWith($newVersionFile) &&
+            $this->file->refresh();
     }
 
 }

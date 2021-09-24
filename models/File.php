@@ -191,7 +191,7 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
         // Insert new base File or Update the existing File if title has been changed.
         if ($isNewBaseFile || ($this->baseFile && $this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name)) {
             if ($this->baseFile->save(false) && $isNewBaseFile) {
-                $this->refreshVersions();
+                $this->baseFile->makeToCurrentVersion();
             }
         }
 
@@ -494,32 +494,4 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
         return $this->content->container->createUrl('/cfiles/version', $options);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function changeVersionByFileId(int $newFileID): bool
-    {
-        if (empty($newFileID)) {
-            return false;
-        }
-
-        $newFile = BaseFile::findOne(['id' => $newFileID]);
-        if (!$newFile) {
-            return false;
-        }
-
-        if (!$this->baseFile->replaceFileWith($newFile)) {
-            return false;
-        }
-
-        return $this->refresh();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function refreshVersions(): bool
-    {
-        return $this->baseFile->useAsCurrentVersion();
-    }
 }
