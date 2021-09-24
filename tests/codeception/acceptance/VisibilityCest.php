@@ -71,7 +71,7 @@ class VisibilityCest
         $I->amGoingTo('Reset the file visibility of /visibility/visibility2/test.txt to private');
         $I->clickFileContext(2, 'Edit');
         $I->waitForText('Edit file', null, '#globalModal');
-        $I->click('[for="file-visibility"]');
+        $I->jsClick('input[type="checkbox"][name="File[visibility]"]');
         $I->click('Save', '#globalModal');
 
         $I->seeSuccess();
