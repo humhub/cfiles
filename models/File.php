@@ -191,7 +191,15 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
         // Insert new base File or Update the existing File if title has been changed.
         if ($isNewBaseFile || ($this->baseFile && $this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name)) {
             if ($this->baseFile->save(false) && $isNewBaseFile) {
-                $this->baseFile->makeToCurrentVersion();
+                /* @var BaseFile $previousVersionFile */
+                $previousVersionFile = BaseFile::find()
+                    ->where(['object_model' => File::class])
+                    ->andWhere(['object_id' => $this->id])
+                    ->andWhere(['!=', 'id', $this->baseFile->id])
+                    ->one();
+                if ($previousVersionFile) {
+                    $previousVersionFile->replaceFileWith($this->baseFile);
+                }
             }
         }
 
