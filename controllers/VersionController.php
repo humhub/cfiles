@@ -11,6 +11,7 @@ use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\forms\VersionForm;
 use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\widgets\VersionsView;
+use humhub\modules\file\models\File as BaseFile;
 use Yii;
 use yii\web\HttpException;
 
@@ -77,6 +78,37 @@ class VersionController extends BaseController
         return $this->asJson([
             'html' => $versionsView->renderVersions(),
             'isLast' => $versionsView->isLastPage(),
+        ]);
+    }
+
+    /**
+     * Action to delete a version of the requested File
+     * @throws HttpException
+     */
+    public function actionDelete()
+    {
+        $this->forcePostRequest();
+
+        $file = $this->getFile();
+
+        $versionFileId = (int)Yii::$app->request->get('version');
+        $deletedVersionFile = BaseFile::findOne(['id' => $versionFileId]);
+
+        if (!$deletedVersionFile || !$file->baseFile->isVersion($deletedVersionFile)) {
+            throw new HttpException(404, 'Version not found!');
+        }
+
+        $deletedVersionDate = Yii::$app->formatter->asDatetime($deletedVersionFile->created_at, 'short');
+
+        if (!$deletedVersionFile->delete()) {
+            return $this->asJson([
+                'error' => Yii::t('CfilesModule.user', 'The version "{versionDate}" could not be deleted!', ['versionDate' => $deletedVersionDate]),
+            ]);
+        }
+
+        return $this->asJson([
+            'deleted' => $versionFileId,
+            'message' => Yii::t('CfilesModule.user', 'The version "{versionDate}" has been deleted.', ['versionDate' => $deletedVersionDate]),
         ]);
     }
 

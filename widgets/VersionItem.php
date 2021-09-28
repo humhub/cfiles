@@ -32,6 +32,11 @@ class VersionItem extends Widget
     public $revertUrl;
 
     /**
+     * @var string|null
+     */
+    public $deleteUrl;
+
+    /**
      * @inheritdoc
      */
     public function run() {
@@ -46,6 +51,7 @@ class VersionItem extends Widget
             'file' => $this->file,
             'revertUrl' => $this->revertUrl,
             'downloadUrl' => $this->file->getUrl(),
+            'deleteUrl' => $this->deleteUrl,
         ]);
     }
 

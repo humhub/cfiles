@@ -8,7 +8,6 @@ use humhub\modules\content\models\Content;
 use humhub\modules\user\models\User;
 use humhub\modules\search\interfaces\Searchable;
 use Yii;
-use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "cfiles_file".
@@ -50,6 +49,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      * @return string
      */
     abstract public function getVersionsUrl(int $versionId = 0): ?string;
+
+    /**
+     * @return string
+     */
+    abstract public function getDeleteVersionUrl(int $versionId): ?string;
 
     /**
      * @inheritdoc

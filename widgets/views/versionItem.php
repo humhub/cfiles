@@ -12,6 +12,7 @@ use humhub\modules\file\models\File as BaseFile;
 /* @var BaseFile $file */
 /* @var string|bool $revertUrl */
 /* @var string $downloadUrl */
+/* @var string $deleteUrl */
 ?>
 <?= Html::beginTag('tr', $options) ?>
     <td><?= Yii::$app->formatter->asDatetime($file->created_at, 'short') ?></td>
@@ -28,5 +29,12 @@ use humhub\modules\file\models\File as BaseFile;
             'title' => Yii::t('CfilesModule.base', 'Download'),
             'target' => '_blank',
         ]) ?>
+        <?php if ($deleteUrl) : ?>
+            <?= Html::a('<i class="fa fa-trash"></i>', $deleteUrl, [
+                'title' => Yii::t('CfilesModule.base', 'Delete this version!'),
+                'data-action-confirm' => Yii::t('CfilesModule.user', 'Are you really sure to delete this version?'),
+                'data-action-click' => 'cfiles.deleteVersion',
+            ]) ?>
+        <?php endif; ?>
     </td>
 <?= Html::endTag('tr') ?>

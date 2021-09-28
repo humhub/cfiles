@@ -903,4 +903,12 @@ class Folder extends FileSystemItem
         return null;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getDeleteVersionUrl(int $versionId): ?string
+    {
+        return null;
+    }
+
 }

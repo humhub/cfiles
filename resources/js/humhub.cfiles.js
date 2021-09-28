@@ -575,10 +575,29 @@ humhub.module('cfiles', function (module, require, $) {
         });
     }
 
+    var deleteVersion = function (evt) {
+        var versionRow = evt.$trigger.closest('tr');
+        versionRow.addClass('bg-danger');
+        client.post(evt).then(function(response) {
+            if (response.deleted) {
+                versionRow.remove();
+                status.success(response.message);
+            } else {
+                status.error(response.error);
+                setTimeout(function() {
+                    versionRow.removeClass('bg-danger')
+                }, 2000);
+            }
+        }).catch(function(e) {
+            module.log.error(e, true);
+        });
+    }
+
     module.export({
         unload: unload,
         move: move,
         loadNextPageVersions: loadNextPageVersions,
+        deleteVersion: deleteVersion,
         FolderView: FolderView,
         FileItem: FileItem,
         DirectoryList: DirectoryList

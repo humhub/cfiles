@@ -502,4 +502,20 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
         return $this->content->container->createUrl('/cfiles/version', $options);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getDeleteVersionUrl(int $versionId): ?string
+    {
+        if ($versionId === $this->baseFile->id) {
+            // Don't allow to delete the current version
+            return null;
+        }
+
+        return $this->content->container->createUrl('/cfiles/version/delete', [
+            'id' => $this->id,
+            'version' => $versionId,
+        ]);
+    }
+
 }

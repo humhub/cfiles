@@ -92,6 +92,7 @@ class VersionsView extends Widget
                 'file' => $versionBaseFile,
                 'isCurrent' => ($this->file->baseFile->id == $versionBaseFile->id),
                 'revertUrl' => $this->file->getVersionsUrl($versionBaseFile->id),
+                'deleteUrl' => $this->file->getDeleteVersionUrl($versionBaseFile->id),
             ]);
         }
 
