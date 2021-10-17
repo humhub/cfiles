@@ -198,7 +198,7 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
                     ->andWhere(['!=', 'id', $this->baseFile->id])
                     ->one();
                 if ($previousVersionFile) {
-                    $previousVersionFile->replaceFileWith($this->baseFile);
+                    $previousVersionFile->replaceWithFile($this->baseFile);
                 }
             }
         }
