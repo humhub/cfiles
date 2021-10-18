@@ -488,6 +488,10 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
      */
     public function getVersionsUrl(int $versionId = 0): ?string
     {
+        if (!$this->content->canEdit()) {
+            return null;
+        }
+
         $options = ['id' => $this->id];
 
         if (!empty($versionId)) {
@@ -509,6 +513,10 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
     {
         if ($versionId === $this->baseFile->id) {
             // Don't allow to delete the current version
+            return null;
+        }
+
+        if (!$this->canEdit()) {
             return null;
         }
 

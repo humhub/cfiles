@@ -25,8 +25,8 @@
         <li><a tabindex="-1" href="#" data-action='delete' class="editableOnly"><i class="fa fa-trash"></i><?= Yii::t('CfilesModule.base', 'Delete'); ?></a></li>
         <?php if ($canWrite): ?>
             <li><a tabindex="-1" href="#" data-action='move-files' class="editableOnly"><i class="fa fa-arrows"></i><?= Yii::t('CfilesModule.base', 'Move'); ?></a></li>
-            <li><a tabindex="-1" href="#" data-action='versions' class="editableOnly"><i class="fa fa-history"></i><?= Yii::t('CfilesModule.base', 'Versions'); ?></a></li>
         <?php endif; ?>
+        <li><a tabindex="-1" href="#" data-action='versions' class="editableOnly"><i class="fa fa-history"></i><?= Yii::t('CfilesModule.base', 'Versions'); ?></a></li>
     <?php endif; ?>
 
 </ul>
@@ -42,8 +42,8 @@
         <li><a tabindex="-1" href="#" data-action='delete' class="editableOnly"><i class="fa fa-trash"></i><?= Yii::t('CfilesModule.base', 'Delete'); ?></a></li>
         <?php if ($canWrite): ?>
             <li><a tabindex="-1" href="#" data-action='move-files' class="editableOnly"><i class="fa fa-arrows"></i><?= Yii::t('CfilesModule.base', 'Move'); ?></a></li>
-            <li><a tabindex="-1" href="#" data-action='versions' class="editableOnly"><i class="fa fa-history"></i><?= Yii::t('CfilesModule.base', 'Versions'); ?></a></li>
         <?php endif; ?>
+        <li><a tabindex="-1" href="#" data-action='versions' class="editableOnly"><i class="fa fa-history"></i><?= Yii::t('CfilesModule.base', 'Versions'); ?></a></li>
     <?php endif; ?>
 </ul>
 

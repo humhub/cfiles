@@ -9,7 +9,6 @@ namespace humhub\modules\cfiles\controllers;
 
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\forms\VersionForm;
-use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\widgets\VersionsView;
 use humhub\modules\file\models\File as BaseFile;
 use Yii;
@@ -24,22 +23,18 @@ class VersionController extends BaseController
 {
 
     /**
-     * @inheritdoc
-     */
-    public function getAccessRules()
-    {
-        return [
-            ['permission' => [ManageFiles::class]]
-        ];
-    }
-
-    /**
      * Action to view all versions of the requested File
      * @return string
      */
     public function actionIndex()
     {
-        $model = new VersionForm(['file' => $this->getFile()]);
+        $file = $this->getFile();
+
+        if (!$file->content->canEdit()) {
+            throw new HttpException(403);
+        }
+
+        $model = new VersionForm(['file' => $file]);
 
         if (!$model->load()) {
             return $this->renderAjax('index', [
@@ -62,7 +57,7 @@ class VersionController extends BaseController
             $this->view->error($errorMsg);
         }
 
-        return $this->htmlRedirect($model->file->content->container->createUrl('/cfiles/browse'));
+        return $this->htmlRedirect($model->file->content->container->createUrl('/cfiles/browse', ['fid' => $model->file->parent_folder_id]));
     }
 
     /**
@@ -70,8 +65,14 @@ class VersionController extends BaseController
      */
     public function actionPage()
     {
+        $file = $this->getFile();
+
+        if (!$file->content->canEdit()) {
+            throw new HttpException(403);
+        }
+
         $versionsView = new VersionsView([
-            'file' => $this->getFile(),
+            'file' => $file,
             'page' => (int)Yii::$app->request->get('page', 2),
         ]);
 
@@ -90,6 +91,10 @@ class VersionController extends BaseController
         $this->forcePostRequest();
 
         $file = $this->getFile();
+
+        if (!$file->canEdit()) {
+            throw new HttpException(403);
+        }
 
         $versionFileId = (int)Yii::$app->request->get('version');
         $deletedVersionFile = BaseFile::findOne(['id' => $versionFileId]);
@@ -122,10 +127,6 @@ class VersionController extends BaseController
 
         if (!$file) {
             throw new HttpException(404, 'File not found!');
-        }
-
-        if (!$file->canEdit()) {
-            throw new HttpException(403);
         }
 
         return $file;
