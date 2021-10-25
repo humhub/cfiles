@@ -6,7 +6,6 @@ use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\handler\DownloadFileHandler;
-use humhub\modules\file\interfaces\AttachedFileVersioningSupport;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
@@ -31,7 +30,7 @@ use yii\web\UploadedFile;
  * @property Folder $parentFolder
  * @property BaseFile $baseFile
  */
-class File extends FileSystemItem implements AttachedFileVersioningSupport
+class File extends FileSystemItem
 {
     /**
      * @inheritdoc
@@ -57,6 +56,11 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
      * @var array Content topics/tags
      */
     public $topics = [];
+
+    /**
+     * @inheritdoc
+     */
+    public $fileManagerEnableHistory = true;
 
     /**
      * @inheritdoc
@@ -145,19 +149,19 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
         return $attributes;
     }
 
-    public function setUploadedFile(UploadedFile $uploadedFile)
+    public function setUploadedFile(UploadedFile $uploadedFile): bool
     {
-        $baseFile = new FileUpload(['show_in_stream' => false]);
+        if ($this->baseFile) {
+            $baseFile = FileUpload::findOne($this->baseFile->id);
+        } else {
+            $baseFile = new FileUpload(['show_in_stream' => false]);
+        }
         $baseFile->setUploadedFile($uploadedFile);
 
-        if (!$this->setFileContent($baseFile)) {
-            return false;
-        }
-
-        return true;
+        return $this->setFileContent($baseFile);
     }
 
-    public function setFileContent(\humhub\modules\file\models\File $fileContent)
+    public function setFileContent(BaseFile $fileContent): bool
     {
         $this->populateRelation('baseFile', $fileContent);
 
@@ -188,19 +192,12 @@ class File extends FileSystemItem implements AttachedFileVersioningSupport
             $this->baseFile->setPolymorphicRelation($this);
         }
 
-        // Insert new base File or Update the existing File if title has been changed.
-        if ($isNewBaseFile || ($this->baseFile && $this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name)) {
-            if ($this->baseFile->save(false) && $isNewBaseFile) {
-                /* @var BaseFile $previousVersionFile */
-                $previousVersionFile = BaseFile::find()
-                    ->where(['object_model' => File::class])
-                    ->andWhere(['object_id' => $this->id])
-                    ->andWhere(['!=', 'id', $this->baseFile->id])
-                    ->one();
-                if ($previousVersionFile) {
-                    $previousVersionFile->replaceWithFile($this->baseFile);
-                }
-            }
+        $fileTitleChanged = ($this->baseFile && $this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name);
+        $newVersionUploaded = ($this->baseFile && isset($this->baseFile->uploadedFile) && $this->baseFile->uploadedFile instanceof UploadedFile);
+
+        // Insert new base File OR Update the existing File if title has been changed or new file version has been uploaded
+        if ($isNewBaseFile || $fileTitleChanged || $newVersionUploaded) {
+            $this->baseFile->save(false);
         }
 
         // Save topics

@@ -680,18 +680,17 @@ class Folder extends FileSystemItem
 
     /**
      * @param UploadedFile $uploadedFile
+     * @return File
      */
-    private function getFileInstance(UploadedFile $uploadedFile)
+    private function getFileInstance(UploadedFile $uploadedFile): File
     {
-        $result = $this->findFileByName($uploadedFile->name);
-
-        if(!$result) {
-            $result = new File($this->content->container, $this->getNewItemVisibility(), [
-                'parent_folder_id' => $this->id
-            ]);
+        if ($file = $this->findFileByName($uploadedFile->name)) {
+            return $file;
         }
 
-        return $result;
+        return new File($this->content->container, $this->getNewItemVisibility(), [
+            'parent_folder_id' => $this->id
+        ]);
     }
 
     private function getNewItemVisibility()
@@ -882,11 +881,13 @@ class Folder extends FileSystemItem
         return Folder::find()->where(['title' => $name, 'parent_folder_id' => $this->id])->count();
     }
 
-    public function findFileByName($name)
+    public function findFileByName($name): ?File
     {
         return File::find()->contentContainer($this->content->container)
             ->joinWith('baseFile')
-            ->andWhere(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->id])->one();
+            ->andWhere(['file_name' => $name])
+            ->andWhere(['cfiles_file.parent_folder_id' => $this->id])
+            ->one();
     }
 
     public function findFolderByName($name)
