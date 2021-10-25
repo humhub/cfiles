@@ -7,17 +7,13 @@
 
 namespace humhub\modules\cfiles\models\forms;
 
-use humhub\libs\Html;
-use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\cfiles\models\File;
+use humhub\modules\file\models\FileHistory;
 use Yii;
 use yii\base\Model;
 
 /**
  * VersionForm to view current version of the selected file and to switch to another
- *
- * @property-read null|int $currentVersionFileId
- * @property-read array $versions All versions of the File
  *
  * @author luke
  */
@@ -32,13 +28,6 @@ class VersionForm extends Model
      * @var int File ID of the current version
      */
     public $version;
-
-    public function init()
-    {
-        parent::init();
-
-        $this->version = $this->file->baseFile->id;
-    }
 
     /**
      * @inheritdoc
@@ -57,9 +46,7 @@ class VersionForm extends Model
      */
     public function validateVersion($attribute)
     {
-        $versionFile = BaseFile::findOne(['id' => $this->$attribute]);
-
-        if (!$versionFile || !$this->file->baseFile->isVersion($versionFile)) {
+        if (!$this->getFileVersion()) {
             $this->addError($attribute, 'The selected version doesn\'t exist for the File!');
         }
     }
@@ -71,22 +58,9 @@ class VersionForm extends Model
         ];
     }
 
-    /**
-     * @return array All versions of the File
-     */
-    public function getVersions(): array
+    public function getFileVersion(): ?FileHistory
     {
-        $versions = [];
-
-        foreach ($this->file->baseFile->getVersionsQuery()->all() as $versionFile) {
-            /* @var BaseFile $versionFile */
-            $versions[$versionFile->id] = $versionFile->file_name . ': ' .
-                Html::encode($versionFile->createdBy->displayName) .
-                ' (' . Yii::$app->formatter->asDatetime($versionFile->created_at, 'short') . ')' .
-                ', ' . Yii::$app->formatter->asShortSize($versionFile->size, 1);
-        }
-
-        return $versions;
+        return FileHistory::findOne(['id' => $this->version, 'file_id' => $this->file->baseFile->id]);
     }
 
     /**
@@ -115,11 +89,9 @@ class VersionForm extends Model
             return false;
         }
 
-        $newVersionFile = BaseFile::findOne(['id' => $this->version]);
+        $this->file->baseFile->setStoredFile($this->getFileVersion()->getFileStorePath());
 
-        return $newVersionFile &&
-            $this->file->baseFile->replaceWithFile($newVersionFile) &&
-            $this->file->refresh();
+        return $this->file->baseFile->save() && $this->file->refresh();
     }
 
 }

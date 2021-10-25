@@ -14,7 +14,7 @@ use humhub\modules\user\models\User;
 /* @var string $size */
 /* @var string|bool $revertUrl */
 /* @var string $downloadUrl */
-/* @var string $deleteUrl */
+/* @var string|bool $deleteUrl */
 ?>
 <?= Html::beginTag('tr', $options) ?>
     <td><?= Yii::$app->formatter->asDatetime($date, 'short') ?></td>

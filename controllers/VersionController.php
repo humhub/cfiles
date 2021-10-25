@@ -10,7 +10,7 @@ namespace humhub\modules\cfiles\controllers;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\forms\VersionForm;
 use humhub\modules\cfiles\widgets\VersionsView;
-use humhub\modules\file\models\File as BaseFile;
+use humhub\modules\file\models\FileHistory;
 use Yii;
 use yii\web\HttpException;
 
@@ -45,7 +45,7 @@ class VersionController extends BaseController
         if ($model->save()) {
             $this->view->success(Yii::t('CfilesModule.base','File {fileName} has been reverted to version from {fileDateTime}', [
                 'fileName' => $model->file->baseFile->file_name,
-                'fileDateTime' => Yii::$app->formatter->asDatetime($model->file->baseFile->created_at, 'short'),
+                'fileDateTime' => Yii::$app->formatter->asDatetime($model->getFileVersion()->created_at, 'short'),
             ]));
         } else {
             $errorMsg = '';
@@ -96,23 +96,23 @@ class VersionController extends BaseController
             throw new HttpException(403);
         }
 
-        $versionFileId = (int)Yii::$app->request->get('version');
-        $deletedVersionFile = BaseFile::findOne(['id' => $versionFileId]);
+        $fileVersionId = (int)Yii::$app->request->get('version');
+        $deletedFileVersion = FileHistory::findOne(['id' => $fileVersionId, 'file_id' => $file->baseFile->id]);
 
-        if (!$deletedVersionFile || !$file->baseFile->isVersion($deletedVersionFile)) {
+        if (!$deletedFileVersion) {
             throw new HttpException(404, 'Version not found!');
         }
 
-        $deletedVersionDate = Yii::$app->formatter->asDatetime($deletedVersionFile->created_at, 'short');
+        $deletedVersionDate = Yii::$app->formatter->asDatetime($deletedFileVersion->created_at, 'short');
 
-        if (!$deletedVersionFile->delete()) {
+        if (!$deletedFileVersion->delete()) {
             return $this->asJson([
                 'error' => Yii::t('CfilesModule.user', 'The version "{versionDate}" could not be deleted!', ['versionDate' => $deletedVersionDate]),
             ]);
         }
 
         return $this->asJson([
-            'deleted' => $versionFileId,
+            'deleted' => $fileVersionId,
             'message' => Yii::t('CfilesModule.user', 'The version "{versionDate}" has been deleted.', ['versionDate' => $deletedVersionDate]),
         ]);
     }
