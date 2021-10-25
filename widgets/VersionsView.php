@@ -9,7 +9,7 @@ namespace humhub\modules\cfiles\widgets;
 
 use humhub\components\Widget;
 use humhub\modules\cfiles\models\File;
-use humhub\modules\file\models\File as BaseFile;
+use humhub\modules\file\models\FileHistory;
 use yii\data\Pagination;
 
 /**
@@ -34,7 +34,7 @@ class VersionsView extends Widget
     public $pageSize = 10;
 
     /**
-     * @var BaseFile[]
+     * @var FileHistory[]
      */
     private $versions;
 
@@ -60,13 +60,13 @@ class VersionsView extends Widget
         $pagination = new Pagination([
             'page' => $this->page - 1,
             'pageSize' => $this->pageSize,
-            'totalCount' => $this->file->baseFile->getVersionsQuery()->count()
+            'totalCount' => $this->file->baseFile->getHistoryFiles()->count()
         ]);
 
         $this->isLastPage = ($pagination->page >= $pagination->pageCount - 1);
 
         $this->versions = $this->file->baseFile
-            ->getVersionsQuery()
+            ->getHistoryFiles()
             ->offset($pagination->offset)
             ->limit($pagination->limit)
             ->all();
@@ -87,12 +87,21 @@ class VersionsView extends Widget
     {
         $html = '';
 
-        foreach ($this->versions as $versionBaseFile) {
+        if ($this->page == 1) {
             $html .= VersionItem::widget([
-                'file' => $versionBaseFile,
-                'isCurrent' => ($this->file->baseFile->id == $versionBaseFile->id),
-                'revertUrl' => $this->file->getVersionsUrl($versionBaseFile->id),
-                'deleteUrl' => $this->file->getDeleteVersionUrl($versionBaseFile->id),
+                'version' => $this->file->baseFile,
+                'revertUrl' => false,
+                'downloadUrl' => $this->file->baseFile->getUrl(),
+                'deleteUrl' => false,
+            ]);
+        }
+
+        foreach ($this->versions as $version) {
+            $html .= VersionItem::widget([
+                'version' => $version,
+                'revertUrl' => $this->file->getVersionsUrl($version->id),
+                'downloadUrl' => $version->getFileUrl(),
+                'deleteUrl' => $this->file->getDeleteVersionUrl($version->id),
             ]);
         }
 

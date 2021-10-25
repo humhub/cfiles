@@ -6,18 +6,20 @@
  */
 
 use humhub\libs\Html;
-use humhub\modules\file\models\File as BaseFile;
+use humhub\modules\user\models\User;
 
 /* @var array $options */
-/* @var BaseFile $file */
+/* @var User $user */
+/* @var string $date */
+/* @var string $size */
 /* @var string|bool $revertUrl */
 /* @var string $downloadUrl */
 /* @var string $deleteUrl */
 ?>
 <?= Html::beginTag('tr', $options) ?>
-    <td><?= Yii::$app->formatter->asDatetime($file->created_at, 'short') ?></td>
-    <td><?= Html::encode($file->createdBy->displayName) ?></td>
-    <td class="text-right"><?= Yii::$app->formatter->asShortSize($file->size, 1) ?></td>
+    <td><?= Yii::$app->formatter->asDatetime($date, 'short') ?></td>
+    <td><?= Html::encode($user->displayName) ?></td>
+    <td class="text-right"><?= Yii::$app->formatter->asShortSize($size, 1) ?></td>
     <td class="text-center">
         <?php if ($revertUrl) : ?>
             <?= Html::a('<i class="fa fa-undo"></i>', $revertUrl, [
