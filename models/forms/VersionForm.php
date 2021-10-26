@@ -60,7 +60,7 @@ class VersionForm extends Model
 
     public function getFileVersion(): ?FileHistory
     {
-        return FileHistory::findOne(['id' => $this->version, 'file_id' => $this->file->baseFile->id]);
+        return $this->file->baseFile->getFileHistoryByID($this->version);
     }
 
     /**

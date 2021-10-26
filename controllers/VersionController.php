@@ -97,7 +97,7 @@ class VersionController extends BaseController
         }
 
         $fileVersionId = (int)Yii::$app->request->get('version');
-        $deletedFileVersion = FileHistory::findOne(['id' => $fileVersionId, 'file_id' => $file->baseFile->id]);
+        $deletedFileVersion = $file->baseFile->getFileHistoryByID($fileVersionId);
 
         if (!$deletedFileVersion) {
             throw new HttpException(404, 'Version not found!');
