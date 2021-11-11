@@ -81,7 +81,7 @@ return array (
   'Upload files or create a subfolder with the buttons on the top.' => 'Lade Dateien hoch oder erstelle Unterordner mit den Schaltflächen oben.',
   'Upload files to the stream to fill this folder.' => 'Dateien in Stream hochladen, um diesen Ordner zu füllen.',
   'Use of file indexes for already existing files' => 'Verwendung von Datei-Indizes für bereits vorhandene Dateien',
-  'Wrong moved item!' => '',
+  'Wrong moved item!' => 'Wrong moved item!',
   'Wrong target folder!' => 'Falscher Zielordner!',
   'You can find all files that have been posted to this stream here.' => 'Hier findest du alle Dateien, die in diesen Stream gepostet wurden.',
   'You cannot move the file "{name}"!' => 'Du kannst die Datei "{name}" nicht verschieben!',
