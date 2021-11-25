@@ -11,7 +11,6 @@ namespace humhub\modules\cfiles\models\rows;
 use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\file\libs\FileHelper;
-use Yii;
 
 /**
  * Created by PhpStorm.
@@ -136,6 +135,14 @@ class BaseFileRow extends AbstractFileSystemItemRow
     public function getMoveUrl()
     {
         //TODO: copy file when moving?
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersionsUrl()
+    {
         return null;
     }
 

@@ -7,6 +7,7 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\handler\DownloadFileHandler;
 use humhub\modules\file\libs\FileHelper;
+use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\topic\models\Topic;
@@ -27,7 +28,7 @@ use yii\web\UploadedFile;
  * @property integer $download_count
  *
  * @property Folder $parentFolder
- * @property \humhub\modules\file\models\File $baseFile
+ * @property BaseFile $baseFile
  */
 class File extends FileSystemItem
 {
@@ -55,6 +56,11 @@ class File extends FileSystemItem
      * @var array Content topics/tags
      */
     public $topics = [];
+
+    /**
+     * @inheritdoc
+     */
+    public $fileManagerEnableHistory = true;
 
     /**
      * @inheritdoc
@@ -143,25 +149,20 @@ class File extends FileSystemItem
         return $attributes;
     }
 
-    public function setUploadedFile(UploadedFile $uploadedFile, $title = null)
+    public function setUploadedFile(UploadedFile $uploadedFile): bool
     {
-        $baseFile = new FileUpload(['show_in_stream' => false]);
-        $baseFile->setUploadedFile($uploadedFile);
-
-        if($title) {
-            $baseFile->file_name = $title;
+        if ($this->baseFile) {
+            $baseFile = FileUpload::findOne($this->baseFile->id);
+        } else {
+            $baseFile = new FileUpload(['show_in_stream' => false]);
         }
+        $baseFile->setUploadedFile($uploadedFile);
 
         return $this->setFileContent($baseFile);
     }
 
-    public function setFileContent(\humhub\modules\file\models\File $fileContent)
+    public function setFileContent(BaseFile $fileContent): bool
     {
-
-        if($this->baseFile) {
-            $this->baseFile->delete();
-        }
-
         $this->populateRelation('baseFile', $fileContent);
 
         // Temp Fix: https://github.com/yiisoft/yii2/issues/15875
@@ -186,12 +187,16 @@ class File extends FileSystemItem
             $this->populateRelation('baseFile', $this->_setFileContent);
         }
 
-        if($insert && $this->baseFile || ($this->baseFile && $this->baseFile->isNewRecord)) {
+        $isNewBaseFile = $this->baseFile && ($insert || $this->baseFile->isNewRecord);
+        if ($isNewBaseFile) {
             $this->baseFile->setPolymorphicRelation($this);
         }
 
-        // Required if title has changed.
-        if($this->baseFile && ($insert ||  ($this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name || $this->baseFile->isNewRecord))) {
+        $fileTitleChanged = ($this->baseFile && $this->baseFile->getOldAttribute('file_name') != $this->baseFile->file_name);
+        $newVersionUploaded = ($this->baseFile && isset($this->baseFile->uploadedFile) && $this->baseFile->uploadedFile instanceof UploadedFile);
+
+        // Insert new base File OR Update the existing File if title has been changed or new file version has been uploaded
+        if ($isNewBaseFile || $fileTitleChanged || $newVersionUploaded) {
             $this->baseFile->save(false);
         }
 
@@ -377,13 +382,8 @@ class File extends FileSystemItem
 
     public function getBaseFile()
     {
-        $query = $this->hasOne(FileUpload::className(), [
-            'object_id' => 'id'
-        ])->andWhere([
-            'file.object_model' => self::className()
-        ]);
-
-        return $query;
+        return $this->hasOne(BaseFile::class, ['object_id' => 'id'])
+            ->andWhere(['file.object_model' => self::class]);
     }
 
     public static function getPathFromId($id, $parentFolderPath = false, $separator = '/', $withRoot = false)
@@ -391,9 +391,7 @@ class File extends FileSystemItem
         if ($id == 0) {
             return $separator;
         }
-        $item = File::findOne([
-                    'id' => $id
-        ]);
+        $item = File::findOne(['id' => $id]);
 
         if (empty($item)) {
             return null;
@@ -462,7 +460,7 @@ class File extends FileSystemItem
                 ->readable()
                 ->andWhere([
             'file_name' => $name,
-            'parent_folder_id' => $parentFolderId
+            'cfiles_file.parent_folder_id' => $parentFolderId
         ]);
         return $filesQuery->one();
     }
@@ -481,4 +479,48 @@ class File extends FileSystemItem
             ->andWhere(['object_model' => self::class])
             ->one();
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getVersionsUrl(int $versionId = 0): ?string
+    {
+        if (!$this->content->canEdit()) {
+            return null;
+        }
+
+        $options = ['id' => $this->id];
+
+        if (!empty($versionId)) {
+            if ($versionId === $this->baseFile->id) {
+                // No need to switch to already current version
+                return null;
+            }
+
+            $options['version'] = $versionId;
+        }
+
+        return $this->content->container->createUrl('/cfiles/version', $options);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDeleteVersionUrl(int $versionId): ?string
+    {
+        if ($versionId === $this->baseFile->id) {
+            // Don't allow to delete the current version
+            return null;
+        }
+
+        if (!$this->canEdit()) {
+            return null;
+        }
+
+        return $this->content->container->createUrl('/cfiles/version/delete', [
+            'id' => $this->id,
+            'version' => $versionId,
+        ]);
+    }
+
 }

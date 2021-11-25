@@ -156,6 +156,9 @@ humhub.module('cfiles', function (module, require, $) {
                     case 'zip':
                         that.downloadZip(item);
                         break;
+                    case 'versions':
+                        item.versions();
+                        break;
                     default:
                         module.log.warn("Unkown action " + action);
                         break;
@@ -434,6 +437,7 @@ humhub.module('cfiles', function (module, require, $) {
         this.editUrl = this.$.data('cfiles-edit-url');
         this.moveUrl = this.$.data('cfiles-move-url');
         this.dropUrl = this.$.data('cfiles-drop-url');
+        this.versionsUrl = this.$.data('cfiles-versions-url');
     };
 
     FileItem.prototype.loader = function (show) {
@@ -482,6 +486,15 @@ humhub.module('cfiles', function (module, require, $) {
             var fid = $('#cfiles-folderView').data('fid');
             _getDirectoryList().select(fid);
             modal.global.show();
+        }).catch(function (e) {
+            module.log.error(e, true);
+        });
+    };
+
+    FileItem.prototype.versions = function () {
+        modal.global.post({
+            'url': this.versionsUrl,
+            'dataType': 'html'
         }).catch(function (e) {
             module.log.error(e, true);
         });
@@ -548,9 +561,43 @@ humhub.module('cfiles', function (module, require, $) {
         event.off('humhub:file:modified.cfiles');
     };
 
+    var loadNextPageVersions = function (evt) {
+        var nextPage = evt.$trigger.data('nextPage') || 2;
+        client.get(evt, {data: {page: nextPage}}).then(function(response) {
+            $('.modal-content table tbody').append(response.html);
+            if (response.isLast) {
+                evt.$trigger.parent().remove();
+            } else {
+                evt.$trigger.data('nextPage', nextPage + 1);
+            }
+        }).catch(function(e) {
+            module.log.error(e, true);
+        });
+    }
+
+    var deleteVersion = function (evt) {
+        var versionRow = evt.$trigger.closest('tr');
+        versionRow.addClass('bg-danger');
+        client.post(evt).then(function(response) {
+            if (response.deleted) {
+                versionRow.remove();
+                status.success(response.message);
+            } else {
+                status.error(response.error);
+                setTimeout(function() {
+                    versionRow.removeClass('bg-danger')
+                }, 2000);
+            }
+        }).catch(function(e) {
+            module.log.error(e, true);
+        });
+    }
+
     module.export({
         unload: unload,
         move: move,
+        loadNextPageVersions: loadNextPageVersions,
+        deleteVersion: deleteVersion,
         FolderView: FolderView,
         FileItem: FileItem,
         DirectoryList: DirectoryList
