@@ -4,6 +4,18 @@ Changelog
 0.14.0 - Unreleased
 -----------------------
 - Enh #100: Add context menu on hover
+- Enh #121: File versioning
+
+
+0.13.2 - Unreleased
+-----------------------
+- Enh #84: Move files to different Space
+- Enh #48: Use RichText for file description
+- Enh #103: Allow to edit topics from the file edit form
+- Enh #82: Move files and folders by drag & drop
+- Enh #5274: Deprecate CompatModuleManager
+- Enh #133: Factorize duplicated code
+- Enh #140: Use widget ContentVisibiltySelect
 
 
 0.13.1 - July 29, 2021

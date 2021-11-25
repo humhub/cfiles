@@ -5,10 +5,8 @@ namespace humhub\modules\cfiles\models;
 use humhub\modules\file\libs\ImageHelper;
 use humhub\modules\file\models\FileContent;
 use Yii;
-use yii\base\ModelEvent;
 use yii\db\ActiveQuery;
 use humhub\modules\file\libs\FileHelper;
-use humhub\modules\file\models\FileUpload;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\Content;
@@ -668,15 +666,12 @@ class Folder extends FileSystemItem
      * @param UploadedFile $uploadedFile
      * @return File
      */
-    public function addUploadedFile(UploadedFile $uploadedFile, $replace = false)
+    public function addUploadedFile(UploadedFile $uploadedFile): File
     {
+        // Get file instance either an existing one or a new one
+        $file = $this->getFileInstance($uploadedFile);
 
-        // Get file instance either an existing one if $replace = true and a file already exists or a new one
-        $file = $this->getFileInstance($uploadedFile, $replace);
-
-        $fileName = (!$replace) ? $this->getAddedFileName($uploadedFile->name) : $uploadedFile->name;
-
-        if($file->setUploadedFile($uploadedFile, $fileName)) {
+        if ($file->setUploadedFile($uploadedFile)) {
             $file->save();
         }
 
@@ -685,22 +680,17 @@ class Folder extends FileSystemItem
 
     /**
      * @param UploadedFile $uploadedFile
-     * @param bool $replace
+     * @return File
      */
-    private function getFileInstance(UploadedFile $uploadedFile, $replace = false)
+    private function getFileInstance(UploadedFile $uploadedFile): File
     {
-        $result = null;
-        if($replace) {
-            $result = $this->findFileByName($uploadedFile->name);
+        if ($file = $this->findFileByName($uploadedFile->name)) {
+            return $file;
         }
 
-        if(!$result) {
-            $result = new File($this->content->container, $this->getNewItemVisibility(), [
-                'parent_folder_id' => $this->id
-            ]);
-        }
-
-        return $result;
+        return new File($this->content->container, $this->getNewItemVisibility(), [
+            'parent_folder_id' => $this->id
+        ]);
     }
 
     private function getNewItemVisibility()
@@ -769,6 +759,15 @@ class Folder extends FileSystemItem
     public function moveItem(FileSystemItem $item)
     {
         if (!$item) {
+            return false;
+        }
+
+        if (!$item->canEdit()) {
+            if ($item instanceof File) {
+                $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'You cannot move the file "{name}"!', ['name' => $item->getTitle()]));
+            } else {
+                $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'You cannot move the folder "{name}"!', ['name' => $item->getTitle()]));
+            }
             return false;
         }
 
@@ -874,7 +873,7 @@ class Folder extends FileSystemItem
 
     public function fileExists($name)
     {
-        return File::find()->joinWith('baseFile')->where(['file_name' => $name, 'parent_folder_id' => $this->id])->count();
+        return File::find()->joinWith('baseFile')->where(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->id])->count();
     }
 
     public function folderExists($name)
@@ -882,17 +881,35 @@ class Folder extends FileSystemItem
         return Folder::find()->where(['title' => $name, 'parent_folder_id' => $this->id])->count();
     }
 
-    public function findFileByName($name)
+    public function findFileByName($name): ?File
     {
         return File::find()->contentContainer($this->content->container)
             ->joinWith('baseFile')
-            ->andWhere(['file_name' => $name, 'parent_folder_id' => $this->id])->one();
+            ->andWhere(['file_name' => $name])
+            ->andWhere(['cfiles_file.parent_folder_id' => $this->id])
+            ->one();
     }
 
     public function findFolderByName($name)
     {
         return Folder::find()->contentContainer($this->content->container)
             ->andWhere(['title' => $name, 'parent_folder_id' => $this->id])->one();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getVersionsUrl(int $versionId = 0): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDeleteVersionUrl(int $versionId): ?string
+    {
+        return null;
     }
 
 }

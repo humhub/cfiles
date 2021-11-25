@@ -8,9 +8,7 @@
 
 namespace humhub\modules\cfiles\actions;
 
-use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\FileSystemItem;
-use humhub\modules\cfiles\Module;
 use humhub\modules\file\libs\FileHelper;
 use Yii;
 use yii\web\UploadedFile;
@@ -44,7 +42,7 @@ class UploadAction extends \humhub\modules\file\actions\UploadAction
     {
         $folder = $this->controller->getCurrentFolder();
 
-        $file = $folder->addUploadedFile($uploadedFile, Yii::$app->getModule('cfiles')->getUploadBehaviour());
+        $file = $folder->addUploadedFile($uploadedFile);
 
         if($file->hasErrors()) {
             return $this->getValidationErrorResponse($file);

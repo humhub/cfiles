@@ -80,6 +80,13 @@ return [
     'You can find all files that have been posted to this stream here.' => 'Poți găsi toate fișierele care au fost postate în această activitate aici.',
     'ZIP selected' => 'ZIP selectat',
     'ZIP support is not enabled.' => 'Suportul de fișiere ZIP nu este activat.',
+    'Could not move the item!' => '',
     'Display a download count column' => '',
     'Downloads' => '',
+    'File "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
+    'Folder "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
+    'Wrong moved item!' => '',
+    'Wrong target folder!' => '',
+    'You cannot move the file "{name}"!' => '',
+    'You cannot move the folder "{name}"!' => '',
 ];

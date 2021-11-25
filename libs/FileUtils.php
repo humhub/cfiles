@@ -53,6 +53,7 @@ class FileUtils
         'image' => [
             'ext' => [
                 'jpg',
+                'jpeg',
                 'gif',
                 'bmp',
                 'svg',
@@ -112,8 +113,9 @@ class FileUtils
      */
     public static function getIconClassByExt($ext = '')
     {
+        $ext = strtolower($ext);
         foreach (self::$map as $type => $info) {
-            if (in_array(strtolower($ext), $info['ext'])) {
+            if (in_array($ext, $info['ext'])) {
                 return $info['icon'];
             }
         }
@@ -129,8 +131,9 @@ class FileUtils
      */
     public static function getItemTypeByExt($ext)
     {
+        $ext = strtolower($ext);
         foreach (self::$map as $type => $info) {
-            if (in_array(strtolower($ext), $info['ext'])) {
+            if (in_array($ext, $info['ext'])) {
                 return $type;
             }
         }

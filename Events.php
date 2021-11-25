@@ -25,7 +25,7 @@ class Events
     public static function onSpaceMenuInit($event)
     {
 
-        if ($event->sender->space !== null && $event->sender->space->isModuleEnabled('cfiles')) {
+        if ($event->sender->space !== null && $event->sender->space->moduleManager->isEnabled('cfiles')) {
             $event->sender->addItem([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'group' => 'modules',
@@ -73,7 +73,7 @@ class Events
 
     public static function onProfileMenuInit($event)
     {
-        if ($event->sender->user !== null && $event->sender->user->isModuleEnabled('cfiles')) {
+        if ($event->sender->user !== null && $event->sender->user->moduleManager->isEnabled('cfiles')) {
             $event->sender->addItem([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'url' => $event->sender->user->createUrl('/cfiles/browse'),
@@ -111,7 +111,7 @@ class Events
         $container = $event->sender;
 
         if ($container instanceof ContentContainerActiveRecord &&
-            $container->isModuleEnabled('cfiles')) {
+            $container->moduleManager->isEnabled('cfiles')) {
             Folder::initRoot($container);
             Folder::initPostedFilesFolder($container);
         }

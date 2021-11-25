@@ -1,5 +1,6 @@
 <?php
 
+use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\libs\FileHelper;
 use humhub\libs\Html;
 
@@ -23,7 +24,7 @@ use humhub\libs\Html;
 
 <?php if (!empty($cFile->description)): ?>
     <br />
-    <?= Html::encode($cFile->description); ?>
+    <?= RichText::convert($cFile->description, RichText::FORMAT_HTML); ?>
     <br />
 <?php endif; ?>
 

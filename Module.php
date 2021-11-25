@@ -4,14 +4,13 @@ namespace humhub\modules\cfiles;
 
 use humhub\components\console\Application as ConsoleApplication;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
-use humhub\modules\cfiles\models\rows\SpecialFolderRow;
-use Yii;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentContainerModule;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\File;
+use Yii;
 use yii\helpers\Url;
 
 class Module extends ContentContainerModule
@@ -139,9 +138,7 @@ class Module extends ContentContainerModule
      */
     public function getConfigUrl()
     {
-        return Url::to([
-                    '/cfiles/config'
-        ]);
+        return Url::to(['/cfiles/config']);
     }
 
     /**
@@ -155,21 +152,11 @@ class Module extends ContentContainerModule
     }
 
     /**
-     * Determines ZIP Support is enabled or not
+     * Determines a download count column is visible or not
      *
-     * @return boolean is ZIP support enabled
+     * @return bool
      */
-    public function getUploadBehaviour()
-    {
-        return $this->settings->get('uploadBehaviour', self::UPLOAD_BEHAVIOUR_INDEX);
-    }
-
-    /**
-     * Determines visible columns
-     *
-     * @return array
-     */
-    public function getDisplayDownloadCount()
+    public function getDisplayDownloadCount(): bool
     {
         return $this->settings->get('displayDownloadCount', false);
     }

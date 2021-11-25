@@ -80,6 +80,13 @@ return [
     'You can find all files that have been posted to this stream here.' => 'Du finner alle filer som er lagt til i nyhetsstrømmen her.',
     'ZIP selected' => 'ZIP valgt',
     'ZIP support is not enabled.' => 'ZIP support er ikke aktivert.',
+    'Could not move the item!' => '',
     'Display a download count column' => '',
     'Downloads' => '',
+    'File "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
+    'Folder "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
+    'Wrong moved item!' => '',
+    'Wrong target folder!' => '',
+    'You cannot move the file "{name}"!' => '',
+    'You cannot move the folder "{name}"!' => '',
 ];

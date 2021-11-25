@@ -24,9 +24,9 @@ class UploadAndMoveCest
 
         $I->wantToTest('the duplicate names entry');
         $I->attachFile('#cfilesUploadFiles', 'test.txt');
-        $I->waitForText('test(1).txt', null, '#fileList');
+        $I->waitForText('test.txt', null, '#fileList');
 
-        $I->wantToTest('the creaton of a folder');
+        $I->wantToTest('the creation of a folder');
         $I->click('Add directory', '.files-action-menu');
 
         $I->waitForText('Create folder', null,'#globalModal');
@@ -50,11 +50,10 @@ class UploadAndMoveCest
         $I->seeError('Some files could not be moved: Folder NewFolder can\'t be moved to itself!');
 
         $I->see('NewFolder', '#fileList');
-        $I->dontSee('test(1).txt', '#fileList');
         $I->dontSee('test.txt', '#fileList');
 
         $I->click('NewFolder', '#fileList');
         $I->waitForText('test.txt', null, '#fileList');
-        $I->see('test(1).txt', null, '#fileList');
+        $I->see('test.txt', null, '#fileList');
     }
 }

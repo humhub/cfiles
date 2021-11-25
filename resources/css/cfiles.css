@@ -187,6 +187,13 @@
   margin-bottom: 0px;
 }
 
+#bs-table.table tr.ui-draggable-dragging {
+  z-index: 10000;
+}
+#bs-table.table tr.ui-droppable-hover td {
+  background: #ffffe0;
+}
+
 #fileList [data-ui-sort] {
   font-weight:bold;
   cursor: pointer;

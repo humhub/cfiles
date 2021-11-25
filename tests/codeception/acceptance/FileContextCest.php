@@ -25,7 +25,7 @@ class FileContextCest
         $I->amGoingTo('edit my file per context menu');
         $I->clickFileContext(1, 'Edit');
         $I->waitForText('Edit file', null, '#globalModal');
-        $I->fillField('FileUpload[file_name]', 'newFile.txt');
+        $I->fillField('File[file_name]', 'newFile.txt');
         $I->click('Save', '#globalModal');
 
         $I->seeInFileList('newFile.txt');
