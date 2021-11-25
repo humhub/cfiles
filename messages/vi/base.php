@@ -80,6 +80,13 @@ return [
     'You can find all files that have been posted to this stream here.' => 'Bạn có thể tìm thấy tất cả các file đã được đăng trên dòng thời gian này ở đây.',
     'ZIP selected' => 'Nén (zip) file được chọn',
     'ZIP support is not enabled.' => 'Chức năng file (zip) chưa được kích hoạt.',
+    'Could not move the item!' => '',
     'Display a download count column' => '',
     'Downloads' => '',
+    'File "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
+    'Folder "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
+    'Wrong moved item!' => '',
+    'Wrong target folder!' => '',
+    'You cannot move the file "{name}"!' => '',
+    'You cannot move the folder "{name}"!' => '',
 ];

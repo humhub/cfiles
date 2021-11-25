@@ -66,7 +66,7 @@ class FileController extends BaseContentController
         }
 
         foreach ($files as $file) {
-            $file = $targetDir->addUploadedFile($file, Yii::$app->getModule('cfiles')->getUploadBehaviour());
+            $file = $targetDir->addUploadedFile($file);
 
             if($file->hasErrors() || $file->baseFile->hasErrors()) {
                 return $this->returnError(422, "File {$file->baseFile->name} could not be uploaded!", [

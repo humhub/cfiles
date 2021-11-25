@@ -15,7 +15,6 @@ class ConfigureForm extends \yii\base\Model
 {
 
     public $disableZipSupport;
-    public $uploadBehaviour;
     public $displayDownloadCount;
 
     public function init()
@@ -23,7 +22,6 @@ class ConfigureForm extends \yii\base\Model
         parent::init();
         $module = $this->getModule();
         $this->disableZipSupport = !$module->isZipSupportEnabled();
-        $this->uploadBehaviour = $module->getUploadBehaviour();
         $this->displayDownloadCount = $module->getDisplayDownloadCount();
     }
 
@@ -42,7 +40,6 @@ class ConfigureForm extends \yii\base\Model
     {
         return [
             ['disableZipSupport', 'boolean'],
-            ['uploadBehaviour', 'integer'],
             ['displayDownloadCount', 'boolean'],
         ];
     }
@@ -56,15 +53,7 @@ class ConfigureForm extends \yii\base\Model
     {
         return [
             'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support'),
-            'uploadBehaviour' => Yii::t('CfilesModule.base', 'Upload behaviour for existing file names'),
             'displayDownloadCount' => Yii::t('CfilesModule.base', 'Display a download count column'),
-        ];
-    }
-
-    public function attributeHints()
-    {
-        return [
-            'uploadBehaviour' => Yii::t('CfilesModule.base', '<strong>Note:</strong> The replacement behaviour is currently not supported for zip imports.')
         ];
     }
 
@@ -76,7 +65,6 @@ class ConfigureForm extends \yii\base\Model
 
         $module = $this->getModule();
         $module->settings->set('disableZipSupport', $this->disableZipSupport);
-        $module->settings->set('uploadBehaviour', $this->uploadBehaviour);
         $module->settings->set('displayDownloadCount', $this->displayDownloadCount);
         return true;
     }
