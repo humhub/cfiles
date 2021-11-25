@@ -32,7 +32,7 @@ class VersionCest
         $I->attachFile('#cfilesUploadFiles', 'version/test.txt');
         $I->wait(1);
 
-        $secondVersionFile = $this->getFile(2);
+        $secondVersionFile = $this->getFile(1);
         $I->seeFileSizeOnSpaceStream($secondVersionFile);
         $I->amOnFilesBrowser();
 
@@ -47,7 +47,7 @@ class VersionCest
         $I->seeFileSizeOnSpaceStream($firstVersionFile);
     }
 
-    private function getFile($id): BaseFile
+    private function getFile(int $id): BaseFile
     {
         return BaseFile::findOne(['id' => $id]);
     }

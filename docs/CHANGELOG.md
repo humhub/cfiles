@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.14.1 - Unreleased
+--------------------------
+- Fix #144: Fix tests
+
 0.14.0 - November 11, 2021
 --------------------------
 - Enh #83: Enable paste/upload files from clipboard

@@ -492,11 +492,6 @@ class File extends FileSystemItem
         $options = ['id' => $this->id];
 
         if (!empty($versionId)) {
-            if ($versionId === $this->baseFile->id) {
-                // No need to switch to already current version
-                return null;
-            }
-
             $options['version'] = $versionId;
         }
 
@@ -508,11 +503,6 @@ class File extends FileSystemItem
      */
     public function getDeleteVersionUrl(int $versionId): ?string
     {
-        if ($versionId === $this->baseFile->id) {
-            // Don't allow to delete the current version
-            return null;
-        }
-
         if (!$this->canEdit()) {
             return null;
         }
