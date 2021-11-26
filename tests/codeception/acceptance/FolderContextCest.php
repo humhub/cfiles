@@ -60,7 +60,8 @@ class FolderContextCest
         $I->amInRoot();
         $I->seeElement('[data-cfiles-item="folder_4"]');
         $I->clickFolderContext(4, 'Delete');
-        $I->see('Confirm delete file', '#globalModalConfirm');
+        $I->waitForElementVisible('#globalModalConfirm', 5);
+        $I->see('Confirm delete file');
         $I->click('Delete', '#globalModalConfirm');
         $I->waitForElementNotVisible('[data-cfiles-item="folder_4"]');
 

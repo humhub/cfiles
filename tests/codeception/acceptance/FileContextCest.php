@@ -43,7 +43,8 @@ class FileContextCest
         $I->amGoingTo('delete my file per context menu');
         $I->seeElement('[data-cfiles-item="file_1"]');
         $I->clickFileContext(1, 'Delete');
-        $I->see('Confirm delete file', '#globalModalConfirm');
+        $I->waitForElementVisible('#globalModalConfirm', 5);
+        $I->see('Confirm delete file');
         $I->click('Delete', '#globalModalConfirm');
         $I->waitForElementNotVisible('[data-cfiles-item="file_1"]');
 
