@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.14.1 - Unreleased
+--------------------------
+- Fix #146: Update content last editor and date after save base File
+
+
 0.14.0 - November 26, 2021
 --------------------------
 - Enh #83: Enable paste/upload files from clipboard

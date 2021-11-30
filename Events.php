@@ -8,6 +8,7 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainer;
 use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\actions\DownloadAction;
+use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use Yii;
@@ -168,6 +169,24 @@ class Events
             ['pattern' => 'cfiles/items/container/<containerId:\d+>/delete', 'route' => 'cfiles/rest/manage/delete', 'verb' => 'DELETE'],
 
         ], 'cfiles');
+    }
+
+    public static function onAfterFileUpdate($event)
+    {
+        $baseFile = $event->sender;
+        if (!($baseFile instanceof BaseFile)) {
+            return;
+        }
+
+        $file = File::findOne($baseFile->object_id);
+        if (!$file) {
+            return;
+        }
+
+        $file->content->updateAttributes([
+            'updated_at' => $baseFile->updated_at,
+            'updated_by' => $baseFile->updated_by,
+        ]);
     }
 
 }
