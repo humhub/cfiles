@@ -101,6 +101,7 @@ class FileListContextMenu extends WallEntryControls
             if ($this->canWrite()) {
                 $this->addMenu(Yii::t('CfilesModule.base', 'Move'), 'move-files', 'arrows', 60);
             }
+            $this->addMenu(Yii::t('CfilesModule.base', 'Versions'), 'versions', 'history', 70);
         }
     }
 

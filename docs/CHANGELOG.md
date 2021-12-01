@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.14.0 - Unreleased
+0.14.1 - Unreleased
 -----------------------
 - Enh #127: Improve context menu with items from wall stream entry
 
