@@ -4,9 +4,9 @@ namespace humhub\modules\cfiles\models;
 
 use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\content\models\Content;
 use humhub\modules\user\models\User;
-use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\search\interfaces\Searchable;
 use Yii;
 
@@ -55,6 +55,16 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     abstract function getDescription();
     abstract function getDownloadCount();
     abstract function getVisibilityTitle();
+
+    /**
+     * @return string
+     */
+    abstract public function getVersionsUrl(int $versionId = 0): ?string;
+
+    /**
+     * @return string
+     */
+    abstract public function getDeleteVersionUrl(int $versionId): ?string;
 
     /**
      * @inheritdoc

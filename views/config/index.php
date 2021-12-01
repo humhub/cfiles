@@ -1,11 +1,10 @@
 <?php
 
-use humhub\modules\cfiles\Module;
+use humhub\modules\cfiles\models\ConfigureForm;
 use humhub\widgets\Button;
 use yii\bootstrap\ActiveForm;
-use yii\helpers\Html;
 
-/* @var $model \humhub\modules\cfiles\models\ConfigureForm */
+/* @var $model ConfigureForm */
 ?>
 
 <div class="panel panel-default">
@@ -14,11 +13,6 @@ use yii\helpers\Html;
 
     <div class="panel-body">
         <?php $form = ActiveForm::begin(['id' => 'configure-form']); ?>
-
-            <?= $form->field($model, 'uploadBehaviour')->radioList([
-                    Module::UPLOAD_BEHAVIOUR_INDEX => Yii::t('CfilesModule.base', 'Use of file indexes for already existing files'),
-                    Module::UPLOAD_BEHAVIOUR_REPLACE => Yii::t('CfilesModule.base', 'Replace existing files')
-            ]); ?>
 
             <?= $form->field($model, 'disableZipSupport')->checkbox(null, false); ?>
 

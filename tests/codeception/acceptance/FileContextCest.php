@@ -25,7 +25,7 @@ class FileContextCest
         $I->amGoingTo('edit my file per context menu');
         $I->clickFileContext(1, 'Edit');
         $I->waitForText('Edit file', null, '#globalModal');
-        $I->fillField('FileUpload[file_name]', 'newFile.txt');
+        $I->fillField('File[file_name]', 'newFile.txt');
         $I->click('Save', '#globalModal');
 
         $I->seeInFileList('newFile.txt');
@@ -43,7 +43,8 @@ class FileContextCest
         $I->amGoingTo('delete my file per context menu');
         $I->seeElement('[data-cfiles-item="file_1"]');
         $I->clickFileContext(1, 'Delete');
-        $I->see('Confirm delete file', '#globalModalConfirm');
+        $I->waitForElementVisible('#globalModalConfirm', 5);
+        $I->see('Confirm delete file');
         $I->click('Delete', '#globalModalConfirm');
         $I->waitForElementNotVisible('[data-cfiles-item="file_1"]');
 

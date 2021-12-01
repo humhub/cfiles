@@ -9,6 +9,7 @@ use humhub\modules\content\widgets\ContentObjectLinks;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\stream\assets\StreamAsset;
 use humhub\modules\user\widgets\Image;
+use humhub\widgets\Button;
 use humhub\widgets\TimeAgo;
 
 /* @var $folder Folder */
@@ -108,4 +109,16 @@ StreamAsset::register($this);
             </div>
         </td>
     <?php endif; ?>
+
+    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_ACTIONS)): ?>
+        <td class="file-actions">
+            <?= Button::defaultType()
+                ->icon('list')
+                ->options(['data-contextmenu-toggler' => '#bs-table tr'])
+                ->cssClass('context-icon')
+                ->xs()
+                ->loader(false); ?>
+        </td>
+    <?php endif; ?>
+
 <?= Html::endTag('tr') ?>

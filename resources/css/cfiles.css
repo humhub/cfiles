@@ -158,6 +158,21 @@
   overflow: initial;
 }
 
+#bs-table.table .file-actions {
+  padding-left: 0;
+  padding-right: 2px;
+  width: 0;
+}
+
+@media (min-width: 418px) {
+  #bs-table.table tr .context-icon {
+    display: none;
+  }
+  #bs-table.table tr:hover .context-icon {
+    display: inline-block;
+  }
+}
+
 #bs-table.table>thead>tr>th, 
 #bs-table.table>tbody>tr>th, 
 #bs-table.table>tfoot>tr>th, 

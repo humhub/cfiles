@@ -63,6 +63,7 @@ class FileSystemItem extends JsWidget
             'cfiles-wall-url' => $this->row->getWallUrl(),
             'cfiles-edit-url' => ($this->row->canEdit()) ? $this->row->getEditUrl() : '',
             'cfiles-move-url' => ($this->row->canEdit()) ? $this->row->getMoveUrl() : '',
+            'cfiles-versions-url' => ($this->row->canEdit()) ? $this->row->getVersionsUrl() : '',
         ];
     }
 

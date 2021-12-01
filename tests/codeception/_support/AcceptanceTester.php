@@ -8,6 +8,9 @@
 
 namespace cfiles;
 
+use humhub\modules\file\models\File as BaseFile;
+use Yii;
+
 /**
  * Inherited Methods
  * @method void wantToTest($text)
@@ -104,6 +107,11 @@ class AcceptanceTester extends \AcceptanceTester
         $this->expectTo('see files in the space nav');
         $this->waitForText('Files', 30, '.layout-nav-container');
 
+        $this->amOnFilesBrowser();
+    }
+
+    public function amOnFilesBrowser()
+    {
         $this->amGoingTo('open files module');
         $this->click('Files', '.layout-nav-container');
         $this->waitForText('Files from the stream');
@@ -127,4 +135,11 @@ class AcceptanceTester extends \AcceptanceTester
        $this->click('Save', '#globalModal');
        $this->waitForText('This folder is empty.');
    }
+
+    public function seeFileSizeOnSpaceStream(BaseFile $file, $guid = 1)
+    {
+        $this->amOnSpace($guid);
+        $this->waitForText($file->file_name);
+        $this->see('Size: ' . Yii::$app->formatter->asShortSize($file->size, 1));
+    }
 }
