@@ -2,7 +2,6 @@
 
 use yii\helpers\Html;
 use humhub\modules\cfiles\widgets\FolderView;
-use humhub\modules\cfiles\widgets\FileListContextMenu;
 
 /* @var $folder humhub\modules\cfiles\models\Folder */
 /* @var $contentContainer humhub\components\View */
@@ -22,7 +21,8 @@ $this->registerJsConfig('cfiles', [
         'headFolder' => Yii::t('CfilesModule.base', '<strong>Folder</strong> url'),
         'info' => Yii::t('base', 'Copy to clipboard'),
         'buttonClose' => Yii::t('base', 'Close'),
-    ]
+    ],
+    'reloadEntryUrl' => $contentContainer->createUrl('/cfiles/browse/load-entry'),
 ]);
 ?>
 
@@ -39,5 +39,3 @@ $this->registerJsConfig('cfiles', [
         </div>
     </div>
 <?= Html::endForm(); ?>
-
-<?= FileListContextMenu::widget(['folder' => $folder]); ?>

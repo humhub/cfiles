@@ -10,7 +10,6 @@ namespace humhub\modules\cfiles\models\forms;
 
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\cfiles\models\File;
 use Yii;
 
 /**
@@ -92,6 +91,24 @@ class MoveForm extends SelectionForm
     public function getMoveUrl()
     {
         return $this->sourceFolder->createUrl('/cfiles/move');
+    }
+
+    /**
+     * @return string URL to move Content to another Container
+     */
+    public function getMoveToContainerUrl(): ?string
+    {
+        if (count($this->selection) !== 1) {
+            // Only single selected File/Folder can be moved to another Container
+            return null;
+        }
+
+        $item = FileSystemItem::getItemById($this->selection[0]);
+        if (!$item || !$item->content->container || !$item->content->checkMovePermission()) {
+            return null;
+        }
+
+        return $item->content->container->createUrl('/content/move/move', ['id' => $item->content->id]);
     }
 
     /**

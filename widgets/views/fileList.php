@@ -1,8 +1,6 @@
 <?php
 
-use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
-use humhub\modules\file\libs\FileHelper;
 use humhub\widgets\LinkPager;
 use yii\helpers\Html;
 use humhub\modules\cfiles\widgets\FileSystemItem;
@@ -52,6 +50,7 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
 
             <?php foreach ($rows as $row) : ?>
                 <?= FileSystemItem::widget([
+                    'folder' => $folder,
                     'row' => $row,
                     'itemsSelectable' => $itemsSelectable
                 ]); ?>

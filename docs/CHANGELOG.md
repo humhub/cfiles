@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.14.1 - Unreleased
+-----------------------
+- Enh #127: Improve context menu with items from wall stream entry
+
+
 0.14.0 - November 26, 2021
 --------------------------
 - Enh #83: Enable paste/upload files from clipboard

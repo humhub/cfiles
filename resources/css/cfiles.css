@@ -154,6 +154,10 @@
   margin-bottom: 2px;
 }
 
+#fileList .table-responsive {
+  overflow: initial;
+}
+
 #bs-table.table .file-actions {
   padding-left: 0;
   padding-right: 2px;
@@ -185,6 +189,11 @@
 #bs-table.table>tbody>tr>td label, 
 #bs-table.table>tfoot>tr>td label {
   margin-bottom: 0px;
+}
+
+#bs-table.table ul.contextMenu li a {
+  font-size: 14px;
+  font-weight: normal;
 }
 
 #bs-table.table tr.ui-draggable-dragging {
