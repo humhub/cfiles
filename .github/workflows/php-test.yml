@@ -30,7 +30,7 @@ jobs:
                     - "8.0"
 
                 humhub-ref:
-                  - "develop"
+#                  - "develop"
                   - "master"
 
                 mysql-version:
