@@ -91,6 +91,8 @@ return [
     'Close' => '',
     'Delete this version!' => '',
     'File {fileName} has been reverted to version from {fileDateTime}' => '',
+    'Move to another Space' => '',
+    'No file found!' => '',
     'Revert to this version' => '',
     'Select what file version you want to switch.' => '',
     'Show older versions' => '',

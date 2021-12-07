@@ -87,6 +87,8 @@ return [
     'File "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
     'File {fileName} has been reverted to version from {fileDateTime}' => '',
     'Folder "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',
+    'Move to another Space' => '',
+    'No file found!' => '',
     'Revert to this version' => '',
     'Select what file version you want to switch.' => '',
     'Show older versions' => '',
