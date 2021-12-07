@@ -42,7 +42,8 @@ class AcceptanceTester extends \AcceptanceTester
 
     public function seeInFileList($text)
     {
-        $this->waitForText($text, null, '#fileList');
+        $this->waitForElement('#fileList');
+        $this->waitForText($text);
     }
 
     public function dontSeeInFileList($text)
