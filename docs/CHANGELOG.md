@@ -1,13 +1,9 @@
 Changelog
 =========
 
-0.15.0 - Unreleased
---------------------------
-- Fix #146: Update content last editor and date after save base File
-
-
 0.14.1 - Unreleased
 -----------------------
+- Fix #146: Update content last editor and date after save base File
 - Enh #127: Improve context menu with items from wall stream entry
 
 
