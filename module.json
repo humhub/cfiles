@@ -11,7 +11,7 @@
     ],
     "version": "0.15.0",
     "humhub": {
-        "minVersion": "1.11.0"
+        "minVersion": "1.10.2"
     },
     "homepage": "https://github.com/humhub/cfiles",
     "authors": [
