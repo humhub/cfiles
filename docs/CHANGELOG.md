@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.14.1 - Unreleased
+0.15.0 - Unreleased
 --------------------------
 - Fix #146: Update content last editor and date after save base File
 

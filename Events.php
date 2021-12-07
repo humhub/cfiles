@@ -171,7 +171,7 @@ class Events
         ], 'cfiles');
     }
 
-    public static function onAfterFileUpdate($event)
+    public static function onAfterNewStoredFile($event)
     {
         $baseFile = $event->sender;
         if (!($baseFile instanceof BaseFile)) {
