@@ -79,7 +79,8 @@ class VisibilityCest
 
         $I->amUser1(true);
         $I->amOnSpace(1, '/cfiles/browse');
-        $I->see('visibility', '#fileList');
+        $I->seeElement('#fileList');
+        $I->see('visibility');
         $I->click('visibility', '#fileList');
         $I->waitForText('visibility2',null,'#fileList');
         $I->see('test.txt', '#fileList');
