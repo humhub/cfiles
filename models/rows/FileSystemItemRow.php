@@ -8,6 +8,8 @@
 
 namespace humhub\modules\cfiles\models\rows;
 
+use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
+
 /**
  * Created by PhpStorm.
  * User: buddha
@@ -67,6 +69,14 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     public function getItemId()
     {
         return $this->item->getItemId();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentId()
+    {
+        return $this->item->content->id;
     }
 
     /**
@@ -204,4 +214,9 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     {
         return $this->item->getVisibilityTitle();
     }
+
+    /**
+     * @return WallStreamModuleEntryWidget
+     */
+    abstract public function getContext(): WallStreamModuleEntryWidget;
 }

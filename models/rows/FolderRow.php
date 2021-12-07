@@ -8,7 +8,8 @@
 
 namespace humhub\modules\cfiles\models\rows;
 
-use Yii;
+use humhub\modules\cfiles\widgets\WallEntryFolder;
+use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
 
 /**
  * Created by PhpStorm.
@@ -55,5 +56,13 @@ class FolderRow extends FileSystemItemRow
     public function canEdit()
     {
         return $this->item->content->canEdit();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContext(): WallStreamModuleEntryWidget
+    {
+        return new WallEntryFolder(['model' => $this->item]);
     }
 }

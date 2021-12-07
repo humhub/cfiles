@@ -90,36 +90,9 @@ humhub.module('cfiles', function (module, require, $) {
     FolderView.prototype.initContextMenu = function () {
         var that = this;
         $("#bs-table tr").contextMenu({
-            getMenuSelector: function ($invokedOn, settings) {
-           
-
-                var fileItem = FileItem.instance($invokedOn.closest('tr'));
-                var selector;
-
-                switch (fileItem.options['cfilesType']) {
-                    case "folder-posted":
-                        selector = '#contextMenuAllPostedFiles';
-                        break;
-                    case "folder":
-                        selector = '#contextMenuFolder';
-                        break;
-                    case "image":
-                        selector = '#contextMenuImage';
-                        break;
-                    default:
-                        selector = '#contextMenuFile';
-                        break;
-                }
-
-                var $contextMenu = $(selector);
-
-                if(fileItem.options['cfilesEditable']) {
-                    $contextMenu.find('.editableOnly').show();
-                } else {
-                    $contextMenu.find('.editableOnly').hide();
-                }
-
-                return selector;
+            getMenuSelector: function ($invokedOn) {
+                $('.contextMenu').hide();
+                return '#' + $invokedOn.closest('tr').attr('id') + ' .contextMenu';
             },
             menuSelected: function ($invokedOn, selectedMenu, evt) {
                 evt.preventDefault();
@@ -127,6 +100,7 @@ humhub.module('cfiles', function (module, require, $) {
 
                 if (!item) {
                     module.log.error('Could not determine item for given context node', $invokedOn);
+                    return;
                 }
 
                 var action = selectedMenu.data('action');
@@ -163,6 +137,14 @@ humhub.module('cfiles', function (module, require, $) {
                         module.log.warn("Unkown action " + action);
                         break;
                 }
+            }
+        });
+
+        event.on('humhub:content:afterMove', function (evt, response) {
+            if (response.data.success && response.data.id) {
+                that.$.find('tr[data-cfiles-content=' + response.data.id + ']').fadeOut(function() {
+                    $(this).remove();
+                });
             }
         });
     };
@@ -475,6 +457,31 @@ humhub.module('cfiles', function (module, require, $) {
             module.log.error(e, true);
         });
     };
+
+    FileItem.prototype.reloadEntry = function (entry) {
+        if(!entry) {
+            return;
+        }
+
+        var row = entry.parent('tr');
+        row.loader();
+
+        return client.get(module.config.reloadEntryUrl, {data: {id: row.data('cfiles-item')}}).then(function (response) {
+            if (response.output) {
+                row.$.html($(response.output).html());
+                if (response.scripts) {
+                    // Append additional scripts which may show some message in info footer bar
+                    // NOTE: we cannot append them right after </tr> because table structure will be broken
+                    row.$.find('td:first').append(response.scripts);
+                }
+            }
+            return response;
+        }).catch(function (err) {
+            module.log.error(err, true);
+        }).finally(function () {
+            row.loader(false);
+        });
+    }
 
     var _getDirectoryList = function () {
         return Widget.instance('#cfiles-directory-list');
