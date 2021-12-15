@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.14.2 - Unreleased
+-------------------------
+- Fix #149: Fix error on context menu for files from stream
+
+
 0.14.1 - December 7, 2021
 -------------------------
 - Fix #146: Update content last editor and date after save base File

@@ -43,8 +43,6 @@ StreamAsset::register($this);
             <?= FileListContextMenu::widget([
                 'folder' => $folder,
                 'row' => $row,
-                'object' => $row->item,
-                'wallEntryWidget' => $row->getContext(),
             ]) ?>
         </td>
     <?php endif; ?>
