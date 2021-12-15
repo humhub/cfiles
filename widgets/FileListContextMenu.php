@@ -2,6 +2,8 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\content\widgets\WallEntryControls;
@@ -15,8 +17,7 @@ use Yii;
 class FileListContextMenu extends WallEntryControls
 {
     /**
-     * Current folder model instance.
-     * @var \humhub\modules\cfiles\models\Folder
+     * @var Folder Current folder model instance
      */
     public $folder;
 
@@ -35,12 +36,27 @@ class FileListContextMenu extends WallEntryControls
      */
     public function init()
     {
-        if (in_array($this->row->getType(), ['folder', 'folder-posted'])) {
+        if ($this->disabledWallEntryControls()) {
             $this->initRenderOptions();
-            return; // Don't init external module menu entries for folders on trigger event
+            return;
         }
 
+        $this->object = $this->row->item;
+        $this->wallEntryWidget = $this->row->getContext();
         parent::init();
+    }
+
+    private function disabledWallEntryControls(): bool
+    {
+        if (!isset($this->row->item) || !($this->row->item instanceof FileSystemItem)) {
+            return true;
+        }
+
+        if (in_array($this->row->getType(), ['folder', 'folder-posted'])) {
+            return true;
+        }
+
+        return false;
     }
 
     public function initControls()
@@ -66,7 +82,9 @@ class FileListContextMenu extends WallEntryControls
                 $this->initMenuFile();
         }
 
-        parent::initControls();
+        if (!$this->disabledWallEntryControls()) {
+            parent::initControls();
+        }
     }
 
     private function initMenuFolder()
