@@ -14,7 +14,7 @@ return array (
   '<strong>Move</strong> files' => '<strong>Klasörü</strong> taşı',
   'A file with that name already exists in this folder.' => '',
   'A folder with this name already exists.' => '',
-  'Actions' => '',
+  'Actions' => 'Eylemler',
   'Add directory' => 'Dizin ekle',
   'Add file(s)' => 'Dosya Ekle',
   'Adds files module to this space.' => '',
