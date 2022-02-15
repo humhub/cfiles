@@ -223,21 +223,21 @@
 }
 @media (min-width: 420px) {
   .table-responsive td .title {
-    max-width: 160px;
+    max-width: 125px;
   }
 }
 @media (min-width: 768px) {
   .table-responsive td .title {
-    max-width: 400px;
+    max-width: 250px;
   }
 }
 @media (min-width: 992px) {
   .table-responsive td .title {
-    max-width: 450px;
+    max-width: 350px;
   }
 }
 @media (min-width: 1200px) {
   .table-responsive td .title {
-    max-width: 600px;
+    max-width: 450px;
   }
 }
