@@ -136,9 +136,6 @@
 .table-responsive > table > tbody > tr > td {
   vertical-align: middle;
 }
-.table-responsive td .title {
-  max-width: 150px;
-}
 .table-responsive .table .file-controls {
   font-size: 11px;
   margin-top: 0;
@@ -216,28 +213,38 @@
   content: "\25b2";
 }
 
+
+.table-responsive td .title {
+  position: absolute;
+  width: 100%;
+  top: -10px;
+}
 @media (max-width: 419px) {
   .hidden-xxs {
     display: none !important;
   }
 }
 @media (min-width: 420px) {
-  .table-responsive td .title {
-    max-width: 125px;
+  .table-responsive td:nth-child(2) {
+    width: 25%;
+    max-width: 25%;
   }
 }
 @media (min-width: 768px) {
-  .table-responsive td .title {
-    max-width: 250px;
+  .table-responsive td:nth-child(2) {
+    width: 30%;
+    max-width: 30%;
   }
 }
 @media (min-width: 992px) {
-  .table-responsive td .title {
-    max-width: 350px;
+  .table-responsive td:nth-child(2) {
+    width: 35%;
+    max-width: 35%;
   }
 }
 @media (min-width: 1200px) {
-  .table-responsive td .title {
-    max-width: 450px;
+  .table-responsive td:nth-child(2) {
+    width: 40%;
+    max-width: 40%;
   }
 }

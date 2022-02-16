@@ -30,15 +30,17 @@ StreamAsset::register($this);
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TITLE)) : ?>
         <td class="text-left">
-            <div class="title" style="position:relative">
-                <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
-                <?php if ($row->getType() === "image") : ?>
-                    <a href="<?= $row->getUrl(); ?>" data-ui-gallery="FilesModule-Gallery-<?= $row->getParentFolderId(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
-                <?php elseif ($row->getBaseFile() !== null) : ?>
-                    <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]); ?>
-                <?php else: ?>
-                    <a href="<?= $row->getLinkUrl(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
-                <?php endif; ?>
+            <div style="position: relative">
+                <div class="title">
+                    <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
+                    <?php if ($row->getType() === "image") : ?>
+                        <a href="<?= $row->getUrl(); ?>" data-ui-gallery="FilesModule-Gallery-<?= $row->getParentFolderId(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
+                    <?php elseif ($row->getBaseFile() !== null) : ?>
+                        <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]); ?>
+                    <?php else: ?>
+                        <a href="<?= $row->getLinkUrl(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
+                    <?php endif; ?>
+                </div>
             </div>
             <?= FileListContextMenu::widget([
                 'folder' => $folder,
