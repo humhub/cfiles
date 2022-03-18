@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.14.3 - Unreleased
+--------------------
+- Enh #152: Improve File listing layout 
+
 0.14.2 - December 15, 2021
 --------------------------
 - Fix #149: Fix error on context menu for files from stream
