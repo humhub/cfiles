@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.15.0 - Unreleased
+--------------------
+- Enh: Remove deprecated checkbox "regular" style
+
 0.14.3 - Unreleased
 --------------------
 - Enh #152: Improve File listing layout 
