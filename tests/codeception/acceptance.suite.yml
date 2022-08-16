@@ -20,3 +20,6 @@ modules:
       browser: chrome
       restart: true
       port: 4444
+      capabilities:
+        chromeOptions:
+          args: ["--lang=en-US"]

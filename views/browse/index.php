@@ -26,7 +26,7 @@ $this->registerJsConfig('cfiles', [
 ]);
 ?>
 
-<?= Html::beginForm(null, null, ['data-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
+<?= Html::beginForm(null, 'post', ['data-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
     <div id="cfiles-container" class="panel panel-default cfiles-content">
 
         <div class="panel-body">

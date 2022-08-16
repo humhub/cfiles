@@ -263,22 +263,18 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public static function getItemById($itemId)
     {
-        $params = explode('_', $itemId);
+        $params = empty($itemId) ? [] : explode('_', $itemId);
 
         if (sizeof($params) < 2) {
             return null;
         }
 
-        list ($type, $id) = explode('_', $itemId);
+        list ($type, $id) = $params;
         if ($type == 'file') {
             return File::find()->andWhere(['cfiles_file.id' => $id])->readable()->one();
         } elseif ($type == 'folder') {
             return Folder::find()->andWhere(['cfiles_folder.id' => $id])->readable()->one();
         }
-
-        //elseif ($type == 'baseFile') {
-        //    return File::findOne(['id' => $id]);
-        //}
 
         return null;
     }
