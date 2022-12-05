@@ -4,6 +4,7 @@ Changelog
 0.15.0 - Unreleased
 --------------------
 - Enh #157: Remove deprecated checkbox "regular" style
+- Fix #162: Don't show last updating user in creator column
 
 0.14.3 - Unreleased
 --------------------
