@@ -103,9 +103,6 @@ StreamAsset::register($this);
                 <?php if (!empty($row->getCreator())): ?>
                     <?= Image::widget(['user' => $row->getCreator(), 'width' => 21, 'showTooltip' => true]) ?>
                 <?php endif; ?>
-                <?php if (!empty($row->getEditor()) && !$row->getCreator()->is($row->getEditor())): ?>
-                    <?= Image::widget(['user' => $row->getEditor(), 'width' => 21, 'showTooltip' => true]) ?>
-                <?php endif; ?>
             </div>
         </td>
     <?php endif; ?>
