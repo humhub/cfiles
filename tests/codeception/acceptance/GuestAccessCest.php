@@ -34,7 +34,7 @@ class GuestAccessCest
         $I->logout();
 
         $I->amOnSpace2();
-        $I->see('Files', '.layout-nav-container');
+        $I->waitForText('Files', null, '.layout-nav-container');
         $I->click('Files', '.layout-nav-container');
 
         $I->seeInFileList('guest');
