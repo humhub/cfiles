@@ -96,7 +96,7 @@ class FolderController extends BaseContentController
         }
 
         if ($folder->load(Yii::$app->request->getBodyParams()) && $folder->save()) {
-            return RestDefinitions::getFolder($folder);
+            return RestDefinitions::getFolder(Folder::findOne(['id' => $folder->id]));
         }
 
         if ($folder->hasErrors()) {
