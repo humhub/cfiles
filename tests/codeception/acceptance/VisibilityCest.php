@@ -35,7 +35,7 @@ class VisibilityCest
         $I->fillField('Folder[description]', 'visibility2');
 
         $I->expect('The folder visibility to be private');
-        $I->seeElement('[for="folder-visibility"] input[type=checkbox]:disabled');
+        $I->waitForElement('[for="folder-visibility"] input[type=checkbox]:disabled');
 
         $I->click('Save', '#globalModal');
         $I->waitForText('This folder is empty.');
