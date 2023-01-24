@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.15.0 - Unreleased
---------------------
+0.15.0 - January 24, 2023
+-------------------------
 - Enh #157: Remove deprecated checkbox "regular" style
 - Fix #162: Don't show last updating user in creator column
 
