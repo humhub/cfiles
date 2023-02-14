@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.15.1 - Unreleased
--------------------------
+0.15.1 - February 14, 2023
+--------------------------
 - Enh #168: Fix cropped folder/file names
 
 0.15.0 - January 24, 2023
