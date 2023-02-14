@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.15.1 - Unreleased
+-------------------------
+- Enh #168: Fix cropped folder/file names
+
 0.15.0 - January 24, 2023
 -------------------------
 - Enh #157: Remove deprecated checkbox "regular" style
