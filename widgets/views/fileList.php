@@ -26,10 +26,9 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                     </th>
                 <?php endif; ?>
 
-                <th class="text-left" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_NAME ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_NAME ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>>
+                <th class="text-left" style="width:100%" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_NAME ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_NAME ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>>
                     <?= Yii::t('CfilesModule.base', 'Name'); ?>
                 </th>
-
 
                 <th class="hidden-xs"></th>
 
