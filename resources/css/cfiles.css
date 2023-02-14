@@ -153,6 +153,7 @@
 
 #fileList .table-responsive {
   overflow: initial;
+  border: none;
 }
 
 #bs-table.table .file-actions {
@@ -177,6 +178,7 @@
 #bs-table.table>tbody>tr>td, 
 #bs-table.table>tfoot>tr>td {
   padding: 10px 5px 5px 5px;
+  height: 37px;
 }
 
 #bs-table.table>thead>tr>th label, 
