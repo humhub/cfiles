@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\components\ContentActiveRecord;
@@ -25,6 +26,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public $visibility;
 
     /**
+     * @var ?int used for edit form
+     */
+    public $hidden = null;
+
+    /**
      * @inheritdoc
      */
     public $managePermission = ManageFiles::class;
@@ -45,15 +51,21 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function rules()
     {
         return [
-            ['visibility', 'integer', 'min' => 0, 'max' => 1]
+            ['visibility', 'integer', 'min' => 0, 'max' => 1],
+            ['hidden', 'boolean']
         ];
     }
 
     abstract function updateVisibility($visibility);
+
     abstract function getSize();
+
     abstract function getItemType();
+
     abstract function getDescription();
+
     abstract function getDownloadCount();
+
     abstract function getVisibilityTitle();
 
     /**
@@ -73,6 +85,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     {
         return [
             'visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Is Public'),
+            'hidden' => Yii::t('CfilesModule.models_FileSystemItem', 'Hide in Stream'),
             'download_count' => Yii::t('CfilesModule.models_FileSystemItem', 'Downloads'),
         ];
     }
@@ -80,22 +93,12 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     /**
      * @inheritdoc
      */
-    public function afterFind() {
+    public function afterFind()
+    {
         $this->visibility = $this->content->visibility;
+        $this->hidden = $this->content->hidden;
         parent::afterFind();
     }
-
-    public function handleContentSave($evt, $content = null)
-    {
-        /* @var $content Content */
-        $content = ($content) ? $content : $evt->sender;
-        if($evt->sender->container instanceof User && $evt->sender->isPrivate()) {
-            $evt->sender->visibility = Content::VISIBILITY_OWNER;
-        }
-
-        return true;
-    }
-
 
     /**
      * @inheritdoc
@@ -104,6 +107,12 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     {
         if ($this->parent_folder_id == "") {
             $this->parent_folder_id = null;
+        }
+
+        if ($insert && $this->hidden === null) {
+            /** @var Module $module */
+            $module = Yii::$app->getModule('cfiles');
+            $this->hidden = $module->getContentHiddenDefault($this->content->container);
         }
 
         return parent::beforeSave($insert);
@@ -117,13 +126,19 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         // this should set the editor and edit date of all parent folders if sth. inside of them has changed
         if (!empty($this->parentFolder)) {
             $this->parentFolder->save();
-            if($this->parentFolder->content->isPrivate() && $this->content->isPublic()) {
+            if ($this->parentFolder->content->isPrivate() && $this->content->isPublic()) {
                 $this->content->visibility = Content::VISIBILITY_PRIVATE;
                 $this->content->save();
             }
         }
 
+        $this->content->hidden = $this->hidden;
+        if (!$insert) {
+            $this->content->save();
+        }
+
         parent::afterSave($insert, $changedAttributes);
+
     }
 
     /**
@@ -171,7 +186,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     {
         return $folder instanceof Folder && $folder->id === $this->parent_folder_id;
     }
-    
+
     /**
      * @inheritdoc
      */
@@ -193,7 +208,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Returns the base content
-     * 
+     *
      * @return \yii\db\ActiveQuery
      */
     public function getBaseContent()
@@ -205,7 +220,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Check if a parent folder is valid or lies in itsself, etc.
-     * 
+     *
      * @param string $attribute the parent folder attribute to validate
      */
     public function validateParentFolderId($attribute = 'parent_folder_id')
@@ -233,7 +248,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Determines this item is an editable folder.
-     * 
+     *
      * @param \humhub\modules\cfiles\models\FileSystemItem $item
      * @return boolean
      */
@@ -257,7 +272,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Returns a FileSystemItem instance by the given item id of form {type}_{id}
-     * 
+     *
      * @param string $itemId item id of form {type}_{id}
      * @return FileSystemItem
      */

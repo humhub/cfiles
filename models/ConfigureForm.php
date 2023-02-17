@@ -17,12 +17,16 @@ class ConfigureForm extends \yii\base\Model
     public $disableZipSupport;
     public $displayDownloadCount;
 
+    public $contentHiddenDefault;
+
     public function init()
     {
         parent::init();
+
         $module = $this->getModule();
         $this->disableZipSupport = !$module->isZipSupportEnabled();
         $this->displayDownloadCount = $module->getDisplayDownloadCount();
+        $this->contentHiddenDefault = $module->getContentHiddenGlobalDefault();
     }
 
     /**
@@ -34,20 +38,17 @@ class ConfigureForm extends \yii\base\Model
     }
 
     /**
-     * Declares the validation rules.
+     * @inheritdoc
      */
     public function rules()
     {
         return [
-            ['disableZipSupport', 'boolean'],
-            ['displayDownloadCount', 'boolean'],
+            [['disableZipSupport', 'displayDownloadCount', 'contentHiddenDefault'], 'boolean'],
         ];
     }
 
     /**
-     * Declares customized attribute labels.
-     * If not declared here, an attribute would have a label that is
-     * the same as its name with the first letter in upper case.
+     * @inheritdoc
      */
     public function attributeLabels()
     {
@@ -57,15 +58,17 @@ class ConfigureForm extends \yii\base\Model
         ];
     }
 
-    public function save()
+    public function save(): bool
     {
-        if(!$this->validate()) {
+        if (!$this->validate()) {
             return false;
         }
 
         $module = $this->getModule();
         $module->settings->set('disableZipSupport', $this->disableZipSupport);
         $module->settings->set('displayDownloadCount', $this->displayDownloadCount);
+        $module->settings->set('contentHiddenGlobalDefault', $this->contentHiddenDefault);
+
         return true;
     }
 }

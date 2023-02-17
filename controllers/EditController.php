@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\cfiles\Module;
 use Yii;
 use yii\web\HttpException;
 use humhub\modules\cfiles\models\FileSystemItem;
@@ -21,6 +22,7 @@ use humhub\modules\cfiles\models\Folder;
 /**
  * Description of BrowseController
  *
+ * @property Module $module
  * @author luke, Sebastian Stumpf
  */
 class EditController extends BrowseController
@@ -47,6 +49,7 @@ class EditController extends BrowseController
         if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder($folder)) {
             $folder = $this->getCurrentFolder()->newFolder();
             $folder->content->container = $this->contentContainer;
+            $folder->hidden = $this->module->getContentHiddenDefault($this->contentContainer);
         }
 
         if ($folder->load(Yii::$app->request->post()) && $folder->save()) {

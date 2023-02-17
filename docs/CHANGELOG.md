@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.0 - Unreleased
+--------------------------
+- Enh: Added support for hidden files in stream
+
 0.15.1 - February 14, 2023
 --------------------------
 - Enh #168: Fix cropped folder/file names
