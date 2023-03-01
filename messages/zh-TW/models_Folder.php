@@ -1,6 +1,6 @@
 <?php
 return array (
-  'Description' => '',
+  'Description' => '描述',
   'Parent Folder ID' => '',
   'Title' => '標題',
 );
