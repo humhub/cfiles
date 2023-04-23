@@ -25,8 +25,10 @@ use yii\web\UploadedFile;
  * @property string $type
  *
  * @property Folder parentFolder
+ * @property Folder[] folders
  * @property Folder[] subFolders
  * @property Folder[] specialFolders
+ * @property File[] files
  * @property File[] subFiles
  *
  */
@@ -248,7 +250,7 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function beforeDelete()
+    public function afterSoftDelete()
     {
         foreach ($this->folders as $folder) {
             $folder->delete();
@@ -256,6 +258,22 @@ class Folder extends FileSystemItem
 
         foreach ($this->files as $file) {
             $file->delete();
+        }
+
+        parent::afterSoftDelete();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeDelete()
+    {
+        foreach ($this->folders as $folder) {
+            $folder->hardDelete();
+        }
+
+        foreach ($this->files as $file) {
+            $file->hardDelete();
         }
 
         return parent::beforeDelete();
