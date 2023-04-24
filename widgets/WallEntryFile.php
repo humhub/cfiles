@@ -8,6 +8,8 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\modules\cfiles\models\Folder;
+use humhub\modules\content\models\Content;
 use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
 use humhub\modules\file\converter\PreviewImage;
 use humhub\modules\cfiles\models\File;
@@ -40,17 +42,12 @@ class WallEntryFile extends WallStreamModuleEntryWidget
     {
         $cFile = $this->model;
 
-        $folderUrl = '#';
-        if ($cFile->parentFolder !== null) {
-            $folderUrl = $cFile->parentFolder->getUrl();
-        }
-
         return $this->render('wallEntryFile', [
             'cFile' => $cFile,
             'fileSize' => $cFile->getSize(),
             'file' => $cFile->baseFile,
             'previewImage' => new PreviewImage(),
-            'folderUrl' => $folderUrl,
+            'folderUrl' => $this->getFolderUrl(),
         ]);
     }
 
@@ -86,6 +83,19 @@ class WallEntryFile extends WallStreamModuleEntryWidget
     protected function getTitle()
     {
         return $this->model->getTitle();
+    }
+
+    protected function getFolderUrl(): ?string
+    {
+        if (!$this->model->parentFolder instanceof Folder) {
+            return null;
+        }
+
+        if ($this->model->parentFolder->content->state === Content::STATE_DELETED) {
+            return null;
+        }
+
+        return $this->model->parentFolder->getUrl();
     }
 
 }
