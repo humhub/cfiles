@@ -16,6 +16,8 @@ use Yii;
  * @property integer $id
  * @property integer $parent_folder_id
  * @property string description
+ *
+ * @property-read Folder|null $parentFolder
  */
 abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface, Searchable
 {
@@ -129,6 +131,23 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     /**
      * @inheritdoc
      */
+    public function afterStateChange(?int $newState, ?int $previousState): void
+    {
+        // All parent folders should be restored after at least one child file/folder was restored
+        if ($previousState === Content::STATE_DELETED && $newState === Content::STATE_PUBLISHED) {
+            $parentFolder = $this->parentFolder;
+            if ($parentFolder instanceof Folder) {
+                $parentFolder->content->setState(Content::STATE_PUBLISHED);
+                $parentFolder->content->save();
+            }
+        }
+
+        parent::afterStateChange($newState, $previousState);
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function afterMove(ContentContainerActiveRecord $container = null)
     {
         parent::afterMove($container);
@@ -171,7 +190,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     {
         return $folder instanceof Folder && $folder->id === $this->parent_folder_id;
     }
-    
+
     /**
      * @inheritdoc
      */
@@ -193,7 +212,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Returns the base content
-     * 
+     *
      * @return \yii\db\ActiveQuery
      */
     public function getBaseContent()
@@ -205,7 +224,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Check if a parent folder is valid or lies in itsself, etc.
-     * 
+     *
      * @param string $attribute the parent folder attribute to validate
      */
     public function validateParentFolderId($attribute = 'parent_folder_id')
@@ -233,7 +252,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Determines this item is an editable folder.
-     * 
+     *
      * @param \humhub\modules\cfiles\models\FileSystemItem $item
      * @return boolean
      */
@@ -257,7 +276,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Returns a FileSystemItem instance by the given item id of form {type}_{id}
-     * 
+     *
      * @param string $itemId item id of form {type}_{id}
      * @return FileSystemItem
      */
