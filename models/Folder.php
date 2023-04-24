@@ -25,8 +25,10 @@ use yii\web\UploadedFile;
  * @property string $type
  *
  * @property Folder parentFolder
+ * @property Folder[] folders
  * @property Folder[] subFolders
  * @property Folder[] specialFolders
+ * @property File[] files
  * @property File[] subFiles
  *
  */
@@ -248,7 +250,7 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function beforeDelete()
+    public function afterSoftDelete()
     {
         foreach ($this->folders as $folder) {
             $folder->delete();
@@ -256,6 +258,22 @@ class Folder extends FileSystemItem
 
         foreach ($this->files as $file) {
             $file->delete();
+        }
+
+        parent::afterSoftDelete();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeDelete()
+    {
+        foreach ($this->folders as $folder) {
+            $folder->hardDelete();
+        }
+
+        foreach ($this->files as $file) {
+            $file->hardDelete();
         }
 
         return parent::beforeDelete();
@@ -737,6 +755,11 @@ class Folder extends FileSystemItem
         // Get file instance either an existing one or a new one
         $file = $this->getFileInstance($uploadedFile);
 
+        if ($file->content->state === Content::STATE_DELETED) {
+            $file->content->setState(Content::STATE_PUBLISHED);
+            $file->content->save();
+        }
+
         if ($file->setUploadedFile($uploadedFile)) {
             $file->save();
         }
@@ -956,7 +979,7 @@ class Folder extends FileSystemItem
             ->one();
     }
 
-    public function findFolderByName($name)
+    public function findFolderByName($name): ?Folder
     {
         return Folder::find()->contentContainer($this->content->container)
             ->andWhere(['title' => $name, 'parent_folder_id' => $this->id])->one();

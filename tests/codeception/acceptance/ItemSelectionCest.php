@@ -40,7 +40,7 @@ class ItemSelectionCest
         $I->click('.chkCnt', '.files-action-menu');
         $I->click('Move', '.files-action-menu');
         $I->waitForText('Move files', null, '#globalModal');
-        $I->click('[data-id="4"]');
+        $I->click('[data-id="3"]');
         $I->click('Save', '#globalModal');
         $I->seeError('Some files could not be moved: Folder test can\'t be moved to itself!');
         $I->seeInFileList('test');

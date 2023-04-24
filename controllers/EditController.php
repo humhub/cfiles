@@ -44,9 +44,16 @@ class EditController extends BrowseController
         }
 
         // create new folder if no folder was found or folder is not editable.
-        if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder($folder)) {
-            $folder = $this->getCurrentFolder()->newFolder();
-            $folder->content->container = $this->contentContainer;
+        if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder()) {
+            $folderData = Yii::$app->request->post('Folder');
+            $existingFolder = $folderData ? $this->getCurrentFolder()->findFolderByName($folderData['title']) : null;
+            if ($existingFolder && $existingFolder->content->state === Content::STATE_DELETED) {
+                $folder = $existingFolder;
+                $folder->content->setState(Content::STATE_PUBLISHED);
+            } else {
+                $folder = $this->getCurrentFolder()->newFolder();
+                $folder->content->container = $this->contentContainer;
+            }
         }
 
         if ($folder->load(Yii::$app->request->post()) && $folder->save()) {

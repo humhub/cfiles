@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.15.2 - Unreleased
+--------------------------
+- Enh #173: Soft deletion of nested content and restore parent folders on restore a child file/folder
+
 0.15.1 - February 14, 2023
 --------------------------
 - Enh #168: Fix cropped folder/file names

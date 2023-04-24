@@ -9,7 +9,7 @@ use humhub\libs\Html;
 /* @var $cFile \humhub\modules\cfiles\models\File */
 /* @var $file  \humhub\modules\file\models\File */
 /* @var $fileSize integer */
-/* @var $folderUrl string */
+/* @var $folderUrl string|null */
 
 ?>
 
@@ -30,6 +30,8 @@ use humhub\libs\Html;
 
 <br />
 
-<?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default', 'data-ui-loader' => '']); ?>
+<?php if ($folderUrl) : ?>
+    <?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default', 'data-ui-loader' => '']); ?>
+<?php endif; ?>
 
 <div class="clearfix"></div>
