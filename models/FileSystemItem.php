@@ -17,6 +17,8 @@ use Yii;
  * @property integer $id
  * @property integer $parent_folder_id
  * @property string description
+ *
+ * @property-read Folder|null $parentFolder
  */
 abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface, Searchable
 {
@@ -139,6 +141,23 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
         parent::afterSave($insert, $changedAttributes);
 
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterStateChange(?int $newState, ?int $previousState): void
+    {
+        // All parent folders should be restored after at least one child file/folder was restored
+        if ($previousState === Content::STATE_DELETED && $newState === Content::STATE_PUBLISHED) {
+            $parentFolder = $this->parentFolder;
+            if ($parentFolder instanceof Folder) {
+                $parentFolder->content->setState(Content::STATE_PUBLISHED);
+                $parentFolder->content->save();
+            }
+        }
+
+        parent::afterStateChange($newState, $previousState);
     }
 
     /**

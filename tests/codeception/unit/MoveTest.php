@@ -191,7 +191,7 @@ class MoveTest extends HumHubDbTestCase
         $this->assertEquals($fileB->id, $searchOtherFileB->id);
 
         // Check if old (now empty) B folder is removed
-        $this->assertNull(Folder::findOne($folderB->id));
+        $this->assertNull(Folder::find()->readable()->andWhere(['cfiles_folder.id' => $folderB->id])->one());
     }
 
     /**
