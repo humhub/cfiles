@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.16.0 - Unreleased
---------------------------
+0.16.0 - April 27, 2023
+-----------------------
 - Enh: Added support for hidden files in stream
 - Enh #173: Soft deletion of nested content and restore parent folders on restore a child file/folder
 
