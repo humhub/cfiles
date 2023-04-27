@@ -95,6 +95,7 @@ class File extends FileSystemItem
             ['parent_folder_id', 'validateParentFolderId'],
             ['description', 'string', 'max' => 255],
             ['topics', 'safe'],
+            ['hidden', 'boolean'],
         ];
 
         if($this->parentFolder && $this->parentFolder->content->isPublic()) {

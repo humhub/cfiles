@@ -3,7 +3,9 @@
 namespace humhub\modules\cfiles;
 
 use humhub\components\console\Application as ConsoleApplication;
+use humhub\modules\cfiles\models\ConfigureContainerForm;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
+use humhub\modules\content\models\ContentContainer;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentContainerModule;
@@ -133,6 +135,11 @@ class Module extends ContentContainerModule
         }
     }
 
+    public function getContentContainerConfigUrl(ContentContainerActiveRecord $container)
+    {
+        return $container->createUrl('/cfiles/config-container');
+    }
+
     /**
      * @inheritdoc
      */
@@ -143,10 +150,10 @@ class Module extends ContentContainerModule
 
     /**
      * Determines ZIP Support is enabled or not
-     * 
+     *
      * @return boolean is ZIP support enabled
      */
-    public function isZipSupportEnabled()
+    public function isZipSupportEnabled(): bool
     {
         return !$this->settings->get('disableZipSupport', false);
     }
@@ -161,4 +168,15 @@ class Module extends ContentContainerModule
         return $this->settings->get('displayDownloadCount', false);
     }
 
+    public function getContentHiddenGlobalDefault(): bool
+    {
+        return $this->settings->get('contentHiddenGlobalDefault', false);
+    }
+
+    public function getContentHiddenDefault(ContentContainerActiveRecord $contentContainer): bool
+    {
+        $configuration = (new ConfigureContainerForm(['contentContainer' => $contentContainer]));
+        $configuration->loadBySettings();
+        return (bool)$configuration->contentHiddenDefault;
+    }
 }

@@ -15,12 +15,8 @@ use yii\bootstrap\ActiveForm;
     <div class="panel-body">
         <?php $form = ActiveForm::begin(['id' => 'configure-form']); ?>
 
-        <?= $form->field($model, 'disableZipSupport')->checkbox(null, false); ?>
-
-        <?= $form->field($model, 'displayDownloadCount')->checkbox(null, false); ?>
-
         <?= $form->field($model, 'contentHiddenDefault')->widget(ContentHiddenCheckbox::class, [
-            'type' => ContentHiddenCheckbox::TYPE_GLOBAL,
+            'type' => ContentHiddenCheckbox::TYPE_CONTENTCONTAINER,
         ]); ?>
 
         <?= Button::save()->submit() ?>
