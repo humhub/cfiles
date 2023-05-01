@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.16.1 - Unreleased
------------------------
+0.16.1 - May 1, 2023
+--------------------
 - Fix #177: Hard delete records on disable module
 
 0.16.0 - April 27, 2023
