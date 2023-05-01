@@ -5,7 +5,6 @@ namespace humhub\modules\cfiles;
 use humhub\components\console\Application as ConsoleApplication;
 use humhub\modules\cfiles\models\ConfigureContainerForm;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
-use humhub\modules\content\models\ContentContainer;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentContainerModule;
@@ -90,11 +89,11 @@ class Module extends ContentContainerModule
      */
     public function disable()
     {
-        foreach (Folder::find()->all() as $key => $folder) {
-            $folder->delete();
+        foreach (Folder::find()->all() as $folder) {
+            $folder->hardDelete();
         }
-        foreach (File::find()->all() as $key => $file) {
-            $file->delete();
+        foreach (File::find()->all() as $file) {
+            $file->hardDelete();
         }
         parent::disable();
     }
@@ -104,13 +103,11 @@ class Module extends ContentContainerModule
      */
     public function disableContentContainer(ContentContainerActiveRecord $container)
     {
-
         foreach (Folder::find()->contentContainer($container)->all() as $folder) {
-            $folder->delete();
+            $folder->hardDelete();
         }
-
         foreach (File::find()->contentContainer($container)->all() as $file) {
-            $file->delete();
+            $file->hardDelete();
         }
         parent::disableContentContainer($container);
     }

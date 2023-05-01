@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.1 - Unreleased
+-----------------------
+- Fix #177: Hard delete records on disable module
+
 0.16.0 - April 27, 2023
 -----------------------
 - Enh: Added support for hidden files in stream
