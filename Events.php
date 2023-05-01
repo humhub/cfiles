@@ -53,7 +53,7 @@ class Events
             // If parent_folder_id is 0 or null its an old root child which is not merged yet.
             if (!empty($file->parent_folder_id) && empty($file->parentFolder)) {
                 if ($integrityController->showFix("Deleting cfile id " . $file->id . " without existing parent!")) {
-                    $file->delete();
+                    $file->hardDelete();
                 }
             }
         }
@@ -66,7 +66,7 @@ class Events
             // If parent_folder_id is 0 or null its either an old root child which is not merged yet or an root directory.
             if (!empty($folder->parent_folder_id) && empty($folder->parentFolder)) {
                 if ($integrityController->showFix("Deleting cfile folder id " . $folder->id . " without existing parent!")) {
-                    $folder->delete();
+                    $folder->hardDelete();
                 }
             }
         }
