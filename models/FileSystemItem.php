@@ -152,8 +152,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         if ($previousState === Content::STATE_DELETED && $newState === Content::STATE_PUBLISHED) {
             $parentFolder = $this->parentFolder;
             if ($parentFolder instanceof Folder) {
-                $parentFolder->content->setState(Content::STATE_PUBLISHED);
-                $parentFolder->content->save();
+                $parentFolder->content->getStateService()->publish();
             }
         }
 

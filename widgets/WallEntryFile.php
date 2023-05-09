@@ -91,7 +91,7 @@ class WallEntryFile extends WallStreamModuleEntryWidget
             return null;
         }
 
-        if ($this->model->parentFolder->content->state === Content::STATE_DELETED) {
+        if ($this->model->parentFolder->content->getStateService()->isDeleted()) {
             return null;
         }
 

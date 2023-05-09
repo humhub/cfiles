@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.2 - Unreleased
+--------------------
+- Enh #178: Use new content state service
+
 0.16.1 - May 1, 2023
 --------------------
 - Fix #177: Hard delete records on disable module
