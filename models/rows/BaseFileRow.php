@@ -231,7 +231,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
      */
     public function getVisibilityIcon()
     {
-        return $this->getModel()->content->isPublic() ? 'fa-unlock-alt': 'fa-lock';
+        return $this->getModel()->content->isPublic() ? 'fa-unlock': 'fa-lock';
     }
 
     /**
