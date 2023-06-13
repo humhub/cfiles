@@ -60,13 +60,13 @@ class VisibilityCest
         $I->waitForText('visibility2', null, '#fileList');
 
         $I->expect('all subfiles and subfolders to be public too');
-        $I->seeElement('.folder-visibility .fa-unlock-alt');
-        $I->seeElement('[data-cfiles-item="folder_4"] .fa-unlock-alt');
-        $I->seeElement('[data-cfiles-item="file_1"] .fa-unlock-alt');
+        $I->seeElement('.folder-visibility .fa-unlock');
+        $I->seeElement('[data-cfiles-item="folder_4"] .fa-unlock');
+        $I->seeElement('[data-cfiles-item="file_1"] .fa-unlock');
 
         $I->click('visibility2', '#fileList');
         $I->waitForText('visibility2', null,'#cfiles-crumb');
-        $I->seeElement('[data-cfiles-item="file_2"] .fa-unlock-alt');
+        $I->seeElement('[data-cfiles-item="file_2"] .fa-unlock');
 
         $I->amGoingTo('Reset the file visibility of /visibility/visibility2/test.txt to private');
         $I->clickFileContext(2, 'Edit');

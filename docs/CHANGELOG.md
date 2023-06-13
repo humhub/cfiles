@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.2 - Unreleased
+--------------------
+- Fix #180: Use icon `fa-unlock` for public files
+
 0.16.1 - May 1, 2023
 --------------------
 - Fix #177: Hard delete records on disable module
