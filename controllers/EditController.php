@@ -8,16 +8,14 @@
 
 namespace humhub\modules\cfiles\controllers;
 
+use humhub\modules\cfiles\models\File;
+use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\models\forms\SelectionForm;
 use humhub\modules\cfiles\Module;
+use humhub\modules\content\models\Content;
 use Yii;
 use yii\web\HttpException;
-use humhub\modules\cfiles\models\FileSystemItem;
-use humhub\modules\cfiles\models\forms\SelectionForm;
-use humhub\modules\cfiles\permissions\ManageFiles;
-use humhub\modules\cfiles\permissions\WriteAccess;
-use humhub\modules\content\models\Content;
-use humhub\modules\cfiles\models\File;
-use humhub\modules\cfiles\models\Folder;
 
 /**
  * Description of BrowseController
@@ -45,21 +43,17 @@ class EditController extends BrowseController
             throw new HttpException(404);
         }
 
+        $post = Yii::$app->request->post();
+
         // create new folder if no folder was found or folder is not editable.
         if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder()) {
-            $folderData = Yii::$app->request->post('Folder');
-            $existingFolder = $folderData ? $this->getCurrentFolder()->findFolderByName($folderData['title']) : null;
-            if ($existingFolder && $existingFolder->content->getStateService()->isPublished()) {
-                $folder = $existingFolder;
-                $folder->content->getStateService()->set(Content::STATE_PUBLISHED);
-            } else {
-                $folder = $this->getCurrentFolder()->newFolder();
-                $folder->content->container = $this->contentContainer;
-            }
+            $this->getCurrentFolder()->resolveConflictsBeforeCreate($post['Folder']['title'] ?? null);
+            $folder = $this->getCurrentFolder()->newFolder();
+            $folder->content->container = $this->contentContainer;
             $folder->hidden = $this->module->getContentHiddenDefault($this->contentContainer);
         }
 
-        if ($folder->load(Yii::$app->request->post()) && $folder->save()) {
+        if ($folder->load($post) && $folder->save()) {
             $this->view->saved();
             return $this->htmlRedirect($folder->createUrl('/cfiles/browse/index'));
         }

@@ -81,6 +81,13 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     abstract public function getDeleteVersionUrl(int $versionId): ?string;
 
     /**
+     * Rename a conflicted Item with same name
+     *
+     * @return bool
+     */
+    abstract public function renameConflicted(): bool;
+
+    /**
      * @inheritdoc
      */
     public function attributeLabels()

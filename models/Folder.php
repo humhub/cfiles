@@ -755,10 +755,6 @@ class Folder extends FileSystemItem
         // Get file instance either an existing one or a new one
         $file = $this->getFileInstance($uploadedFile);
 
-        if ($file->content->getStateService()->isDeleted()) {
-            $file->content->getStateService()->publish();
-        }
-
         if ($file->setUploadedFile($uploadedFile)) {
             $file->save();
         }
@@ -773,7 +769,12 @@ class Folder extends FileSystemItem
     private function getFileInstance(UploadedFile $uploadedFile): File
     {
         if ($file = $this->findFileByName($uploadedFile->name)) {
-            return $file;
+            if ($file->content->getStateService()->isPublished()) {
+                // Allow to use only Published file with same name
+                return $file;
+            }
+            // otherwise old not published file must be renamed in order to avoid conflicts
+            $file->renameConflicted();
         }
 
         return new File($this->content->container, $this->getNewItemVisibility(), [
@@ -1000,4 +1001,37 @@ class Folder extends FileSystemItem
         return null;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function renameConflicted(): bool
+    {
+        if ($this->isNewRecord) {
+            return false;
+        }
+
+        $this->title = 'conflict' . $this->id . '-' . $this->title;
+
+        return $this->save();
+    }
+
+    /**
+     * Resolve conflicts before creating new folder
+     *
+     * @param string|null $title
+     */
+    public function resolveConflictsBeforeCreate(?string $title = null)
+    {
+        if ($title === null || $title === '') {
+            return;
+        }
+
+        $duplicatedFolder = $this->findFolderByName($title);
+
+        if ($duplicatedFolder && !$duplicatedFolder->content->getStateService()->isPublished()) {
+            // Rename already existing Folder with same name but not Published(it maybe soft deleted),
+            // It is useful to avoid a conflict on creating a new Folder with same name
+            $duplicatedFolder->renameConflicted();
+        }
+    }
 }

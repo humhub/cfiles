@@ -6,6 +6,7 @@ Changelog
 - Enh #178: Use new content state service
 - Fix #180: Use icon `fa-unlock` for public files
 - Fix #184: Display only published content files in the folder "Files from the stream"
+- Fix #186: Rename conflicted not published folder/file on creating/uploading
 
 0.16.1 - May 1, 2023
 --------------------
