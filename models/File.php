@@ -496,4 +496,17 @@ class File extends FileSystemItem
         ]);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function renameConflicted(): bool
+    {
+        if ($this->isNewRecord) {
+            return false;
+        }
+
+        $this->baseFile->file_name = 'conflict' . $this->baseFile->id . '-' . $this->baseFile->file_name;
+
+        return $this->baseFile->save();
+    }
 }
