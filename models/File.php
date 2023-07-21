@@ -420,6 +420,8 @@ class File extends FileSystemItem
             $query->andWhere(['content.visibility' => Content::VISIBILITY_PUBLIC]);
         }
 
+        $query->andWhere(['content.state' => Content::STATE_PUBLISHED]);
+
         // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
         $query->andWhere(
                 ['or',

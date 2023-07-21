@@ -115,7 +115,7 @@ class AcceptanceTester extends \AcceptanceTester
     {
         $this->amGoingTo('open files module');
         $this->click('Files', '.layout-nav-container');
-        $this->waitForText('Files from the stream');
+        $this->waitForText('Files from the stream', null, '#fileList');
     }
 
    /**
@@ -134,7 +134,7 @@ class AcceptanceTester extends \AcceptanceTester
        }
 
        $this->click('Save', '#globalModal');
-       $this->waitForText('This folder is empty.');
+       $this->waitForText('This folder is empty.', null, '.folderEmptyMessage');
    }
 
     public function seeFileSizeOnSpaceStream(BaseFile $file, $guid = 1)

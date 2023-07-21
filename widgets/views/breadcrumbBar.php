@@ -5,14 +5,14 @@ use yii\helpers\Html;
 /* @var $folder  \humhub\modules\cfiles\models\Folder */
 
 if($folder->content->isPublic()) {
-    $visibilityIcon = 'fa-unlock-alt';
+    $visibilityIcon = 'fa-unlock';
     $visibilityTitle = Yii::t('CfilesModule.base', 'This folder is public.');
 } else {
     $visibilityIcon = 'fa-lock';
     $visibilityTitle = Yii::t('CfilesModule.base', 'This folder is private.');
 }
 
-$visibilityIcon = $folder->content->isPublic() ? 'fa-unlock-alt': 'fa-lock' ;
+$visibilityIcon = $folder->content->isPublic() ? 'fa-unlock': 'fa-lock' ;
 ?>
 
 <div class="panel panel-default" style="margin-bottom:10px;">

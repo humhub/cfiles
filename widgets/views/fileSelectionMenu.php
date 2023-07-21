@@ -52,7 +52,7 @@
                            data-action-submit
                            data-fid="<?= $folder->id ?>"
                            data-action-url="<?= $makePublicUrl ?>">
-                            <i class="fa fa-unlock-alt"></i> <?= Yii::t('CfilesModule.base', 'Make Public') ?>
+                            <i class="fa fa-unlock"></i> <?= Yii::t('CfilesModule.base', 'Make Public') ?>
                         </a>
                     <li>
                     <li>
