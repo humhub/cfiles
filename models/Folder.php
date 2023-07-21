@@ -755,9 +755,8 @@ class Folder extends FileSystemItem
         // Get file instance either an existing one or a new one
         $file = $this->getFileInstance($uploadedFile);
 
-        if ($file->content->state === Content::STATE_DELETED) {
-            $file->content->setState(Content::STATE_PUBLISHED);
-            $file->content->save();
+        if ($file->content->getStateService()->isDeleted()) {
+            $file->content->getStateService()->publish();
         }
 
         if ($file->setUploadedFile($uploadedFile)) {

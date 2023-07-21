@@ -49,9 +49,9 @@ class EditController extends BrowseController
         if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder()) {
             $folderData = Yii::$app->request->post('Folder');
             $existingFolder = $folderData ? $this->getCurrentFolder()->findFolderByName($folderData['title']) : null;
-            if ($existingFolder && $existingFolder->content->state === Content::STATE_DELETED) {
+            if ($existingFolder && $existingFolder->content->getStateService()->isPublished()) {
                 $folder = $existingFolder;
-                $folder->content->setState(Content::STATE_PUBLISHED);
+                $folder->content->getStateService()->set(Content::STATE_PUBLISHED);
             } else {
                 $folder = $this->getCurrentFolder()->newFolder();
                 $folder->content->container = $this->contentContainer;
