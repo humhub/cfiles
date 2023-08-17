@@ -72,6 +72,14 @@ class Module extends ContentContainerModule
     /**
      * @inheritdoc
      */
+    public function getContentClasses(): array
+    {
+        return [File::class];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getPermissions($contentContainer = null)
     {
         if ($contentContainer instanceof Space) {
