@@ -44,11 +44,11 @@ class UploadAction extends \humhub\modules\file\actions\UploadAction
 
         $file = $folder->addUploadedFile($uploadedFile);
 
-        if($file->hasErrors()) {
+        if ($file->hasErrors()) {
             return $this->getValidationErrorResponse($file);
         }
 
-        if($file->baseFile->hasErrors()) {
+        if ($file->baseFile->hasErrors()) {
             return $this->getErrorResponse($file->baseFile);
         }
 
@@ -57,17 +57,17 @@ class UploadAction extends \humhub\modules\file\actions\UploadAction
 
     protected function getValidationErrorResponse(FileSystemItem $file)
     {
-        $errorMessage = Yii::t('FileModule.actions_UploadAction', 'File {fileName} could not be uploaded!', ['fileName' => $file->baseFile->name]);
+        $errorMessage = Yii::t('FileModule.actions_UploadAction', 'File {fileName} could not be uploaded!', ['fileName' => $file->baseFile->name ?? '']);
 
-        if(!empty($file->hasErrors())) {
+        if (!empty($file->hasErrors())) {
             $errorMessage = $file->getErrorSummary(false);
         }
 
         return [
             'error' => true,
             'errors' => $errorMessage,
-            'name' => $file->baseFile->name,
-            'size' => $file->baseFile->size
+            'name' => $file->baseFile->name ?? '',
+            'size' => $file->baseFile->size ?? '',
         ];
     }
 }
