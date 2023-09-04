@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.16.2 - Unreleased
---------------------
+0.16.2 - September 4, 2023
+---------------------------
 - Enh #178: Use new content state service
 - Fix #180: Use icon `fa-unlock` for public files
 - Fix #184: Display only published content files in the folder "Files from the stream"
