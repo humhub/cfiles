@@ -35,7 +35,7 @@ class VisibilityCest
         $I->fillField('Folder[description]', 'visibility2');
 
         $I->expect('The folder visibility to be private');
-        $I->waitForElement('[for="folder-visibility"] input[type=checkbox]:disabled');
+        $I->waitForElement('input#folder-visibility:disabled');
 
         $I->click('Save', '#globalModal');
         $I->waitForText('This folder is empty.');
@@ -55,7 +55,7 @@ class VisibilityCest
         $I->amGoingTo('set the folder visibility to public');
         $I->clickFolderContext(3, 'Edit');
         $I->waitForText('Edit folder', null, '#globalModal');
-        $I->click('[for="folder-visibility"]');
+        $I->jsClick('input#folder-visibility');
         $I->click('Save', '#globalModal');
         $I->waitForText('visibility2', null, '#fileList');
 

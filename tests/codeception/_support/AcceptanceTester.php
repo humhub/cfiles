@@ -130,7 +130,7 @@ class AcceptanceTester extends \AcceptanceTester
        $this->fillField('Folder[description]', $description);
 
        if($isPublic) {
-           $this->click('[for="folder-visibility"]');
+           $this->jsClick('input#folder-visibility');
        }
 
        $this->click('Save', '#globalModal');
