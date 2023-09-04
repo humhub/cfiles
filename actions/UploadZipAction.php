@@ -28,7 +28,7 @@ class UploadZipAction extends UploadAction
         $zip = new ZipExtractor();
         $file = $zip->extract($this->controller->getCurrentFolder(), $uploadedFile);
 
-        if($file->hasErrors()) {
+        if ($file->hasErrors()) {
             return $this->getValidationErrorResponse($file);
         }
 
@@ -37,7 +37,7 @@ class UploadZipAction extends UploadAction
 
     protected function getValidationErrorResponse(FileSystemItem $file)
     {
-        $errorMessage = Yii::t('FileModule.actions_UploadAction', 'File {fileName} could not be uploaded!', ['fileName' => $file->baseFile->name]);
+        $errorMessage = Yii::t('FileModule.actions_UploadAction', 'File {fileName} could not be uploaded!', ['fileName' => $file->baseFile->name ?? '']);
 
         if (!empty($file->hasErrors())) {
             $errorMessage = array_values($file->getErrors())[0];
@@ -46,8 +46,8 @@ class UploadZipAction extends UploadAction
         return [
             'error' => true,
             'errors' => $errorMessage,
-            'name' => $file->baseFile->name,
-            'size' => $file->baseFile->size
+            'name' => $file->baseFile->name ?? '',
+            'size' => $file->baseFile->size ?? '',
         ];
     }
 }
