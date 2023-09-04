@@ -8,6 +8,7 @@ Changelog
 - Fix #184: Display only published content files in the folder "Files from the stream"
 - Fix #186: Rename conflicted not published folder/file on creating/uploading
 - Fix #189: Initialize module content class
+- Fix #190: Fix folder visibility in private space
 
 0.16.1 - May 1, 2023
 --------------------

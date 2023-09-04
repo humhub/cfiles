@@ -1,6 +1,7 @@
 <?php
 
 use humhub\modules\ui\form\widgets\ContentHiddenCheckbox;
+use humhub\modules\ui\form\widgets\ContentVisibilitySelect;
 use humhub\widgets\ModalButton;
 use humhub\widgets\ModalDialog;
 use yii\bootstrap\ActiveForm;
@@ -24,8 +25,8 @@ $header = ($folder->isNewRecord)
                 <br />
                 <?= $form->field($folder, 'title'); ?>
                 <?= $form->field($folder, 'description'); ?>
-                <?= $form->field($folder, 'visibility')->checkbox(['disabled' => !$folder->isRoot() && $folder->parentFolder->content->isPrivate()]) ?>
-                <?= $form->field($folder, 'hidden')->widget(ContentHiddenCheckbox::class, []); ?>
+                <?= $form->field($folder, 'visibility')->widget(ContentVisibilitySelect::class, ['readonly' => !$folder->isRoot() && $folder->parentFolder->content->isPrivate()]) ?>
+                <?= $form->field($folder, 'hidden')->widget(ContentHiddenCheckbox::class) ?>
             </div>
 
             <div class="modal-footer">
