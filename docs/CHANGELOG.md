@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.3 - Unreleased
+-----------------------
+- Enh #194: Tests for `next` version
+
 0.16.2 - September 4, 2023
 ---------------------------
 - Enh #178: Use new content state service
