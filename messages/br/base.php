@@ -18,7 +18,6 @@ return [
     '<strong>Folder</strong> url' => '',
     '<strong>Move</strong> files' => '',
     'A file with that name already exists in this folder.' => '',
-    'A folder with this name already exists.' => '',
     'Actions' => '',
     'Add directory' => '',
     'Add file(s)' => '',
