@@ -68,7 +68,7 @@ return array (
   'Root' => 'Stammverzeichnis',
   'Select what file version you want to switch.' => 'Wähle auf welche Version du zurücksetzen möchtest.',
   'Selected items...' => 'Ausgewählte Elemente...',
-  'Show Post' => 'Eintrag anzeigen',
+  'Show Post' => 'Stream-Eintrag anzeigen',
   'Show older versions' => 'Ältere Versionen anzeigen',
   'Size' => 'Größe',
   'Size: {size}' => 'Größe: {size}',
