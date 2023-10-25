@@ -25,7 +25,10 @@ use humhub\modules\file\models\File as ModelFile;
  */
 class UploadController extends BrowseController
 {
-    public function getAccessRules()
+    /**
+     * @inheritdoc
+     */
+    protected function getAccessRules()
     {
         return [
             ['permission' => [WriteAccess::class]]
