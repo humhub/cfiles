@@ -26,7 +26,7 @@ class MoveController extends BaseController
     /**
      * @inheritdoc
      */
-    public function getAccessRules()
+    protected function getAccessRules()
     {
         return [
             ['permission' => [ManageFiles::class]]

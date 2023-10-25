@@ -9,11 +9,9 @@
 namespace humhub\modules\cfiles\controllers;
 
 use humhub\modules\cfiles\actions\UploadZipAction;
-use Yii;
-use yii\web\HttpException;
 use humhub\modules\cfiles\libs\ZIPCreator;
 use humhub\modules\cfiles\widgets\FileList;
-use yii\web\UploadedFile;
+use Yii;
 
 /**
  * ZipController
@@ -23,7 +21,10 @@ use yii\web\UploadedFile;
 class ZipController extends BrowseController
 {
 
-    public function getAccessRules()
+    /**
+     * @inheritdoc
+     */
+    protected function getAccessRules()
     {
         return [
             ['checkZipSupport']

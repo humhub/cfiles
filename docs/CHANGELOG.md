@@ -4,6 +4,7 @@ Changelog
 0.16.3 - Unreleased
 -----------------------
 - Enh #194: Tests for `next` version
+- Fix #197: Fix visibility of the method `Controller::getAccessRules()`
 
 0.16.2 - September 4, 2023
 ---------------------------
