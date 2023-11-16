@@ -47,7 +47,7 @@ class Events
         $integrityController = $event->sender;
         $integrityController->showTestHeadline("CFile Module (" . File::find()->count() . " entries)");
 
-        foreach (File::find()->all() as $file) {
+        foreach (File::find()->each() as $file) {
             /* @var $file \humhub\modules\cfiles\models\File */
 
             // If parent_folder_id is 0 or null its an old root child which is not merged yet.
@@ -60,7 +60,7 @@ class Events
 
         $integrityController->showTestHeadline("CFile Module (" . File::find()->count() . " entries)");
 
-        foreach (Folder::find()->all() as $folder) {
+        foreach (Folder::find()->each() as $folder) {
             /* @var $file \humhub\modules\cfiles\models\File */
 
             // If parent_folder_id is 0 or null its either an old root child which is not merged yet or an root directory.

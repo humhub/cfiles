@@ -5,6 +5,7 @@ Changelog
 -----------------------
 - Enh #194: Tests for `next` version
 - Fix #197: Fix visibility of the method `Controller::getAccessRules()`
+- Fix #198: Fix memory usage on integrity check
 
 0.16.2 - September 4, 2023
 ---------------------------
