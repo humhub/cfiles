@@ -7,6 +7,7 @@ use humhub\modules\content\models\Content;
 use humhub\modules\file\libs\ImageHelper;
 use humhub\modules\file\models\FileContent;
 use humhub\modules\file\libs\FileHelper;
+use humhub\modules\friendship\Module as FriendshipModule;
 use humhub\modules\user\models\User;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\space\models\Space;
@@ -34,7 +35,6 @@ use yii\web\UploadedFile;
  */
 class Folder extends FileSystemItem
 {
-
     const TYPE_FOLDER_ROOT = 'root';
     const TYPE_FOLDER_POSTED = 'posted';
     const ROOT_TITLE = 'Root';
@@ -155,11 +155,11 @@ class Folder extends FileSystemItem
                 'description' => $this->description
             ];
 
-            if($this->getCreator()) {
+            if ($this->getCreator()) {
                 $attributes['creator'] = $this->getCreator()->getDisplayName();
             }
 
-            if($this->getEditor()) {
+            if ($this->getEditor()) {
                 $attributes['editor'] = $this->getEditor()->getDisplayName();
             }
         }
@@ -174,7 +174,7 @@ class Folder extends FileSystemItem
     {
         if ($insert && $this->visibility !== null) {
             $this->content->visibility = $this->visibility;
-        } else if ($this->visibility !== null && $this->visibility != $this->content->visibility) {
+        } elseif ($this->visibility !== null && $this->visibility != $this->content->visibility) {
             $this->updateVisibility($this->visibility);
         }
         return parent::beforeSave($insert);
@@ -281,7 +281,8 @@ class Folder extends FileSystemItem
 
     public function getVisibilityTitle()
     {
-        if (Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
+        $module = Yii::$app->getModule('friendship');
+        if ($module instanceof FriendshipModule && $module->isFriendshipEnabled() && $this->content->container instanceof User) {
             if ($this->content->container->isCurrentuser()) {
                 $privateText =  Yii::t('CfilesModule.base', 'This folder is only visible for you and your friends.');
             } else {
@@ -432,7 +433,7 @@ class Folder extends FileSystemItem
     {
         if ($contentContainer instanceof User) {
             return $contentContainer->id;
-        } else if ($contentContainer instanceof Space) {
+        } elseif ($contentContainer instanceof Space) {
             return $contentContainer->created_by;
         }
 
@@ -524,7 +525,7 @@ class Folder extends FileSystemItem
     {
         if ($this->isRoot()) {
             return  Yii::t('CfilesModule.base', 'Root');
-        } else if ($this->isAllPostedFiles()) {
+        } elseif ($this->isAllPostedFiles()) {
             return  Yii::t('CfilesModule.base', 'Files from the stream');
         }
 
@@ -535,7 +536,7 @@ class Folder extends FileSystemItem
     {
         if ($this->isRoot()) {
             return  Yii::t('CfilesModule.base', 'The root folder is the entry point that contains all available files.');
-        } else if ($this->isAllPostedFiles()) {
+        } elseif ($this->isAllPostedFiles()) {
             return  Yii::t('CfilesModule.base', 'You can find all files that have been posted to this stream here.');
         }
 
@@ -912,7 +913,7 @@ class Folder extends FileSystemItem
         if ($item instanceof File) {
             $item->setTitle($this->getAddedFileName($item->getTitle()));
             $result = $item;
-        } else if ($item instanceof Folder) {
+        } elseif ($item instanceof Folder) {
             $result = $item;
 
             $existingFolderWithTitle = $this->findFolderByName($item->title);

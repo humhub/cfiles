@@ -9,6 +9,7 @@ use humhub\modules\file\handler\DownloadFileHandler;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
+use humhub\modules\friendship\Module as FriendshipModule;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\topic\models\Topic;
 use Yii;
@@ -98,7 +99,7 @@ class File extends FileSystemItem
             ['hidden', 'boolean'],
         ];
 
-        if($this->parentFolder && $this->parentFolder->content->isPublic()) {
+        if ($this->parentFolder && $this->parentFolder->content->isPublic()) {
             $rules[] = ['visibility', 'integer', 'min' => 0, 'max' => 1];
         }
 
@@ -110,7 +111,7 @@ class File extends FileSystemItem
      */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(),[
+        return array_merge(parent::attributeLabels(), [
             'id' => 'ID',
             'parent_folder_id' => Yii::t('CfilesModule.models_File', 'Folder ID')
         ]);
@@ -125,11 +126,11 @@ class File extends FileSystemItem
             'description' => $this->description
         ];
 
-        if($this->getCreator()) {
+        if ($this->getCreator()) {
             $attributes['creator'] = $this->getCreator()->getDisplayName();
         }
 
-        if($this->getEditor()) {
+        if ($this->getEditor()) {
             $attributes['editor'] = $this->getEditor()->getDisplayName();
         }
 
@@ -207,7 +208,7 @@ class File extends FileSystemItem
             return;
         }
 
-        if(!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
+        if (!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
             // For user profile files we use Content::VISIBILITY_OWNER isntead of private
             $this->content->visibility = $visibility;
         }
@@ -215,8 +216,9 @@ class File extends FileSystemItem
 
     public function getVisibilityTitle()
     {
-        if(Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
-            if($this->content->container->isCurrentuser()) {
+        $module = Yii::$app->getModule('friendship');
+        if ($module instanceof FriendshipModule && $module->isFriendshipEnabled() && $this->content->container instanceof User) {
+            if ($this->content->container->isCurrentuser()) {
                 $privateText =  Yii::t('CfilesModule.base', 'This file is only visible for you and your friends.');
             } else {
                 $privateText =  Yii::t('CfilesModule.base', 'This file is protected.');
@@ -324,7 +326,7 @@ class File extends FileSystemItem
      */
     public function getDownloadUrl($forceDownload = false, $scheme = true)
     {
-        if(!$scheme) {
+        if (!$scheme) {
             return DownloadFileHandler::getUrl($this->baseFile, $forceDownload);
         } else {
             // Todo can be removed after v1.2.3 then call DownloadFileHandler::getUrl($this->baseFile, $forceDownload, $scheme)
@@ -385,7 +387,7 @@ class File extends FileSystemItem
         }
         $counter = 0;
         // break at maxdepth 20 to avoid hangs
-        while (!empty($tempFolder) && $counter ++ <= 20) {
+        while (!empty($tempFolder) && $counter++ <= 20) {
             $path = $separator . $tempFolder->title . $path;
             $tempFolder = $tempFolder->parentFolder;
         }
@@ -415,7 +417,7 @@ class File extends FileSystemItem
 
         $query->andWhere(['content.contentcontainer_id' => $contentContainer->contentContainerRecord->id]);
 
-        if(!$contentContainer->canAccessPrivateContent()) {
+        if (!$contentContainer->canAccessPrivateContent()) {
             // Note this will cut comment images, but including the visibility of comments is pretty complex...
             $query->andWhere(['content.visibility' => Content::VISIBILITY_PUBLIC]);
         }
@@ -424,10 +426,11 @@ class File extends FileSystemItem
 
         // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
         $query->andWhere(
-                ['or',
+            ['or',
                     ['=', 'comment.object_model', \humhub\modules\post\models\Post::className()],
                     ['=', 'file.object_model', \humhub\modules\post\models\Post::className()]
-        ]);
+                ]
+        );
 
         // Get Files from comments
         return $query->orderBy($filesOrder);
