@@ -281,7 +281,7 @@ class Folder extends FileSystemItem
 
     public function getVisibilityTitle()
     {
-        if (Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
+        if (Yii::$app->getModule('friendship')->settings->get('enable') && $this->content->container instanceof User) {
             if ($this->content->container->isCurrentuser()) {
                 $privateText =  Yii::t('CfilesModule.base', 'This folder is only visible for you and your friends.');
             } else {
