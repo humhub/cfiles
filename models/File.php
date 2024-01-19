@@ -215,7 +215,7 @@ class File extends FileSystemItem
 
     public function getVisibilityTitle()
     {
-        if(Yii::$app->getModule('friendship')->getIsEnabled() && $this->content->container instanceof User) {
+        if(Yii::$app->getModule('friendship')->settings->get('enable') && $this->content->container instanceof User) {
             if($this->content->container->isCurrentuser()) {
                 $privateText =  Yii::t('CfilesModule.base', 'This file is only visible for you and your friends.');
             } else {
