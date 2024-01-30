@@ -4,6 +4,7 @@ Changelog
 0.16.4 - Unreleased
 ---------------------------
 - Fix #201: Fix replaced method `friendship\Module::isEnabled()`
+- Fix #203: Refresh name of a downloading renamed file
 
 0.16.3 - November 16, 2023
 ---------------------------

@@ -324,12 +324,10 @@ class File extends FileSystemItem
      */
     public function getDownloadUrl($forceDownload = false, $scheme = true)
     {
-        if(!$scheme) {
-            return DownloadFileHandler::getUrl($this->baseFile, $forceDownload);
-        } else {
-            // Todo can be removed after v1.2.3 then call DownloadFileHandler::getUrl($this->baseFile, $forceDownload, $scheme)
-            return Url::to(['/file/file/download', 'guid' => $this->baseFile->guid, 'download' => $forceDownload], $scheme);
-        }
+        return $this->baseFile->getUrl([
+            'download' => $forceDownload,
+            'hash_name' => substr(sha1($this->baseFile->file_name), 0, 4)
+        ], $scheme);
     }
 
     /**
