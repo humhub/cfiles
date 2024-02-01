@@ -5,6 +5,7 @@ Changelog
 ---------------------------
 - Fix #201: Fix replaced method `friendship\Module::isEnabled()`
 - Fix #203: Refresh name of a downloading renamed file
+- Fix #195: Allow to edit and delete own files
 
 0.16.3 - November 16, 2023
 ---------------------------

@@ -112,14 +112,18 @@ class FileListContextMenu extends WallEntryControls
         $this->addMenu(Yii::t('CfilesModule.base', 'Show Post'), 'show-post', 'window-maximize', 20);
         $this->addMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link', 30);
 
-        if (!$this->folder->isAllPostedFiles() && $this->isEditableRow()) {
-            $this->addEntry(new DropdownDivider(['sortOrder' => 35]));
-            $this->addMenu(Yii::t('CfilesModule.base', 'Edit'), 'edit-file', 'pencil', 40);
-            $this->addMenu(Yii::t('CfilesModule.base', 'Delete'), 'delete', 'trash', 50);
+        if (!$this->folder->isAllPostedFiles()) {
+            if ($this->isEditableRow()) {
+                $this->addEntry(new DropdownDivider(['sortOrder' => 35]));
+                $this->addMenu(Yii::t('CfilesModule.base', 'Edit'), 'edit-file', 'pencil', 40);
+                $this->addMenu(Yii::t('CfilesModule.base', 'Delete'), 'delete', 'trash', 50);
+            }
             if ($this->canWrite()) {
                 $this->addMenu(Yii::t('CfilesModule.base', 'Move'), 'move-files', 'arrows', 60);
             }
-            $this->addMenu(Yii::t('CfilesModule.base', 'Versions'), 'versions', 'history', 70);
+            if ($this->isManageableRow()) {
+                $this->addMenu(Yii::t('CfilesModule.base', 'Versions'), 'versions', 'history', 70);
+            }
         }
     }
 
@@ -134,6 +138,11 @@ class FileListContextMenu extends WallEntryControls
         $this->addMenu(Yii::t('CfilesModule.base', 'Display Url'), 'show-url', 'link', 20);
     }
 
+    private function isManageableRow(): bool
+    {
+        return $this->row->item->canManage();
+    }
+
     private function isEditableRow(): bool
     {
         return $this->row->item->canEdit();
@@ -141,7 +150,7 @@ class FileListContextMenu extends WallEntryControls
 
     private function canWrite(): bool
     {
-        return $this->isEditableRow() && $this->folder->content->container->can(ManageFiles::class);
+        return $this->isManageableRow() && $this->folder->content->container->can(ManageFiles::class);
     }
 
     private function zipEnabled(): bool
