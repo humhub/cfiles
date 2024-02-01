@@ -3,20 +3,18 @@
 namespace humhub\modules\cfiles\models;
 
 use humhub\modules\cfiles\libs\FileUtils;
+use humhub\modules\comment\models\Comment;
 use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\modules\content\models\Content;
 use humhub\modules\content\widgets\richtext\RichText;
-use humhub\modules\file\handler\DownloadFileHandler;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\topic\models\Topic;
-use Yii;
 use humhub\modules\user\models\User;
-use humhub\modules\comment\models\Comment;
-use humhub\modules\content\models\Content;
+use Yii;
 use yii\db\ActiveQuery;
-use yii\helpers\Url;
 use yii\web\UploadedFile;
 
 /**
@@ -484,7 +482,7 @@ class File extends FileSystemItem
      */
     public function getDeleteVersionUrl(int $versionId): ?string
     {
-        if (!$this->canEdit()) {
+        if (!$this->canManage()) {
             return null;
         }
 

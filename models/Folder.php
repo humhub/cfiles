@@ -851,7 +851,7 @@ class Folder extends FileSystemItem
             return false;
         }
 
-        if (!$item->canEdit()) {
+        if (!$item->canManage()) {
             if ($item instanceof File) {
                 $item->addError($item->getTitle(), Yii::t('CfilesModule.base', 'You cannot move the file "{name}"!', ['name' => $item->getTitle()]));
             } else {

@@ -4,6 +4,7 @@ namespace humhub\modules\cfiles\models;
 
 use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\permissions\ManageFiles;
+use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\content\models\Content;
@@ -319,18 +320,28 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         return null;
     }
 
-    public function canEdit(): bool
+    public function canManage(): bool
     {
         // Fixes race condition on newly created files (import vs. onlyoffice)
         if ($this->content->container === null && $this->content->isNewRecord) {
             return true;
         }
 
-        if ($this->content->container->permissionManager->can(new ManageFiles())) {
+        return $this->content->container->permissionManager->can(ManageFiles::class);
+    }
+
+    public function canEdit(): bool
+    {
+        if ($this->canManage()) {
             return true;
         }
 
-        return false;
+        if (Yii::$app->user->isGuest || $this->isNewRecord) {
+            return false;
+        }
+
+        return $this->content->created_by === Yii::$app->user->id &&
+            $this->content->container->permissionManager->can(WriteAccess::class);
     }
 
 }
