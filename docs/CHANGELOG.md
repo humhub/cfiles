@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.16.4 - Unreleased
----------------------------
+0.16.4 - February 8, 2024
+-------------------------
 - Fix #201: Fix replaced method `friendship\Module::isEnabled()`
 - Fix #203: Refresh name of a downloading renamed file
 - Fix #195: Allow to edit and delete own files
