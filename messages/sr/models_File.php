@@ -1,5 +1,4 @@
 <?php
-
-return [
-    'Folder ID' => '',
-];
+return array (
+  'Folder ID' => 'ID fascikle',
+);
