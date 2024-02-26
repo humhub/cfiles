@@ -2,13 +2,14 @@
 
 # Files
 
-Enhance your network with a filesystem structure. Upload, manage and share everything important for you and your colleagues.
+Enhance your network's efficiency with the Files Module, a complete solution for easy file management. Seamlessly integrated with HumHub, this module enables you to effortlessly manage and share important files throughout your network and team.
 
-## Overview
+## Key Features
 
-- Automatically get an overview of all files from your stream and profile
-- Sort your files in as many folders and subfolder as you need
-- Easily move files and folders
-- Get an immediate overview (creator, editor, creation date..)
-- Import folder structures from .zip files
-- Download files in bulk as a .zip
+- **File Overview:** Get instant access to all files from your stream and profile.
+- **Interact:** Comment on and like files for better collaboration and feedback.
+- **Folder Structure:** Organize your files into unlimited folders and subfolders.
+- **Migration:** Effortlessly move files and folders within your network.
+- **File Info:** Always visible information about the creator, editor, and creation date.
+- **Import Files:** Import files and folder structures directly from a .zip file.
+- **Export Files:** Download folders and files in bulk as a .zip file.
