@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.5 - Unreleased
+-------------------------
+- Fix #210: Fix enabling of module on Space with default private content
+
 0.16.4 - February 8, 2024
 -------------------------
 - Fix #201: Fix replaced method `friendship\Module::isEnabled()`
