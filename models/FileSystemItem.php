@@ -138,7 +138,6 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
             $this->parentFolder->save();
             if ($this->parentFolder->content->isPrivate() && $this->content->isPublic()) {
                 $this->content->visibility = Content::VISIBILITY_PRIVATE;
-                $this->content->save();
             }
         }
 
@@ -148,7 +147,6 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         }
 
         parent::afterSave($insert, $changedAttributes);
-
     }
 
     /**
