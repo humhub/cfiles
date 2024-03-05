@@ -4,6 +4,7 @@ Changelog
 0.16.5 - Unreleased
 -------------------------
 - Fix #210: Fix enabling of module on Space with default private content
+- Fix #213: Fix download url for browser caching
 
 0.16.4 - February 8, 2024
 -------------------------

@@ -39,7 +39,7 @@ class FileRow extends FileSystemItemRow
      */
     public function getUrl()
     {
-        return $this->item->getDownloadUrl(true);
+        return $this->item->getDownloadUrl();
     }
 
     /**

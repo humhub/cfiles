@@ -313,19 +313,15 @@ class File extends FileSystemItem
 
     public function getFullUrl()
     {
-        return $this->getDownloadUrl(true, true);
+        return $this->getDownloadUrl();
     }
 
     /**
-     * @param bool $forceDownload forces a download for each file type instead of opening in browser
      * @return string download url
      */
-    public function getDownloadUrl($forceDownload = false, $scheme = true)
+    public function getDownloadUrl()
     {
-        return $this->baseFile->getUrl([
-            'download' => $forceDownload,
-            'hash_name' => substr(sha1($this->baseFile->file_name), 0, 4)
-        ], $scheme);
+        return $this->content->container->createUrl('/cfiles/download', ['guid' => $this->baseFile->guid], true);
     }
 
     /**
