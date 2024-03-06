@@ -82,7 +82,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getItemId()
     {
@@ -163,7 +163,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getTitle()
     {
@@ -171,7 +171,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getSize()
     {

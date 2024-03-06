@@ -10,9 +10,19 @@ namespace humhub\modules\cfiles\controllers;
 use humhub\modules\content\components\ContentContainerController;
 use humhub\modules\file\models\File;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 class DownloadController extends ContentContainerController
 {
+    /**
+     * This action is used to bypass browser cache issues for cases:
+     *  - file content was changed (URL param `hash_sha1` fixes this issue, @see File::getUrl())
+     *  - file was renamed (URL param `file_name` fixed this issue)
+     *
+     * @param string $guid
+     * @return Response
+     * @throws NotFoundHttpException
+     */
     public function actionIndex($guid)
     {
         $file = File::findOne(['guid' => $guid]);
