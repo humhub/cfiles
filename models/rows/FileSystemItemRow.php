@@ -106,9 +106,17 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
     /**
      * @inheritdoc
      */
+    public function getUrl()
+    {
+        return $this->item->getUrl();
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getDisplayUrl()
     {
-        return $this->item->getFullUrl();
+        return $this->item->getUrl(true);
     }
 
     /**

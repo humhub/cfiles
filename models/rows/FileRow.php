@@ -39,7 +39,15 @@ class FileRow extends FileSystemItemRow
      */
     public function getUrl()
     {
-        return $this->item->getDownloadUrl(true);
+        return $this->item->content->container->createUrl('/cfiles/download', ['guid' => $this->item->baseFile->guid], true);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDisplayUrl()
+    {
+        return $this->getUrl();
     }
 
     /**

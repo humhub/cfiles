@@ -231,7 +231,7 @@ class File extends FileSystemItem
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getItemId()
     {
@@ -255,7 +255,7 @@ class File extends FileSystemItem
     }
 
     /**
-     * @return string file title (name)
+     * @inheritdoc
      */
     public function getTitle()
     {
@@ -263,7 +263,7 @@ class File extends FileSystemItem
         if (!empty($this->baseFile)) {
             return $this->baseFile->file_name;
         } else {
-            return "";
+            return '';
         }
     }
 
@@ -291,7 +291,7 @@ class File extends FileSystemItem
     }
 
     /**
-     * @return int file size
+     * @inheritdoc
      */
     public function getSize()
     {
@@ -300,32 +300,16 @@ class File extends FileSystemItem
 
     /**
      * Returns the URL to the folder where this file is located
+     * @inheritdoc
      */
-    public function getUrl()
+    public function getUrl(bool $scheme = false)
     {
         if ($this->parentFolder === null) {
             Yii::warning('Could not get parent folder for file id: ' . $this->id, 'cfiles');
             return '';
         }
 
-        return $this->parentFolder->getUrl();
-    }
-
-    public function getFullUrl()
-    {
-        return $this->getDownloadUrl(true, true);
-    }
-
-    /**
-     * @param bool $forceDownload forces a download for each file type instead of opening in browser
-     * @return string download url
-     */
-    public function getDownloadUrl($forceDownload = false, $scheme = true)
-    {
-        return $this->baseFile->getUrl([
-            'download' => $forceDownload,
-            'hash_name' => substr(sha1($this->baseFile->file_name), 0, 4)
-        ], $scheme);
+        return $this->parentFolder->getUrl($scheme);
     }
 
     /**

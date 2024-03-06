@@ -184,7 +184,7 @@ abstract class AbstractFileSystemItemRow extends Model
     public abstract function getTitle();
 
     /**
-     * @return string
+     * @return int
      */
     public abstract function getSize();
 

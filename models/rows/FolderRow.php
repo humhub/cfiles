@@ -37,14 +37,6 @@ class FolderRow extends FileSystemItemRow
     /**
      * @inheritdoc
      */
-    public function getUrl()
-    {
-        return $this->item->getUrl();
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getBaseFile()
     {
         return null;

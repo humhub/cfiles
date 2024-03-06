@@ -497,7 +497,7 @@ class Folder extends FileSystemItem
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getItemId()
     {
@@ -520,6 +520,9 @@ class Folder extends FileSystemItem
         return 'folder' . ($this->type !== null ? '-' . $this->type : '');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getTitle()
     {
         if ($this->isRoot()) {
@@ -550,6 +553,9 @@ class Folder extends FileSystemItem
         return '';
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getSize()
     {
         return 0;
@@ -562,24 +568,21 @@ class Folder extends FileSystemItem
         return $this->content->container->createUrl($route, $params, $scheme);
     }
 
-    public function getUrl()
+    /**
+     * @inheritdoc
+     */
+    public function getUrl(bool $scheme = false)
     {
         if (empty($this->content->container)) {
-            return "";
+            return '';
         }
 
-        return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id]);
+        return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id], $scheme);
     }
 
-    public function getFullUrl()
-    {
-        if (empty($this->content->container)) {
-            return "";
-        }
-
-        return $this->content->container->createUrl('/cfiles/browse/index', ['fid' => $this->id], true);
-    }
-
+    /**
+     * @inheritdoc
+     */
     public function getEditUrl()
     {
         return $this->content->container->createUrl('/cfiles/edit/folder', ['id' => $this->getItemId()]);

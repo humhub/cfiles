@@ -1,6 +1,7 @@
 <?php
 
 use humhub\commands\IntegrityController;
+use humhub\modules\cfiles\components\UrlRule;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\controllers\FileController;
@@ -12,6 +13,9 @@ return [
     'id' => 'cfiles',
     'class' => 'humhub\modules\cfiles\Module',
     'namespace' => 'humhub\modules\cfiles',
+    'urlManagerRules' => [
+        ['class' => UrlRule::class],
+    ],
     'events' => [
         [Menu::class, Menu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onSpaceMenuInit']],
         [ProfileMenu::class, ProfileMenu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onProfileMenuInit']],
@@ -23,4 +27,3 @@ return [
         ['humhub\modules\rest\Module', 'restApiAddRules', ['humhub\modules\cfiles\Events', 'onRestApiAddRules']],
     ]
 ];
-?>

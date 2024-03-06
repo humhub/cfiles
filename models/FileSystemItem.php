@@ -255,7 +255,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     }
 
     /**
-     * @return User
+     * @inheritdoc
      */
     public function getCreator()
     {
@@ -263,7 +263,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     }
 
     /**
-     * @return User
+     * @inheritdoc
      */
     public function getEditor()
     {
