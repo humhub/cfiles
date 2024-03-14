@@ -1,6 +1,11 @@
 Changelog
 =========
 
+
+0.16.6 - March 14, 2024
+-------------------------
+- Fix #215: Space configuration checks permissions insufficiently
+
 0.16.5 - March 5, 2024
 -------------------------
 - Fix #210: Fix enabling of module on Space with default private content
