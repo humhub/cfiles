@@ -1,5 +1,3 @@
-[![Test Status](https://github.com/humhub/humhub-modules-cfiles/workflows/PHP%20Codeception%20Tests/badge.svg)](https://github.com/humhub/humhub-modules-cfiles/actions)
-
 # Files
 
 Enhance your network's efficiency with the Files Module, a complete solution for easy file management. Seamlessly integrated with HumHub, this module enables you to effortlessly manage and share important files throughout your network and team.
