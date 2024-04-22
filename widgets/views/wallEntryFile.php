@@ -19,16 +19,17 @@ use humhub\libs\Html;
 </div>
 <?php endif; ?>
 
-<strong><?= FileHelper::createLink($file, null, ['style' => 'text-decoration: underline']); ?></strong><br />
-<small><?= Yii::t('CfilesModule.base', 'Size: {size}', ['size' => Yii::$app->formatter->asShortSize($fileSize, 1)]); ?></small><br />
+<strong><?= FileHelper::createLink($file, null, ['style' => 'text-decoration: underline']); ?></strong><br>
+<small><?= Yii::t('CfilesModule.base', 'Size: {size}', ['size' => Yii::$app->formatter->asShortSize($fileSize, 1)]); ?></small><br>
 
 <?php if (!empty($cFile->description)): ?>
-    <br />
-    <?= RichText::convert($cFile->description, RichText::FORMAT_HTML); ?>
-    <br />
+    <br>
+    <div data-ui-markdown>
+        <?= RichText::convert($cFile->description, RichText::FORMAT_HTML) ?>
+    </div>
 <?php endif; ?>
 
-<br />
+<br>
 
 <?php if ($folderUrl) : ?>
     <?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default', 'data-ui-loader' => '']); ?>
