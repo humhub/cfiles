@@ -1,6 +1,9 @@
 Changelog
 =========
 
+0.16.7 - Unreleased
+-------------------------
+- Fix #216: Fix image space rending on wall entry
 
 0.16.6 - March 14, 2024
 -------------------------
