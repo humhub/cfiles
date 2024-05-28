@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.17.0 - Unreleased
+-------------------------
+- Fix #220: Update module resources path
+
 0.16.7 - Unreleased
 -------------------------
 - Fix #216: Fix image space rending on wall entry

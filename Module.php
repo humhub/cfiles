@@ -16,9 +16,6 @@ use yii\helpers\Url;
 
 class Module extends ContentContainerModule
 {
-
-    public $resourcesPath = 'resources';
-
     /**
      * @var string sort name as 'name', 'size', 'updated_at'
      * @see FileSystemItemRow::ORDER_MAPPING
@@ -32,18 +29,6 @@ class Module extends ContentContainerModule
      */
     public $defaultPostedFilesSort = FileSystemItemRow::ORDER_TYPE_UPDATED_AT;
     public $defaultPostedFilesOrder = 'ASC';
-
-    /**
-     * @var string default order of file entries e.g.:  'file.updated_at ASC' or 'title ASC'
-     */
-    public $defaultFolderOrder = 'title ASC';
-
-    const ORDER_NAME = 'name';
-    const ORDER_UPDATED_AT = 'updated_at';
-    const ORDER_SIZE = 'size';
-
-    const UPLOAD_BEHAVIOUR_INDEX = 0;
-    const UPLOAD_BEHAVIOUR_REPLACE = 1;
 
     /**
      * @inheritdoc
@@ -64,8 +49,8 @@ class Module extends ContentContainerModule
     public function getContentContainerTypes()
     {
         return [
-            Space::className(),
-            User::className()
+            Space::class,
+            User::class,
         ];
     }
 
@@ -156,7 +141,7 @@ class Module extends ContentContainerModule
     /**
      * Determines ZIP Support is enabled or not
      *
-     * @return boolean is ZIP support enabled
+     * @return bool is ZIP support enabled
      */
     public function isZipSupportEnabled(): bool
     {
