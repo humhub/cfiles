@@ -26,11 +26,11 @@ use humhub\widgets\ModalDialog;
         </div>
 
         <div class="modal-footer">
-            <?= ModalButton::submitModal($model->getMoveUrl())?>
+            <?= ModalButton::cancel() ?>
             <?php if ($moveToContainerUrl = $model->getMoveToContainerUrl()) : ?>
                 <?= ModalButton::info(Yii::t('CfilesModule.base', 'Move to another Space'))->action('ui.modal.load', $moveToContainerUrl) ?>
             <?php endif; ?>
-            <?= ModalButton::cancel() ?>
+            <?= ModalButton::submitModal($model->getMoveUrl())?>
         </div>
     <?php ActiveForm::end() ?>
 
