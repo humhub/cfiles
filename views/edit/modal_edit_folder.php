@@ -30,8 +30,8 @@ $header = ($folder->isNewRecord)
             </div>
 
             <div class="modal-footer">
-                <?= ModalButton::submitModal($submitUrl)?>
                 <?= ModalButton::cancel() ?>
+                <?= ModalButton::submitModal($submitUrl)?>
             </div>
         <?php ActiveForm::end() ?>
 
