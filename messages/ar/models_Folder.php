@@ -1,6 +1,6 @@
 <?php
 return array (
-  'Description' => 'توضيج',
-  'Parent Folder ID' => '',
+  'Description' => 'الوصف',
+  'Parent Folder ID' => 'معرف المجلد الأصلي',
   'Title' => 'العنوان',
 );
