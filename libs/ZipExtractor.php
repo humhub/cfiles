@@ -15,14 +15,12 @@
 
 namespace humhub\modules\cfiles\libs;
 
-
 use Yii;
 use yii\web\UploadedFile;
 use humhub\modules\cfiles\models\Folder;
 
 class ZipExtractor extends ZipUtil
 {
-
     /**
      * @param Folder $targetFolder
      * @param $file
@@ -86,7 +84,7 @@ class ZipExtractor extends ZipUtil
                 if(!$folder) {
                     $folder = $targetFolder->newFolder($file);
                     if(!$folder->save()) {
-                        $root->addError('upload',  Yii::t('CfilesModule.base', 'An error occurred while creating folder {folder}.', ['folder' => $file]));
+                        $root->addError('upload', Yii::t('CfilesModule.base', 'An error occurred while creating folder {folder}.', ['folder' => $file]));
                         continue;
                     }
                 }
@@ -95,7 +93,7 @@ class ZipExtractor extends ZipUtil
             } else {
                 $result = $this->generateModelFromFile($targetFolder, $folderPath, $file);
                 if($result->hasErrors()) {
-                    $root->addError('upload',  Yii::t('CfilesModule.base', 'An error occurred while unpacking {filename}.', ['filename' => $file]));
+                    $root->addError('upload', Yii::t('CfilesModule.base', 'An error occurred while unpacking {filename}.', ['filename' => $file]));
                 }
             }
         }

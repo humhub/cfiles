@@ -30,10 +30,10 @@ class ManageController extends BaseController
 
         $form = new SelectionForm();
         $result = $this->prepareItems($form, $container);
-        
+
         if ($form->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $form->getErrors()
+                'errors' => $form->getErrors(),
             ]);
         }
 
@@ -70,14 +70,14 @@ class ManageController extends BaseController
 
         $model = new MoveForm([
             'root' => $root,
-            'sourceFolder' => $source
+            'sourceFolder' => $source,
         ]);
 
         $this->prepareItems($model, $container);
 
         if ($model->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $model->getErrors()
+                'errors' => $model->getErrors(),
             ]);
         }
 
@@ -87,7 +87,7 @@ class ManageController extends BaseController
 
         if ($model->hasErrors()) {
             return $this->returnError(422, 'Validation failed', [
-                'errors' => $model->getErrors()
+                'errors' => $model->getErrors(),
             ]);
         } else {
             Yii::error('Could not move cFiles items.', 'api');
@@ -109,7 +109,7 @@ class ManageController extends BaseController
 
         if ($form->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $form->getErrors()
+                'errors' => $form->getErrors(),
             ]);
         }
 
@@ -138,7 +138,7 @@ class ManageController extends BaseController
 
         if ($form->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $form->getErrors()
+                'errors' => $form->getErrors(),
             ]);
         }
 
@@ -176,12 +176,14 @@ class ManageController extends BaseController
             } elseif ($this->action->id == 'make-public') {
                 if ($item->parentFolder && $item->parentFolder->content->visibility === Content::VISIBILITY_PRIVATE) {
                     $form->addError($itemId, 'You can not make item public inside a private directory.');
-                } else $result[] = $item;
+                } else {
+                    $result[] = $item;
+                }
             } else {
                 $result[] = $item;
             }
         }
-        
+
         return $result;
     }
 }

@@ -212,7 +212,7 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
      */
     public function getVisibilityIcon()
     {
-        return $this->item->content->isPublic() ? 'fa-unlock': 'fa-lock';
+        return $this->item->content->isPublic() ? 'fa-unlock' : 'fa-lock';
     }
 
     /**

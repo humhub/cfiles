@@ -30,7 +30,7 @@ class VisibilityCest
         $I->click('Add directory', '.files-action-menu');
 
         // Create another folder
-        $I->waitForText('Create folder', null,'#globalModal');
+        $I->waitForText('Create folder', null, '#globalModal');
         $I->fillField('Folder[title]', 'visibility2');
         $I->fillField('Folder[description]', 'visibility2');
 
@@ -65,7 +65,7 @@ class VisibilityCest
         $I->seeElement('[data-cfiles-item="file_1"] .fa-unlock');
 
         $I->click('visibility2', '#fileList');
-        $I->waitForText('visibility2', null,'#cfiles-crumb');
+        $I->waitForText('visibility2', null, '#cfiles-crumb');
         $I->seeElement('[data-cfiles-item="file_2"] .fa-unlock');
 
         $I->amGoingTo('Reset the file visibility of /visibility/visibility2/test.txt to private');
@@ -82,10 +82,10 @@ class VisibilityCest
         $I->seeElement('#fileList');
         $I->see('visibility');
         $I->click('visibility', '#fileList');
-        $I->waitForText('visibility2',null,'#fileList');
+        $I->waitForText('visibility2', null, '#fileList');
         $I->see('test.txt', '#fileList');
         $I->click('visibility2', '#fileList');
-        $I->waitForText('visibility2',null,'#cfiles-crumb');
+        $I->waitForText('visibility2', null, '#cfiles-crumb');
         $I->dontSee('test.txt', '#fileList');
     }
 }

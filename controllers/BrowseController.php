@@ -31,9 +31,9 @@ class BrowseController extends BaseController
         }
 
         return $this->render('index', [
-                    'contentContainer' => $this->contentContainer,
-                    'folder' => $currentFolder,
-                    'canWrite' => $this->canWrite()
+            'contentContainer' => $this->contentContainer,
+            'folder' => $currentFolder,
+            'canWrite' => $this->canWrite(),
         ]);
     }
 
@@ -45,7 +45,7 @@ class BrowseController extends BaseController
     /**
      * Returns rendered file list.
      *
-     * @param boolean $withItemCount true -> also calculate and return the item count.
+     * @param bool $withItemCount true -> also calculate and return the item count.
      * @param array $filesOrder orderBy array appended to the files query
      * @param array $foldersOrder orderBy array appended to the folders query
      * @return array|string the rendered view or an array of the rendered view and the itemCount.
@@ -53,10 +53,10 @@ class BrowseController extends BaseController
     public function renderFileList($filesOrder = null, $foldersOrder = null)
     {
         return FileList::widget([
-                    'folder' => $this->getCurrentFolder(),
-                    'contentContainer' => $this->contentContainer,
-                    'filesOrder' => $filesOrder,
-                    'foldersOrder' => $foldersOrder
+            'folder' => $this->getCurrentFolder(),
+            'contentContainer' => $this->contentContainer,
+            'filesOrder' => $filesOrder,
+            'foldersOrder' => $foldersOrder,
         ]);
     }
 
@@ -72,7 +72,7 @@ class BrowseController extends BaseController
 
         return $this->asJson([
             'success' => false,
-            'error' => Yii::t('CfilesModule.base', 'No file found!')
+            'error' => Yii::t('CfilesModule.base', 'No file found!'),
         ]);
     }
 

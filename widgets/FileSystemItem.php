@@ -17,7 +17,6 @@ use humhub\widgets\JsWidget;
  */
 class FileSystemItem extends JsWidget
 {
-
     /**
      * @inheritdoc
      */
@@ -34,7 +33,7 @@ class FileSystemItem extends JsWidget
     public $row;
 
     /**
-     * @var boolean
+     * @var bool
      */
     public $itemsSelectable = true;
 
@@ -48,11 +47,12 @@ class FileSystemItem extends JsWidget
         return $this->render('fileSystemItem', [
             'folder' => $this->folder,
             'row' => $this->row,
-            'options' => $this->getOptions()
+            'options' => $this->getOptions(),
         ]);
     }
 
-    public function getData() {
+    public function getData()
+    {
         return [
             'cfiles-item' => $this->row->getItemId(),
             'cfiles-content' => $this->row->getContentId(),

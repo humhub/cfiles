@@ -13,7 +13,6 @@ use humhub\modules\cfiles\models\Folder;
 use humhub\modules\space\models\Space;
 use tests\codeception\_support\HumHubDbTestCase;
 
-
 /**
  * Created by PhpStorm.
  * User: buddha

@@ -13,7 +13,6 @@ use humhub\modules\file\handler\FileHandlerCollection;
  */
 class FileListMenu extends \yii\base\Widget
 {
-
     /**
      * Current folder model instance.
      * @var \humhub\modules\cfiles\models\Folder
@@ -27,7 +26,7 @@ class FileListMenu extends \yii\base\Widget
 
 
     /**
-     * @var integer FileList item count.
+     * @var int FileList item count.
      */
     public $itemCount;
 
@@ -43,10 +42,10 @@ class FileListMenu extends \yii\base\Widget
         $canUpload = $this->contentContainer->can(WriteAccess::class);
 
         return $this->render('fileListMenu', [
-                    'folder' => $this->folder,
-                    'contentContainer' => $this->contentContainer,
-                    'canUpload' => $canUpload,
-                    'fileHandlers' => array_merge($fileHandlerCreate, $fileHandlerImport),
+            'folder' => $this->folder,
+            'contentContainer' => $this->contentContainer,
+            'canUpload' => $canUpload,
+            'fileHandlers' => array_merge($fileHandlerCreate, $fileHandlerImport),
         ]);
     }
 

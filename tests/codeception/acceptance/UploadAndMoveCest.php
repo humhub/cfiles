@@ -29,7 +29,7 @@ class UploadAndMoveCest
         $I->wantToTest('the creation of a folder');
         $I->click('Add directory', '.files-action-menu');
 
-        $I->waitForText('Create folder', null,'#globalModal');
+        $I->waitForText('Create folder', null, '#globalModal');
         $I->fillField('Folder[title]', 'NewFolder');
         $I->click('Save', '#globalModal');
 

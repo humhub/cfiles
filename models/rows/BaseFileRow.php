@@ -21,9 +21,9 @@ use humhub\modules\file\libs\FileHelper;
 
 class BaseFileRow extends AbstractFileSystemItemRow
 {
-    const DEFAULT_ORDER = 'file.file_name ASC';
+    public const DEFAULT_ORDER = 'file.file_name ASC';
 
-    const ORDER_MAPPING = [
+    public const ORDER_MAPPING = [
         self::ORDER_TYPE_NAME => 'file.file_name',
         self::ORDER_TYPE_UPDATED_AT => 'file.updated_at',
         self::ORDER_TYPE_SIZE => 'cast(file.size as unsigned)',
@@ -41,7 +41,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
 
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isSelectable()
     {
@@ -49,7 +49,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isSocialActionsAvailable()
     {
@@ -66,7 +66,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getParentFolderId()
     {
@@ -86,7 +86,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
      */
     public function getItemId()
     {
-        return 'baseFile_'.$this->baseFile->id;
+        return 'baseFile_' . $this->baseFile->id;
     }
 
     /**
@@ -203,7 +203,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getDownloadCount()
     {
@@ -231,7 +231,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
      */
     public function getVisibilityIcon()
     {
-        return $this->getModel()->content->isPublic() ? 'fa-unlock': 'fa-lock';
+        return $this->getModel()->content->isPublic() ? 'fa-unlock' : 'fa-lock';
     }
 
     /**
@@ -253,7 +253,7 @@ class BaseFileRow extends AbstractFileSystemItemRow
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function canEdit()
     {

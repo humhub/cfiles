@@ -4,7 +4,6 @@ use yii\db\Migration;
 
 class m170210_154141_folderNoStream extends Migration
 {
-
     public function up()
     {
         try {

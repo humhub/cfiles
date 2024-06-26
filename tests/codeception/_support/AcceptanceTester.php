@@ -32,7 +32,7 @@ class AcceptanceTester extends \AcceptanceTester
 
     public function seeInCrumb($text)
     {
-        $this->waitForText($text, null,'#cfiles-crumb');
+        $this->waitForText($text, null, '#cfiles-crumb');
     }
 
     public function dontSeeInCrumb($text)
@@ -72,26 +72,26 @@ class AcceptanceTester extends \AcceptanceTester
 
     public function rightClickFolder($id)
     {
-        $this->clickWithRightButton('[data-cfiles-item="folder_'.$id.'"]');
+        $this->clickWithRightButton('[data-cfiles-item="folder_' . $id . '"]');
     }
 
     public function rightClickFile($id)
     {
-        $this->clickWithRightButton('[data-cfiles-item="file_'.$id.'"]');
+        $this->clickWithRightButton('[data-cfiles-item="file_' . $id . '"]');
     }
 
     public function clickFileContext($id, $menuItem)
     {
         $this->rightClickFile($id);
-        $this->waitForText($menuItem,null, '[data-cfiles-item="file_'.$id.'"] .contextMenu');
-        $this->click($menuItem, '[data-cfiles-item="file_'.$id.'"] .contextMenu');
+        $this->waitForText($menuItem, null, '[data-cfiles-item="file_' . $id . '"] .contextMenu');
+        $this->click($menuItem, '[data-cfiles-item="file_' . $id . '"] .contextMenu');
     }
 
     public function clickFolderContext($id, $menuItem)
     {
         $this->rightClickFolder($id);
-        $this->waitForText($menuItem,null, '[data-cfiles-item="folder_'.$id.'"] .contextMenu');
-        $this->click($menuItem, '[data-cfiles-item="folder_'.$id.'"] .contextMenu');
+        $this->waitForText($menuItem, null, '[data-cfiles-item="folder_' . $id . '"] .contextMenu');
+        $this->click($menuItem, '[data-cfiles-item="folder_' . $id . '"] .contextMenu');
     }
 
     public function importZip($file = "test.zip")
@@ -118,24 +118,24 @@ class AcceptanceTester extends \AcceptanceTester
         $this->waitForText('Files from the stream', null, '#fileList');
     }
 
-   /**
-    * Define custom actions here
-    */
-   public function createFolder($title = 'test', $description = 'test description', $isPublic = false)
-   {
-       $this->click('Add directory', '.files-action-menu');
+    /**
+     * Define custom actions here
+     */
+    public function createFolder($title = 'test', $description = 'test description', $isPublic = false)
+    {
+        $this->click('Add directory', '.files-action-menu');
 
-       $this->waitForText('Create folder', null,'#globalModal');
-       $this->fillField('Folder[title]', $title);
-       $this->fillField('Folder[description]', $description);
+        $this->waitForText('Create folder', null, '#globalModal');
+        $this->fillField('Folder[title]', $title);
+        $this->fillField('Folder[description]', $description);
 
-       if($isPublic) {
-           $this->jsClick('input#folder-visibility');
-       }
+        if($isPublic) {
+            $this->jsClick('input#folder-visibility');
+        }
 
-       $this->click('Save', '#globalModal');
-       $this->waitForText('This folder is empty.', null, '.folderEmptyMessage');
-   }
+        $this->click('Save', '#globalModal');
+        $this->waitForText('This folder is empty.', null, '.folderEmptyMessage');
+    }
 
     public function seeFileSizeOnSpaceStream(BaseFile $file, $guid = 1)
     {

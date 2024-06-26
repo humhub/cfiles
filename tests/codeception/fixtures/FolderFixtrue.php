@@ -16,5 +16,5 @@ class FolderFixtrue extends ActiveFixture
 {
     public $modelClass = Folder::class;
     public $dataFile = '@cfiles/tests/codeception/fixtures/data/folder.php';
-   
+
 }

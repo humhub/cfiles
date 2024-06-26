@@ -22,14 +22,13 @@ use Yii;
  */
 class MoveController extends BaseController
 {
-
     /**
      * @inheritdoc
      */
     protected function getAccessRules()
     {
         return [
-            ['permission' => [ManageFiles::class]]
+            ['permission' => [ManageFiles::class]],
         ];
     }
 
@@ -41,7 +40,7 @@ class MoveController extends BaseController
     {
         $model = new MoveForm([
             'root' => $this->getRootFolder(),
-            'sourceFolder' => $this->getCurrentFolder()
+            'sourceFolder' => $this->getCurrentFolder(),
         ]);
 
         if (!$model->load(Yii::$app->request->post())) {
@@ -57,7 +56,7 @@ class MoveController extends BaseController
             $errorMsg = Yii::t('CfilesModule.base', 'Some files could not be moved: ');
             foreach ($model->getErrors() as $key => $errors) {
                 foreach ($errors as $error) {
-                    $errorMsg .= $error.' ';
+                    $errorMsg .= $error . ' ';
                 }
             }
 

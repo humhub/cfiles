@@ -26,7 +26,7 @@ class ItemSelectionCest
         $I->jsClick('.allselect');
         $I->click('.chkCnt', '.files-action-menu');
         $I->click('Delete', '.files-action-menu');
-        $I->waitForText('Confirm delete file',null, '#globalModalConfirm');
+        $I->waitForText('Confirm delete file', null, '#globalModalConfirm');
         $I->click('Delete', '#globalModalConfirm');
 
         $I->waitForElementNotVisible('[data-cfiles-item="file_1"]');

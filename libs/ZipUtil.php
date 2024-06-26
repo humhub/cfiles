@@ -15,13 +15,11 @@
 
 namespace humhub\modules\cfiles\libs;
 
-
 use Yii;
 use yii\helpers\BaseFileHelper;
 
 class ZipUtil
 {
-
     /**
      * Cleanup all previously created zip files.
      */

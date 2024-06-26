@@ -25,7 +25,6 @@ use yii\web\HttpException;
  */
 class EditController extends BrowseController
 {
-
     /**
      * Action to edit a given folder.
      *
@@ -60,7 +59,7 @@ class EditController extends BrowseController
 
         return $this->renderPartial('modal_edit_folder', [
             'folder' => $folder,
-            'submitUrl' => $this->getCurrentFolder()->createUrl('/cfiles/edit/folder', ['id' => $folder->getItemId()])
+            'submitUrl' => $this->getCurrentFolder()->createUrl('/cfiles/edit/folder', ['id' => $folder->getItemId()]),
         ]);
     }
 

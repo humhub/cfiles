@@ -32,7 +32,7 @@ class MoveTest extends HumHubDbTestCase
         $fileA->setUploadedFile(new UploadedFile([
             'name' => 'fileA.txt',
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
 
         $this->assertTrue($root->moveItem($fileA));
@@ -43,7 +43,7 @@ class MoveTest extends HumHubDbTestCase
         // Check children of root
         $children = $root->getChildren();
         $this->assertEquals(count($children), 1);
-        $this->assertEquals($fileA->id, $children[0]->id );
+        $this->assertEquals($fileA->id, $children[0]->id);
         $this->assertEquals('fileA.txt', $children[0]->getTitle());
         $this->assertEquals($root->id, $fileA->getParentFolder()->one()->id);
 
@@ -80,7 +80,7 @@ class MoveTest extends HumHubDbTestCase
         $fileA->setUploadedFile(new UploadedFile([
             'name' => 'fileA.txt',
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
 
         $folderB->moveItem($fileA);
@@ -139,7 +139,7 @@ class MoveTest extends HumHubDbTestCase
         $originalFileA->setUploadedFile(new UploadedFile([
             'name' => 'fileA.txt',
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
         $this->assertTrue($folderCinBinA->moveItem($originalFileA));
 
@@ -156,7 +156,7 @@ class MoveTest extends HumHubDbTestCase
         $otherFileA->setUploadedFile(new UploadedFile([
             'name' => 'fileA.txt',
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
 
         $this->assertTrue($folderCinB->moveItem($otherFileA));
@@ -166,7 +166,7 @@ class MoveTest extends HumHubDbTestCase
         $fileB->setUploadedFile(new UploadedFile([
             'name' => 'fileB.txt',
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
 
         $this->assertTrue($folderCinB->moveItem($fileB));
@@ -232,7 +232,7 @@ class MoveTest extends HumHubDbTestCase
         $fileA->setUploadedFile(new UploadedFile([
             'name' => 'fileA.txt',
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
         $this->assertTrue($folderB->moveItem($fileA));
 

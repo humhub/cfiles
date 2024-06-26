@@ -17,9 +17,9 @@ namespace humhub\modules\cfiles\models\rows;
 
 class SpecialFolderRow extends FolderRow
 {
-    const DEFAULT_ORDER = null;
+    public const DEFAULT_ORDER = null;
 
-    const ORDER_MAPPING = [
+    public const ORDER_MAPPING = [
         self::ORDER_TYPE_NAME => null,
         self::ORDER_TYPE_UPDATED_AT => null,
         self::ORDER_TYPE_SIZE => null,

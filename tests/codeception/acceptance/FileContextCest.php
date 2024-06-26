@@ -52,6 +52,6 @@ class FileContextCest
         $I->uploadFile();
         $I->clickFileContext(2, 'Show Post');
         $I->waitForElementVisible('#wallStream');
-        $I->waitForText('test.txt', null,'[data-stream-entry]');
+        $I->waitForText('test.txt', null, '[data-stream-entry]');
     }
 }

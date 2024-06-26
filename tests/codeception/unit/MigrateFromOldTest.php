@@ -41,7 +41,7 @@ class MigrateFromOldTest extends HumHubDbTestCase
         $fileA->setUploadedFile(new UploadedFile([
             'name' => 'fileA.txt',
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
 
         $folder->moveItem($fileA);
@@ -81,7 +81,7 @@ class MigrateFromOldTest extends HumHubDbTestCase
         $file->setUploadedFile(new UploadedFile([
             'name' => $name,
             'size' => 1024,
-            'type' => 'text/plain'
+            'type' => 'text/plain',
         ]));
 
         //Save without parent_id;

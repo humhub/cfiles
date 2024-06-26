@@ -70,7 +70,7 @@ class FileController extends BaseContentController
 
             if($file->hasErrors() || $file->baseFile->hasErrors()) {
                 return $this->returnError(422, "File {$file->baseFile->name} could not be uploaded!", [
-                    'errors' => array_merge($file->getErrors(), $file->baseFile->getErrors())
+                    'errors' => array_merge($file->getErrors(), $file->baseFile->getErrors()),
                 ]);
             }
         }
