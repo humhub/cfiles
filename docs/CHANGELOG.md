@@ -5,6 +5,7 @@ Changelog
 -------------------------
 - Fix #216: Fix image space rending on wall entry
 - Enh #224: Unifying positions of button on modals for consistency and better UX
+- Enh #227: Use PHP CS Fixer
 
 0.16.6 - March 14, 2024
 -------------------------
