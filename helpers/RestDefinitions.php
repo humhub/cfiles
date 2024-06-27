@@ -6,6 +6,7 @@
  */
 
 namespace humhub\modules\cfiles\helpers;
+
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\rest\definitions\ContentDefinitions;

@@ -6,7 +6,6 @@ use yii\base\Widget;
 
 class DropdownButton extends Widget
 {
-
     public $buttons;
     public $icon;
     public $options;
@@ -24,18 +23,18 @@ class DropdownButton extends Widget
                 array_shift($items);
             }
             return ButtonDropdown::widget([
-                        'dropdown' => [
-                            'items' => $items
-                        ],
-                        'splitButton' => $this->split ? [
-                            'visible' => true,
-                            'options' => $this->options
-                        ] : null,
-                        'button' => $this->split ? $this->buttons[0] : [
-                            'encodeLabel' => false,
-                            'label' => $this->icon . $this->label,
-                            'options' => $this->options
-                        ]
+                'dropdown' => [
+                    'items' => $items,
+                ],
+                'splitButton' => $this->split ? [
+                    'visible' => true,
+                    'options' => $this->options,
+                ] : null,
+                'button' => $this->split ? $this->buttons[0] : [
+                    'encodeLabel' => false,
+                    'label' => $this->icon . $this->label,
+                    'options' => $this->options,
+                ],
             ]);
         } elseif (count($this->buttons) > 0) {
             return $this->buttons[0];

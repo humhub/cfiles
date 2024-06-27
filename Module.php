@@ -16,7 +16,6 @@ use yii\helpers\Url;
 
 class Module extends ContentContainerModule
 {
-
     public $resourcesPath = 'resources';
 
     /**
@@ -38,12 +37,12 @@ class Module extends ContentContainerModule
      */
     public $defaultFolderOrder = 'title ASC';
 
-    const ORDER_NAME = 'name';
-    const ORDER_UPDATED_AT = 'updated_at';
-    const ORDER_SIZE = 'size';
+    public const ORDER_NAME = 'name';
+    public const ORDER_UPDATED_AT = 'updated_at';
+    public const ORDER_SIZE = 'size';
 
-    const UPLOAD_BEHAVIOUR_INDEX = 0;
-    const UPLOAD_BEHAVIOUR_REPLACE = 1;
+    public const UPLOAD_BEHAVIOUR_INDEX = 0;
+    public const UPLOAD_BEHAVIOUR_REPLACE = 1;
 
     /**
      * @inheritdoc
@@ -65,7 +64,7 @@ class Module extends ContentContainerModule
     {
         return [
             Space::className(),
-            User::className()
+            User::className(),
         ];
     }
 
@@ -156,7 +155,7 @@ class Module extends ContentContainerModule
     /**
      * Determines ZIP Support is enabled or not
      *
-     * @return boolean is ZIP support enabled
+     * @return bool is ZIP support enabled
      */
     public function isZipSupportEnabled(): bool
     {

@@ -13,7 +13,6 @@ use humhub\modules\cfiles\Module;
  */
 class ConfigureForm extends \yii\base\Model
 {
-
     public $disableZipSupport;
     public $displayDownloadCount;
 

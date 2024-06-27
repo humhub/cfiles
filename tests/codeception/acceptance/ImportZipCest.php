@@ -36,7 +36,7 @@ class ImportZipCest
         $I->waitForText('test2', null, '#fileList');
 
         $I->click('test2', '#fileList');
-        $I->waitForText('test2.txt', null,'#fileList');
+        $I->waitForText('test2.txt', null, '#fileList');
 
     }
 }

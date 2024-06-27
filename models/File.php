@@ -20,10 +20,10 @@ use yii\web\UploadedFile;
 /**
  * This is the model class for table "cfiles_file".
  *
- * @property integer $id
- * @property integer $parent_folder_id
+ * @property int $id
+ * @property int $parent_folder_id
  * @property string $description
- * @property integer $download_count
+ * @property int $download_count
  *
  * @property Folder $parentFolder
  * @property BaseFile $baseFile
@@ -108,9 +108,9 @@ class File extends FileSystemItem
      */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(),[
+        return array_merge(parent::attributeLabels(), [
             'id' => 'ID',
-            'parent_folder_id' => Yii::t('CfilesModule.models_File', 'Folder ID')
+            'parent_folder_id' => Yii::t('CfilesModule.models_File', 'Folder ID'),
         ]);
     }
 
@@ -120,7 +120,7 @@ class File extends FileSystemItem
     public function getSearchAttributes()
     {
         $attributes = [
-            'description' => $this->description
+            'description' => $this->description,
         ];
 
         if($this->getCreator()) {
@@ -221,12 +221,12 @@ class File extends FileSystemItem
             }
 
             return  $this->content->isPublic()
-                ?  Yii::t('CfilesModule.base', 'This file is public.')
+                ? Yii::t('CfilesModule.base', 'This file is public.')
                 : $privateText;
         }
 
         return  $this->content->isPublic()
-            ?  Yii::t('CfilesModule.base', 'This file is public.')
+            ? Yii::t('CfilesModule.base', 'This file is public.')
             : Yii::t('CfilesModule.base', 'This file is private.');
     }
 
@@ -276,7 +276,7 @@ class File extends FileSystemItem
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getDownloadCount()
     {
@@ -337,7 +337,7 @@ class File extends FileSystemItem
 
         return Content::find()->where([
             'content.object_id' => $searchItem->object_id,
-            'content.object_model' => $searchItem->object_model
+            'content.object_model' => $searchItem->object_model,
         ])->one();
     }
 
@@ -365,7 +365,7 @@ class File extends FileSystemItem
         }
         $counter = 0;
         // break at maxdepth 20 to avoid hangs
-        while (!empty($tempFolder) && $counter ++ <= 20) {
+        while (!empty($tempFolder) && $counter++ <= 20) {
             $path = $separator . $tempFolder->title . $path;
             $tempFolder = $tempFolder->parentFolder;
         }
@@ -404,10 +404,11 @@ class File extends FileSystemItem
 
         // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
         $query->andWhere(
-                ['or',
-                    ['=', 'comment.object_model', \humhub\modules\post\models\Post::className()],
-                    ['=', 'file.object_model', \humhub\modules\post\models\Post::className()]
-        ]);
+            ['or',
+                ['=', 'comment.object_model', \humhub\modules\post\models\Post::className()],
+                ['=', 'file.object_model', \humhub\modules\post\models\Post::className()],
+            ],
+        );
 
         // Get Files from comments
         return $query->orderBy($filesOrder);
@@ -422,9 +423,9 @@ class File extends FileSystemItem
                 ->joinWith('baseFile')
                 ->readable()
                 ->andWhere([
-            'file_name' => $name,
-            'cfiles_file.parent_folder_id' => $parentFolderId
-        ]);
+                    'file_name' => $name,
+                    'cfiles_file.parent_folder_id' => $parentFolderId,
+                ]);
         return $filesQuery->one();
     }
 

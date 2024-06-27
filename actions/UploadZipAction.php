@@ -15,7 +15,6 @@
 
 namespace humhub\modules\cfiles\actions;
 
-
 use humhub\modules\cfiles\libs\ZipExtractor;
 use humhub\modules\cfiles\models\FileSystemItem;
 use Yii;

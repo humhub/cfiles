@@ -9,46 +9,45 @@ use humhub\modules\post\models\Post;
 
 /**
  * This is a utility lib for files.
- * 
+ *
  * @package humhub.modules.gallery.libs
  * @since 1.0
  * @author Sebastian Stumpf
  */
 class FileUtils
 {
-
     public static $map = [
         'code' => [
             'ext' => [
                 'html',
                 'cmd',
                 'bat',
-                'xml'
+                'xml',
             ],
-            'icon' => 'fa-file-code-o'
+            'icon' => 'fa-file-code-o',
         ],
         'archive' => [
             'ext' => [
                 'zip',
                 'rar',
                 'gz',
-                'tar'
+                'tar',
             ],
-            'icon' => 'fa-file-archive-o'
+            'icon' => 'fa-file-archive-o',
         ],
         'audio' => [
             'ext' => [
                 'mp3',
-                'wav'
+                'wav',
             ],
-            'icon' => 'fa-file-audio-o'
+            'icon' => 'fa-file-audio-o',
         ],
         'excel' => [
             'ext' => [
                 'xls',
-                'xlsx'
+                'xlsx',
             ],
-            'icon' => 'fa-file-excel-o'
+            'icon' => 'fa-file-excel-o',
         ],
         'image' => [
             'ext' => [
@@ -58,50 +57,50 @@ class FileUtils
                 'bmp',
                 'svg',
                 'tiff',
-                'png'
+                'png',
             ],
-            'icon' => 'fa-file-image-o'
+            'icon' => 'fa-file-image-o',
         ],
         'pdf' => [
             'ext' => [
-                'pdf'
+                'pdf',
             ],
-            'icon' => 'fa-file-pdf-o'
+            'icon' => 'fa-file-pdf-o',
         ],
         'powerpoint' => [
             'ext' => [
                 'ppt',
-                'pptx'
+                'pptx',
             ],
-            'icon' => 'fa-file-powerpoint-o'
+            'icon' => 'fa-file-powerpoint-o',
         ],
         'text' => [
             'ext' => [
                 'txt',
                 'log',
-                'md'
+                'md',
             ],
-            'icon' => 'fa-file-text-o'
+            'icon' => 'fa-file-text-o',
         ],
         'video' => [
             'ext' => [
                 'mp4',
                 'mpeg',
-                'swf'
+                'swf',
             ],
-            'icon' => 'fa-file-video-o'
+            'icon' => 'fa-file-video-o',
         ],
         'word' => [
             'ext' => [
                 'doc',
-                'docx'
+                'docx',
             ],
-            'icon' => 'fa-file-word-o'
+            'icon' => 'fa-file-word-o',
         ],
         'default' => [
             'ext' => [],
-            'icon' => 'fa-file-o'
-        ]
+            'icon' => 'fa-file-o',
+        ],
     ];
 
     /**
@@ -153,13 +152,13 @@ class FileUtils
         // if the item is connected to a Comment, we have to search for the corresponding Post
         if ($file->object_model === Comment::className()) {
             $searchItem = Comment::findOne([
-                        'id' => $file->object_id
+                'id' => $file->object_id,
             ]);
         }
         $query = Content::find();
         $query->andWhere([
             'content.object_id' => $searchItem->object_id,
-            'content.object_model' => $searchItem->object_model
+            'content.object_model' => $searchItem->object_model,
         ]);
         return $query->one();
     }
@@ -177,10 +176,10 @@ class FileUtils
         // if the item is connected to a Comment, we have to search for the corresponding Post
         if ($file->object_model === Comment::className()) {
             $searchItem = Comment::findOne([
-                        'id' => $file->object_id
+                'id' => $file->object_id,
             ]);
         }
-        $return = Post::findOne(['id' => $searchItem->object_id
+        $return = Post::findOne(['id' => $searchItem->object_id,
         ]);
     }
 

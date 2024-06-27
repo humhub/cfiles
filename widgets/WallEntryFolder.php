@@ -13,12 +13,11 @@ use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
 
 /**
  * Wall Entry for Folder
- * 
+ *
  * Used for Search
  */
 class WallEntryFolder extends WallStreamModuleEntryWidget
 {
-
     /**
      * @inheritdoc
      */
@@ -40,8 +39,8 @@ class WallEntryFolder extends WallStreamModuleEntryWidget
     public function renderContent()
     {
         return $this->render('wallEntryFolder', [
-                    'folder' => $this->model,
-                    'folderUrl' => $this->model->getUrl()
+            'folder' => $this->model,
+            'folderUrl' => $this->model->getUrl(),
         ]);
     }
 

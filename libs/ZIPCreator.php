@@ -23,7 +23,6 @@ use humhub\modules\cfiles\models\FileSystemItem;
  */
 class ZIPCreator extends ZipUtil
 {
-
     /**
      * @var ZipArchive the zip archive
      */
@@ -36,7 +35,7 @@ class ZIPCreator extends ZipUtil
 
     /**
      * Creates a new ZIP
-     * 
+     *
      * @throws \yii\base\Exception
      */
     public function __construct()
@@ -63,7 +62,7 @@ class ZIPCreator extends ZipUtil
 
     /**
      * Returns the temporary generated ZIP File name
-     * 
+     *
      * @return string the ZIP filename
      */
     public function getZipFile()
@@ -73,7 +72,7 @@ class ZIPCreator extends ZipUtil
 
     /**
      * Adds file or folder to the ZIP
-     * 
+     *
      * @param FileSystemItem $item the item
      * @param string $path path in the ZIP archive
      * @throws Exception

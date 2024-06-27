@@ -17,7 +17,6 @@ use humhub\modules\user\models\User;
  */
 class VersionItem extends Widget
 {
-
     /**
      * @var FileHistory|BaseFile
      */
@@ -41,7 +40,8 @@ class VersionItem extends Widget
     /**
      * @inheritdoc
      */
-    public function run() {
+    public function run()
+    {
         if ($this->isCurrent()) {
             $rowOptions = ['class' => 'bg-warning'];
         } else {

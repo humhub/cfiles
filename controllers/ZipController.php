@@ -20,14 +20,13 @@ use Yii;
  */
 class ZipController extends BrowseController
 {
-
     /**
      * @inheritdoc
      */
     protected function getAccessRules()
     {
         return [
-            ['checkZipSupport']
+            ['checkZipSupport'],
         ];
     }
 

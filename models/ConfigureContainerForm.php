@@ -43,7 +43,7 @@ class ConfigureContainerForm extends Model
     {
         $this->contentHiddenDefault = $this->getSettings()->get(
             'contentHiddenDefault',
-            $this->getModule()->getContentHiddenGlobalDefault()
+            $this->getModule()->getContentHiddenGlobalDefault(),
         );
     }
 

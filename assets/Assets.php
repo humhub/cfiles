@@ -22,20 +22,20 @@ class Assets extends AssetBundle
     public $defer = true;
 
     public $publishOptions = [
-        'forceCopy' => false
+        'forceCopy' => false,
     ];
-    
+
     public $css = [
         'css/cfiles.css',
-        'css/directorylist.css'
+        'css/directorylist.css',
     ];
-    
+
     public $jsOptions = [
-        'position' => \yii\web\View::POS_BEGIN
+        'position' => \yii\web\View::POS_BEGIN,
     ];
-    
+
     public $js = [
-        'js/humhub.cfiles.js'
+        'js/humhub.cfiles.js',
     ];
 
     public function init()

@@ -15,7 +15,6 @@
 
 namespace humhub\modules\cfiles\widgets;
 
-
 use humhub\components\Widget;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\permissions\ManageFiles;

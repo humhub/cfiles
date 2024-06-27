@@ -31,14 +31,14 @@ class UploadController extends BrowseController
     protected function getAccessRules()
     {
         return [
-            ['permission' => [WriteAccess::class]]
+            ['permission' => [WriteAccess::class]],
         ];
     }
 
     public function actions()
     {
         return [
-            'index' => ['class' => UploadAction::class]
+            'index' => ['class' => UploadAction::class],
         ];
     }
 
@@ -83,7 +83,7 @@ class UploadController extends BrowseController
         }
 
         if ($errors) {
-            array_unshift($errors, Yii::t('CfilesModule.base', 'Some files could not be imported: ') );
+            array_unshift($errors, Yii::t('CfilesModule.base', 'Some files could not be imported: '));
         }
 
         return $this->asJson(['success' => empty($errors), 'errors' => $errors]);
@@ -94,7 +94,7 @@ class UploadController extends BrowseController
         $errorMsg = Yii::t('CfilesModule.base', 'Some files could not be imported: ');
         foreach ($record->getErrors() as $key => $errors) {
             foreach ($errors as $error) {
-                $errorMsg .= $error.' ';
+                $errorMsg .= $error . ' ';
             }
         }
     }

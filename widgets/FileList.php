@@ -21,7 +21,6 @@ use yii\data\Pagination;
  */
 class FileList extends Widget
 {
-
     /**
      * @var \humhub\modules\cfiles\models\Folder current folder
      */
@@ -88,7 +87,7 @@ class FileList extends Widget
             $settings = $module->settings->user(Yii::$app->user->getIdentity());
             $settings->set('defaultSort', $this->sort);
             $settings->set('defaultOrder', $this->order);
-        } else if(!Yii::$app->user->isGuest) {
+        } elseif(!Yii::$app->user->isGuest) {
             $settings = $module->settings->user(Yii::$app->user->getIdentity());
             $this->sort = $settings->get('defaultSort', $this->sort);
             $this->order = $settings->get('defaultOrder', $this->order);
@@ -99,7 +98,7 @@ class FileList extends Widget
     {
         /** @var $module Module */
         $module = Yii::$app->getModule('cfiles');
-        $moduleSetting= ($this->folder->isAllPostedFiles()) ? $module->defaultPostedFilesSort : $module->defaultSort;
+        $moduleSetting = ($this->folder->isAllPostedFiles()) ? $module->defaultPostedFilesSort : $module->defaultSort;
         return $module->settings->user(Yii::$app->user->getIdentity())->get('defaultSort', $moduleSetting);
     }
 
@@ -107,7 +106,7 @@ class FileList extends Widget
     {
         /** @var $module Module */
         $module = Yii::$app->getModule('cfiles');
-        $moduleSetting= ($this->folder->isAllPostedFiles()) ? $module->defaultPostedFilesSort : $module->defaultSort;
+        $moduleSetting = ($this->folder->isAllPostedFiles()) ? $module->defaultPostedFilesSort : $module->defaultSort;
         return $module->settings->user(Yii::$app->user->getIdentity())->get('defaultOrder', $moduleSetting);
     }
 
@@ -126,14 +125,14 @@ class FileList extends Widget
         $itemsSelectable = !$this->folder->isAllPostedFiles() && ($canWrite || Yii::$app->getModule('cfiles')->isZipSupportEnabled());
 
         return $this->render('fileList', [
-                    'rows' => $this->rows,
-                    'pagination' => $this->pagination,
-                    'folder' => $this->folder,
-                    'sort' => $this->sort,
-                    'order' => $this->order,
-                    'itemsSelectable' => $itemsSelectable,
-                    'itemsInFolder' => count($this->rows),
-                    'canWrite' => $canWrite,
+            'rows' => $this->rows,
+            'pagination' => $this->pagination,
+            'folder' => $this->folder,
+            'sort' => $this->sort,
+            'order' => $this->order,
+            'itemsSelectable' => $itemsSelectable,
+            'itemsInFolder' => count($this->rows),
+            'canWrite' => $canWrite,
         ]);
     }
 
@@ -176,7 +175,7 @@ class FileList extends Widget
 
     /**
      * Returns a list of selected items
-     * 
+     *
      * @return \humhub\modules\cfiles\models\FileSystemItem[]
      */
     public static function getSelectedItems()

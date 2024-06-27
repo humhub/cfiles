@@ -14,7 +14,6 @@ use humhub\modules\user\models\User;
 use Yii;
 use yii\base\Event;
 
-
 /**
  * cfiles Events
  *
@@ -22,7 +21,6 @@ use yii\base\Event;
  */
 class Events
 {
-
     public static function onSpaceMenuInit($event)
     {
 
@@ -32,7 +30,7 @@ class Events
                 'group' => 'modules',
                 'url' => $event->sender->space->createUrl('/cfiles/browse'),
                 'icon' => '<i class="fa fa-files-o"></i>',
-                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
+                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles'),
             ]);
         }
     }
@@ -79,7 +77,7 @@ class Events
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'url' => $event->sender->user->createUrl('/cfiles/browse'),
                 'icon' => '<i class="fa fa-files-o"></i>',
-                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
+                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles'),
             ]);
         }
     }
