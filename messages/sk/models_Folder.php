@@ -1,6 +1,6 @@
 <?php
 return array (
   'Description' => 'Popis',
-  'Parent Folder ID' => '',
-  'Title' => '제목',
+  'Parent Folder ID' => 'ID Rodičovského priečinku',
+  'Title' => 'Názov',
 );
