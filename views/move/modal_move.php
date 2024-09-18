@@ -1,7 +1,7 @@
 <?php
 
 use humhub\modules\cfiles\models\forms\MoveForm;
-use humhub\widgets\ActiveForm;
+use humhub\modules\ui\form\widgets\ActiveForm;
 use humhub\widgets\ModalButton;
 use humhub\widgets\ModalDialog;
 
