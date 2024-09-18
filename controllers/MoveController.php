@@ -49,7 +49,7 @@ class MoveController extends BaseController
             ]);
         }
 
-        if($model->save()) {
+        if ($model->save()) {
             $this->view->saved();
             return $this->htmlRedirect($model->destination->createUrl('/cfiles/browse'));
         } else {

@@ -32,7 +32,7 @@ class DeleteController extends BrowseController
             foreach ($selectedItems as $itemId) {
                 $item = FileSystemItem::getItemById($itemId);
 
-                if(!$item->content->canEdit()) {
+                if (!$item->content->canEdit()) {
                     throw new HttpException(403);
                 }
 

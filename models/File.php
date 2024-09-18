@@ -96,7 +96,7 @@ class File extends FileSystemItem
             ['hidden', 'boolean'],
         ];
 
-        if($this->parentFolder && $this->parentFolder->content->isPublic()) {
+        if ($this->parentFolder && $this->parentFolder->content->isPublic()) {
             $rules[] = ['visibility', 'integer', 'min' => 0, 'max' => 1];
         }
 
@@ -123,11 +123,11 @@ class File extends FileSystemItem
             'description' => $this->description,
         ];
 
-        if($this->getCreator()) {
+        if ($this->getCreator()) {
             $attributes['creator'] = $this->getCreator()->getDisplayName();
         }
 
-        if($this->getEditor()) {
+        if ($this->getEditor()) {
             $attributes['editor'] = $this->getEditor()->getDisplayName();
         }
 
@@ -205,7 +205,7 @@ class File extends FileSystemItem
             return;
         }
 
-        if(!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
+        if (!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
             // For user profile files we use Content::VISIBILITY_OWNER isntead of private
             $this->content->visibility = $visibility;
         }
@@ -213,8 +213,8 @@ class File extends FileSystemItem
 
     public function getVisibilityTitle()
     {
-        if(Yii::$app->getModule('friendship')->settings->get('enable') && $this->content->container instanceof User) {
-            if($this->content->container->isCurrentuser()) {
+        if (Yii::$app->getModule('friendship')->settings->get('enable') && $this->content->container instanceof User) {
+            if ($this->content->container->isCurrentuser()) {
                 $privateText =  Yii::t('CfilesModule.base', 'This file is only visible for you and your friends.');
             } else {
                 $privateText =  Yii::t('CfilesModule.base', 'This file is protected.');
@@ -395,7 +395,7 @@ class File extends FileSystemItem
 
         $query->andWhere(['content.contentcontainer_id' => $contentContainer->contentContainerRecord->id]);
 
-        if(!$contentContainer->canAccessPrivateContent()) {
+        if (!$contentContainer->canAccessPrivateContent()) {
             // Note this will cut comment images, but including the visibility of comments is pretty complex...
             $query->andWhere(['content.visibility' => Content::VISIBILITY_PUBLIC]);
         }

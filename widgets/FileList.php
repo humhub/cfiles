@@ -83,11 +83,11 @@ class FileList extends Widget
         $this->order = Yii::$app->request->get('order', $this->order);
 
         // Save sort settings if sorting was used and logged in user is given or try fetching user settings.
-        if(Yii::$app->request->get('sort') && !Yii::$app->user->isGuest) {
+        if (Yii::$app->request->get('sort') && !Yii::$app->user->isGuest) {
             $settings = $module->settings->user(Yii::$app->user->getIdentity());
             $settings->set('defaultSort', $this->sort);
             $settings->set('defaultOrder', $this->order);
-        } elseif(!Yii::$app->user->isGuest) {
+        } elseif (!Yii::$app->user->isGuest) {
             $settings = $module->settings->user(Yii::$app->user->getIdentity());
             $this->sort = $settings->get('defaultSort', $this->sort);
             $this->order = $settings->get('defaultOrder', $this->order);
@@ -115,7 +115,7 @@ class FileList extends Widget
      */
     public function run()
     {
-        if($this->folder->isAllPostedFiles()) {
+        if ($this->folder->isAllPostedFiles()) {
             $this->setPostedFilesRows();
         } else {
             $this->setSystemItemRows();

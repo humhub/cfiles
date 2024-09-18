@@ -15,7 +15,7 @@ class m170830_122439_foreignkeys extends Migration
         try {
             $this->addForeignKey('fk_cfiles_file_parent_folder', 'cfiles_file', 'parent_folder_id', 'cfiles_folder', 'id', 'SET NULL');
             $this->addForeignKey('fk_cfiles_folder_parent_folder', 'cfiles_folder', 'parent_folder_id', 'cfiles_folder', 'id', 'SET NULL');
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             Yii::error($e);
         }
     }

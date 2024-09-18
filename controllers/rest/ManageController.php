@@ -38,7 +38,7 @@ class ManageController extends BaseController
         }
 
         foreach ($result as $item) {
-            if(! $item->delete()) {
+            if (! $item->delete()) {
                 Yii::error('Could not delete cFiles items.', 'api');
                 return $this->returnError(500, 'Internal error while deleting cFiles item!');
             }
@@ -81,7 +81,7 @@ class ManageController extends BaseController
             ]);
         }
 
-        if($model->load($params) && $model->save()) {
+        if ($model->load($params) && $model->save()) {
             return $this->returnSuccess('Items successfully moved.');
         }
 
@@ -115,7 +115,7 @@ class ManageController extends BaseController
 
         foreach ($result as $item) {
             $item->updateVisibility(Content::VISIBILITY_PUBLIC);
-            if(! $item->content->save()) {
+            if (! $item->content->save()) {
                 Yii::error('Could not set public visibility for cFiles items.', 'api');
                 return $this->returnError(500, 'Internal error while setting public visibility for cFiles item!');
             }
@@ -144,7 +144,7 @@ class ManageController extends BaseController
 
         foreach ($result as $item) {
             $item->updateVisibility(Content::VISIBILITY_PRIVATE);
-            if(! $item->content->save()) {
+            if (! $item->content->save()) {
                 Yii::error('Could not set private visibility for cFiles items.', 'api');
                 return $this->returnError(500, 'Internal error while setting private visibility for cFiles item!');
             }
