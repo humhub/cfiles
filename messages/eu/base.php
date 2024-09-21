@@ -57,7 +57,7 @@ return array (
   'Move to another Space' => '',
   'Moving to the same folder is not valid.' => '',
   'Moving to this folder is invalid.' => '',
-  'Name' => '',
+  'Name' => 'izena',
   'No file found!' => '',
   'Open' => 'Ireki',
   'Open file folder' => '',
