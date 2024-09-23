@@ -7,16 +7,16 @@ class m150720_174011_initial extends Migration
 {
     public function up()
     {
-        $this->createTable('cfiles_file', array(
+        $this->createTable('cfiles_file', [
             'id' => 'pk',
             'parent_folder_id' => 'int(11) NULL',
-        ), '');
+        ], '');
 
-        $this->createTable('cfiles_folder', array(
+        $this->createTable('cfiles_folder', [
             'id' => 'pk',
             'parent_folder_id' => 'int(11) NULL',
             'title' => 'varchar(255) NOT NULL',
-        ), '');
+        ], '');
     }
 
     public function down()

@@ -131,7 +131,7 @@ class EditController extends BrowseController
         foreach ($model->selection as $itemId) {
             $item = FileSystemItem::getItemById($itemId);
 
-            if(!$item->content->canEdit()) {
+            if (!$item->content->canEdit()) {
                 throw new HttpException(403);
             }
 

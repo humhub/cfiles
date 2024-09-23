@@ -45,7 +45,7 @@ abstract class BaseController extends ContentContainerController
         if (!$this->getRootFolder()) {
             $this->_rootFolder = Folder::initRoot($this->contentContainer);
             $newRoot = true;
-        } elseif($this->getRootFolder()->content->isPrivate()) {
+        } elseif ($this->getRootFolder()->content->isPrivate()) {
             // Make sure older root folders are public by default.
             $this->getRootFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
             $this->getRootFolder()->content->save();
@@ -53,7 +53,7 @@ abstract class BaseController extends ContentContainerController
 
         if ($this->getAllPostedFilesFolder() == null) {
             $this->_allPostedFilesFolder = Folder::initPostedFilesFolder($this->contentContainer);
-        } elseif($this->getAllPostedFilesFolder()->content->isPrivate()) {
+        } elseif ($this->getAllPostedFilesFolder()->content->isPrivate()) {
             $this->getAllPostedFilesFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
             $this->getAllPostedFilesFolder()->content->save();
         }

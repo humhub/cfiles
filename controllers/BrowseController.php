@@ -26,7 +26,7 @@ class BrowseController extends BaseController
     public function actionIndex()
     {
         $currentFolder = $this->getCurrentFolder();
-        if(!$currentFolder->content->canView()) {
+        if (!$currentFolder->content->canView()) {
             throw new HttpException(403);
         }
 

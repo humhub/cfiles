@@ -154,11 +154,11 @@ class Folder extends FileSystemItem
                 'description' => $this->description,
             ];
 
-            if($this->getCreator()) {
+            if ($this->getCreator()) {
                 $attributes['creator'] = $this->getCreator()->getDisplayName();
             }
 
-            if($this->getEditor()) {
+            if ($this->getEditor()) {
                 $attributes['editor'] = $this->getEditor()->getDisplayName();
             }
         }
