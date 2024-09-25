@@ -7,6 +7,7 @@ Changelog
 - Enh #224: Unifying positions of button on modals for consistency and better UX
 - Enh #227: Use PHP CS Fixer
 - Fix: Add autofocus on file or folder edit (for HumHub 1.17 - see https://github.com/humhub/humhub/issues/7136)
+- Fix #230: Optimize sql query to get files from the stream
 - Enh #232: Update Active Form for Bootstrap 5
 
 0.16.6 - March 14, 2024
