@@ -3,11 +3,11 @@
 
 use humhub\modules\content\widgets\richtext\RichTextField;
 use humhub\modules\topic\widgets\TopicPicker;
+use humhub\modules\ui\form\widgets\ActiveForm;
 use humhub\modules\ui\form\widgets\ContentHiddenCheckbox;
 use humhub\modules\ui\form\widgets\ContentVisibilitySelect;
 use humhub\widgets\ModalButton;
 use humhub\widgets\ModalDialog;
-use yii\bootstrap\ActiveForm;
 
 /* @var $file \humhub\modules\cfiles\models\File */
 /* @var $submitUrl string */

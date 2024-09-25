@@ -1,10 +1,10 @@
 <?php
 
+use humhub\modules\ui\form\widgets\ActiveForm;
 use humhub\modules\ui\form\widgets\ContentHiddenCheckbox;
 use humhub\modules\ui\form\widgets\ContentVisibilitySelect;
 use humhub\widgets\ModalButton;
 use humhub\widgets\ModalDialog;
-use yii\bootstrap\ActiveForm;
 
 /* @var $folder \humhub\modules\cfiles\models\Folder */
 /* @var $submitUrl string */
