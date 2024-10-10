@@ -92,7 +92,7 @@ class File extends FileSystemItem
             [['parent_folder_id'], 'required'],
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
-            ['description', 'string', 'max' => 255],
+            ['description', 'string', 'max' => 1000],
             ['topics', 'safe'],
             ['hidden', 'boolean'],
         ];

@@ -9,6 +9,7 @@ Changelog
 - Fix: Add autofocus on file or folder edit (for HumHub 1.17 - see https://github.com/humhub/humhub/issues/7136)
 - Fix #230: Optimize sql query to get files from the stream
 - Enh #232: Update Active Form for Bootstrap 5
+- Enh #234: Increase File description max characters from 255 to 1000
 
 0.16.6 - March 14, 2024
 -------------------------
