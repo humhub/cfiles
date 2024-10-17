@@ -124,9 +124,9 @@ class Folder extends FileSystemItem
     {
         return array_merge(parent::attributeLabels(), [
             'id' => 'ID',
-            'parent_folder_id' => Yii::t('CfilesModule.models_Folder', 'Parent Folder ID'),
-            'title' => Yii::t('CfilesModule.models_Folder', 'Title'),
-            'description' => Yii::t('CfilesModule.models_Folder', 'Description'),
+            'parent_folder_id' => Yii::t('CfilesModule.base', 'Parent Folder ID'),
+            'title' => Yii::t('CfilesModule.base', 'Title'),
+            'description' => Yii::t('CfilesModule.base', 'Description'),
         ]);
     }
 
@@ -136,7 +136,7 @@ class Folder extends FileSystemItem
     public function attributeHints()
     {
         if (!$this->isNewRecord) {
-            return ['visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Note: Changes of the folders visibility, will be inherited by all contained files and folders.')];
+            return ['visibility' => Yii::t('CfilesModule.base', 'Note: Changes of the folders visibility, will be inherited by all contained files and folders.')];
         }
         return parent::attributeHints();
     }

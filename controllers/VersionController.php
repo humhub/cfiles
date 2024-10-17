@@ -106,13 +106,13 @@ class VersionController extends BaseController
 
         if (!$deletedFileVersion->delete()) {
             return $this->asJson([
-                'error' => Yii::t('CfilesModule.user', 'The version "{versionDate}" could not be deleted!', ['versionDate' => $deletedVersionDate]),
+                'error' => Yii::t('CfilesModule.base', 'The version "{versionDate}" could not be deleted!', ['versionDate' => $deletedVersionDate]),
             ]);
         }
 
         return $this->asJson([
             'deleted' => $fileVersionId,
-            'message' => Yii::t('CfilesModule.user', 'The version "{versionDate}" has been deleted.', ['versionDate' => $deletedVersionDate]),
+            'message' => Yii::t('CfilesModule.base', 'The version "{versionDate}" has been deleted.', ['versionDate' => $deletedVersionDate]),
         ]);
     }
 

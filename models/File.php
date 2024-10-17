@@ -111,7 +111,7 @@ class File extends FileSystemItem
     {
         return array_merge(parent::attributeLabels(), [
             'id' => 'ID',
-            'parent_folder_id' => Yii::t('CfilesModule.models_File', 'Folder ID'),
+            'parent_folder_id' => Yii::t('CfilesModule.base', 'Folder ID'),
         ]);
     }
 

@@ -94,9 +94,9 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function attributeLabels()
     {
         return [
-            'visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Is Public'),
-            'hidden' => Yii::t('CfilesModule.models_FileSystemItem', 'Hide in Stream'),
-            'download_count' => Yii::t('CfilesModule.models_FileSystemItem', 'Downloads'),
+            'visibility' => Yii::t('CfilesModule.base', 'Is Public'),
+            'hidden' => Yii::t('CfilesModule.base', 'Hide in Stream'),
+            'download_count' => Yii::t('CfilesModule.base', 'Downloads'),
         ];
     }
 
