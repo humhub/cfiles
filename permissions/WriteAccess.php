@@ -49,7 +49,7 @@ class WriteAccess extends \humhub\libs\BasePermission
      */
     public function getTitle()
     {
-        return Yii::t('CfilesModule.permissions', 'Add files');
+        return Yii::t('CfilesModule.base', 'Add files');
     }
 
     /**
@@ -57,7 +57,7 @@ class WriteAccess extends \humhub\libs\BasePermission
      */
     public function getDescription()
     {
-        return Yii::t('CfilesModule.permissions', 'Allows the user to upload new files and create folders');
+        return Yii::t('CfilesModule.base', 'Allows the user to upload new files and create folders');
     }
 
 }

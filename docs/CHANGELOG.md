@@ -10,6 +10,7 @@ Changelog
 - Fix #230: Optimize sql query to get files from the stream
 - Enh #232: Update Active Form for Bootstrap 5
 - Enh #234: Increase File description max characters from 255 to 1000
+- Enh #236: Reduce translation message categories
 
 0.16.6 - March 14, 2024
 -------------------------

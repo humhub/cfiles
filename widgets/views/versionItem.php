@@ -34,7 +34,7 @@ use humhub\modules\user\models\User;
         <?php if ($deleteUrl) : ?>
             <?= Html::a('<i class="fa fa-trash"></i>', $deleteUrl, [
                 'title' => Yii::t('CfilesModule.base', 'Delete this version!'),
-                'data-action-confirm' => Yii::t('CfilesModule.user', 'Are you really sure to delete this version?'),
+                'data-action-confirm' => Yii::t('CfilesModule.base', 'Are you really sure to delete this version?'),
                 'data-action-click' => 'cfiles.deleteVersion',
             ]) ?>
         <?php endif; ?>

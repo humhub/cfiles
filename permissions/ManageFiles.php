@@ -46,7 +46,7 @@ class ManageFiles extends \humhub\libs\BasePermission
      */
     public function getTitle()
     {
-        return Yii::t('CfilesModule.permissions', 'Manage files');
+        return Yii::t('CfilesModule.base', 'Manage files');
     }
 
     /**
@@ -54,7 +54,7 @@ class ManageFiles extends \humhub\libs\BasePermission
      */
     public function getDescription()
     {
-        return Yii::t('CfilesModule.permissions', 'Allows the user to modify or delete any files.');
+        return Yii::t('CfilesModule.base', 'Allows the user to modify or delete any files.');
     }
 
 }
