@@ -17,7 +17,7 @@ paths:
 # Begin cFiles Directory endpoints
 #-----------------------------------------------------------------------------------------------------------------------
 
-  '/cfiels/folders/container/{id}':
+  '/cfiles/folders/container/{id}':
     get:
       tags:
         - Directory
@@ -84,7 +84,7 @@ paths:
                 type: string
                 example: Internal error while save valid directory!
 
-  '/cfiels/folder/{id}':
+  '/cfiles/folder/{id}':
     get:
       tags:
         - Directory
@@ -199,7 +199,7 @@ paths:
 # Begin cFiles File endpoints
 #-----------------------------------------------------------------------------------------------------------------------
 
-  '/cfiels/files/container/{id}':
+  '/cfiles/files/container/{id}':
     get:
       tags:
         - File
@@ -287,7 +287,7 @@ paths:
                 type: string
                 example: Internal error while save valid directory!
 
-  '/cfiels/file/{id}':
+  '/cfiles/file/{id}':
     get:
       tags:
         - File
@@ -358,7 +358,7 @@ paths:
 # Begin cFiles items management
 #-----------------------------------------------------------------------------------------------------------------------
 
-  '/cfiels/items/container/{id}/make-public':
+  '/cfiles/items/container/{id}/make-public':
     patch:
       tags:
         - Items Management
@@ -411,7 +411,7 @@ paths:
                 type: string
                 example: Internal error while setting public visibility for cFiles item!
 
-  '/cfiels/items/container/{id}/make-private':
+  '/cfiles/items/container/{id}/make-private':
     patch:
       tags:
         - Items Management
@@ -464,7 +464,7 @@ paths:
                 type: string
                 example: Internal error while setting private visibility for cFiles item!
 
-  '/cfiels/items/container/{id}/move':
+  '/cfiles/items/container/{id}/move':
     post:
       tags:
         - Items Management
@@ -509,7 +509,7 @@ paths:
                 type: string
                 example: Internal error while move cFiles items!
 
-  '/cfiels/items/container/{id}/delete':
+  '/cfiles/items/container/{id}/delete':
     delete:
       tags:
         - Items Management
