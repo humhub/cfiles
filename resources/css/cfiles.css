@@ -10,15 +10,6 @@
   margin: 0;
 }
 
-.cfiles-content .breadcrumb li.folder-visibility {
-  float:right;
-}
-
-.cfiles-content .breadcrumb li.folder-visibility:before {
-  content:none;
-  float:right;
-}
-
 .cfiles-content .file-controls {
   font-size: 11px;
   color: #aeaeae;
@@ -47,7 +38,7 @@
   font-size: 1em !important;
   font-weight: normal !important;
 }
-.panel .panel-body .files-action-menu .btn-default:hover {
+.panel .panel-body .files-action-menu .btn-light:hover {
   background-color: #e6e6e6 !important;
 }
 .panel .panel-body .files-action-menu .btn-success:hover {
@@ -60,7 +51,7 @@
   background-color: #286090 !important;
 }
 .panel .panel-body .files-action-menu .btn-group {
- 
+
 }
 .panel .panel-body .files-action-menu .btn-group .split-toggle {
   width: auto !important;
@@ -171,21 +162,21 @@
   }
 }
 
-#bs-table.table>thead>tr>th, 
-#bs-table.table>tbody>tr>th, 
-#bs-table.table>tfoot>tr>th, 
-#bs-table.table>thead>tr>td, 
-#bs-table.table>tbody>tr>td, 
+#bs-table.table>thead>tr>th,
+#bs-table.table>tbody>tr>th,
+#bs-table.table>tfoot>tr>th,
+#bs-table.table>thead>tr>td,
+#bs-table.table>tbody>tr>td,
 #bs-table.table>tfoot>tr>td {
   padding: 10px 5px 5px 5px;
-  height: 37px;
+  height: 45px;
 }
 
-#bs-table.table>thead>tr>th label, 
-#bs-table.table>tbody>tr>th label, 
-#bs-table.table>tfoot>tr>th label, 
-#bs-table.table>thead>tr>td label, 
-#bs-table.table>tbody>tr>td label, 
+#bs-table.table>thead>tr>th label,
+#bs-table.table>tbody>tr>th label,
+#bs-table.table>tfoot>tr>th label,
+#bs-table.table>thead>tr>td label,
+#bs-table.table>tbody>tr>td label,
 #bs-table.table>tfoot>tr>td label {
   margin-bottom: 0px;
 }

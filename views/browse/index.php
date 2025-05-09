@@ -1,7 +1,7 @@
 <?php
 
-use yii\helpers\Html;
 use humhub\modules\cfiles\widgets\FolderView;
+use yii\helpers\Html;
 
 /* @var $folder humhub\modules\cfiles\models\Folder */
 /* @var $contentContainer humhub\components\View */
@@ -26,7 +26,7 @@ $this->registerJsConfig('cfiles', [
 ]);
 ?>
 
-<?= Html::beginForm(null, 'post', ['data-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
+<?= Html::beginForm(null, 'post', ['data-bs-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
     <div id="cfiles-container" class="panel panel-default cfiles-content">
 
         <div class="panel-body">

@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.16.7 - Unreleased
+0.17.0 (unreleased)
 -------------------------
 - Fix #216: Fix image space rending on wall entry
 - Enh #224: Unifying positions of button on modals for consistency and better UX
@@ -12,8 +12,9 @@ Changelog
 - Enh #234: Increase File description max characters from 255 to 1000
 - Enh #236: Reduce translation message categories
 - Enh #239: Removing Topics from Edit File modal
+- Enh: Migration to Bootstrap 5 for HumHub 1.18
 
-0.16.6 - March 14, 2024
+  0.16.6 - March 14, 2024
 -------------------------
 - Fix #215: Space configuration checks permissions insufficiently
 

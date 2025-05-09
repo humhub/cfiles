@@ -173,10 +173,10 @@ humhub.module('cfiles', function (module, require, $) {
                             $(this).remove();
                         } else if (response.error) {
                             status.error(response.error);
-                            ui.draggable.fadeIn();
+                            ui.draggable.removeClass('d-none');
                         }
                     }).catch(function (e) {
-                        ui.draggable.fadeIn();
+                        ui.draggable.removeClass('d-none');
                         module.log.error(e, true);
                     }).finally(function () {
                         folderItem.loader(false);
@@ -203,8 +203,8 @@ humhub.module('cfiles', function (module, require, $) {
     };
 
     module.templates = {
-        showUrlModalBody: '<div class="clearfix"><textarea rows="3" class="form-control file-url-input" spellcheck="false" readonly>{url}</textarea><p class="help-block pull-right"><a href="#" data-action-click="copyToClipboard" data-action-target=".file-url-input"><i class="fa fa-clipboard" aria-hidden="true"></i> {info}</a></p></div>',
-        showUrlModalFooter: '<a href="#" data-modal-close class="btn btn-default">{buttonClose}</a>'
+        showUrlModalBody: '<div class="clearfix"><textarea rows="3" class="form-control file-url-input" spellcheck="false" readonly>{url}</textarea><p class="form-text float-end"><a href="#" data-action-click="copyToClipboard" data-action-target=".file-url-input"><i class="fa fa-clipboard" aria-hidden="true"></i> {info}</a></p></div>',
+        showUrlModalFooter: '<a href="#" data-modal-close class="btn btn-light">{buttonClose}</a>'
     };
 
     FolderView.prototype.downloadZip = function (item) {
@@ -261,23 +261,23 @@ humhub.module('cfiles', function (module, require, $) {
         // Update selection menu and selection related buttons
         var checkCounter = this.getSelectionCount();
         if (checkCounter) {
-            this.$.find('.selectedOnly').show();
+            this.$.find('.selectedOnly').removeClass('d-none');
             this.$.find('.chkCnt').html(checkCounter);
         } else {
-            this.$.find('.selectedOnly').hide();
+            this.$.find('.selectedOnly').addClass('d-none');
         }
 
         // Hide some nodes in case there are no items.
         if (!this.hasItems()) {
-            this.$.find('.hasItems').removeClass('visible').addClass('hidden');
+            this.$.find('.hasItems').addClass('d-none');
         } else {
-            this.$.find('.hasItems').removeClass('hidden').addClass('visible');
+            this.$.find('.hasItems').removeClass('d-none');
         }
 
         if (!$('#folder-dropdown').children('.visible').length) {
-            $('#directory-toggle').hide();
+            $('#directory-toggle').addClass('d-none');
         } else {
-            $('#directory-toggle').show();
+            $('#directory-toggle').removeClass('d-none');
         }
     };
 
@@ -492,7 +492,7 @@ humhub.module('cfiles', function (module, require, $) {
             modal.global.setDialog(response.html);
             var fid = $('#cfiles-folderView').data('fid');
             _getDirectoryList().select(fid);
-            modal.global.show();
+            modal.global.removeClass('d-none');
         }).catch(function (e) {
             module.log.error(e, true);
         });
@@ -515,7 +515,7 @@ humhub.module('cfiles', function (module, require, $) {
 
     DirectoryList.prototype.init = function () {
         $('.directory-list li:last-child').addClass('last-child');
-        $('.directory-list ul ul').hide();
+        $('.directory-list ul ul').addClass('d-none');
 
         // handle selecting folders
         $('.directory-list .selectable').click(function () {
@@ -530,11 +530,9 @@ humhub.module('cfiles', function (module, require, $) {
             var parentFolder = $(this).parent();
 
             if (parentFolder.hasClass('expand')) {
-                parentFolder.removeClass('expand').find('>ul').slideUp(
-                        '200');
+                parentFolder.removeClass('expand').find('>ul').addClass('d-none');
             } else {
-                parentFolder.addClass('expand').find('>ul')
-                        .slideDown('200');
+                parentFolder.addClass('expand').find('>ul').removeClass('d-none');
             }
         });
     };
@@ -550,7 +548,7 @@ humhub.module('cfiles', function (module, require, $) {
         var folder = $('#' + $id).parent();
         do {
             folder.addClass('expand');
-            folder.find('>ul').slideDown('100');
+            folder.find('>ul').removeClass('d-none');
             folder = folder.parent().closest('li');
         } while (folder.hasClass('hassub'))
     };

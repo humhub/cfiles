@@ -5,7 +5,7 @@
  * @license https://www.humhub.com/licences
  */
 
-use humhub\libs\Html;
+use humhub\helpers\Html;
 use humhub\modules\user\models\User;
 
 /* @var array $options */
@@ -19,7 +19,7 @@ use humhub\modules\user\models\User;
 <?= Html::beginTag('tr', $options) ?>
     <td><?= Yii::$app->formatter->asDatetime($date, 'short') ?></td>
     <td><?= Html::encode($user->displayName) ?></td>
-    <td class="text-right"><?= Yii::$app->formatter->asShortSize($size, 1) ?></td>
+    <td class="text-end"><?= Yii::$app->formatter->asShortSize($size, 1) ?></td>
     <td class="text-center">
         <?php if ($revertUrl) : ?>
             <?= Html::a('<i class="fa fa-undo"></i>', $revertUrl, [

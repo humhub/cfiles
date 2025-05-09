@@ -1,9 +1,9 @@
 <?php
 
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
+use humhub\modules\cfiles\widgets\FileSystemItem;
 use humhub\widgets\LinkPager;
 use yii\helpers\Html;
-use humhub\modules\cfiles\widgets\FileSystemItem;
 
 /* @var $itemsInFolder boolean */
 /* @var $itemsSelectable boolean */
@@ -26,23 +26,23 @@ use humhub\modules\cfiles\widgets\FileSystemItem;
                     </th>
                 <?php endif; ?>
 
-                <th class="text-left" style="width:100%" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_NAME ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_NAME ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>>
+                <th class="text-start" style="width:100%" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_NAME ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_NAME ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>>
                     <?= Yii::t('CfilesModule.base', 'Name'); ?>
                 </th>
 
-                <th class="hidden-xs"></th>
+                <th class="d-none d-sm-block"></th>
 
-                <th class="hidden-xs text-right" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_SIZE ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_SIZE ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
-                <th class="hidden-xxs text-right"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_UPDATED_AT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_UPDATED_AT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <th class="d-none d-sm-table-cell text-end" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_SIZE ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_SIZE ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
+                <th class="hidden-xxs text-end"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_UPDATED_AT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_UPDATED_AT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
                 <?php if(Yii::$app->getModule('cfiles')->settings->get('displayDownloadCount')): ?>
-                    <th class="hidden-xs text-right" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Downloads'); ?></th>
+                    <th class="d-none d-sm-table-cell text-end" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Downloads'); ?></th>
                 <?php endif; ?>
 
                 <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
-                    <th class="text-right"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
+                    <th class="text-end"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
                 <?php endif; ?>
 
-                <th class="hidden-xxs text-right"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
+                <th class="hidden-xxs text-end"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
                 <th class="file-actions"></th>
             </tr>
             </thead>
