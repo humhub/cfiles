@@ -1,3 +1,7 @@
+#cfiles-folderView a:not(:hover) {
+    color: var(--hh-text-color-highlight);
+}
+
 .overflow-ellipsis {
   position: relative;
   overflow: hidden;
