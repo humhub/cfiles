@@ -7,20 +7,17 @@
 
 use humhub\modules\cfiles\models\forms\VersionForm;
 use humhub\modules\cfiles\widgets\VersionsView;
-use humhub\widgets\ModalButton;
-use humhub\widgets\ModalDialog;
+use humhub\widgets\modal\ModalButton;
+use humhub\widgets\modal\Modal;
 
 /* @var $model VersionForm */
 ?>
 
-<?php ModalDialog::begin(['header' => Yii::t('CfilesModule.base', '<strong>File</strong> versions')]) ?>
+<?php Modal::beginDialog([
+    'title' => Yii::t('CfilesModule.base', '<strong>File</strong> versions'),
+    'footer' => ModalButton::cancel(Yii::t('CfilesModule.base', 'Close')),
+]) ?>
 
-    <div class="modal-body">
-        <?= VersionsView::widget(['file' => $model->file]) ?>
-    </div>
+    <?= VersionsView::widget(['file' => $model->file]) ?>
 
-    <div class="modal-footer">
-        <?= ModalButton::cancel(Yii::t('CfilesModule.base', 'Close')) ?>
-    </div>
-
-<?php ModalDialog::end()?>
+<?php Modal::endDialog() ?>
