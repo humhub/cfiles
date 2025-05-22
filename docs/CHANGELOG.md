@@ -12,7 +12,7 @@ Changelog
 - Enh #234: Increase File description max characters from 255 to 1000
 - Enh #236: Reduce translation message categories
 - Enh #239: Removing Topics from Edit File modal
-- Enh: Migration to Bootstrap 5 for HumHub 1.18
+- Enh #242: Migration to Bootstrap 5 for HumHub 1.18
 
   0.16.6 - March 14, 2024
 -------------------------
