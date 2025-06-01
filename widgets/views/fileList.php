@@ -2,7 +2,7 @@
 
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\cfiles\widgets\FileSystemItem;
-use humhub\widgets\LinkPager;
+use humhub\widgets\bootstrap\LinkPager;
 use yii\helpers\Html;
 
 /* @var $itemsInFolder boolean */
