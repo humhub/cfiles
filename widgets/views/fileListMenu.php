@@ -39,7 +39,7 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
             <!-- Directory dropdown -->
             <?php if ($canUpload): ?>
                 <div class="btn-group">
-                    <?= ModalButton::defaultType(Yii::t('CfilesModule.base', '<span class="hidden-xs">Add directory</span>'))->load($addFolderUrl)->icon('fa-folder')->cssClass('dropdown-toggle')?>
+                    <?= ModalButton::defaultType('<span class="hidden-xs">' . Yii::t('CfilesModule.base', 'Add directory') . '</span>')->load($addFolderUrl)->icon('fa-folder')->cssClass('dropdown-toggle')?>
                     <?php if (!$folder->isRoot()): ?>
                         <button id="directory-toggle" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                             <span class="caret"></span><span class="sr-only"></span>
