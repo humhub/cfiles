@@ -68,7 +68,7 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TIMESTAMP)) : ?>
-        <td class="hidden-xxs text-right">
+        <td class="hidden-xs text-right">
             <div class="timestamp pull-right">
                 <?= $row->getUpdatedAt() ? TimeAgo::widget(['timestamp' => $row->getUpdatedAt()]) : ""; ?>
             </div>
@@ -85,7 +85,7 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SOCIAL)): ?>
-        <td class="text-right">
+        <td class="hidden-xs text-right">
             <?php if ($row->isSocialActionsAvailable()): ?>
                 <div class="file-controls pull-right">
                     <?= ContentObjectLinks::widget([
