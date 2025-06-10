@@ -13,6 +13,7 @@ Changelog
 - Enh #236: Reduce translation message categories
 - Enh #239: Removing Topics from Edit File modal
 - Fix #244: Fix invalid translation category
+- Enh #246: Mobile View Decluttering
 
 0.16.6 - March 14, 2024
 -------------------------
