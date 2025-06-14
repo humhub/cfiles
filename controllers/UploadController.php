@@ -59,8 +59,9 @@ class UploadController extends BrowseController
             $cFile = ModelFile::findOne(['guid' => $guid]);
 
             if (!$cFile) {
-                $errors[] = Yii::t('Cfiles.base', 'Could not import file with guid {guid}. File not found', ['guid' => $guid]);
-                Yii::error(Yii::t('Cfiles.base', 'Could not import file with guid {guid}. File not found', ['guid' => $guid]));
+                $error = Yii::t('CfilesModule.base', 'Could not import file with guid {guid}. File not found', ['guid' => $guid]);
+                $errors[] = $error;
+                Yii::error($error);
                 continue;
             }
 

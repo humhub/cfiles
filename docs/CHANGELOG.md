@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.18.0 (unreleased)
+-------------------------
+- Enh #242: Migration to Bootstrap 5 for HumHub 1.18
+
 0.17.0 (unreleased)
 -------------------------
 - Fix #216: Fix image space rending on wall entry
@@ -12,9 +16,10 @@ Changelog
 - Enh #234: Increase File description max characters from 255 to 1000
 - Enh #236: Reduce translation message categories
 - Enh #239: Removing Topics from Edit File modal
-- Enh #242: Migration to Bootstrap 5 for HumHub 1.18
+- Fix #244: Fix invalid translation category
+- Enh #246: Mobile View Decluttering
 
-  0.16.6 - March 14, 2024
+0.16.6 - March 14, 2024
 -------------------------
 - Fix #215: Space configuration checks permissions insufficiently
 

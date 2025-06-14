@@ -1,14 +1,17 @@
 <?php
 
+use humhub\helpers\Html;
+use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\widgets\FileSelectionMenu;
+use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\file\widgets\FileHandlerButtonDropdown;
 use humhub\modules\file\widgets\UploadButton;
 use humhub\modules\file\widgets\UploadInput;
 use humhub\widgets\bootstrap\Button;
 use humhub\widgets\modal\ModalButton;
 
-/* @var $folder \humhub\modules\cfiles\models\Folder */
-/* @var $contentContainer \humhub\modules\content\components\ContentContainerActiveRecord */
+/* @var $folder Folder */
+/* @var $contentContainer ContentContainerActiveRecord */
 /* @var $canUpload boolean */
 /* @var $zipEnabled boolean */
 /* @var $fileHandlers humhub\modules\file\handler\BaseFileHandler[] */
@@ -39,7 +42,9 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
             <!-- Directory dropdown -->
             <?php if ($canUpload): ?>
                 <div class="btn-group">
-                    <?= ModalButton::light(Yii::t('CfilesModule.base', 'Add directory'))->load($addFolderUrl)->icon('fa-folder') ?>
+                    <?= ModalButton::light(Html::tag('span', Yii::t('CfilesModule.base', 'Add directory'), ['class' => 'd-none d-sm-inline']))
+                        ->load($addFolderUrl)
+                        ->icon('fa-folder') ?>
                     <?php if (!$folder->isRoot()): ?>
                         <button id="directory-toggle" type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                             <span class="sr-only"></span>
@@ -65,7 +70,7 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
                     'preview' => '#cfiles-folderView',
                     'tooltip' => false,
                     'cssButtonClass' => 'btn-success',
-                    'label' => Yii::t('CfilesModule.base', 'Add file(s)'),
+                    'label' => Html::tag('span', Yii::t('CfilesModule.base', 'Add file(s)'), ['class' => 'd-none d-sm-inline']),
                     'dropZone' => '#cfiles-container',
                     'pasteZone' => 'body',
                 ]) ?>

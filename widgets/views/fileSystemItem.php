@@ -68,7 +68,7 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TIMESTAMP)) : ?>
-        <td class="hidden-xxs text-end">
+        <td class="d-none d-sm-table-cell text-end">
             <div class="timestamp float-end">
                 <?= $row->getUpdatedAt() ? TimeAgo::widget(['timestamp' => $row->getUpdatedAt()]) : ""; ?>
             </div>
@@ -85,7 +85,7 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SOCIAL)): ?>
-        <td class="text-end">
+        <td class="d-none d-sm-table-cell text-end">
             <?php if ($row->isSocialActionsAvailable()): ?>
                 <div class="file-controls float-end">
                     <?= ContentObjectLinks::widget([
@@ -98,7 +98,7 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_CREATOR)): ?>
-        <td class="hidden-xxs text-end">
+        <td class="text-end">
             <div class="creator float-end">
                 <?php if (!empty($row->getCreator())): ?>
                     <?= Image::widget(['user' => $row->getCreator(), 'width' => 21, 'showTooltip' => true]) ?>

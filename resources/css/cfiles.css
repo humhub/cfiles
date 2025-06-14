@@ -216,11 +216,6 @@
   width: 100%;
   top: -10px;
 }
-@media (max-width: 419px) {
-  .hidden-xxs {
-    display: none !important;
-  }
-}
 @media (min-width: 420px) {
   .table-responsive td:nth-child(2) {
     width: 25%;

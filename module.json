@@ -9,9 +9,9 @@
         "organisation",
         "sharing"
     ],
-    "version": "0.17.0",
+    "version": "0.18.0",
     "humhub": {
-        "minVersion": "1.18"
+        "minVersion": "1.18.0"
     },
     "homepage": "https://github.com/humhub/cfiles",
     "authors": [

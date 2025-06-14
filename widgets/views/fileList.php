@@ -1,18 +1,21 @@
 <?php
 
+use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\cfiles\widgets\FileSystemItem;
 use humhub\widgets\bootstrap\LinkPager;
+use yii\data\Pagination;
 use yii\helpers\Html;
 
 /* @var $itemsInFolder boolean */
 /* @var $itemsSelectable boolean */
 /* @var $canWrite boolean */
-/* @var $folder \humhub\modules\cfiles\models\Folder */
-/* @var $rows \humhub\modules\cfiles\models\rows\AbstractFileSystemItemRow[] */
+/* @var $folder Folder */
+/* @var $rows AbstractFileSystemItemRow[] */
 /* @var $sort string */
 /* @var $order string*/
-/* @var $pagination \yii\data\Pagination */
+/* @var $pagination Pagination */
 
 ?>
 <?php if ($itemsInFolder) : ?>
@@ -33,16 +36,16 @@ use yii\helpers\Html;
                 <th class="d-none d-sm-block"></th>
 
                 <th class="d-none d-sm-table-cell text-end" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_SIZE ?>"  <?= $sort === FileSystemItemRow::ORDER_TYPE_SIZE ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
-                <th class="hidden-xxs text-end"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_UPDATED_AT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_UPDATED_AT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
+                <th class="d-none d-sm-table-cell text-end"  data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_UPDATED_AT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_UPDATED_AT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Updated'); ?></th>
                 <?php if(Yii::$app->getModule('cfiles')->settings->get('displayDownloadCount')): ?>
                     <th class="d-none d-sm-table-cell text-end" data-ui-sort="<?= FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ?>" <?= $sort === FileSystemItemRow::ORDER_TYPE_DOWNLOAD_COUNT ? 'data-ui-order="'.Html::encode($order).'"' : '' ?>><?= Yii::t('CfilesModule.base', 'Downloads'); ?></th>
                 <?php endif; ?>
 
                 <?php if (!$folder->isAllPostedFiles()): // Files currently have no content object but the Post they may be connected to.  ?>
-                    <th class="text-end"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
+                    <th class="d-none d-sm-table-cell text-end"><?= Yii::t('CfilesModule.base', 'Likes/Comments'); ?></th>
                 <?php endif; ?>
 
-                <th class="hidden-xxs text-end"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
+                <th class="text-end"><?= Yii::t('CfilesModule.base', 'Creator'); ?></th>
                 <th class="file-actions"></th>
             </tr>
             </thead>
@@ -52,7 +55,7 @@ use yii\helpers\Html;
                     'folder' => $folder,
                     'row' => $row,
                     'itemsSelectable' => $itemsSelectable
-                ]); ?>
+                ]) ?>
             <?php endforeach; ?>
 
         </table>
