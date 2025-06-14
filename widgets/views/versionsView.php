@@ -5,7 +5,7 @@
  * @license https://www.humhub.com/licences
  */
 
-use humhub\widgets\Button;
+use humhub\widgets\bootstrap\Button;
 
 /* @var string $versionsRowsHtml */
 /* @var string|false $nextPageVersionsUrl */
@@ -15,7 +15,7 @@ use humhub\widgets\Button;
         <tr>
             <th><?= Yii::t('CfilesModule.base', 'Time'); ?></th>
             <th><?= Yii::t('CfilesModule.base', 'Author'); ?></th>
-            <th class="text-right"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
+            <th class="text-end"><?= Yii::t('CfilesModule.base', 'Size'); ?></th>
             <th class="text-center"><?= Yii::t('CfilesModule.base', 'Actions'); ?></th>
         </tr>
     </thead>
@@ -26,9 +26,9 @@ use humhub\widgets\Button;
 <?php if ($nextPageVersionsUrl) : ?>
     <div class="text-center">
         <br>
-        <?= Button::defaultType(Yii::t('CfilesModule.base', 'Show older versions'))
+        <?= Button::light(Yii::t('CfilesModule.base', 'Show older versions'))
             ->icon('chevron-down')
             ->action('cfiles.loadNextPageVersions', $nextPageVersionsUrl)
-            ->xs(); ?>
+            ->sm() ?>
     </div>
 <?php endif; ?>

@@ -1,8 +1,8 @@
 <?php
 
+use humhub\helpers\Html;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\libs\FileHelper;
-use humhub\libs\Html;
 
 
 /* @var $previewImage \humhub\modules\file\converter\PreviewImage */
@@ -14,7 +14,7 @@ use humhub\libs\Html;
 ?>
 
 <?php if ($previewImage->applyFile($file)): ?>
-<div class="pull-left">
+<div class="float-start">
     <?= $previewImage->renderGalleryLink(['style' => 'padding-right:12px']); ?>
 </div>
 <?php endif; ?>
@@ -32,7 +32,7 @@ use humhub\libs\Html;
 <br>
 
 <?php if ($folderUrl) : ?>
-    <?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default', 'data-ui-loader' => '']); ?>
+    <?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-light', 'data-ui-loader' => '']); ?>
 <?php endif; ?>
 
 <div class="clearfix"></div>
