@@ -8,7 +8,7 @@ use humhub\modules\cfiles\models\Folder;
  *
  */
 
-/* @var $this \humhub\modules\ui\view\components\View */
+/* @var $this \humhub\components\View */
 /* @var $folder [] */
 ?>
 

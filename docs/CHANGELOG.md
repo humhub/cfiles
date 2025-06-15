@@ -1,8 +1,12 @@
 Changelog
 =========
 
-0.16.7 - June 10, 2025
-----------------------
+0.18.0 (unreleased)
+-------------------------
+- Enh #242: Migration to Bootstrap 5 for HumHub 1.18
+
+0.17.0 (unreleased)
+-------------------------
 - Fix #216: Fix image space rending on wall entry
 - Enh #224: Unifying positions of button on modals for consistency and better UX
 - Enh #227: Use PHP CS Fixer
