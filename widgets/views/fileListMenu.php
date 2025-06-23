@@ -6,6 +6,7 @@ use humhub\modules\file\widgets\UploadButton;
 use humhub\modules\file\widgets\UploadInput;
 use humhub\widgets\Button;
 use humhub\widgets\ModalButton;
+use yii\helpers\ArrayHelper;
 
 /* @var $folder \humhub\modules\cfiles\models\Folder */
 /* @var $contentContainer \humhub\modules\content\components\ContentContainerActiveRecord */
@@ -55,18 +56,26 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
 
             <!-- Upload Dropdown -->
             <?php if ($canUpload): ?>
-                <?php  $uploadButton = UploadButton::widget([
-                            'id' => 'cfilesUploadFiles',
-                            'progress' => '#cfiles_progress',
-                            'url' => $uploadUrl,
-                            'preview' => '#cfiles-folderView',
-                            'tooltip' => false,
-                            'cssButtonClass' => 'btn-success',
-                            'label' => '<span class="hidden-xs">' . Yii::t('CfilesModule.base', 'Add file(s)') . '</span>',
-                            'dropZone' => '#cfiles-container',
-                            'pasteZone' => 'body',
-                 ])  ?>
-                <?= FileHandlerButtonDropdown::widget(['primaryButton' => $uploadButton, 'handlers' => $fileHandlers, 'cssButtonClass' => 'btn-success', 'pullRight' => true]); ?>
+                <?php
+
+                $buttonOptions = [
+                    'id' => 'cfilesUploadFiles',
+                    'progress' => '#cfiles_progress',
+                    'url' => $uploadUrl,
+                    'preview' => '#cfiles-folderView',
+                    'tooltip' => false,
+                    'cssButtonClass' => 'btn-success hidden-xs',
+                    'label' => Yii::t('CfilesModule.base', 'Add file(s)'),
+                    'dropZone' => '#cfiles-container',
+                    'pasteZone' => 'body',
+                ];
+
+                $uploadButton = UploadButton::widget($buttonOptions) .
+                    UploadButton::widget(ArrayHelper::merge($buttonOptions, ['cssButtonClass' => 'btn-success visible-xs','label' => false]));
+
+
+                ?>
+                <?= FileHandlerButtonDropdown::widget(['primaryButton' => $uploadButton , 'handlers' => $fileHandlers, 'cssButtonClass' => 'btn-success', 'pullRight' => true]); ?>
 
                 <?= UploadInput::widget([
                     'id' => 'cfilesUploadZipFile',

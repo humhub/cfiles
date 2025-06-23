@@ -162,7 +162,7 @@
   width: 0;
 }
 
-@media (min-width: 418px) {
+@media (min-width: 767px) {
   #bs-table.table tr .context-icon {
     display: none;
   }
