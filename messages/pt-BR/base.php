@@ -111,4 +111,5 @@ return [
     'You cannot move the folder "{name}"!' => 'Você não pode mover a pasta "{name}"!',
     'ZIP selected' => 'ZIP selecionado',
     'ZIP support is not enabled.' => 'Suporte para arquivos ZIP não habilitado.',
+    'Could not import file with guid {guid}. File not found' => '',
 ];

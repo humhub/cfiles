@@ -111,4 +111,5 @@ return [
     'You cannot move the folder "{name}"!' => 'U kunt de map "{name}" niet verplaatsen!',
     'ZIP selected' => 'ZIPpen',
     'ZIP support is not enabled.' => 'ZIP-ondersteuning is niet ingeschakeld.',
+    'Could not import file with guid {guid}. File not found' => '',
 ];

@@ -85,6 +85,7 @@ return [
     'Allows the user to modify or delete any files.' => '',
     'Allows the user to upload new files and create folders' => '',
     'Are you really sure to delete this version?' => '',
+    'Could not import file with guid {guid}. File not found' => '',
     'Could not move the item!' => '',
     'Delete this version!' => '',
     'Display a download count column' => '',

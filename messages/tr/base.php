@@ -80,6 +80,7 @@ return [
     'An error occurred while creating folder {folder}.' => '',
     'An error occurred while unpacking {filename}.' => '',
     'Archive %filename% could not be extracted.' => '',
+    'Could not import file with guid {guid}. File not found' => '',
     'Could not move the item!' => '',
     'Display a download count column' => '',
     'Do you really want to delete this {number} item(s) with all subcontent?' => '',

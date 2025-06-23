@@ -36,6 +36,7 @@ return [
     'Are you really sure to delete this version?' => '',
     'Cannot edit non existing file.' => '',
     'Could not find folder with id: %id%' => '',
+    'Could not import file with guid {guid}. File not found' => '',
     'Could not move the item!' => '',
     'Creator' => '',
     'Delete this version!' => '',

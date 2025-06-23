@@ -81,6 +81,7 @@ return [
     'Allows the user to upload new files and create folders' => '',
     'Are you really sure to delete this version?' => '',
     'Cannot edit non existing file.' => '',
+    'Could not import file with guid {guid}. File not found' => '',
     'Could not move the item!' => '',
     'Delete this version!' => '',
     'Destination folder not found!' => '',

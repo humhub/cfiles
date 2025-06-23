@@ -92,6 +92,7 @@ return [
     'ZIP support is not enabled.' => 'Η υποστήριξη ZIP δεν είναι ενεργοποιημένη.',
     '<strong>File</strong> versions' => '',
     'Are you really sure to delete this version?' => '',
+    'Could not import file with guid {guid}. File not found' => '',
     'Could not move the item!' => '',
     'Delete this version!' => '',
     'File "{movedItemName}" has been moved into the folder "{targetFolderName}".' => '',

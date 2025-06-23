@@ -90,6 +90,7 @@ return [
     'ZIP support is not enabled.' => 'ZIP tuki ei ole käytössä',
     '<strong>File</strong> versions' => '',
     'Are you really sure to delete this version?' => '',
+    'Could not import file with guid {guid}. File not found' => '',
     'Could not move the item!' => '',
     'Delete this version!' => '',
     'Display a download count column' => '',

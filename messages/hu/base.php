@@ -111,4 +111,5 @@ return [
     'You cannot move the folder "{name}"!' => 'Nem helyezheti át a(z) "{name}" mappát!',
     'ZIP selected' => '.ZIP kijelölt',
     'ZIP support is not enabled.' => 'A .ZIP támogatás nem engedélyezett.',
+    'Could not import file with guid {guid}. File not found' => '',
 ];
