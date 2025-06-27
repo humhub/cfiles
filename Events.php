@@ -2,6 +2,8 @@
 
 namespace humhub\modules\cfiles;
 
+use humhub\modules\cfiles\extensions\custom_pages\elements\FileElement;
+use humhub\modules\cfiles\extensions\custom_pages\elements\FilesElement;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -185,6 +187,14 @@ class Events
             'updated_at' => $baseFile->updated_at,
             'updated_by' => $baseFile->updated_by,
         ]);
+    }
+
+    public static function onCustomPagesTemplateElementTypeServiceInit($event)
+    {
+        /* @var \humhub\modules\custom_pages\modules\template\services\ElementTypeService $elementTypeService */
+        $elementTypeService = $event->sender;
+        $elementTypeService->addType(FileElement::class);
+        $elementTypeService->addType(FilesElement::class);
     }
 
 }
