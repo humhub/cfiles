@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.8 - Unreleased
+----------------------
+- Enh #248: Extension for module "Custom Pages"
+
 0.16.7 - June 10, 2025
 ----------------------
 - Fix #216: Fix image space rending on wall entry
