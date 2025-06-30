@@ -4,6 +4,8 @@ namespace humhub\modules\cfiles;
 
 use humhub\modules\cfiles\extensions\custom_pages\elements\FileElement;
 use humhub\modules\cfiles\extensions\custom_pages\elements\FilesElement;
+use humhub\modules\cfiles\extensions\custom_pages\elements\FolderElement;
+use humhub\modules\cfiles\extensions\custom_pages\elements\FoldersElement;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -195,6 +197,8 @@ class Events
         $elementTypeService = $event->sender;
         $elementTypeService->addType(FileElement::class);
         $elementTypeService->addType(FilesElement::class);
+        $elementTypeService->addType(FolderElement::class);
+        $elementTypeService->addType(FoldersElement::class);
     }
 
 }
