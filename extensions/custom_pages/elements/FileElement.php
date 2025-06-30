@@ -48,7 +48,7 @@ class FileElement extends BaseContentRecordElement
             return $this->getFile()->getUrl();
         }
 
-        return Html::encode($this->record->description);
+        return Html::encode($this->record?->description);
     }
 
     /**

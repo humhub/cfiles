@@ -43,7 +43,7 @@ class FolderElement extends BaseContentRecordElement
 
     public function __toString()
     {
-        return Html::encode($this->record->description);
+        return Html::encode($this->record?->title);
     }
 
     /**
