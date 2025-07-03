@@ -37,7 +37,7 @@ class FolderElement extends BaseContentRecordElement
     public function attributeLabels()
     {
         return [
-            'contentRecordId' => Yii::t('CfilesModule.base', 'Folder ID'),
+            'contentId' => Yii::t('CfilesModule.base', 'Folder content ID'),
         ];
     }
 
