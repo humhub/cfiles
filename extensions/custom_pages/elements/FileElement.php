@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\extensions\custom_pages\elements;
 
 use humhub\libs\Html;
 use humhub\modules\cfiles\models\File;
+use humhub\modules\content\models\Content;
 use humhub\modules\custom_pages\modules\template\elements\BaseContentRecordElement;
 use humhub\modules\custom_pages\modules\template\elements\BaseElementVariable;
 use humhub\modules\file\models\File as BaseFile;
@@ -38,7 +39,7 @@ class FileElement extends BaseContentRecordElement
     public function attributeLabels()
     {
         return [
-            'contentRecordId' => Yii::t('CfilesModule.base', 'File ID'),
+            'contentId' => Yii::t('CfilesModule.base', 'File content ID'),
         ];
     }
 
@@ -66,12 +67,12 @@ class FileElement extends BaseContentRecordElement
      */
     public function getFile(): ?BaseFile
     {
-        return empty($this->contentRecordId)
-            ? null
-            : BaseFile::findOne([
-                'object_model' => File::class,
-                'object_id' => $this->contentRecordId,
-            ]);
+        return empty($this->contentId) ? null
+            : BaseFile::find()
+            ->innerJoin(Content::tableName(), Content::tableName() . '.object_model = ' . BaseFile::tableName() . '.object_model' . ' AND ' . Content::tableName() . '.object_id = ' . BaseFile::tableName() . '.object_id')
+            ->where([BaseFile::tableName() . '.object_model' => File::class])
+            ->andWhere([Content::tableName() . '.id' => $this->contentId])
+            ->one();
     }
 
     /**
