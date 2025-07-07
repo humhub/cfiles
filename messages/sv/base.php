@@ -112,4 +112,9 @@ return [
     'ZIP selected' => 'ZIP vald',
     'ZIP support is not enabled.' => 'Stöd för ZIP-filer är inte aktiverat.',
     'Could not import file with guid {guid}. File not found' => '',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
 ];

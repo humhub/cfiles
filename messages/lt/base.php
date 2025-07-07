@@ -112,4 +112,9 @@ return [
     'ZIP selected' => 'Arcyvas (Zip ) pasirinktas',
     'ZIP support is not enabled.' => 'Archyvas (ZIP) ne palaikomas.',
     'Could not import file with guid {guid}. File not found' => '',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
 ];

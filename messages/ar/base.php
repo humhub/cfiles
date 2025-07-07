@@ -112,4 +112,9 @@ return [
     'ZIP selected' => 'تم تحديد ملف مضغوط ZIP',
     'ZIP support is not enabled.' => 'دعم الملفات المضغوطة zip غير مفعل.',
     'Could not import file with guid {guid}. File not found' => '',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
 ];
