@@ -18,6 +18,7 @@ class FolderElementVariable extends BaseContentRecordElementVariable
     public ?string $title;
     public ?string $description;
     public ?string $type;
+    public ?string $icon;
 
     /**
      * @var FolderElementVariable[]
@@ -35,6 +36,7 @@ class FolderElementVariable extends BaseContentRecordElementVariable
             $this->title = $record->title;
             $this->description = $record->description;
             $this->type = $record->type;
+            $this->icon = $record->getIcon();
 
             foreach ($record->subFolders as $subFolder) {
                 $this->subFolders[] = self::instance($this->elementContent)->setRecord($subFolder);

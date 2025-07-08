@@ -24,6 +24,7 @@ class FileElementVariable extends BaseContentRecordElementVariable
 
     public ?string $fileUrl;
     public ?string $description;
+    public ?string $icon;
     public int $downloadCount;
     public BaseFileElementVariable $file;
 
@@ -32,6 +33,7 @@ class FileElementVariable extends BaseContentRecordElementVariable
         if ($record instanceof File) {
             $this->description = $record->description;
             $this->downloadCount = (int) $record->download_count;
+            $this->icon = $record->getIcon();
 
             if ($record->baseFile->store->has()) {
                 $this->fileUrl = $record->baseFile->getUrl();
