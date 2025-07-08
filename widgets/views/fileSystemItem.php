@@ -107,7 +107,6 @@ StreamAsset::register($this);
         </td>
     <?php endif; ?>
 
-    <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_ACTIONS)): ?>
         <td class="file-actions">
             <?= Button::defaultType()
                 ->icon('list')
@@ -116,6 +115,5 @@ StreamAsset::register($this);
                 ->xs()
                 ->loader(false); ?>
         </td>
-    <?php endif; ?>
 
 <?= Html::endTag('tr') ?>
