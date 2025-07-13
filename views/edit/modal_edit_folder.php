@@ -15,7 +15,7 @@ $header = ($folder->isNewRecord)
 
 <?php $form = Modal::beginFormDialog([
     'title' => $header,
-    'footer' => ModalButton::cancel() . ' ' . ModalButton::save(null, $submitUrl),
+    'footer' => ModalButton::cancel() . ' ' . ModalButton::save()->submit($submitUrl),
 ]) ?>
 
     <?= $form->field($folder, 'title')->textInput(['autofocus' => '']) ?>

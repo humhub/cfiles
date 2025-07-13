@@ -11,7 +11,7 @@ use humhub\widgets\modal\ModalButton;
 
 <?php $form = Modal::beginFormDialog([
     'title' => Yii::t('CfilesModule.base', '<strong>Move</strong> files'),
-    'footer' => ModalButton::cancel() . ' ' . ModalButton::save(null, $model->getMoveUrl()),
+    'footer' => ModalButton::cancel() . ' ' . ModalButton::save()->submit($model->getMoveUrl()),
 ]) ?>
 
     <?= $this->render('directory_tree', ['root' => $model->root]) ?>

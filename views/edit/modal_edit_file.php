@@ -14,7 +14,7 @@ use humhub\widgets\modal\ModalButton;
 
 <?php $form = Modal::beginFormDialog([
     'title' => Yii::t('CfilesModule.base', '<strong>Edit</strong> file'),
-    'footer' => ModalButton::cancel() . ' ' . ModalButton::save(null, $submitUrl),
+    'footer' => ModalButton::cancel() . ' ' . ModalButton::save()->submit($submitUrl),
 ]) ?>
 
     <?= $form->field($file->baseFile, 'file_name')->textInput(['autofocus' => '']) ?>
