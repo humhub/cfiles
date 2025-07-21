@@ -34,11 +34,14 @@ StreamAsset::register($this);
                 <div class="title">
                     <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
                     <?php if ($row->getType() === "image") : ?>
-                        <a href="<?= $row->getUrl(); ?>" data-ui-gallery="FilesModule-Gallery-<?= $row->getParentFolderId(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
+                        <?= Button::asLink($row->getTitle(), $row->getUrl())
+                            ->options(['data-ui-gallery' => 'FilesModule-Gallery-' . $row->getParentFolderId()])
+                            ->tooltip($row->getDescription()) ?>
                     <?php elseif ($row->getBaseFile() !== null) : ?>
-                        <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]); ?>
+                        <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]) ?>
                     <?php else: ?>
-                        <a href="<?= $row->getLinkUrl(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
+                        <?= Button::asLink($row->getTitle(), $row->getLinkUrl())
+                            ->tooltip($row->getDescription()) ?>
                     <?php endif; ?>
                 </div>
             </div>
