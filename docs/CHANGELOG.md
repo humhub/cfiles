@@ -1,12 +1,20 @@
 Changelog
 =========
 
-0.18.0 (unreleased)
+0.17.0 (unreleased)
 -------------------------
 - Enh #242: Migration to Bootstrap 5 for HumHub 1.18
 
-0.17.0 (unreleased)
--------------------------
+0.16.9 - July 8, 2025
+---------------------
+- Enh #250: Use content ID in the "Custom Pages" extension
+
+0.16.8 - June 30, 2025
+-----------------------
+- Enh #248: Extension for module "Custom Pages"
+
+0.16.7 - June 10, 2025
+----------------------
 - Fix #216: Fix image space rending on wall entry
 - Enh #224: Unifying positions of button on modals for consistency and better UX
 - Enh #227: Use PHP CS Fixer

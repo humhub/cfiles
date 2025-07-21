@@ -111,4 +111,10 @@ return [
     'You cannot move the folder "{name}"!' => 'Nemôžete presunúť priečinok "{name}"!',
     'ZIP selected' => 'Vybraný ZIP',
     'ZIP support is not enabled.' => 'Podpora ZIP nie je povolená.',
+    'Could not import file with guid {guid}. File not found' => '',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
 ];

@@ -30,6 +30,7 @@ return [
     'Cannot edit non existing file.' => 'Não é possível editar um arquivo inexistente.',
     'Close' => 'Fechar',
     'Could not find folder with id: %id%' => 'Não foi possível achar a pasta com o id: %id%',
+    'Could not import file with guid {guid}. File not found' => 'Não foi possível importar o arquivo com o GUID {guid}. Arquivo não encontrado.',
     'Could not move the item!' => 'Não foi possível mover o item!',
     'Creator' => 'Criador',
     'Delete' => 'Apagar',
@@ -111,4 +112,9 @@ return [
     'You cannot move the folder "{name}"!' => 'Você não pode mover a pasta "{name}"!',
     'ZIP selected' => 'ZIP selecionado',
     'ZIP support is not enabled.' => 'Suporte para arquivos ZIP não habilitado.',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
 ];

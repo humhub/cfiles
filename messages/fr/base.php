@@ -111,4 +111,10 @@ return [
     'You cannot move the folder "{name}"!' => 'Vous ne pouvez pas déplacer le dossier "{name}".',
     'ZIP selected' => 'archive (.zip) sélectionnée',
     'ZIP support is not enabled.' => 'Le support d\'archive (.zip) n\'est pas activé.',
+    'Could not import file with guid {guid}. File not found' => '',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
 ];

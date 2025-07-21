@@ -30,6 +30,7 @@ return [
     'Cannot edit non existing file.' => 'Bestand bestaat niet.',
     'Close' => 'Sluit',
     'Could not find folder with id: %id%' => 'Kan geen map met id  %id% vinden:',
+    'Could not import file with guid {guid}. File not found' => 'Kon bestand met guid {guid} niet importeren. Bestand niet gevonden.',
     'Could not move the item!' => 'Kan het item niet verplaatsen!',
     'Creator' => 'Maker',
     'Delete' => 'Verwijderen',
@@ -111,4 +112,9 @@ return [
     'You cannot move the folder "{name}"!' => 'U kunt de map "{name}" niet verplaatsen!',
     'ZIP selected' => 'ZIPpen',
     'ZIP support is not enabled.' => 'ZIP-ondersteuning is niet ingeschakeld.',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
 ];

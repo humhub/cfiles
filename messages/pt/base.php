@@ -110,5 +110,11 @@ return [
     'You cannot move the folder "{name}"!' => 'Não podes mover a pasta "{name}"!',
     'ZIP selected' => 'ZIP selecionado',
     'ZIP support is not enabled.' => 'O suporte para ZIP não está ativado.',
+    'Could not import file with guid {guid}. File not found' => '',
+    'File (Module)' => '',
+    'File content ID' => '',
+    'Files (Module)' => '',
+    'Folder content ID' => '',
+    'Folders' => '',
     'Hide in Stream' => '',
 ];
