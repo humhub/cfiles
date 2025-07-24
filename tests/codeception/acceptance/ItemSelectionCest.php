@@ -28,6 +28,7 @@ class ItemSelectionCest
         $I->click('.chkCnt', '.files-action-menu');
         $I->click('Delete', '.files-action-menu');
         $I->waitForText('Confirm delete file', null, '#globalModalConfirm');
+        $I->wait(1);
         $I->click('Delete', '#globalModalConfirm');
 
         $I->waitForElementNotVisible('[data-cfiles-item="file_1"]');
