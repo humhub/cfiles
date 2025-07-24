@@ -32,6 +32,7 @@ class ItemSelectionCest
 
         $I->waitForElementNotVisible('[data-cfiles-item="file_1"]');
         $I->waitForElementNotVisible('[data-cfiles-item="folder_3"]');
+        $I->wait(1);
 
         $I->uploadFile();
         $I->createFolder('test');

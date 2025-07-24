@@ -48,6 +48,7 @@ class FileContextCest
         $I->see('Confirm delete file');
         $I->click('Delete', '#globalModalConfirm');
         $I->waitForElementNotVisible('[data-cfiles-item="file_1"]');
+        $I->wait(1);
 
         $I->amGoingTo('show post of my file');
         $I->uploadFile();
