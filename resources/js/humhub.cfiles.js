@@ -492,7 +492,7 @@ humhub.module('cfiles', function (module, require, $) {
             modal.global.setDialog(response.html);
             var fid = $('#cfiles-folderView').data('fid');
             _getDirectoryList().select(fid);
-            modal.global.removeClass('d-none');
+            modal.global.show();
         }).catch(function (e) {
             module.log.error(e, true);
         });

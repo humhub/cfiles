@@ -114,9 +114,6 @@
 .downloadzipped-button {
   cursor: pointer;
 }
-.selectedOnly {
-  display: none;
-}
 .table-responsive td .title,
 .table-responsive td .timestamp,
 .table-responsive td .creator,

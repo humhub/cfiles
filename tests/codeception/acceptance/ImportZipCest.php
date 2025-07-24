@@ -36,6 +36,13 @@ class ImportZipCest
         $I->waitForText('test.jpg', null, '#fileList');
         $I->waitForText('test2', null, '#fileList');
 
+        // Disable tooltip from 'test description' of the parent "test" folder which is misplaced during tests
+        $I->executeJS("
+            var tooltips = document.querySelectorAll('.tooltip');
+            tooltips.forEach(function(tooltip) {
+                tooltip.remove();
+            });
+        ");
         $I->click('test2', '#fileList');
         $I->waitForText('test2.txt', null, '#fileList');
 

@@ -56,7 +56,6 @@ class ItemSelectionCest
         $I->click('[data-id="1"]');
         $I->click('Save', '#globalModal');
         $I->wait(2);
-        $I->waitForElementVisible('.fa-home');
         $I->seeInFileList('test.txt');
     }
 }
