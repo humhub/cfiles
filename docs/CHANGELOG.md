@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.10 - Unreleased
+---------------------
+- Enh #252: Refactor files sort ordering
+
 0.16.9 - July 8, 2025
 ---------------------
 - Enh #250: Use content ID in the "Custom Pages" extension

@@ -23,26 +23,14 @@ class Module extends ContentContainerModule
      * @see FileSystemItemRow::ORDER_MAPPING
      */
     public $defaultSort = FileSystemItemRow::ORDER_TYPE_NAME;
-    public $defaultOrder = 'ASC';
+    public $defaultOrder = SORT_ASC;
 
     /**
      * @var string sort name as 'name', 'size', 'updated_at'
      * @see FileSystemItemRow::ORDER_MAPPING
      */
     public $defaultPostedFilesSort = FileSystemItemRow::ORDER_TYPE_UPDATED_AT;
-    public $defaultPostedFilesOrder = 'ASC';
-
-    /**
-     * @var string default order of file entries e.g.:  'file.updated_at ASC' or 'title ASC'
-     */
-    public $defaultFolderOrder = 'title ASC';
-
-    public const ORDER_NAME = 'name';
-    public const ORDER_UPDATED_AT = 'updated_at';
-    public const ORDER_SIZE = 'size';
-
-    public const UPLOAD_BEHAVIOUR_INDEX = 0;
-    public const UPLOAD_BEHAVIOUR_REPLACE = 1;
+    public $defaultPostedFilesOrder = SORT_ASC;
 
     /**
      * @inheritdoc
