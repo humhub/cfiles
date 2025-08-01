@@ -8,14 +8,12 @@
 
 namespace humhub\modules\cfiles\controllers;
 
-use humhub\modules\content\models\Content;
-use Yii;
-use yii\db\Expression;
-use yii\web\HttpException;
-use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerController;
-use humhub\modules\cfiles\models\File;
+use humhub\modules\content\models\Content;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\permissions\WriteAccess;
+use Yii;
+use yii\web\HttpException;
 
 /**
  * Description of a Base Controller for the files module.
@@ -170,63 +168,6 @@ abstract class BaseController extends ContentContainerController
         }
 
         return $dirstruc;
-    }
-
-    /**
-     * Load all files and folders of the current folder from the database and get an array of them.
-     *
-     * @param array $filesOrder orderBy array appended to the files query
-     * @param array $foldersOrder orderBy array appended to the folders query
-     * @return array
-     */
-    protected function getItemsList($filesOrder = null, $foldersOrder = null)
-    {
-        // set default value
-        if (!$filesOrder) {
-            $filesOrder = ['title' => SORT_ASC];
-        }
-        if (!$foldersOrder) {
-            $foldersOrder = ['title' => SORT_ASC];
-        }
-
-        $filesQuery = File::find()->joinWith('baseFile')
-            ->contentContainer($this->contentContainer)
-            ->readable();
-
-        $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
-        $specialFoldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
-
-        $filesQuery->andWhere([
-            'cfiles_file.parent_folder_id' => $this->getCurrentFolder()->id,
-        ]);
-
-        // user maintained folders
-        $foldersQuery->andWhere([
-            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id,
-        ]);
-
-        // do not return any folders here that are root or allpostedfiles
-        $foldersQuery->andWhere([
-            'or',
-            ['cfiles_folder.type' => null],
-            ['and',
-                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_POSTED],
-                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_ROOT],
-            ],
-        ]);
-        // special default folders like the allposted files folder
-        $specialFoldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id]);
-
-        $specialFoldersQuery->andWhere(['is not', 'cfiles_folder.type', null]);
-
-        $filesQuery->orderBy($filesOrder);
-        $foldersQuery->orderBy($foldersOrder);
-
-        return [
-            'specialFolders' => $specialFoldersQuery->all(),
-            'folders' => $foldersQuery->all(),
-            'files' => $filesQuery->all(),
-        ];
     }
 
     /**

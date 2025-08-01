@@ -10,7 +10,7 @@ namespace humhub\modules\cfiles\controllers;
 
 use humhub\modules\cfiles\actions\UploadZipAction;
 use humhub\modules\cfiles\libs\ZIPCreator;
-use humhub\modules\cfiles\widgets\FileList;
+use humhub\modules\cfiles\models\FileSystemItem;
 use Yii;
 
 /**
@@ -55,10 +55,20 @@ class ZipController extends BrowseController
      */
     public function actionDownload()
     {
-        $items = FileList::getSelectedItems();
+        $selectedItems = Yii::$app->request->post('selection');
 
-        if (count($items) === 0) {
-            // Fallback to current folder when not items are selected
+        $items = [];
+        // Download only the selected items if at least one is selected
+        if (is_array($selectedItems)) {
+            foreach ($selectedItems as $itemId) {
+                $item = FileSystemItem::getItemById($itemId);
+                if ($item !== null) {
+                    $items[] = $item;
+                }
+            }
+        }
+        // Otherwise fallback to current folder when no items are selected
+        if ($items === []) {
             $items[] = $this->getCurrentFolder();
         }
 
