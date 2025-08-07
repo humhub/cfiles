@@ -25,7 +25,7 @@ class FileContextCest
 
         $I->amGoingTo('edit my file per context menu');
         $I->clickFileContext(1, 'Edit');
-        $I->waitForText('Edit file', null, '#globalModal');
+        $I->waitForText('Edit file', 10, '#globalModal');
         $I->fillField('File[file_name]', 'newFile.txt');
         $I->click('Save', '#globalModal');
 
@@ -35,7 +35,7 @@ class FileContextCest
         $I->createFolder('move');
         $I->amInRoot();
         $I->clickFileContext(1, 'Move');
-        $I->waitForText('Move files', null, '#globalModal');
+        $I->waitForText('Move files', 10, '#globalModal');
         $I->click('[data-id="3"]');
         $I->click('Save', '#globalModal');
         $I->seeInCrumb('move');
@@ -54,6 +54,6 @@ class FileContextCest
         $I->uploadFile();
         $I->clickFileContext(2, 'Show Post');
         $I->waitForElementVisible('#wallStream');
-        $I->waitForText('test.txt', null, '[data-stream-entry]');
+        $I->waitForText('test.txt', 10, '[data-stream-entry]');
     }
 }

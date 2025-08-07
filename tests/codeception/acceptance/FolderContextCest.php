@@ -33,7 +33,7 @@ class FolderContextCest
 
         $I->amGoingTo('test the folder edit context item');
         $I->clickFolderContext(3, 'Edit');
-        $I->waitForText('Edit folder', null, '#globalModal');
+        $I->waitForText('Edit folder', 10, '#globalModal');
         $I->fillField('Folder[title]', 'context2');
         $I->click('Save', '#globalModal');
 
@@ -48,7 +48,7 @@ class FolderContextCest
         $I->amInRoot();
         $I->clickFolderContext(3, 'Move');
 
-        $I->waitForText('Move files', null, '#globalModal');
+        $I->waitForText('Move files', 10, '#globalModal');
         $I->click('[data-id="4"]');
         $I->click('Save', '#globalModal');
 

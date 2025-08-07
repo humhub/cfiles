@@ -27,7 +27,7 @@ class ItemSelectionCest
         $I->jsClick('.allselect');
         $I->click('.chkCnt', '.files-action-menu');
         $I->click('Delete', '.files-action-menu');
-        $I->waitForText('Confirm delete file', null, '#globalModalConfirm');
+        $I->waitForText('Confirm delete file', 10, '#globalModalConfirm');
         $I->wait(1);
         $I->click('Delete', '#globalModalConfirm');
 
@@ -41,7 +41,7 @@ class ItemSelectionCest
         $I->jsClick('.allselect');
         $I->click('.chkCnt', '.files-action-menu');
         $I->click('Move', '.files-action-menu');
-        $I->waitForText('Move files', null, '#globalModal');
+        $I->waitForText('Move files', 10, '#globalModal');
         $I->click('[data-id="4"]');
         $I->click('Save', '#globalModal');
         $I->seeError('Some files could not be moved: Folder test can\'t be moved to itself!');
@@ -53,7 +53,7 @@ class ItemSelectionCest
         $I->jsClick('.allselect');
         $I->click('.chkCnt', '.files-action-menu');
         $I->click('Move', '.files-action-menu');
-        $I->waitForText('Move files', null, '#globalModal');
+        $I->waitForText('Move files', 10, '#globalModal');
         $I->click('[data-id="1"]');
         $I->click('Save', '#globalModal');
         $I->wait(2);

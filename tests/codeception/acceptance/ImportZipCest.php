@@ -31,10 +31,10 @@ class ImportZipCest
         $I->wait(5);
 
         $I->click('test', '#fileList');
-        $I->waitForText('test.txt', null, '#fileList');
-        $I->waitForText('test(1).txt', null, '#fileList');
-        $I->waitForText('test.jpg', null, '#fileList');
-        $I->waitForText('test2', null, '#fileList');
+        $I->waitForText('test.txt', 10, '#fileList');
+        $I->waitForText('test(1).txt', 10, '#fileList');
+        $I->waitForText('test.jpg', 10, '#fileList');
+        $I->waitForText('test2', 10, '#fileList');
 
         // Disable tooltip from 'test description' of the parent "test" folder which is misplaced during tests
         $I->executeJS("
@@ -44,7 +44,7 @@ class ImportZipCest
             });
         ");
         $I->click('test2', '#fileList');
-        $I->waitForText('test2.txt', null, '#fileList');
+        $I->waitForText('test2.txt', 10, '#fileList');
 
     }
 }
