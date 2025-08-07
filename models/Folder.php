@@ -716,18 +716,19 @@ class Folder extends FileSystemItem
     }
 
     /**
+     * @param string|array $order
      * @return Folder[]
      */
-    public function getSubFolders($order = 'title ASC')
+    public function getSubFolders($order = ['title' => SORT_ASC])
     {
         return self::getSubFoldersByParent($this, $order)->all();
     }
 
     /**
-     * @param null $order
+     * @param string|array $order
      * @return File[]
      */
-    public function getSubFiles($order = 'file.file_name ASC')
+    public function getSubFiles($order = ['file.file_name' => SORT_ASC])
     {
         $filesQuery = File::find()->joinWith('baseFile')->contentContainer($this->content->container)->readable();
         $filesQuery->andWhere(['cfiles_file.parent_folder_id' => $this->id]);

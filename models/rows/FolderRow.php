@@ -21,7 +21,7 @@ use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
 
 class FolderRow extends FileSystemItemRow
 {
-    public const DEFAULT_ORDER = 'title ASC';
+    public const DEFAULT_ORDER = ['title' => SORT_ASC];
 
     public const ORDER_MAPPING = [
         self::ORDER_TYPE_NAME => 'title',

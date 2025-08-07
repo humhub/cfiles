@@ -37,7 +37,7 @@ abstract class AbstractFileSystemItemRow extends Model
     public const ORDER_TYPE_SIZE = 'size';
 
     /**
-     * The default database sort query with order definition e.g. 'title ASC' in string or array format
+     * The default database sort query with order definition e.g. 'title ASC' in string or array format ['title' => SORT_ASC]
      */
     public const DEFAULT_ORDER = null;
 
@@ -89,18 +89,20 @@ abstract class AbstractFileSystemItemRow extends Model
      * Returns the actual database order for a given sort type. This function should return the default
      * order if the orderType is not supported by this Rowtype.
      * @param string $sort
+     * @param string|int $order
      * @return string|array
      * @see AbstractFileSystemItemRow::ORDER_MAPPING
      */
-    public static function translateOrder($sort = null, $order = 'ASC')
+    public static function translateOrder($sort = null, $order = SORT_ASC)
     {
-        $result = static::DEFAULT_ORDER;
-
-        if ($sort && array_key_exists($sort, static::ORDER_MAPPING)) {
-            $result = static::ORDER_MAPPING[$sort] ? static::ORDER_MAPPING[$sort] . ' ' . $order : $result;
+        if ($sort && isset(static::ORDER_MAPPING[$sort])) {
+            return [static::ORDER_MAPPING[$sort] => match ($order) {
+                'DESC', SORT_DESC => SORT_DESC,
+                default => SORT_ASC,
+            }];
         }
 
-        return $result;
+        return static::DEFAULT_ORDER;
     }
 
     /**

@@ -11,9 +11,9 @@ namespace humhub\modules\cfiles\controllers;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\rows\FileRow;
+use humhub\modules\cfiles\widgets\FileList;
 use humhub\modules\cfiles\widgets\FileSystemItem;
 use Yii;
-use humhub\modules\cfiles\widgets\FileList;
 use yii\web\HttpException;
 
 /**
@@ -45,18 +45,13 @@ class BrowseController extends BaseController
     /**
      * Returns rendered file list.
      *
-     * @param bool $withItemCount true -> also calculate and return the item count.
-     * @param array $filesOrder orderBy array appended to the files query
-     * @param array $foldersOrder orderBy array appended to the folders query
-     * @return array|string the rendered view or an array of the rendered view and the itemCount.
+     * @return string
      */
-    public function renderFileList($filesOrder = null, $foldersOrder = null)
+    public function renderFileList(): string
     {
         return FileList::widget([
             'folder' => $this->getCurrentFolder(),
             'contentContainer' => $this->contentContainer,
-            'filesOrder' => $filesOrder,
-            'foldersOrder' => $foldersOrder,
         ]);
     }
 
