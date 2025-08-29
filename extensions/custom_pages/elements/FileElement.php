@@ -8,7 +8,7 @@
 
 namespace humhub\modules\cfiles\extensions\custom_pages\elements;
 
-use humhub\libs\Html;
+use humhub\helpers\Html;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\content\models\Content;
 use humhub\modules\custom_pages\modules\template\elements\BaseContentRecordElement;

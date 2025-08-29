@@ -18,16 +18,16 @@
 ?>
 
 
-<div class="selectedOnly pull-left" style="margin-right:2px;">
+<div class="selectedOnly d-none float-start" style="margin-right:2px;">
     <div class="btn-group">
-        <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-            (<span class='chkCnt'></span>) <?= Yii::t('CfilesModule.base', 'Selected items...') ?> <span
-                    class="caret"></span>
+        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            (<span class='chkCnt'></span>) <?= Yii::t('CfilesModule.base', 'Selected items...') ?>
         </button>
         <ul class="dropdown-menu">
             <?php if ($canWrite): ?>
                 <li>
-                    <a href="#" class="selectedOnly filedelete-button" style="display:none"
+                    <a href="#"
+                       class="dropdown-item selectedOnly filedelete-button d-none"
                        data-action-click="deleteSelection"
                        data-action-submit
                        data-action-url="<?= $deleteSelectionUrl ?>">
@@ -36,7 +36,8 @@
                 </li>
 
                 <li>
-                    <a href="#" class="selectedOnly filemove-button" style="display:none"
+                    <a href="#"
+                       class="dropdown-item selectedOnly filemove-button d-none"
                        data-action-click="cfiles.move"
                        data-action-submit
                        data-fid="<?= $folder->id ?>"
@@ -47,7 +48,8 @@
 
                 <?php if ($folder->content->isPublic()) : ?>
                     <li>
-                        <a href="#" class="selectedOnly" style="display:none"
+                        <a href="#"
+                           class="dropdown-item selectedOnly d-none"
                            data-action-click="changeSelectionVisibility"
                            data-action-submit
                            data-fid="<?= $folder->id ?>"
@@ -56,7 +58,8 @@
                         </a>
                     <li>
                     <li>
-                        <a href="#" class="selectedOnly" style="display:none"
+                        <a href="#"
+                           class="dropdown-item selectedOnly d-none"
                            data-action-click="changeSelectionVisibility"
                            data-action-submit
                            data-fid="<?= $folder->id ?>"
@@ -69,7 +72,8 @@
 
             <?php if ($zipEnabled) : ?>
                 <li>
-                    <a href="#" class="selectedOnly" style="display:none"
+                    <a href="#"
+                       class="dropdown-item selectedOnly d-none"
                        data-action-click="zipSelection"
                        data-action-submit
                        data-action-url="<?= $zipSelectionUrl; ?>">

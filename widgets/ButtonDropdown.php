@@ -8,11 +8,11 @@
 
 namespace humhub\modules\cfiles\widgets;
 
+use humhub\helpers\Html;
+use humhub\widgets\bootstrap\Button;
+use yii\bootstrap5\Dropdown;
+use yii\bootstrap5\Widget;
 use yii\helpers\ArrayHelper;
-use yii\bootstrap\Widget;
-use yii\bootstrap\Html;
-use yii\bootstrap\Button;
-use yii\bootstrap\Dropdown;
 
 /**
  * ButtonDropdown renders a group or split button dropdown bootstrap component.
@@ -104,7 +104,7 @@ class ButtonDropdown extends Widget
         } else {
             $options = isset($this->button['options']) ? $this->button['options'] : [];
             if (empty($this->splitButton)) {
-                $options['data-toggle'] = 'dropdown';
+                $options['data-bs-toggle'] = 'dropdown';
                 Html::addCssClass($options, [
                     'toggle' => 'dropdown-toggle',
                 ]);
@@ -116,7 +116,7 @@ class ButtonDropdown extends Widget
             }
             $label = isset($this->button['label']) ? $this->button['label'] : null;
             $button = Button::widget([
-                'label' => (isset($this->button['encodeLabel']) && $this->button['encodeLabel'] ? Html::encode($label) : $label) . '  <span class="caret"></span>',
+                'label' => (isset($this->button['encodeLabel']) && $this->button['encodeLabel'] ? Html::encode($label) : $label),
                 'encodeLabel' => false,
                 'options' => $options,
                 'view' => $this->getView(),
@@ -130,13 +130,13 @@ class ButtonDropdown extends Widget
                 Html::addCssClass($options, [
                     'widget' => 'btn',
                 ]);
-                $options['data-toggle'] = 'dropdown';
+                $options['data-bs-toggle'] = 'dropdown';
                 Html::addCssClass($options, [
                     'toggle' => 'dropdown-toggle',
                     'class' => 'split-toggle',
                 ]);
                 $splitButton = Button::widget([
-                    'label' => isset($this->splitButton['label']) ? $this->splitButton['label'] : '<span class="caret"></span>',
+                    'label' => $this->splitButton['label'] ?? '<span class="caret"></span>',
                     'encodeLabel' => false,
                     'options' => $options,
                     'view' => $this->getView(),

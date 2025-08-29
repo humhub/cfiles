@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.17.0 (unreleased)
+-------------------------
+- Enh #242: Migration to Bootstrap 5 for HumHub 1.18
+
 0.16.10 - August 1, 2025
 -------------------------
 Warning: This release contains two [security fixes](https://github.com/humhub/cfiles/security/advisories), and an update is strongly recommended.

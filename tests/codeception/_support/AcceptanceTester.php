@@ -33,7 +33,7 @@ class AcceptanceTester extends \AcceptanceTester
 
     public function seeInCrumb($text)
     {
-        $this->waitForText($text, null, '#cfiles-crumb');
+        $this->waitForText($text, 10, '#cfiles-crumb');
     }
 
     public function dontSeeInCrumb($text)
@@ -61,14 +61,14 @@ class AcceptanceTester extends \AcceptanceTester
     public function amInRoot()
     {
         $this->click('.fa-home', '#cfiles-crumb');
-        $this->waitForText('Files from the stream', null, '#fileList');
+        $this->waitForText('Files from the stream', 10, '#fileList');
     }
 
     public function uploadFile($file = "test.txt")
     {
         $this->attachFile('#cfilesUploadFiles', $file);
         $this->wait(2);
-        $this->waitForText($file, null, '#fileList');
+        $this->waitForText($file, 10, '#fileList');
     }
 
     public function rightClickFolder($id)
@@ -84,21 +84,21 @@ class AcceptanceTester extends \AcceptanceTester
     public function clickFileContext($id, $menuItem)
     {
         $this->rightClickFile($id);
-        $this->waitForText($menuItem, null, '[data-cfiles-item="file_' . $id . '"] .contextMenu');
+        $this->waitForText($menuItem, 10, '[data-cfiles-item="file_' . $id . '"] .contextMenu');
         $this->click($menuItem, '[data-cfiles-item="file_' . $id . '"] .contextMenu');
     }
 
     public function clickFolderContext($id, $menuItem)
     {
         $this->rightClickFolder($id);
-        $this->waitForText($menuItem, null, '[data-cfiles-item="folder_' . $id . '"] .contextMenu');
+        $this->waitForText($menuItem, 10, '[data-cfiles-item="folder_' . $id . '"] .contextMenu');
         $this->click($menuItem, '[data-cfiles-item="folder_' . $id . '"] .contextMenu');
     }
 
     public function importZip($file = "test.zip")
     {
         $this->attachFile('#cfilesUploadZipFile', $file);
-        $this->waitForText($file, null, '#fileList');
+        $this->waitForText($file, 10, '#fileList');
     }
 
     public function enableCfilesOnSpace($guid = 1)
@@ -116,7 +116,7 @@ class AcceptanceTester extends \AcceptanceTester
     {
         $this->amGoingTo('open files module');
         $this->click('Files', '.layout-nav-container');
-        $this->waitForText('Files from the stream', null, '#fileList');
+        $this->waitForText('Files from the stream', 10, '#fileList');
     }
 
     /**
@@ -126,7 +126,7 @@ class AcceptanceTester extends \AcceptanceTester
     {
         $this->click('Add directory', '.files-action-menu');
 
-        $this->waitForText('Create folder', null, '#globalModal');
+        $this->waitForText('Create folder', 10, '#globalModal');
         $this->fillField('Folder[title]', $title);
         $this->fillField('Folder[description]', $description);
 
@@ -135,7 +135,7 @@ class AcceptanceTester extends \AcceptanceTester
         }
 
         $this->click('Save', '#globalModal');
-        $this->waitForText('This folder is empty.', null, '.folderEmptyMessage');
+        $this->waitForText('This folder is empty.', 10, '.folderEmptyMessage');
     }
 
     public function seeFileSizeOnSpaceStream(BaseFile $file, $guid = 1)
