@@ -8,14 +8,12 @@
 
 namespace humhub\modules\cfiles\controllers;
 
-use humhub\modules\content\models\Content;
-use Yii;
-use yii\db\Expression;
-use yii\web\HttpException;
-use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerController;
-use humhub\modules\cfiles\models\File;
+use humhub\modules\content\models\Content;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\permissions\WriteAccess;
+use Yii;
+use yii\web\HttpException;
 
 /**
  * Description of a Base Controller for the files module.
@@ -24,9 +22,8 @@ use humhub\modules\cfiles\models\Folder;
  */
 abstract class BaseController extends ContentContainerController
 {
-
-    const ROOT_ID = 0;
-    const All_POSTED_FILES_ID = -1;
+    public const ROOT_ID = 0;
+    public const All_POSTED_FILES_ID = -1;
 
     private $_currentFolder = null;
     private $_rootFolder = null;
@@ -46,7 +43,7 @@ abstract class BaseController extends ContentContainerController
         if (!$this->getRootFolder()) {
             $this->_rootFolder = Folder::initRoot($this->contentContainer);
             $newRoot = true;
-        } else if($this->getRootFolder()->content->isPrivate()) {
+        } elseif ($this->getRootFolder()->content->isPrivate()) {
             // Make sure older root folders are public by default.
             $this->getRootFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
             $this->getRootFolder()->content->save();
@@ -54,7 +51,7 @@ abstract class BaseController extends ContentContainerController
 
         if ($this->getAllPostedFilesFolder() == null) {
             $this->_allPostedFilesFolder = Folder::initPostedFilesFolder($this->contentContainer);
-        } else if($this->getAllPostedFilesFolder()->content->isPrivate()) {
+        } elseif ($this->getAllPostedFilesFolder()->content->isPrivate()) {
             $this->getAllPostedFilesFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
             $this->getAllPostedFilesFolder()->content->save();
         }
@@ -137,11 +134,12 @@ abstract class BaseController extends ContentContainerController
      * @param int $parentId
      * @return array [['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ['folder' => --current folder--, 'subfolders' => [['folder' => --current folder--, 'subfolders' => []], ...], ...]
      */
-    protected function getFolderList($parentId = self::ROOT_ID, $orderBy = NULL)
+    protected function getFolderList($parentId = self::ROOT_ID, $orderBy = null)
     {
         // set default value
-        if (!$orderBy)
+        if (!$orderBy) {
             $orderBy = ['title' => SORT_ASC];
+        }
 
         // map 0 to this containers root folder id
         if ($parentId === self::ROOT_ID) {
@@ -158,8 +156,8 @@ abstract class BaseController extends ContentContainerController
             ['cfiles_folder.type' => null],
             ['and',
                 ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_POSTED],
-                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_ROOT]
-            ]
+                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_ROOT],
+            ],
         ]);
 
         $foldersQuery->orderBy($orderBy);
@@ -173,66 +171,9 @@ abstract class BaseController extends ContentContainerController
     }
 
     /**
-     * Load all files and folders of the current folder from the database and get an array of them.
-     *
-     * @param array $filesOrder orderBy array appended to the files query
-     * @param array $foldersOrder orderBy array appended to the folders query
-     * @return array
-     */
-    protected function getItemsList($filesOrder = NULL, $foldersOrder = NULL)
-    {
-        // set default value
-        if (!$filesOrder) {
-            $filesOrder = ['title' => SORT_ASC];
-        }
-        if (!$foldersOrder) {
-            $foldersOrder = ['title' => SORT_ASC];
-        }
-
-        $filesQuery = File::find()->joinWith('baseFile')
-            ->contentContainer($this->contentContainer)
-            ->readable();
-
-        $foldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
-        $specialFoldersQuery = Folder::find()->contentContainer($this->contentContainer)->readable();
-
-        $filesQuery->andWhere([
-            'cfiles_file.parent_folder_id' => $this->getCurrentFolder()->id
-        ]);
-
-        // user maintained folders
-        $foldersQuery->andWhere([
-            'cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id
-        ]);
-
-        // do not return any folders here that are root or allpostedfiles
-        $foldersQuery->andWhere([
-            'or',
-            ['cfiles_folder.type' => null],
-            ['and',
-                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_POSTED],
-                ['<>', 'cfiles_folder.type', Folder::TYPE_FOLDER_ROOT]
-            ]
-        ]);
-        // special default folders like the allposted files folder
-        $specialFoldersQuery->andWhere(['cfiles_folder.parent_folder_id' => $this->getCurrentFolder()->id]);
-
-        $specialFoldersQuery->andWhere(['is not', 'cfiles_folder.type', null]);
-
-        $filesQuery->orderBy($filesOrder);
-        $foldersQuery->orderBy($foldersOrder);
-
-        return [
-            'specialFolders' => $specialFoldersQuery->all(),
-            'folders' => $foldersQuery->all(),
-            'files' => $filesQuery->all()
-        ];
-    }
-
-    /**
      * Checks if user can write
      *
-     * @return boolean current user can write/upload/delete files
+     * @return bool current user can write/upload/delete files
      */
     public function canWrite()
     {

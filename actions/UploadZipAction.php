@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -14,7 +15,6 @@
  */
 
 namespace humhub\modules\cfiles\actions;
-
 
 use humhub\modules\cfiles\libs\ZipExtractor;
 use humhub\modules\cfiles\models\FileSystemItem;

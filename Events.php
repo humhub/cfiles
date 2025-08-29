@@ -2,6 +2,10 @@
 
 namespace humhub\modules\cfiles;
 
+use humhub\modules\cfiles\extensions\custom_pages\elements\FileElement;
+use humhub\modules\cfiles\extensions\custom_pages\elements\FilesElement;
+use humhub\modules\cfiles\extensions\custom_pages\elements\FolderElement;
+use humhub\modules\cfiles\extensions\custom_pages\elements\FoldersElement;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -14,7 +18,6 @@ use humhub\modules\user\models\User;
 use Yii;
 use yii\base\Event;
 
-
 /**
  * cfiles Events
  *
@@ -22,7 +25,6 @@ use yii\base\Event;
  */
 class Events
 {
-
     public static function onSpaceMenuInit($event)
     {
 
@@ -32,7 +34,7 @@ class Events
                 'group' => 'modules',
                 'url' => $event->sender->space->createUrl('/cfiles/browse'),
                 'icon' => '<i class="fa fa-files-o"></i>',
-                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
+                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles'),
             ]);
         }
     }
@@ -79,7 +81,7 @@ class Events
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'url' => $event->sender->user->createUrl('/cfiles/browse'),
                 'icon' => '<i class="fa fa-files-o"></i>',
-                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles')
+                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles'),
             ]);
         }
     }
@@ -187,6 +189,16 @@ class Events
             'updated_at' => $baseFile->updated_at,
             'updated_by' => $baseFile->updated_by,
         ]);
+    }
+
+    public static function onCustomPagesTemplateElementTypeServiceInit($event)
+    {
+        /* @var \humhub\modules\custom_pages\modules\template\services\ElementTypeService $elementTypeService */
+        $elementTypeService = $event->sender;
+        $elementTypeService->addType(FileElement::class);
+        $elementTypeService->addType(FilesElement::class);
+        $elementTypeService->addType(FolderElement::class);
+        $elementTypeService->addType(FoldersElement::class);
     }
 
 }

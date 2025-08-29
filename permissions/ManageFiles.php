@@ -17,7 +17,6 @@ use humhub\modules\user\models\User;
  */
 class ManageFiles extends \humhub\libs\BasePermission
 {
-
     /**
      * @inheritdoc
      */
@@ -25,7 +24,7 @@ class ManageFiles extends \humhub\libs\BasePermission
         Space::USERGROUP_OWNER,
         Space::USERGROUP_ADMIN,
         Space::USERGROUP_MODERATOR,
-        User::USERGROUP_SELF
+        User::USERGROUP_SELF,
     ];
 
     /**
@@ -34,7 +33,7 @@ class ManageFiles extends \humhub\libs\BasePermission
     protected $fixedGroups = [
         Space::USERGROUP_USER,
         Space::USERGROUP_GUEST,
-        User::USERGROUP_SELF
+        User::USERGROUP_SELF,
     ];
 
     /**
@@ -47,7 +46,7 @@ class ManageFiles extends \humhub\libs\BasePermission
      */
     public function getTitle()
     {
-        return Yii::t('CfilesModule.permissions', 'Manage files');
+        return Yii::t('CfilesModule.base', 'Manage files');
     }
 
     /**
@@ -55,7 +54,7 @@ class ManageFiles extends \humhub\libs\BasePermission
      */
     public function getDescription()
     {
-        return Yii::t('CfilesModule.permissions', 'Allows the user to modify or delete any files.');
+        return Yii::t('CfilesModule.base', 'Allows the user to modify or delete any files.');
     }
 
 }

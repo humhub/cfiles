@@ -16,7 +16,7 @@ use yii\web\UrlRuleInterface;
 
 class UrlRule extends Component implements UrlRuleInterface, ContentContainerUrlRuleInterface
 {
-    const DOWNLOAD_ROUTE = 'cfiles/download';
+    public const DOWNLOAD_ROUTE = 'cfiles/download';
 
     /**
      * @inheritdoc

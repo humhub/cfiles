@@ -1,6 +1,6 @@
 <?php
 
-use humhub\libs\Html;
+use humhub\helpers\Html;
 use humhub\modules\cfiles\models\Folder;
 
 /* @var $folder Folder */
@@ -10,6 +10,6 @@ use humhub\modules\cfiles\models\Folder;
 <strong><?= Html::a(Html::encode($folder->title), $folderUrl); ?></strong><br />
 <br />
 
-<?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-default', 'data-ui-loader' => '']); ?>
+<?= Html::a(Yii::t('CfilesModule.base', 'Open file folder'), $folderUrl, ['class' => 'btn btn-sm btn-light', 'data-ui-loader' => '']); ?>
 
 <div class="clearfix"></div>

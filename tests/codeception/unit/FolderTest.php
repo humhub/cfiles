@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -12,7 +13,6 @@ use Yii;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\space\models\Space;
 use tests\codeception\_support\HumHubDbTestCase;
-
 
 /**
  * Created by PhpStorm.

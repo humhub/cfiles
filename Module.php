@@ -21,14 +21,14 @@ class Module extends ContentContainerModule
      * @see FileSystemItemRow::ORDER_MAPPING
      */
     public $defaultSort = FileSystemItemRow::ORDER_TYPE_NAME;
-    public $defaultOrder = 'ASC';
+    public $defaultOrder = SORT_ASC;
 
     /**
      * @var string sort name as 'name', 'size', 'updated_at'
      * @see FileSystemItemRow::ORDER_MAPPING
      */
     public $defaultPostedFilesSort = FileSystemItemRow::ORDER_TYPE_UPDATED_AT;
-    public $defaultPostedFilesOrder = 'ASC';
+    public $defaultPostedFilesOrder = SORT_ASC;
 
     /**
      * @inheritdoc
@@ -49,8 +49,8 @@ class Module extends ContentContainerModule
     public function getContentContainerTypes()
     {
         return [
-            Space::class,
-            User::class,
+            Space::className(),
+            User::className(),
         ];
     }
 

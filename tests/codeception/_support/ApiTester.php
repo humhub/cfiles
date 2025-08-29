@@ -1,4 +1,5 @@
 <?php
+
 namespace cfiles;
 
 use humhub\modules\cfiles\helpers\RestDefinitions;

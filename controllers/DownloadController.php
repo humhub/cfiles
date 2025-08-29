@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) HumHub GmbH & Co. KG
@@ -33,7 +34,7 @@ class DownloadController extends ContentContainerController
 
         return $this->redirect($file->getUrl([
             'download' => 1, // Force downloading even if file can be viewable by browser
-            'file_name' => $file->file_name // used to avoid browser cache when file was renamed
+            'file_name' => $file->file_name, // used to avoid browser cache when file was renamed
         ]));
     }
 }

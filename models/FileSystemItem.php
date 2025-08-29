@@ -15,8 +15,8 @@ use Yii;
 /**
  * This is the model class for table "cfiles_file".
  *
- * @property integer $id
- * @property integer $parent_folder_id
+ * @property int $id
+ * @property int $parent_folder_id
  * @property string description
  *
  * @property-read Folder|null $parentFolder
@@ -55,21 +55,21 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     {
         return [
             ['visibility', 'integer', 'min' => 0, 'max' => 1],
-            ['hidden', 'boolean']
+            ['hidden', 'boolean'],
         ];
     }
 
-    abstract function updateVisibility($visibility);
+    abstract public function updateVisibility($visibility);
 
-    abstract function getSize();
+    abstract public function getSize();
 
-    abstract function getItemType();
+    abstract public function getItemType();
 
-    abstract function getDescription();
+    abstract public function getDescription();
 
-    abstract function getDownloadCount();
+    abstract public function getDownloadCount();
 
-    abstract function getVisibilityTitle();
+    abstract public function getVisibilityTitle();
 
     /**
      * @return string
@@ -94,9 +94,9 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function attributeLabels()
     {
         return [
-            'visibility' => Yii::t('CfilesModule.models_FileSystemItem', 'Is Public'),
-            'hidden' => Yii::t('CfilesModule.models_FileSystemItem', 'Hide in Stream'),
-            'download_count' => Yii::t('CfilesModule.models_FileSystemItem', 'Downloads'),
+            'visibility' => Yii::t('CfilesModule.base', 'Is Public'),
+            'hidden' => Yii::t('CfilesModule.base', 'Hide in Stream'),
+            'download_count' => Yii::t('CfilesModule.base', 'Downloads'),
         ];
     }
 
@@ -217,7 +217,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function getParentFolder()
     {
         $query = $this->hasOne(Folder::className(), [
-            'id' => 'parent_folder_id'
+            'id' => 'parent_folder_id',
         ]);
         return $query;
     }
@@ -274,7 +274,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      * Determines this item is an editable folder.
      *
      * @param \humhub\modules\cfiles\models\FileSystemItem $item
-     * @return boolean
+     * @return bool
      */
     public function isEditableFolder()
     {
@@ -284,7 +284,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
 
     /**
      * Determines if this item is deletable. The root folder and posted files folder is not deletable.
-     * @return boolean
+     * @return bool
      */
     public function isDeletable()
     {
@@ -308,7 +308,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
             return null;
         }
 
-        list ($type, $id) = $params;
+        list($type, $id) = $params;
         if ($type == 'file') {
             return File::find()->andWhere(['cfiles_file.id' => $id])->readable()->one();
         } elseif ($type == 'folder') {

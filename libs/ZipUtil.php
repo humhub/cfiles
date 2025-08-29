@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -15,13 +16,11 @@
 
 namespace humhub\modules\cfiles\libs;
 
-
 use Yii;
 use yii\helpers\BaseFileHelper;
 
 class ZipUtil
 {
-
     /**
      * Cleanup all previously created zip files.
      */

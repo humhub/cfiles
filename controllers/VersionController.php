@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2021 HumHub GmbH & Co. KG
@@ -21,7 +22,6 @@ use yii\web\HttpException;
  */
 class VersionController extends BaseController
 {
-
     /**
      * Action to view all versions of the requested File
      * @return string
@@ -43,7 +43,7 @@ class VersionController extends BaseController
         }
 
         if ($model->save()) {
-            $this->view->success(Yii::t('CfilesModule.base','File {fileName} has been reverted to version from {fileDateTime}', [
+            $this->view->success(Yii::t('CfilesModule.base', 'File {fileName} has been reverted to version from {fileDateTime}', [
                 'fileName' => $model->file->baseFile->file_name,
                 'fileDateTime' => Yii::$app->formatter->asDatetime($model->getFileVersion()->created_at, 'short'),
             ]));
@@ -51,7 +51,7 @@ class VersionController extends BaseController
             $errorMsg = '';
             foreach ($model->getErrors() as $errors) {
                 foreach ($errors as $error) {
-                    $errorMsg .= $error.' ';
+                    $errorMsg .= $error . ' ';
                 }
             }
             $this->view->error($errorMsg);
@@ -107,13 +107,13 @@ class VersionController extends BaseController
 
         if (!$deletedFileVersion->delete()) {
             return $this->asJson([
-                'error' => Yii::t('CfilesModule.user', 'The version "{versionDate}" could not be deleted!', ['versionDate' => $deletedVersionDate]),
+                'error' => Yii::t('CfilesModule.base', 'The version "{versionDate}" could not be deleted!', ['versionDate' => $deletedVersionDate]),
             ]);
         }
 
         return $this->asJson([
             'deleted' => $fileVersionId,
-            'message' => Yii::t('CfilesModule.user', 'The version "{versionDate}" has been deleted.', ['versionDate' => $deletedVersionDate]),
+            'message' => Yii::t('CfilesModule.base', 'The version "{versionDate}" has been deleted.', ['versionDate' => $deletedVersionDate]),
         ]);
     }
 

@@ -1,13 +1,38 @@
 Changelog
 =========
 
-0.17.0 - Unreleased
--------------------------
+0.17.0 - August 29, 2025
+------------------------
 - Fix #220: Update module resources path
+- Enh #242: Migration to Bootstrap 5 for HumHub 1.18
 
-0.16.7 - Unreleased
+0.16.10 - August 1, 2025
 -------------------------
+Warning: This release contains two [security fixes](https://github.com/humhub/cfiles/security/advisories), and an update is strongly recommended.
+
+- Enh #252: Refactor files sort ordering
+
+0.16.9 - July 8, 2025
+---------------------
+- Enh #250: Use content ID in the "Custom Pages" extension
+
+0.16.8 - June 30, 2025
+-----------------------
+- Enh #248: Extension for module "Custom Pages"
+
+0.16.7 - June 10, 2025
+----------------------
 - Fix #216: Fix image space rending on wall entry
+- Enh #224: Unifying positions of button on modals for consistency and better UX
+- Enh #227: Use PHP CS Fixer
+- Fix: Add autofocus on file or folder edit (for HumHub 1.17 - see https://github.com/humhub/humhub/issues/7136)
+- Fix #230: Optimize sql query to get files from the stream
+- Enh #232: Update Active Form for Bootstrap 5
+- Enh #234: Increase File description max characters from 255 to 1000
+- Enh #236: Reduce translation message categories
+- Enh #239: Removing Topics from Edit File modal
+- Fix #244: Fix invalid translation category
+- Enh #246: Mobile View Decluttering
 
 0.16.6 - March 14, 2024
 -------------------------

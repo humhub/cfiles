@@ -27,12 +27,12 @@ class DeleteController extends BrowseController
     public function actionIndex()
     {
         $selectedItems = Yii::$app->request->post('selection');
-        
+
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = FileSystemItem::getItemById($itemId);
 
-                if(!$item->content->canEdit()) {
+                if (!$item->content->canEdit()) {
                     throw new HttpException(403);
                 }
 

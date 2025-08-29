@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2019 HumHub GmbH & Co. KG
@@ -68,9 +69,9 @@ class FileController extends BaseContentController
         foreach ($files as $file) {
             $file = $targetDir->addUploadedFile($file);
 
-            if($file->hasErrors() || $file->baseFile->hasErrors()) {
+            if ($file->hasErrors() || $file->baseFile->hasErrors()) {
                 return $this->returnError(422, "File {$file->baseFile->name} could not be uploaded!", [
-                    'errors' => array_merge($file->getErrors(), $file->baseFile->getErrors())
+                    'errors' => array_merge($file->getErrors(), $file->baseFile->getErrors()),
                 ]);
             }
         }

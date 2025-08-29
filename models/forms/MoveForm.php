@@ -1,12 +1,13 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
  * @license https://www.humhub.com/licences
  *
  */
-namespace humhub\modules\cfiles\models\forms;
 
+namespace humhub\modules\cfiles\models\forms;
 
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
@@ -57,7 +58,7 @@ class MoveForm extends SelectionForm
         return [
             ['destId', 'required'],
             ['destId', 'integer'],
-            ['destId', 'validateDestination']
+            ['destId', 'validateDestination'],
         ];
     }
 

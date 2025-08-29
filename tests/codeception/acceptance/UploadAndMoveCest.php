@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -20,23 +21,23 @@ class UploadAndMoveCest
         $I->enableCfilesOnSpace();
 
         $I->attachFile('#cfilesUploadFiles', 'test.txt');
-        $I->waitForText('test.txt', null, '#fileList');
+        $I->waitForText('test.txt', 10, '#fileList');
 
         $I->wantToTest('the duplicate names entry');
         $I->attachFile('#cfilesUploadFiles', 'test.txt');
-        $I->waitForText('test.txt', null, '#fileList');
+        $I->waitForText('test.txt', 10, '#fileList');
 
         $I->wantToTest('the creation of a folder');
         $I->click('Add directory', '.files-action-menu');
 
-        $I->waitForText('Create folder', null,'#globalModal');
+        $I->waitForText('Create folder', 10, '#globalModal');
         $I->fillField('Folder[title]', 'NewFolder');
         $I->click('Save', '#globalModal');
 
         $I->waitForText('This folder is empty.');
         $I->click('.fa-home', '#cfiles-crumb');
 
-        $I->waitForText('NewFolder', null, '#fileList');
+        $I->waitForText('NewFolder', 10, '#fileList');
 
         $I->wantToTest('to move a file into my new folder');
 
@@ -44,7 +45,7 @@ class UploadAndMoveCest
         $I->click('.chkCnt', '.files-action-menu');
         $I->click('.filemove-button', '.files-action-menu');
 
-        $I->waitForText('Move files', null, '#globalModal');
+        $I->waitForText('Move files', 10, '#globalModal');
         $I->click('[data-id="3"]');
         $I->click('Save', '#globalModal');
         $I->seeError('Some files could not be moved: Folder NewFolder can\'t be moved to itself!');
@@ -53,7 +54,7 @@ class UploadAndMoveCest
         $I->dontSee('test.txt', '#fileList');
 
         $I->click('NewFolder', '#fileList');
-        $I->waitForText('test.txt', null, '#fileList');
-        $I->see('test.txt', null, '#fileList');
+        $I->waitForText('test.txt', 10, '#fileList');
+        $I->see('test.txt', '#fileList');
     }
 }

@@ -7,15 +7,14 @@ namespace humhub\modules\cfiles\widgets;
  */
 class BreadcrumbBar extends \yii\base\Widget
 {
-    
     /**
      * @var \humhub\modules\cfiles\models\Folder current folder
      */
     public $folder;
-    
+
     /**
      * Current content container.
-     * @var \humhub\modules\content\components\ContentContainerActiveRecord 
+     * @var \humhub\modules\content\components\ContentContainerActiveRecord
      */
     public $contentContainer;
 
@@ -26,7 +25,7 @@ class BreadcrumbBar extends \yii\base\Widget
     {
         return $this->render('breadcrumbBar', [
             'folder' => $this->folder,
-            'contentContainer' => $this->contentContainer
+            'contentContainer' => $this->contentContainer,
         ]);
     }
 

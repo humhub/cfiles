@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -15,14 +16,12 @@
 
 namespace humhub\modules\cfiles\libs;
 
-
 use Yii;
 use yii\web\UploadedFile;
 use humhub\modules\cfiles\models\Folder;
 
 class ZipExtractor extends ZipUtil
 {
-
     /**
      * @param Folder $targetFolder
      * @param $file
@@ -74,7 +73,7 @@ class ZipExtractor extends ZipUtil
         // remove unwanted parent folder references from the scanned files
         $files = array_diff(scandir($folderPath), ['..','.']);
 
-        if(!$root) {
+        if (!$root) {
             $root = $targetFolder;
         }
 
@@ -83,10 +82,10 @@ class ZipExtractor extends ZipUtil
             if (is_dir($filePath)) {
                 $folder = $targetFolder->findFolderByName($file);
 
-                if(!$folder) {
+                if (!$folder) {
                     $folder = $targetFolder->newFolder($file);
-                    if(!$folder->save()) {
-                        $root->addError('upload',  Yii::t('CfilesModule.base', 'An error occurred while creating folder {folder}.', ['folder' => $file]));
+                    if (!$folder->save()) {
+                        $root->addError('upload', Yii::t('CfilesModule.base', 'An error occurred while creating folder {folder}.', ['folder' => $file]));
                         continue;
                     }
                 }
@@ -94,8 +93,8 @@ class ZipExtractor extends ZipUtil
                 $this->generateModelsFromFilesystem($folder, $filePath, $root);
             } else {
                 $result = $this->generateModelFromFile($targetFolder, $folderPath, $file);
-                if($result->hasErrors()) {
-                    $root->addError('upload',  Yii::t('CfilesModule.base', 'An error occurred while unpacking {filename}.', ['filename' => $file]));
+                if ($result->hasErrors()) {
+                    $root->addError('upload', Yii::t('CfilesModule.base', 'An error occurred while unpacking {filename}.', ['filename' => $file]));
                 }
             }
         }

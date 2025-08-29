@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -20,10 +21,9 @@ use humhub\modules\content\widgets\stream\WallStreamModuleEntryWidget;
 
 class FolderRow extends FileSystemItemRow
 {
+    public const DEFAULT_ORDER = ['title' => SORT_ASC];
 
-    const DEFAULT_ORDER = 'title ASC';
-
-    const ORDER_MAPPING = [
+    public const ORDER_MAPPING = [
         self::ORDER_TYPE_NAME => 'title',
         self::ORDER_TYPE_UPDATED_AT => 'content.updated_at',
         self::ORDER_TYPE_SIZE => null,
@@ -43,7 +43,7 @@ class FolderRow extends FileSystemItemRow
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function canEdit()
     {

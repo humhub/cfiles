@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -212,7 +213,7 @@ abstract class FileSystemItemRow extends AbstractFileSystemItemRow
      */
     public function getVisibilityIcon()
     {
-        return $this->item->content->isPublic() ? 'fa-unlock': 'fa-lock';
+        return $this->item->content->isPublic() ? 'fa-unlock' : 'fa-lock';
     }
 
     /**

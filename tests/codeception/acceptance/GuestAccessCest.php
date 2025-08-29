@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -34,7 +35,7 @@ class GuestAccessCest
         $I->logout();
 
         $I->amOnSpace2();
-        $I->waitForText('Files', null, '.layout-nav-container');
+        $I->waitForText('Files', 10, '.layout-nav-container');
         $I->click('Files', '.layout-nav-container');
 
         $I->seeInFileList('guest');

@@ -1,6 +1,6 @@
 <?php
 
-use humhub\libs\Html;
+use humhub\helpers\Html;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\cfiles\widgets\FileListContextMenu;
@@ -9,7 +9,7 @@ use humhub\modules\content\widgets\ContentObjectLinks;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\stream\assets\StreamAsset;
 use humhub\modules\user\widgets\Image;
-use humhub\widgets\Button;
+use humhub\widgets\bootstrap\Button;
 use humhub\widgets\TimeAgo;
 
 /* @var $folder Folder */
@@ -29,16 +29,19 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TITLE)) : ?>
-        <td class="text-left">
+        <td class="text-start">
             <div style="position: relative">
                 <div class="title">
                     <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
                     <?php if ($row->getType() === "image") : ?>
-                        <a href="<?= $row->getUrl(); ?>" data-ui-gallery="FilesModule-Gallery-<?= $row->getParentFolderId(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
+                        <?= Button::asLink($row->getTitle(), $row->getUrl())
+                            ->options(['data-ui-gallery' => 'FilesModule-Gallery-' . $row->getParentFolderId()])
+                            ->tooltip($row->getDescription()) ?>
                     <?php elseif ($row->getBaseFile() !== null) : ?>
-                        <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]); ?>
+                        <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]) ?>
                     <?php else: ?>
-                        <a href="<?= $row->getLinkUrl(); ?>" class="tt" title="<?= Html::encode($row->getDescription()) ?>"><?= Html::encode($row->getTitle()); ?></a>
+                        <?= Button::asLink($row->getTitle(), $row->getLinkUrl())
+                            ->tooltip($row->getDescription()) ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -50,14 +53,14 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_VISIBILITY)) : ?>
-        <td class="hidden-xs text-muted text-right">
+        <td class="d-none d-sm-table-cell text-muted text-end">
             <i class="fa <?= $row->getVisibilityIcon() ?> fa-fw tt" title="<?= $row->getVisibilityTitle() ?>"></i>
         </td>
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SIZE)) : ?>
-        <td class="hidden-xs text-right">
-            <div class="size pull-right">
+        <td class="d-none d-sm-table-cell text-end">
+            <div class="size float-end">
                 <?php if (!$row->getSize()) : ?>
                     -
                 <?php else : ?>
@@ -68,8 +71,8 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TIMESTAMP)) : ?>
-        <td class="hidden-xxs text-right">
-            <div class="timestamp pull-right">
+        <td class="d-none d-sm-table-cell text-end">
+            <div class="timestamp float-end">
                 <?= $row->getUpdatedAt() ? TimeAgo::widget(['timestamp' => $row->getUpdatedAt()]) : ""; ?>
             </div>
         </td>
@@ -77,17 +80,17 @@ StreamAsset::register($this);
 
     <?php if (Yii::$app->getModule('cfiles')->settings->get('displayDownloadCount') &&
               $row->isRenderColumn(FileSystemItemRow::COLUMN_DOWNLOAD_COUNT)) : ?>
-        <td class="hidden-xs text-right">
-            <div class="pull-right">
+        <td class="d-none d-sm-table-cell text-end">
+            <div class="float-end">
                 <?= $row->getDownloadCount(); ?>
             </div>
         </td>
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_SOCIAL)): ?>
-        <td class="text-right">
+        <td class="d-none d-sm-table-cell text-end">
             <?php if ($row->isSocialActionsAvailable()): ?>
-                <div class="file-controls pull-right">
+                <div class="file-controls float-end">
                     <?= ContentObjectLinks::widget([
                         'object' => $row->getModel(),
                         'widgetParams' => [CommentLink::class => ['mode' => CommentLink::MODE_POPUP]],
@@ -98,8 +101,8 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_CREATOR)): ?>
-        <td class="hidden-xxs text-right">
-            <div class="creator pull-right">
+        <td class="text-end">
+            <div class="creator float-end">
                 <?php if (!empty($row->getCreator())): ?>
                     <?= Image::widget(['user' => $row->getCreator(), 'width' => 21, 'showTooltip' => true]) ?>
                 <?php endif; ?>
@@ -109,11 +112,11 @@ StreamAsset::register($this);
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_ACTIONS)): ?>
         <td class="file-actions">
-            <?= Button::defaultType()
+            <?= Button::light()
                 ->icon('list')
                 ->options(['data-contextmenu-toggler' => '#bs-table tr'])
                 ->cssClass('context-icon')
-                ->xs()
+                ->sm()
                 ->loader(false); ?>
         </td>
     <?php endif; ?>

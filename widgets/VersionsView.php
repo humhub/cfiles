@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2021 HumHub GmbH & Co. KG
@@ -17,7 +18,6 @@ use yii\data\Pagination;
  */
 class VersionsView extends Widget
 {
-
     /**
      * @var File
      */
@@ -60,7 +60,7 @@ class VersionsView extends Widget
         $pagination = new Pagination([
             'page' => $this->page - 1,
             'pageSize' => $this->pageSize,
-            'totalCount' => $this->file->baseFile->getHistoryFiles()->count()
+            'totalCount' => $this->file->baseFile->getHistoryFiles()->count(),
         ]);
 
         $this->isLastPage = ($pagination->page >= $pagination->pageCount - 1);

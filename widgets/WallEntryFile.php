@@ -19,7 +19,6 @@ use humhub\modules\cfiles\models\File;
  */
 class WallEntryFile extends WallStreamModuleEntryWidget
 {
-
     /**
      * @inheritdoc
      */

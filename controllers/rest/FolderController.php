@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2019 HumHub GmbH & Co. KG
@@ -76,7 +77,7 @@ class FolderController extends BaseContentController
 
         if ($folder->hasErrors()) {
             return $this->returnError(422, 'Validation failed', [
-                'errors' => $folder->getErrors()
+                'errors' => $folder->getErrors(),
             ]);
         } else {
             Yii::error('Could not create valid folder.', 'api');
@@ -101,7 +102,7 @@ class FolderController extends BaseContentController
 
         if ($folder->hasErrors()) {
             return $this->returnError(422, 'Validation failed', [
-                'errors' => $folder->getErrors()
+                'errors' => $folder->getErrors(),
             ]);
         } else {
             Yii::error('Could not update valid folder.', 'api');

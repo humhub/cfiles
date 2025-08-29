@@ -16,8 +16,8 @@ class FilesFixture extends ActiveFixture
 {
     public $modelClass = File::class;
     public $dataFile = '@cfiles/tests/codeception/fixtures/data/file.php';
-    
-     public $depends = [
-         FolderFixtrue::class
+
+    public $depends = [
+        FolderFixtrue::class,
     ];
 }

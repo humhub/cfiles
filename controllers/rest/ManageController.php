@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2019 HumHub GmbH & Co. KG
@@ -30,15 +31,15 @@ class ManageController extends BaseController
 
         $form = new SelectionForm();
         $result = $this->prepareItems($form, $container);
-        
+
         if ($form->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $form->getErrors()
+                'errors' => $form->getErrors(),
             ]);
         }
 
         foreach ($result as $item) {
-            if(! $item->delete()) {
+            if (! $item->delete()) {
                 Yii::error('Could not delete cFiles items.', 'api');
                 return $this->returnError(500, 'Internal error while deleting cFiles item!');
             }
@@ -70,24 +71,24 @@ class ManageController extends BaseController
 
         $model = new MoveForm([
             'root' => $root,
-            'sourceFolder' => $source
+            'sourceFolder' => $source,
         ]);
 
         $this->prepareItems($model, $container);
 
         if ($model->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $model->getErrors()
+                'errors' => $model->getErrors(),
             ]);
         }
 
-        if($model->load($params) && $model->save()) {
+        if ($model->load($params) && $model->save()) {
             return $this->returnSuccess('Items successfully moved.');
         }
 
         if ($model->hasErrors()) {
             return $this->returnError(422, 'Validation failed', [
-                'errors' => $model->getErrors()
+                'errors' => $model->getErrors(),
             ]);
         } else {
             Yii::error('Could not move cFiles items.', 'api');
@@ -109,13 +110,13 @@ class ManageController extends BaseController
 
         if ($form->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $form->getErrors()
+                'errors' => $form->getErrors(),
             ]);
         }
 
         foreach ($result as $item) {
             $item->updateVisibility(Content::VISIBILITY_PUBLIC);
-            if(! $item->content->save()) {
+            if (! $item->content->save()) {
                 Yii::error('Could not set public visibility for cFiles items.', 'api');
                 return $this->returnError(500, 'Internal error while setting public visibility for cFiles item!');
             }
@@ -138,13 +139,13 @@ class ManageController extends BaseController
 
         if ($form->hasErrors()) {
             return $this->returnError(400, 'Bad request', [
-                'errors' => $form->getErrors()
+                'errors' => $form->getErrors(),
             ]);
         }
 
         foreach ($result as $item) {
             $item->updateVisibility(Content::VISIBILITY_PRIVATE);
-            if(! $item->content->save()) {
+            if (! $item->content->save()) {
                 Yii::error('Could not set private visibility for cFiles items.', 'api');
                 return $this->returnError(500, 'Internal error while setting private visibility for cFiles item!');
             }
@@ -176,12 +177,14 @@ class ManageController extends BaseController
             } elseif ($this->action->id == 'make-public') {
                 if ($item->parentFolder && $item->parentFolder->content->visibility === Content::VISIBILITY_PRIVATE) {
                     $form->addError($itemId, 'You can not make item public inside a private directory.');
-                } else $result[] = $item;
+                } else {
+                    $result[] = $item;
+                }
             } else {
                 $result[] = $item;
             }
         }
-        
+
         return $result;
     }
 }

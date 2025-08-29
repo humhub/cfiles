@@ -11,7 +11,6 @@ use humhub\widgets\JsWidget;
  */
 class FolderView extends JsWidget
 {
-
     /**
      * @inheritdoc
      */
@@ -58,11 +57,12 @@ class FolderView extends JsWidget
     /**
      * @inheritdoc
      */
-    public function run() {        
+    public function run()
+    {
         return $this->render('folderView', [
             'folder' => $this->folder,
             'options' => $this->getOptions(),
-            'contentContainer' => $this->contentContainer
+            'contentContainer' => $this->contentContainer,
         ]);
     }
 

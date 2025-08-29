@@ -10,6 +10,7 @@ use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
+use humhub\modules\post\models\Post;
 use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\topic\models\Topic;
 use humhub\modules\user\models\User;
@@ -20,10 +21,10 @@ use yii\web\UploadedFile;
 /**
  * This is the model class for table "cfiles_file".
  *
- * @property integer $id
- * @property integer $parent_folder_id
+ * @property int $id
+ * @property int $parent_folder_id
  * @property string $description
- * @property integer $download_count
+ * @property int $download_count
  *
  * @property Folder $parentFolder
  * @property BaseFile $baseFile
@@ -91,12 +92,12 @@ class File extends FileSystemItem
             [['parent_folder_id'], 'required'],
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
-            ['description', 'string', 'max' => 255],
+            ['description', 'string', 'max' => 1000],
             ['topics', 'safe'],
             ['hidden', 'boolean'],
         ];
 
-        if($this->parentFolder && $this->parentFolder->content->isPublic()) {
+        if ($this->parentFolder && $this->parentFolder->content->isPublic()) {
             $rules[] = ['visibility', 'integer', 'min' => 0, 'max' => 1];
         }
 
@@ -108,9 +109,9 @@ class File extends FileSystemItem
      */
     public function attributeLabels()
     {
-        return array_merge(parent::attributeLabels(),[
+        return array_merge(parent::attributeLabels(), [
             'id' => 'ID',
-            'parent_folder_id' => Yii::t('CfilesModule.models_File', 'Folder ID')
+            'parent_folder_id' => Yii::t('CfilesModule.base', 'Folder ID'),
         ]);
     }
 
@@ -120,14 +121,14 @@ class File extends FileSystemItem
     public function getSearchAttributes()
     {
         $attributes = [
-            'description' => $this->description
+            'description' => $this->description,
         ];
 
-        if($this->getCreator()) {
+        if ($this->getCreator()) {
             $attributes['creator'] = $this->getCreator()->getDisplayName();
         }
 
-        if($this->getEditor()) {
+        if ($this->getEditor()) {
             $attributes['editor'] = $this->getEditor()->getDisplayName();
         }
 
@@ -205,7 +206,7 @@ class File extends FileSystemItem
             return;
         }
 
-        if(!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
+        if (!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
             // For user profile files we use Content::VISIBILITY_OWNER isntead of private
             $this->content->visibility = $visibility;
         }
@@ -213,20 +214,20 @@ class File extends FileSystemItem
 
     public function getVisibilityTitle()
     {
-        if(Yii::$app->getModule('friendship')->settings->get('enable') && $this->content->container instanceof User) {
-            if($this->content->container->isCurrentuser()) {
+        if (Yii::$app->getModule('friendship')->settings->get('enable') && $this->content->container instanceof User) {
+            if ($this->content->container->isCurrentuser()) {
                 $privateText =  Yii::t('CfilesModule.base', 'This file is only visible for you and your friends.');
             } else {
                 $privateText =  Yii::t('CfilesModule.base', 'This file is protected.');
             }
 
             return  $this->content->isPublic()
-                ?  Yii::t('CfilesModule.base', 'This file is public.')
+                ? Yii::t('CfilesModule.base', 'This file is public.')
                 : $privateText;
         }
 
         return  $this->content->isPublic()
-            ?  Yii::t('CfilesModule.base', 'This file is public.')
+            ? Yii::t('CfilesModule.base', 'This file is public.')
             : Yii::t('CfilesModule.base', 'This file is private.');
     }
 
@@ -276,7 +277,7 @@ class File extends FileSystemItem
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getDownloadCount()
     {
@@ -323,7 +324,7 @@ class File extends FileSystemItem
     /**
      * Get the post related to the given file file.
      */
-    public static function getBasePost(\humhub\modules\file\models\File $file = null)
+    public static function getBasePost(BaseFile $file = null)
     {
         if ($file === null) {
             return null;
@@ -337,7 +338,7 @@ class File extends FileSystemItem
 
         return Content::find()->where([
             'content.object_id' => $searchItem->object_id,
-            'content.object_model' => $searchItem->object_model
+            'content.object_model' => $searchItem->object_model,
         ])->one();
     }
 
@@ -365,7 +366,7 @@ class File extends FileSystemItem
         }
         $counter = 0;
         // break at maxdepth 20 to avoid hangs
-        while (!empty($tempFolder) && $counter ++ <= 20) {
+        while (!empty($tempFolder) && $counter++ <= 20) {
             $path = $separator . $tempFolder->title . $path;
             $tempFolder = $tempFolder->parentFolder;
         }
@@ -386,30 +387,37 @@ class File extends FileSystemItem
      */
     public static function getPostedFiles($contentContainer, $filesOrder = ['file.updated_at' => SORT_ASC, 'file.title' => SORT_ASC])
     {
-        // Get Posted Files
-        $query = \humhub\modules\file\models\File::find();
-        // join comments to the file if available
-        $query->join('LEFT JOIN', 'comment', '(file.object_id=comment.id AND file.object_model=' . Yii::$app->db->quoteValue(Comment::className()) . ')');
-        // join parent post of comment or file
-        $query->join('LEFT JOIN', 'content', '(comment.object_model=content.object_model AND comment.object_id=content.object_id) OR (file.object_model=content.object_model AND file.object_id=content.object_id)');
+        // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
 
-        $query->andWhere(['content.contentcontainer_id' => $contentContainer->contentContainerRecord->id]);
+        // Initialise sub queries to get files from Posts and Comments
+        $subQueries = [
+            Post::class => Content::find()
+                ->select('content.object_id')
+                ->where(['content.object_model' => Post::class]),
+            Comment::class => Content::find()
+                ->select('comment.id')
+                ->innerJoin('comment', 'comment.object_model = content.object_model AND comment.object_id = content.object_id')
+                ->where(['comment.object_model' => Post::class]),
+        ];
 
-        if(!$contentContainer->canAccessPrivateContent()) {
-            // Note this will cut comment images, but including the visibility of comments is pretty complex...
-            $query->andWhere(['content.visibility' => Content::VISIBILITY_PUBLIC]);
+        $query = BaseFile::find();
+
+        foreach ($subQueries as $objectClass => $subQuery) {
+            // Filter Content records by container and visibility states
+            $subQuery->andWhere(['content.contentcontainer_id' => $contentContainer->contentContainerRecord->id])
+                ->andWhere(['content.state' => Content::STATE_PUBLISHED]);
+            if (!$contentContainer->canAccessPrivateContent()) {
+                // Note this will cut comment images, but including the visibility of comments is pretty complex...
+                $subQuery->andWhere(['content.visibility' => Content::VISIBILITY_PUBLIC]);
+            }
+
+            $query->orWhere([
+                'AND',
+                ['file.object_model' => $objectClass],
+                ['IN', 'file.object_id', $subQuery],
+            ]);
         }
 
-        $query->andWhere(['content.state' => Content::STATE_PUBLISHED]);
-
-        // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
-        $query->andWhere(
-                ['or',
-                    ['=', 'comment.object_model', \humhub\modules\post\models\Post::className()],
-                    ['=', 'file.object_model', \humhub\modules\post\models\Post::className()]
-        ]);
-
-        // Get Files from comments
         return $query->orderBy($filesOrder);
     }
 
@@ -422,9 +430,9 @@ class File extends FileSystemItem
                 ->joinWith('baseFile')
                 ->readable()
                 ->andWhere([
-            'file_name' => $name,
-            'cfiles_file.parent_folder_id' => $parentFolderId
-        ]);
+                    'file_name' => $name,
+                    'cfiles_file.parent_folder_id' => $parentFolderId,
+                ]);
         return $filesQuery->one();
     }
 
