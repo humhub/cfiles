@@ -12,10 +12,10 @@ class m170210_154141_folderNoStream extends Migration
             Yii::error("Could not drop haswall entry column", 'cfiles');
         }
 
-        $this->db->createCommand('UPDATE content c ' .
-                'LEFT JOIN cfiles_folder f ON f.id=c.object_id AND c.object_model=:folderClass ' .
-                'SET c.stream_channel = NULL ' .
-                'WHERE f.id IS NOT NULL', [':folderClass' => humhub\modules\cfiles\models\Folder::class])->execute();
+        $this->db->createCommand('UPDATE content c '
+                . 'LEFT JOIN cfiles_folder f ON f.id=c.object_id AND c.object_model=:folderClass '
+                . 'SET c.stream_channel = NULL '
+                . 'WHERE f.id IS NOT NULL', [':folderClass' => humhub\modules\cfiles\models\Folder::class])->execute();
     }
 
     public function down()
