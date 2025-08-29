@@ -16,8 +16,6 @@ use yii\helpers\Url;
 
 class Module extends ContentContainerModule
 {
-    public $resourcesPath = 'resources';
-
     /**
      * @var string sort name as 'name', 'size', 'updated_at'
      * @see FileSystemItemRow::ORDER_MAPPING
