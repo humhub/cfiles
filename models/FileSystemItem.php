@@ -338,8 +338,8 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
             return false;
         }
 
-        return $this->content->created_by === Yii::$app->user->id &&
-            $this->content->container->permissionManager->can(WriteAccess::class);
+        return $this->content->created_by === Yii::$app->user->id
+            && $this->content->container->permissionManager->can(WriteAccess::class);
     }
 
 }

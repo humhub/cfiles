@@ -93,9 +93,9 @@ class Events
      */
     public static function onAfterFileAction(Event $event)
     {
-        if (isset($event->action) &&
-            $event->action instanceof DownloadAction &&
-            ($downloadedFile = File::getFileByGuid(Yii::$app->request->get('guid')))
+        if (isset($event->action)
+            && $event->action instanceof DownloadAction
+            && ($downloadedFile = File::getFileByGuid(Yii::$app->request->get('guid')))
         ) {
             $downloadedFile->updateAttributes(['download_count' => $downloadedFile->download_count + 1]);
         }
@@ -113,8 +113,8 @@ class Events
          */
         $container = $event->sender;
 
-        if ($container instanceof ContentContainerActiveRecord &&
-            $container->moduleManager->isEnabled('cfiles')) {
+        if ($container instanceof ContentContainerActiveRecord
+            && $container->moduleManager->isEnabled('cfiles')) {
             Folder::initRoot($container);
             Folder::initPostedFilesFolder($container);
         }
@@ -132,14 +132,14 @@ class Events
          */
         $moduleState = $event->sender;
 
-        if (!($moduleState instanceof ContentContainerModuleState &&
-            $moduleState->module_id == 'cfiles' &&
-            $moduleState->module_state)) {
+        if (!($moduleState instanceof ContentContainerModuleState
+            && $moduleState->module_id == 'cfiles'
+            && $moduleState->module_state)) {
             return;
         }
 
-        if (($contentContainer = ContentContainer::findOne(['id' => $moduleState->contentcontainer_id])) &&
-            ($container = $contentContainer->getPolymorphicRelation())) {
+        if (($contentContainer = ContentContainer::findOne(['id' => $moduleState->contentcontainer_id]))
+            && ($container = $contentContainer->getPolymorphicRelation())) {
             Folder::initRoot($container);
             Folder::initPostedFilesFolder($container);
         }
