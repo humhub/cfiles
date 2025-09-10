@@ -98,7 +98,6 @@ return [
     'Hide in Stream' => '',
     'Is Public' => '',
     'Make Public' => '',
-    'Move to another Space' => '',
     'Moving to the same folder is not valid.' => '',
     'Moving to this folder is invalid.' => '',
     'Note: Changes of the folders visibility, will be inherited by all contained files and folders.' => '',

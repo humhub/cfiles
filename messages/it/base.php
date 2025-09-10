@@ -64,7 +64,6 @@ return [
     'Make Public' => 'Rendi pubblico',
     'Manage files' => 'Gestisci file',
     'Move' => 'Sposta',
-    'Move to another Space' => 'Sposta ad un\'altra posizione',
     'Moving to the same folder is not valid.' => 'Non è permesso spostare nella stessa cartella',
     'Moving to this folder is invalid.' => 'Non è permesso spostare questa cartella',
     'Name' => 'Nome',

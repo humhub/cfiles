@@ -64,7 +64,6 @@ return [
     'Make Public' => 'Hacer público',
     'Manage files' => 'Organizar archivos.',
     'Move' => 'Mover',
-    'Move to another Space' => 'Mover a otro espacio',
     'Moving to the same folder is not valid.' => 'Mover a la misma carpeta no es válido.',
     'Moving to this folder is invalid.' => 'Mover a esta carpeta no es válido.',
     'Name' => 'Nombre',

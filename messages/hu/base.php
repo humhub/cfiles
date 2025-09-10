@@ -64,7 +64,6 @@ return [
     'Make Public' => 'Legyen nyilvános',
     'Manage files' => 'Fájlok kezelése',
     'Move' => 'Áthelyezése',
-    'Move to another Space' => 'Áthelyezés egy másik Közösségbe',
     'Moving to the same folder is not valid.' => 'A fájl nem helyezhető át ugyanabba a mappába.',
     'Moving to this folder is invalid.' => 'A mappába való áthelyezés érvénytelen.',
     'Name' => 'Név',

@@ -104,7 +104,6 @@ return [
     'Folder content ID' => '',
     'Folders' => '',
     'Hide in Stream' => '',
-    'Move to another Space' => '',
     'No file found!' => '',
     'Revert to this version' => '',
     'Select what file version you want to switch.' => '',

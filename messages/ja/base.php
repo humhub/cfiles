@@ -64,7 +64,6 @@ return [
     'Make Public' => '公開にする',
     'Manage files' => 'ファイルの管理',
     'Move' => '移動',
-    'Move to another Space' => '別のスペースに移動',
     'Moving to the same folder is not valid.' => '同じフォルダへの移動は無効です。',
     'Moving to this folder is invalid.' => 'このフォルダへの移動は無効です。',
     'Name' => '名前',

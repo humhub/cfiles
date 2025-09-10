@@ -64,7 +64,6 @@ return [
     'Make Public' => 'Zverejniť',
     'Manage files' => 'Spravovať súbory',
     'Move' => 'Presunúť',
-    'Move to another Space' => 'Presunúť do iného priestoru',
     'Moving to the same folder is not valid.' => 'Presun do rovnakého priečinka je neplatný.',
     'Moving to this folder is invalid.' => 'Presun do tohto priečinka je neplatný.',
     'Name' => 'Meno',

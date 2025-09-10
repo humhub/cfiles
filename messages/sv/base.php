@@ -64,7 +64,6 @@ return [
     'Make Public' => 'Gör publik',
     'Manage files' => 'Hantera filer',
     'Move' => 'Flytta',
-    'Move to another Space' => 'Flytta till ett annat forum',
     'Moving to the same folder is not valid.' => 'Det går inte att flytta till samma mapp.',
     'Moving to this folder is invalid.' => 'Det går inte att flytta till denna mapp.',
     'Name' => 'Namn',

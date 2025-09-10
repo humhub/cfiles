@@ -65,7 +65,6 @@ return [
     'Make Public' => 'Zmień na Publiczny',
     'Manage files' => 'Zarządzaj plikami',
     'Move' => 'Przenieś',
-    'Move to another Space' => 'Przenieś do innej strefy',
     'Moving to the same folder is not valid.' => 'Przenoszenie do tego samego folderu jest nieprawidłowe.',
     'Moving to this folder is invalid.' => 'Przenoszenie do tego folderu jest nieprawidłowe.',
     'Name' => 'Nazwa',

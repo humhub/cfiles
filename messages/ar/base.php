@@ -64,7 +64,6 @@ return [
     'Make Public' => 'اجعله عاماً',
     'Manage files' => 'إدارة الملفات',
     'Move' => 'نقل',
-    'Move to another Space' => 'نقل إلى باحة أخرى',
     'Moving to the same folder is not valid.' => 'النقل إلى نفس المجلد غير ممكن.',
     'Moving to this folder is invalid.' => 'النقل إلى هذا المجلد غير ممكن.',
     'Name' => 'الاسم',

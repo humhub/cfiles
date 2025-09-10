@@ -64,7 +64,6 @@ return [
     'Make Public' => 'Padaryti viešą',
     'Manage files' => 'Tvarkyti failus',
     'Move' => 'Perkelti',
-    'Move to another Space' => 'Perkelti į kitą erdvę',
     'Moving to the same folder is not valid.' => 'Perkėlimas į tą patį aplanką negalioja.',
     'Moving to this folder is invalid.' => 'Perkelti į šį aplanką negalima.',
     'Name' => 'Vardas',

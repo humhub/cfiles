@@ -102,7 +102,6 @@ return [
     'Hide in Stream' => '',
     'Is Public' => '',
     'Manage files' => '',
-    'Move to another Space' => '',
     'No file found!' => '',
     'Note: Changes of the folders visibility, will be inherited by all contained files and folders.' => '',
     'Parent Folder ID' => '',

@@ -84,7 +84,6 @@ return [
     'Make Private' => '',
     'Make Public' => '',
     'Manage files' => '',
-    'Move to another Space' => '',
     'Moving to the same folder is not valid.' => '',
     'Moving to this folder is invalid.' => '',
     'No file found!' => '',

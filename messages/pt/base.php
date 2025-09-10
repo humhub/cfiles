@@ -63,7 +63,6 @@ return [
     'Make Public' => 'Tornar Público',
     'Manage files' => 'Gerir ficheiros',
     'Move' => 'Mover',
-    'Move to another Space' => 'Mover para outro Espaço',
     'Moving to the same folder is not valid.' => 'Mover para a mesma pasta não é válido.',
     'Moving to this folder is invalid.' => 'Mover para esta pasta é inválido.',
     'Name' => 'Nome',

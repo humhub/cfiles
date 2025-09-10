@@ -64,7 +64,6 @@ return [
     'Make Public' => 'Veröffentlichen',
     'Manage files' => 'Dateien verwalten',
     'Move' => 'Verschieben',
-    'Move to another Space' => 'In einen anderen Space verschieben',
     'Moving to the same folder is not valid.' => 'Das Verschieben in denselben Ordner ist nicht möglich.',
     'Moving to this folder is invalid.' => 'Das Verschieben in diesen Ordner ist nicht möglich.',
     'Name' => 'Name',
