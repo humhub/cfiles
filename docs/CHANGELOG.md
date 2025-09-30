@@ -3,7 +3,7 @@ Changelog
 
 0.17.1 - (Unreleased)
 ------------------------
-- Fix #255: Improved Module Test GitHub Actions
+- Enh #255: Improved Module Test GitHub Actions
 
 0.17.0 - August 29, 2025
 ------------------------
