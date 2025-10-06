@@ -4,6 +4,7 @@ Changelog
 0.17.1 - (Unreleased)
 ------------------------
 - Enh #255: Improved Module Test GitHub Actions
+- Fix: Missing icon in Context Menu (File handler) and wrong styling in files context menu
 
 0.17.0 - August 29, 2025
 ------------------------
