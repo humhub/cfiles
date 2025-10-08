@@ -5,7 +5,7 @@ Changelog
 ------------------------
 - Enh #255: Improved Module Test GitHub Actions
 - Fix #256: Missing icon in Context Menu (File handler) and wrong styling in files context menu
-- Fix: Dropdown styling
+- Fix #257: Dropdown styling
 
 0.17.0 - August 29, 2025
 ------------------------
