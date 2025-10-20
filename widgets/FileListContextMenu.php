@@ -165,7 +165,10 @@ class FileListContextMenu extends WallEntryControls
             'url' => '#',
             'icon' => $icon,
             'sortOrder' => $sortOrder,
-            'htmlOptions' => ['data-action' => $action],
+            'htmlOptions' => [
+                'data-action' => $action,
+                'class' => 'link dropdown-item',
+            ],
         ]));
     }
 
