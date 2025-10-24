@@ -19,7 +19,7 @@ use Yii;
  *
  * @property-read Folder|null $record
  */
-class FolderElement extends BaseContentRecordElement
+class FolderElement extends BaseContentRecordElement implements \Stringable
 {
     protected const RECORD_CLASS = Folder::class;
 
@@ -41,9 +41,9 @@ class FolderElement extends BaseContentRecordElement
         ];
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return Html::encode($this->record?->title);
+        return (string) Html::encode($this->record?->title);
     }
 
     /**

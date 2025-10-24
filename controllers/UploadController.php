@@ -45,7 +45,7 @@ class UploadController extends BrowseController
     public function actionImport($fid)
     {
         $guids = Yii::$app->request->post('guids');
-        $guids = is_string($guids) ? array_map('trim', explode(',', $guids)) : $guids;
+        $guids = is_string($guids) ? array_map(trim(...), explode(',', $guids)) : $guids;
 
         if (!is_array($guids)) {
             throw new HttpException(400);
@@ -93,7 +93,7 @@ class UploadController extends BrowseController
     public function actionResponseError(ActiveRecord $record)
     {
         $errorMsg = Yii::t('CfilesModule.base', 'Some files could not be imported: ');
-        foreach ($record->getErrors() as $key => $errors) {
+        foreach ($record->getErrors() as $errors) {
             foreach ($errors as $error) {
                 $errorMsg .= $error . ' ';
             }

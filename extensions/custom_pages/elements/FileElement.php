@@ -21,7 +21,7 @@ use Yii;
  *
  * @property-read File|null $record
  */
-class FileElement extends BaseContentRecordElement
+class FileElement extends BaseContentRecordElement implements \Stringable
 {
     protected const RECORD_CLASS = File::class;
 
@@ -43,13 +43,13 @@ class FileElement extends BaseContentRecordElement
         ];
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if ($this->hasFile()) {
-            return $this->getFile()->getUrl();
+            return (string) $this->getFile()->getUrl();
         }
 
-        return Html::encode($this->record?->description);
+        return (string) Html::encode($this->record?->description);
     }
 
     /**

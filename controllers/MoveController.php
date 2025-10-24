@@ -54,7 +54,7 @@ class MoveController extends BaseController
             return $this->htmlRedirect($model->destination->createUrl('/cfiles/browse'));
         } else {
             $errorMsg = Yii::t('CfilesModule.base', 'Some files could not be moved: ');
-            foreach ($model->getErrors() as $key => $errors) {
+            foreach ($model->getErrors() as $errors) {
                 foreach ($errors as $error) {
                     $errorMsg .= $error . ' ';
                 }
@@ -107,7 +107,7 @@ class MoveController extends BaseController
 
     private function getTargetFolder(?string $idData): ?Folder
     {
-        if (!preg_match('/^folder_(\d+)$/', $idData, $targetFolderData)) {
+        if (!preg_match('/^folder_(\d+)$/', (string) $idData, $targetFolderData)) {
             return null;
         }
 
@@ -119,7 +119,7 @@ class MoveController extends BaseController
 
     private function getDroppedItem(?string $idData): ?FileSystemItem
     {
-        if (!preg_match('/^(folder_|file_)(\d+)$/', $idData, $droppedItemData)) {
+        if (!preg_match('/^(folder_|file_)(\d+)$/', (string) $idData, $droppedItemData)) {
             return null;
         }
 
