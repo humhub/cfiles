@@ -3,7 +3,7 @@ nbproject
 .idea/*
 .gitmodules
 /composer.lock
-
+/vendor/
 /.buildpath
 /.project
 /.settings/
