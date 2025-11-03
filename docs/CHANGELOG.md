@@ -7,7 +7,7 @@ Changelog
 - Fix #256: Missing icon in Context Menu (File handler) and wrong styling in files context menu
 - Fix #257: Dropdown styling
 - Enh #259: Implemented module-coding-standards
-- Fix: "Add Files" button hover issue
+- Fix #261: "Add Files" button hover issue
 
 0.17.0 - August 29, 2025
 ------------------------
