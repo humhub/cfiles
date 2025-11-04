@@ -69,12 +69,12 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
                     'url' => $uploadUrl,
                     'preview' => '#cfiles-folderView',
                     'tooltip' => false,
-                    'cssButtonClass' => 'btn-success',
+                    'cssButtonClass' => 'btn-accent',
                     'label' => Html::tag('span', Yii::t('CfilesModule.base', 'Add file(s)'), ['class' => 'd-none d-sm-inline']),
                     'dropZone' => '#cfiles-container',
                     'pasteZone' => 'body',
                 ]) ?>
-                <?= FileHandlerButtonDropdown::widget(['primaryButton' => $uploadButton, 'handlers' => $fileHandlers, 'cssButtonClass' => 'btn-success', 'pullRight' => true]); ?>
+                <?= FileHandlerButtonDropdown::widget(['primaryButton' => $uploadButton, 'handlers' => $fileHandlers, 'cssButtonClass' => 'btn-accent', 'pullRight' => true]); ?>
 
                 <?= UploadInput::widget([
                     'id' => 'cfilesUploadZipFile',

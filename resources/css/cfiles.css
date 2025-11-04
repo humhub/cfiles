@@ -16,13 +16,13 @@
 
 .cfiles-content .file-controls {
   font-size: 11px;
-  color: #aeaeae;
+  color: var(--hh-text-color-soft2);
   margin-top: 10px;
   margin-bottom: 0;
 }
 .cfiles-content .file-controls a {
   font-size: 11px;
-  color: #aeaeae;
+  color: var(--hh-text-color-soft2);
   margin-top: 10px;
   margin-bottom: 0;
 }
@@ -41,21 +41,6 @@
 .panel .panel-body .files-action-menu .btn {
   font-size: 1em !important;
   font-weight: normal !important;
-}
-.panel .panel-body .files-action-menu .btn-light:hover {
-  background-color: #e6e6e6 !important;
-}
-.panel .panel-body .files-action-menu .btn-success:hover {
-  background-color: #89cc5e !important;
-}
-.panel .panel-body .files-action-menu .btn-danger:hover {
-  background-color: #ff6f6f !important;
-}
-.panel .panel-body .files-action-menu .btn-primary:hover {
-  background-color: #286090 !important;
-}
-.panel .panel-body .files-action-menu .btn-group {
-
 }
 .panel .panel-body .files-action-menu .btn-group .split-toggle {
   width: auto !important;
@@ -157,9 +142,6 @@
 
 #bs-table.table tr.ui-draggable-dragging {
   z-index: 10000;
-}
-#bs-table.table tr.ui-droppable-hover td {
-  background: #ffffe0;
 }
 
 #fileList [data-ui-sort] {
