@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.17.1 - (Unreleased)
-------------------------
+0.17.1 - (November 5, 2025)
+---------------------------
 - Enh #255: Improved Module Test GitHub Actions
 - Fix #256: Missing icon in Context Menu (File handler) and wrong styling in files context menu
 - Fix #257: Dropdown styling
