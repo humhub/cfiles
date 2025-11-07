@@ -22,9 +22,9 @@ class FileElementVariable extends BaseContentRecordElementVariable
      */
     protected BaseElementContent $elementContent;
 
-    public ?string $fileUrl;
-    public ?string $description;
-    public ?string $icon;
+    public ?string $fileUrl = null;
+    public ?string $description = null;
+    public ?string $icon = null;
     public int $downloadCount;
     public BaseFileElementVariable $file;
 

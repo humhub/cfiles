@@ -13,7 +13,7 @@
 <?php if ($model->hasErrors()) : ?>
     <div class="alert alert-danger">
         <ul>
-            <?php foreach ($model->getErrors() as $attribute => $errors) : ?>
+            <?php foreach ($model->getErrors() as $errors) : ?>
                 <?= "<li>$errors[0]</li>" ?>
             <?php endforeach; ?>
         </ul>

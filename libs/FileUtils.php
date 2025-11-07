@@ -113,7 +113,7 @@ class FileUtils
     public static function getIconClassByExt($ext = '')
     {
         $ext = strtolower($ext);
-        foreach (self::$map as $type => $info) {
+        foreach (self::$map as $info) {
             if (in_array($ext, $info['ext'])) {
                 return $info['icon'];
             }

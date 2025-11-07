@@ -15,10 +15,10 @@ use yii\db\ActiveRecord;
 
 class FolderElementVariable extends BaseContentRecordElementVariable
 {
-    public ?string $title;
-    public ?string $description;
-    public ?string $type;
-    public ?string $icon;
+    public ?string $title = null;
+    public ?string $description = null;
+    public ?string $type = null;
+    public ?string $icon = null;
 
     /**
      * @var FolderElementVariable[]

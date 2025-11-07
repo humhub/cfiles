@@ -375,7 +375,7 @@ class File extends FileSystemItem
 
     public function getFullPath($separator = '/')
     {
-        return $this->getPathFromId($this->id, false, $separator);
+        return static::getPathFromId($this->id, false, $separator);
     }
 
     /**

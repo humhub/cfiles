@@ -74,7 +74,7 @@ class BrowseController extends BaseController
     private function getFileById(): ?File
     {
         $fileId = Yii::$app->request->get('id');
-        $fileId = strpos($fileId, 'file_') === 0 ? substr($fileId, 5) : 0;
+        $fileId = str_starts_with((string) $fileId, 'file_') ? substr((string) $fileId, 5) : 0;
 
         if (empty($fileId)) {
             return null;
