@@ -19,7 +19,7 @@ use humhub\widgets\modal\ModalButton;
 
     <?= $form->field($model, 'destId')->hiddenInput(['id' => 'input-hidden-selectedFolder'])->label(false) ?>
 
-    <?php foreach ($model->selection as $index => $item) : ?>
+    <?php foreach ($model->selection as $item) : ?>
         <?= Html::hiddenInput('selection[]', $item, ['class' => 'input-hidden-selectedItem']) ?>
     <?php endforeach; ?>
 

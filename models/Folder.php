@@ -589,14 +589,14 @@ class Folder extends FileSystemItem
 
     public function noSpaces($attribute, $params)
     {
-        if (trim($this->$attribute) !== $this->$attribute) {
+        if (trim((string) $this->$attribute) !== $this->$attribute) {
             $this->addError($attribute, Yii::t('CfilesModule.base', 'Folder should not start or end with blank space.'));
         }
     }
 
     public function getFullPath($separator = '/')
     {
-        return $this->getPathFromId($this->id, false, $separator);
+        return static::getPathFromId($this->id, false, $separator);
     }
 
     public static function getPathFromId($id, $parentFolderPath = false, $separator = '/', $withRoot = false)
@@ -927,7 +927,7 @@ class Folder extends FileSystemItem
                     // if moving the given item fails we set result to null and add an item error
                     if (!$existingFolderWithTitle->moveItem($child)) {
                         $result = null;
-                        foreach ($child->getErrors() as $attribute => $errors) {
+                        foreach ($child->getErrors() as $errors) {
                             $item->addErrors([$child->getTitle() => $errors]);
                         }
                     };
@@ -952,9 +952,9 @@ class Folder extends FileSystemItem
     protected function getAddedFileName($fileName)
     {
         $counter = 0;
-        $parts = preg_split('~\.(?=[^\.]*$)~', $fileName);
+        $parts = preg_split('~\.(?=[^\.]*$)~', (string) $fileName);
         $origName = $parts[0];
-        $ext = sizeof($parts) == 2 ? '.' . $parts[1] : '';
+        $ext = count($parts) == 2 ? '.' . $parts[1] : '';
 
         while ($this->fileExists($fileName)) {
             $fileName = $origName . '(' . ++$counter . ')' . $ext;

@@ -8,7 +8,7 @@ class m170210_154141_folderNoStream extends Migration
     {
         try {
             $this->dropColumn('cfiles_folder', 'has_wall_entry');
-        } catch (Exception $ex) {
+        } catch (Exception) {
             Yii::error("Could not drop haswall entry column", 'cfiles');
         }
 

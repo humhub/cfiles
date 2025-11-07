@@ -102,7 +102,7 @@ class ButtonDropdown extends Widget
         if (is_string($this->button)) {
             $button = $this->button;
         } else {
-            $options = isset($this->button['options']) ? $this->button['options'] : [];
+            $options = $this->button['options'] ?? [];
             if (empty($this->splitButton)) {
                 $options['data-bs-toggle'] = 'dropdown';
                 Html::addCssClass($options, [
@@ -114,7 +114,7 @@ class ButtonDropdown extends Widget
                     'class' => 'split-button',
                 ]);
             }
-            $label = isset($this->button['label']) ? $this->button['label'] : null;
+            $label = $this->button['label'] ?? null;
             $button = Button::widget([
                 'label' => (isset($this->button['encodeLabel']) && $this->button['encodeLabel'] ? Html::encode($label) : $label),
                 'encodeLabel' => false,
@@ -126,7 +126,7 @@ class ButtonDropdown extends Widget
             if (is_string($this->splitButton)) {
                 $splitButton = $this->splitButton;
             } else {
-                $options = isset($this->splitButton['options']) ? $this->splitButton['options'] : [];
+                $options = $this->splitButton['options'] ?? [];
                 Html::addCssClass($options, [
                     'widget' => 'btn',
                 ]);

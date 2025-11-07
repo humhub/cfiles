@@ -304,11 +304,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     {
         $params = empty($itemId) ? [] : explode('_', $itemId);
 
-        if (sizeof($params) < 2) {
+        if (count($params) < 2) {
             return null;
         }
 
-        list($type, $id) = $params;
+        [$type, $id] = $params;
         if ($type == 'file') {
             return File::find()->andWhere(['cfiles_file.id' => $id])->readable()->one();
         } elseif ($type == 'folder') {
