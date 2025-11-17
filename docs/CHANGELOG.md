@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.16.11 - Unreleased
+-------------------------
+- Enh #264: Update download and upload actions
+
 0.16.10 - August 1, 2025
 -------------------------
 Warning: This release contains two [security fixes](https://github.com/humhub/cfiles/security/advisories), and an update is strongly recommended.
