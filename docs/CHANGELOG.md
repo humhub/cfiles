@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.17.2 - (Unreleased)
+---------------------------
+- Enh #266: Convert swagger docs to OpenAPI 3.0
+
 0.17.1 - (November 5, 2025)
 ---------------------------
 - Enh #255: Improved Module Test GitHub Actions
