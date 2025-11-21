@@ -34,22 +34,22 @@ class EditController extends BrowseController
     {
         $folder = FileSystemItem::getItemById($id);
 
-        if ($folder && !$folder->content->canEdit()) {
-            throw new HttpException(403);
-        }
-
-        if ($folder && $folder->content->container->id !== $this->contentContainer->id) {
-            throw new HttpException(404);
-        }
-
         $post = Yii::$app->request->post();
 
         // create new folder if no folder was found or folder is not editable.
-        if (!$folder || !($folder instanceof Folder) || !$folder->isEditableFolder()) {
+        if (!($folder instanceof Folder) || !$folder->isEditableFolder()) {
             $this->getCurrentFolder()->resolveConflictsBeforeCreate($post['Folder']['title'] ?? null);
             $folder = $this->getCurrentFolder()->newFolder();
             $folder->content->container = $this->contentContainer;
             $folder->hidden = $this->module->getContentHiddenDefault($this->contentContainer);
+        }
+
+        if (!($folder instanceof Folder) || $folder->content->container->id !== $this->contentContainer->id) {
+            throw new HttpException(404);
+        }
+
+        if (!$folder->content->canEdit()) {
+            throw new HttpException(403);
         }
 
         if ($folder->load($post) && $folder->save()) {
