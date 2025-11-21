@@ -72,9 +72,6 @@ class ZipController extends BrowseController
         }
         // Otherwise fallback to current folder when no items are selected
         if ($items === []) {
-            if (!Yii::$app->request->get('fid')) {
-                throw new BadRequestHttpException('Wrong request without folder id!');
-            }
             $items[] = $this->getCurrentFolder();
         }
 
