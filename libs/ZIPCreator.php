@@ -101,7 +101,7 @@ class ZIPCreator extends ZipUtil
             $file = $file->baseFile;
         }
 
-        if (!$file) {
+        if (!$file || !$file->canView()) {
             return;
         }
 
@@ -127,12 +127,16 @@ class ZIPCreator extends ZipUtil
      */
     public function addFolder(Folder $folder, $path = '')
     {
+        if (!$folder->content->canView()) {
+            return;
+        }
+
         $path = $this->fixPath($path . DIRECTORY_SEPARATOR . $folder->title);
 
         $this->archive->addEmptyDir($path);
 
-        $subFiles = CFile::find()->where(['parent_folder_id' => $folder->id])->all();
-        $subFolders = Folder::find()->where(['parent_folder_id' => $folder->id])->all();
+        $subFiles = CFile::find()->readable()->where(['parent_folder_id' => $folder->id])->all();
+        $subFolders = Folder::find()->readable()->where(['parent_folder_id' => $folder->id])->all();
 
         foreach ($subFiles as $file) {
             $this->addFile($file, $path);
