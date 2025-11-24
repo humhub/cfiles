@@ -1,9 +1,10 @@
 Changelog
 =========
 
-0.16.11 - Unreleased
--------------------------
+0.16.11 - November 24, 2025
+---------------------------
 - Enh #264: Update download and upload actions
+- Fix #267: Include only accessible folders and files in a downloading zip archive
 
 0.16.10 - August 1, 2025
 -------------------------
