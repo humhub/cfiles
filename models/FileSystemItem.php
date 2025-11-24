@@ -334,11 +334,11 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
             return true;
         }
 
-        if (Yii::$app->user->isGuest || $this->isNewRecord) {
+        if (Yii::$app->user->isGuest) {
             return false;
         }
 
-        return $this->content->created_by === Yii::$app->user->id
+        return ($this->isNewRecord || $this->content->created_by === Yii::$app->user->id)
             && $this->content->container->permissionManager->can(WriteAccess::class);
     }
 

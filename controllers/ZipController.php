@@ -11,7 +11,9 @@ namespace humhub\modules\cfiles\controllers;
 use humhub\modules\cfiles\actions\UploadZipAction;
 use humhub\modules\cfiles\libs\ZIPCreator;
 use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\permissions\WriteAccess;
 use Yii;
+use yii\web\BadRequestHttpException;
 
 /**
  * ZipController
@@ -27,6 +29,7 @@ class ZipController extends BrowseController
     {
         return [
             ['checkZipSupport'],
+            ['permission' => [WriteAccess::class], 'actions' => ['upload']],
         ];
     }
 

@@ -1,11 +1,13 @@
 Changelog
 =========
 
-0.17.2 - (Unreleased)
+0.17.2 - November 24, 2025
 ---------------------------
+- Enh #264: Update download and upload actions
+- Fix #267: Include only accessible folders and files in a downloading zip archive
 - Enh #266: Convert swagger docs to OpenAPI 3.0
 
-0.17.1 - (November 5, 2025)
+0.17.1 - November 5, 2025
 ---------------------------
 - Enh #255: Improved Module Test GitHub Actions
 - Fix #256: Missing icon in Context Menu (File handler) and wrong styling in files context menu
@@ -17,6 +19,11 @@ Changelog
 ------------------------
 - Fix #220: Update module resources path
 - Enh #242: Migration to Bootstrap 5 for HumHub 1.18
+
+0.16.11 - November 24, 2025
+---------------------------
+- Enh #264: Update download and upload actions
+- Fix #267: Include only accessible folders and files in a downloading zip archive
 
 0.16.10 - August 1, 2025
 -------------------------
