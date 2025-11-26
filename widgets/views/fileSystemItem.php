@@ -8,8 +8,10 @@ use humhub\modules\comment\widgets\CommentLink;
 use humhub\modules\content\widgets\ContentObjectLinks;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\stream\assets\StreamAsset;
+use humhub\modules\ui\icon\widgets\Icon;
 use humhub\modules\user\widgets\Image;
 use humhub\widgets\bootstrap\Button;
+use humhub\widgets\bootstrap\Link;
 use humhub\widgets\TimeAgo;
 
 /* @var $folder Folder */
@@ -29,22 +31,25 @@ StreamAsset::register($this);
     <?php endif; ?>
 
     <?php if ($row->isRenderColumn(FileSystemItemRow::COLUMN_TITLE)) : ?>
-        <td class="text-start">
-            <div style="position: relative">
-                <div class="title">
-                    <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
-                    <?php if ($row->getType() === "image") : ?>
-                        <?= Button::asLink($row->getTitle(), $row->getUrl())
-                            ->options(['data-ui-gallery' => 'FilesModule-Gallery-' . $row->getParentFolderId()])
-                            ->tooltip($row->getDescription()) ?>
-                    <?php elseif ($row->getBaseFile() !== null) : ?>
-                        <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]) ?>
-                    <?php else: ?>
-                        <?= Button::asLink($row->getTitle(), $row->getLinkUrl())
-                            ->tooltip($row->getDescription()) ?>
-                    <?php endif; ?>
-                </div>
-            </div>
+        <td class="title">
+            <?php if ($row->getType() === 'image') : ?>
+                <?= Link::to($row->getTitle(), $row->getUrl())
+                    ->icon($row->getIconClass())
+                    ->options(['data-ui-gallery' => 'FilesModule-Gallery-' . $row->getParentFolderId()])
+                    ->tooltip($row->getDescription()) ?>
+            <?php elseif ($row->getBaseFile() !== null) : ?>
+                <?= FileHelper::createLink($row->getBaseFile(), [], [
+                    'label' => Icon::get($row->getIconClass()) . ' ' . Html::encode($row->getBaseFile()->fileName),
+                    'class' => 'link',
+                    'data-bs-toggle' => 'tooltip',
+                    'data-bs-title' => Html::encode($row->getDescription()),
+                ]) ?>
+            <?php else: ?>
+                <?= Link::to($row->getTitle(), $row->getLinkUrl())
+                    ->icon($row->getIconClass())
+                    ->tooltip($row->getDescription()) ?>
+            <?php endif; ?>
+
             <?= FileListContextMenu::widget([
                 'folder' => $folder,
                 'row' => $row,
