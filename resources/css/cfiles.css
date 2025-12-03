@@ -67,7 +67,6 @@
 .downloadzipped-button {
   cursor: pointer;
 }
-.table-responsive td .title,
 .table-responsive td .timestamp,
 .table-responsive td .creator,
 .table-responsive td .size {
@@ -107,7 +106,9 @@
   width: 0;
 }
 
-@media (min-width: 418px) {
+@media (hover: hover) {
+  /* Hide the context icon only on devices with hover effect, */
+  /* Ignore touchable devices because iPhone 17 Pro Max has a double tap issue */
   #bs-table.table tr .context-icon {
     display: none;
   }
@@ -157,11 +158,14 @@
   content: "\25b2";
 }
 
-
-.table-responsive td .title {
-  position: absolute;
-  width: 100%;
-  top: -10px;
+#fileList .table-responsive td.title {
+  padding: 0 5px;
+}
+#fileList .table-responsive td.title > a {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 5px 0;
 }
 @media (min-width: 420px) {
   .table-responsive td:nth-child(2) {
