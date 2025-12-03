@@ -106,7 +106,9 @@
   width: 0;
 }
 
-@media (min-width: 418px) {
+@media (hover: hover) {
+  /* Hide the context icon only on devices with hover effect, */
+  /* Ignore touchable devices because iPhone 17 Pro Max has a double tap issue */
   #bs-table.table tr .context-icon {
     display: none;
   }
