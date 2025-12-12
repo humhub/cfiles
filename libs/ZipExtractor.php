@@ -67,7 +67,7 @@ class ZipExtractor extends ZipUtil
      * @param string $folderPath the path of the folder.
      * @param Folder|null $root the $root folder which is used for adding errors if not given $targetFolder will be used as $root
      */
-    protected function generateModelsFromFilesystem(Folder $targetFolder, $folderPath, Folder $root = null)
+    protected function generateModelsFromFilesystem(Folder $targetFolder, $folderPath, ?Folder $root = null)
     {
 
         // remove unwanted parent folder references from the scanned files

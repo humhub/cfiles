@@ -324,7 +324,7 @@ class File extends FileSystemItem
     /**
      * Get the post related to the given file file.
      */
-    public static function getBasePost(BaseFile $file = null)
+    public static function getBasePost(?BaseFile $file = null)
     {
         if ($file === null) {
             return null;

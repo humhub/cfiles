@@ -168,7 +168,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     /**
      * @inheritdoc
      */
-    public function afterMove(ContentContainerActiveRecord $container = null)
+    public function afterMove(?ContentContainerActiveRecord $container = null)
     {
         parent::afterMove($container);
         $this->updateParentFolder();
