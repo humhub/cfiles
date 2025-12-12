@@ -182,7 +182,7 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function afterMove(ContentContainerActiveRecord $container = null)
+    public function afterMove(?ContentContainerActiveRecord $container = null)
     {
         parent::afterMove($container);
 
@@ -191,7 +191,7 @@ class Folder extends FileSystemItem
         $this->moveSubFilesToContainer($container);
     }
 
-    public function moveSubFoldersToContainer(ContentContainerActiveRecord $container = null)
+    public function moveSubFoldersToContainer(?ContentContainerActiveRecord $container = null)
     {
         if ($container === null) {
             $container = $this->content->getContainer();
@@ -207,7 +207,7 @@ class Folder extends FileSystemItem
         }
     }
 
-    public function moveSubFilesToContainer(ContentContainerActiveRecord $container = null)
+    public function moveSubFilesToContainer(?ContentContainerActiveRecord $container = null)
     {
         if ($container === null) {
             $container = $this->content->getContainer();
