@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.17.3 - Unreleased
+---------------------------
+- Enh #268: Expand the folder/file link area
+
 0.17.2 - November 24, 2025
 ---------------------------
 - Enh #264: Update download and upload actions
