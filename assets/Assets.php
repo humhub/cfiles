@@ -8,22 +8,16 @@
 
 namespace humhub\modules\cfiles\assets;
 
-use yii\web\AssetBundle;
+use humhub\components\assets\AssetBundle;
 
 class Assets extends AssetBundle
 {
     /**
-     * v1.5 compatibility defer script loading
-     *
-     * Migrate to HumHub AssetBundle once minVersion is >=1.5
-     *
-     * @var bool
+     * @inheridoc
      */
-    public $defer = true;
+    public $sourcePath = '@cfiles/resources';
 
-    public $publishOptions = [
-        'forceCopy' => false,
-    ];
+    public $forceCopy = false;
 
     public $css = [
         'css/cfiles.css',
@@ -37,11 +31,4 @@ class Assets extends AssetBundle
     public $js = [
         'js/humhub.cfiles.js',
     ];
-
-    public function init()
-    {
-        $this->sourcePath = dirname(__FILE__, 2) . '/resources';
-        parent::init();
-    }
-
 }
