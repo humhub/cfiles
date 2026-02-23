@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.17.3 - Unreleased
+---------------------------
+- Fix #274: Fix asset bundle
+
 0.17.2 - November 24, 2025
 ---------------------------
 - Enh #264: Update download and upload actions
