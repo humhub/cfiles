@@ -8,8 +8,6 @@ use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\content\models\Content;
-use humhub\modules\user\models\User;
-use humhub\modules\search\interfaces\Searchable;
 use Yii;
 
 /**
@@ -21,7 +19,7 @@ use Yii;
  *
  * @property-read Folder|null $parentFolder
  */
-abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface, Searchable
+abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface
 {
     /**
      * @var int used for edit form

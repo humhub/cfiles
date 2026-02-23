@@ -8,6 +8,7 @@ use humhub\modules\file\widgets\FileHandlerButtonDropdown;
 use humhub\modules\file\widgets\UploadButton;
 use humhub\modules\file\widgets\UploadInput;
 use humhub\widgets\bootstrap\Button;
+use humhub\widgets\bootstrap\Link;
 use humhub\widgets\modal\ModalButton;
 
 /* @var $folder Folder */
@@ -31,8 +32,8 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
         'contentContainer' => $contentContainer,
     ]);?>
 
-    <?php if($folder->parentFolder) : ?>
-        <?= Button::back($folder->parentFolder->getUrl())->left()->setText('');  ?>
+    <?php if ($folder->parentFolder) : ?>
+        <?= Button::back($folder->parentFolder->getUrl(), '')->left() ?>
     <?php endif; ?>
 
     <!-- FileList main menu -->
@@ -51,7 +52,7 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
                         </button>
                         <ul id="folder-dropdown" class="dropdown-menu">
                             <li>
-                               <?= ModalButton::asLink(Yii::t('CfilesModule.base', 'Edit directory'))
+                               <?= Link::modal(Yii::t('CfilesModule.base', 'Edit directory'))
                                    ->load($editFolderUrl)
                                    ->icon('fa-pencil')
                                    ->cssClass('dropdown-item') ?>

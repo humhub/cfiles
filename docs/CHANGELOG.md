@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.18.0 - Unreleased
+---------------------------
+- Enh #272: Update for HumHub 1.19
+
 0.17.2 - November 24, 2025
 ---------------------------
 - Enh #264: Update download and upload actions

@@ -2,6 +2,8 @@
 
 namespace humhub\modules\cfiles;
 
+use humhub\commands\IntegrityController;
+use humhub\helpers\ControllerHelper;
 use humhub\modules\cfiles\extensions\custom_pages\elements\FileElement;
 use humhub\modules\cfiles\extensions\custom_pages\elements\FilesElement;
 use humhub\modules\cfiles\extensions\custom_pages\elements\FolderElement;
@@ -14,7 +16,10 @@ use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\actions\DownloadAction;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\space\models\Space;
+use humhub\modules\space\widgets\Menu;
+use humhub\modules\ui\menu\MenuLink;
 use humhub\modules\user\models\User;
+use humhub\modules\user\widgets\ProfileMenu;
 use Yii;
 use yii\base\Event;
 
@@ -27,15 +32,16 @@ class Events
 {
     public static function onSpaceMenuInit($event)
     {
+        /* @var Menu $menu */
+        $menu = $event->sender;
 
-        if ($event->sender->space !== null && $event->sender->space->moduleManager->isEnabled('cfiles')) {
-            $event->sender->addItem([
+        if ($menu->space !== null && $menu->space->moduleManager->isEnabled('cfiles')) {
+            $menu->addEntry(new MenuLink([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
-                'group' => 'modules',
                 'url' => $event->sender->space->createUrl('/cfiles/browse'),
-                'icon' => '<i class="fa fa-files-o"></i>',
-                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles'),
-            ]);
+                'icon' => 'files-o',
+                'isActive' => ControllerHelper::isActivePath('cfiles'),
+            ]));
         }
     }
 
@@ -46,6 +52,7 @@ class Events
      */
     public static function onIntegrityCheck($event)
     {
+        /* @var IntegrityController $integrityController */
         $integrityController = $event->sender;
         $integrityController->showTestHeadline("CFile Module (" . File::find()->count() . " entries)");
 
@@ -76,13 +83,14 @@ class Events
 
     public static function onProfileMenuInit($event)
     {
-        if ($event->sender->user !== null && $event->sender->user->moduleManager->isEnabled('cfiles')) {
-            $event->sender->addItem([
+        /* @var ProfileMenu $menu */
+        if ($menu->user !== null && $menu->user->moduleManager->isEnabled('cfiles')) {
+            $menu->addEntry(new MenuLink([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'url' => $event->sender->user->createUrl('/cfiles/browse'),
-                'icon' => '<i class="fa fa-files-o"></i>',
-                'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'cfiles'),
-            ]);
+                'icon' => 'files-o',
+                'isActive' => ControllerHelper::isActivePath('cfiles'),
+            ]));
         }
     }
 
