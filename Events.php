@@ -84,6 +84,7 @@ class Events
     public static function onProfileMenuInit($event)
     {
         /* @var ProfileMenu $menu */
+        $menu = $event->sender;
         if ($menu->user !== null && $menu->user->moduleManager->isEnabled('cfiles')) {
             $menu->addEntry(new MenuLink([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
