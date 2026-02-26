@@ -11,7 +11,7 @@
     ],
     "version": "0.17.3",
     "humhub": {
-        "minVersion": "1.18",
+        "minVersion": "1.18.1",
         "maxVersion": "1.18"
     },
     "homepage": "https://github.com/humhub/cfiles",

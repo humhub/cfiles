@@ -4,6 +4,7 @@ Changelog
 0.17.3 - Unreleased
 ---------------------------
 - Fix #274: Fix asset bundle
+- Fix #275: Labels encoding (see [migration guide](https://github.com/humhub/humhub/blob/master/MIGRATE-DEV.md#version-1181))
 
 0.17.2 - November 24, 2025
 ---------------------------
