@@ -43,6 +43,7 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
             <?php if ($canUpload): ?>
                 <div class="btn-group">
                     <?= ModalButton::light(Html::tag('span', Yii::t('CfilesModule.base', 'Add directory'), ['class' => 'd-none d-sm-inline']))
+                        ->encodeLabel(false)
                         ->load($addFolderUrl)
                         ->icon('fa-folder') ?>
                     <?php if (!$folder->isRoot()): ?>
