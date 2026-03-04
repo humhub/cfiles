@@ -34,11 +34,8 @@ StreamAsset::register($this);
                 <div class="title">
                     <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
                     <?php if ($row->getType() === "image") : ?>
-                        <?php $galleryOptions = Yii::$app->getModule('cfiles')->settings->get('displayDownloadCount', false)
-                            ? []
-                            : ['data-ui-gallery' => 'FilesModule-Gallery-' . $row->getParentFolderId()]; ?>
                         <?= Button::asLink($row->getTitle(), $row->getUrl())
-                            ->options($galleryOptions)
+                            ->options(['data-ui-gallery' => 'FilesModule-Gallery-' . $row->getParentFolderId()])
                             ->tooltip($row->getDescription()) ?>
                     <?php elseif ($row->getBaseFile() !== null) : ?>
                         <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]) ?>
