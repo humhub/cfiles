@@ -16,6 +16,7 @@ use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use Yii;
+use yii\base\ActionEvent;
 use yii\base\Event;
 
 /**
@@ -93,12 +94,67 @@ class Events
      */
     public static function onAfterFileAction(Event $event)
     {
-        if (isset($event->action)
-            && $event->action instanceof DownloadAction
-            && ($downloadedFile = File::getFileByGuid(Yii::$app->request->get('guid')))
-        ) {
-            $downloadedFile->updateAttributes(['download_count' => $downloadedFile->download_count + 1]);
+        if (!isset($event->action) || !$event->action instanceof DownloadAction) {
+            return;
         }
+
+        $request = Yii::$app->request;
+        $response = Yii::$app->response;
+        $guid = $request->get('guid');
+
+        if (
+            empty($guid) ||
+            !$request->isGet ||
+            $request->isHead ||
+            $request->get('variant') !== null ||
+            $request->get('suffix') !== null ||
+            !$request->get('download', false) ||
+            $response->statusCode !== 200
+        ) {
+            return;
+        }
+
+        $downloadedFile = File::getFileByGuid($guid);
+        if (!$downloadedFile) {
+            return;
+        }
+
+        $deduplicationKey = [
+            __METHOD__,
+            'download-count',
+            $guid,
+            (Yii::$app->user->isGuest ? 0 : Yii::$app->user->id) ?: (Yii::$app->session->id ?: '-')
+        ];
+
+        if (Yii::$app->cache->exists($deduplicationKey)) {
+            return;
+        }
+
+        Yii::$app->cache->set($deduplicationKey, 1, 2);
+
+        File::updateAllCounters(['download_count' => 1], ['id' => $downloadedFile->id]);
+    }
+
+    /**
+     * Callback on before file controller action.
+     * Disable HTTP cache for cfiles downloads when download counter is visible.
+     */
+    public static function onBeforeFileAction(ActionEvent $event): void
+    {
+        if (!($event->action instanceof DownloadAction)) {
+            return;
+        }
+
+        if (!Yii::$app->getModule('cfiles')->settings->get('displayDownloadCount', false)) {
+            return;
+        }
+
+        $guid = Yii::$app->request->get('guid');
+        if (empty($guid) || !File::getFileByGuid($guid)) {
+            return;
+        }
+
+        $event->action->enableHttpCache = false;
     }
 
     /**

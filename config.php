@@ -20,6 +20,7 @@ return [
         [Menu::class, Menu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onSpaceMenuInit']],
         [ProfileMenu::class, ProfileMenu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onProfileMenuInit']],
         [IntegrityController::class, IntegrityController::EVENT_ON_RUN, ['humhub\modules\cfiles\Events', 'onIntegrityCheck']],
+        [FileController::class, FileController::EVENT_BEFORE_ACTION, ['humhub\modules\cfiles\Events', 'onBeforeFileAction']],
         [FileController::class, FileController::EVENT_AFTER_ACTION, ['humhub\modules\cfiles\Events', 'onAfterFileAction']],
         [File::class, File::EVENT_AFTER_NEW_STORED_FILE, ['humhub\modules\cfiles\Events', 'onAfterNewStoredFile']],
         [ContentContainerActiveRecord::class, ContentContainerActiveRecord::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerActiveRecordInsert']],
