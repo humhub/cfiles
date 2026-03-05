@@ -93,12 +93,40 @@ class Events
      */
     public static function onAfterFileAction(Event $event)
     {
-        if (isset($event->action)
-            && $event->action instanceof DownloadAction
-            && ($downloadedFile = File::getFileByGuid(Yii::$app->request->get('guid')))
-        ) {
-            $downloadedFile->updateAttributes(['download_count' => $downloadedFile->download_count + 1]);
+        if (!isset($event->action) || !$event->action instanceof DownloadAction) {
+            return;
         }
+
+        $request = Yii::$app->request;
+        $response = Yii::$app->response;
+        $guid = $request->get('guid');
+
+        if (
+            empty($guid) ||
+            !$request->isGet ||
+            $request->isHead ||
+            $request->get('variant') !== null ||
+            $request->get('suffix') !== null ||
+            !$request->get('download', false) ||
+            $response->statusCode !== 200
+        ) {
+            return;
+        }
+
+        $downloadedFile = File::getFileByGuid($guid);
+        if (!$downloadedFile) {
+            return;
+        }
+
+        $trackedDownloads = Yii::$app->session->get('trackedDownloads', []);
+        if (in_array($downloadedFile->id, $trackedDownloads, true)) {
+            return;
+        }
+
+        $trackedDownloads[] = $downloadedFile->id;
+        Yii::$app->session->set('trackedDownloads', $trackedDownloads);
+
+        File::updateAllCounters(['download_count' => 1], ['id' => $downloadedFile->id]);
     }
 
     /**

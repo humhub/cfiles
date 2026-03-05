@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.17.4 - (Unreleased)
+----------------------
+- Fix #278: Improved download count accuracy
+
 0.17.3 - March 2, 2026
 ----------------------
 - Fix #274: Fix asset bundle
