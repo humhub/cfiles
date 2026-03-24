@@ -111,13 +111,13 @@ class Events
         $guid = $request->get('guid');
 
         if (
-            empty($guid) ||
-            !$request->isGet ||
-            $request->isHead ||
-            $request->get('variant') !== null ||
-            $request->get('suffix') !== null ||
-            !$request->get('download', false) ||
-            $response->statusCode !== 200
+            empty($guid)
+            || !$request->isGet
+            || $request->isHead
+            || $request->get('variant') !== null
+            || $request->get('suffix') !== null
+            || !$request->get('download', false)
+            || $response->statusCode !== 200
         ) {
             return;
         }
