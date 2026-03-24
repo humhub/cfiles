@@ -2,8 +2,17 @@ Changelog
 =========
 
 0.18.0 - Unreleased
----------------------------
+----------------------
 - Enh #272: Update for HumHub 1.19
+
+0.17.4 - (Unreleased)
+----------------------
+- Fix #278: Improved download count accuracy
+
+0.17.3 - March 2, 2026
+----------------------
+- Fix #274: Fix asset bundle
+- Fix #275: Labels encoding (see [migration guide](https://github.com/humhub/humhub/blob/master/MIGRATE-DEV.md#version-1181))
 
 0.17.2 - November 24, 2025
 ---------------------------
