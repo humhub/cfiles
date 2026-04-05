@@ -4,7 +4,7 @@ Changelog
 0.17.4 - (Unreleased)
 ----------------------
 - Fix #278: Improved download count accuracy
-- Fix #PR: Fix virtual root folder ownership and recovery
+- Fix #282: Fix virtual root folder ownership and recovery
 
 0.17.3 - March 2, 2026
 ----------------------
