@@ -12,7 +12,7 @@ class m260405_120000_fix_root_folder_owner extends Migration
         $enabledSpaces = Space::find()
             ->innerJoin(
                 ContentContainerModuleState::tableName() . ' contentcontainer_module',
-                'contentcontainer_module.contentcontainer_id = space.contentcontainer_id'
+                'contentcontainer_module.contentcontainer_id = space.contentcontainer_id',
             )
             ->andWhere([
                 'contentcontainer_module.module_id' => 'cfiles',

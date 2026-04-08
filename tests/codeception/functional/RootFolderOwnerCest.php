@@ -1,6 +1,5 @@
 <?php
 
-
 namespace cfiles\functional;
 
 use cfiles\FunctionalTester;
