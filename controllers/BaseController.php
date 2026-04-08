@@ -37,30 +37,20 @@ abstract class BaseController extends ContentContainerController
             return false;
         }
 
-        $newRoot = false;
-
         // create default folders
-        if (!$this->getRootFolder()) {
-            $this->_rootFolder = Folder::initRoot($this->contentContainer);
-            $newRoot = true;
-        } elseif ($this->getRootFolder()->content->isPrivate()) {
+        Folder::ensureRootFolderStructure($this->contentContainer);
+        $this->_rootFolder = Folder::getRoot($this->contentContainer);
+        $this->_allPostedFilesFolder = Folder::getPostedFilesFolder($this->contentContainer);
+
+        if ($this->getRootFolder()->content->isPrivate()) {
             // Make sure older root folders are public by default.
             $this->getRootFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
             $this->getRootFolder()->content->save();
         }
 
-        if ($this->getAllPostedFilesFolder() == null) {
-            $this->_allPostedFilesFolder = Folder::initPostedFilesFolder($this->contentContainer);
-        } elseif ($this->getAllPostedFilesFolder()->content->isPrivate()) {
+        if ($this->getAllPostedFilesFolder()->content->isPrivate()) {
             $this->getAllPostedFilesFolder()->content->visibility = Content::VISIBILITY_PUBLIC;
             $this->getAllPostedFilesFolder()->content->save();
-        }
-
-        // TODO: In a future version, we should handle this within a migration and remove the line
-        // next step is to shift all former root subfiles which have parent_folder_id == 0 (up to module version v.9.7) to the generated root folder
-        // this should not be a problem if the migration was broken, because it only affects entries with parent_folder_id==0
-        if ($newRoot) {
-            $this->_rootFolder->migrateFromOldStructure();
         }
 
         return true;

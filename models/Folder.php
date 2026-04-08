@@ -380,6 +380,69 @@ class Folder extends FileSystemItem
     }
 
     /**
+     * Ensures root folders are owned by the container owner so they survive unrelated user deletions.
+     * @return bool whether the owner was changed
+     */
+    public static function ensureRootFolderOwner(?self $folder, ContentContainerActiveRecord $contentContainer): bool
+    {
+        if ($folder === null || $folder->content === null) {
+            return false;
+        }
+
+        $ownerId = self::getContainerOwnerId($contentContainer);
+        if ($ownerId === null || $folder->content->created_by === $ownerId) {
+            return false;
+        }
+
+        $folder->content->created_by = $ownerId;
+        return (bool) $folder->content->save(false, ['created_by']);
+    }
+
+    /**
+     * Ensures the virtual root-folder structure exists and belongs to the container owner.
+     */
+    public static function ensureRootFolderStructure(ContentContainerActiveRecord $contentContainer): void
+    {
+        $root = self::getRoot($contentContainer);
+        $rootCreated = false;
+        if ($root === null) {
+            $root = self::initRoot($contentContainer);
+            $rootCreated = $root instanceof self;
+        }
+
+        if ($root === false) {
+            return;
+        }
+
+        self::ensureRootFolderOwner($root, $contentContainer);
+        if ($rootCreated) {
+            $root->migrateFromOldStructure();
+        }
+
+        $postedFilesFolder = self::getPostedFilesFolder($contentContainer) ?: self::initPostedFilesFolder($contentContainer);
+        if ($postedFilesFolder === false) {
+            return;
+        }
+
+        self::ensureRootFolderOwner($postedFilesFolder, $contentContainer);
+        self::ensurePostedFilesFolderRoot($postedFilesFolder, $root);
+    }
+
+    /**
+     * Ensures the virtual "Files from the stream" folder stays attached to the current root folder.
+     */
+    public static function ensurePostedFilesFolderRoot(?self $postedFilesFolder, ?self $rootFolder): bool
+    {
+        if ($postedFilesFolder === null || $rootFolder === null || (int)$postedFilesFolder->parent_folder_id === (int)$rootFolder->id) {
+            return false;
+        }
+
+        $postedFilesFolder->parent_folder_id = $rootFolder->id;
+
+        return (bool) $postedFilesFolder->save(false, ['parent_folder_id']);
+    }
+
+    /**
      * Generate the maximum depth directory structure originating from a given folder id.
      *
      * @param Folder $parentId
