@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.18.0 - Unreleased
+----------------------
+- Enh #272: Update for HumHub 1.19
+
 0.17.4 - (Unreleased)
 ----------------------
 - Fix #278: Improved download count accuracy

@@ -101,7 +101,7 @@ class ZIPCreator extends ZipUtil
             $file = $file->baseFile;
         }
 
-        if (!$file || !$file->canView()) {
+        if (!$file || !$file->canView() || !$file->store->has()) {
             return;
         }
 
@@ -113,10 +113,7 @@ class ZIPCreator extends ZipUtil
 
         $filePath = $this->fixPath($filePath);
 
-        $realFilePath = $file->store->get();
-        if (is_file($realFilePath)) {
-            $this->archive->addFile($realFilePath, $filePath);
-        }
+        $this->archive->addFromString($filePath, $file->store->getContent());
     }
 
     /**
