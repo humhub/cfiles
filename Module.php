@@ -2,7 +2,6 @@
 
 namespace humhub\modules\cfiles;
 
-use humhub\components\console\Application as ConsoleApplication;
 use humhub\modules\cfiles\models\ConfigureContainerForm;
 use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\space\models\Space;
@@ -29,19 +28,6 @@ class Module extends ContentContainerModule
      */
     public $defaultPostedFilesSort = FileSystemItemRow::ORDER_TYPE_UPDATED_AT;
     public $defaultPostedFilesOrder = SORT_ASC;
-
-    /**
-     * @inheritdoc
-     */
-    public function init()
-    {
-        parent::init();
-
-        if (Yii::$app instanceof ConsoleApplication) {
-            // Prevents the Yii HelpCommand from crawling all web controllers and possibly throwing errors at REST endpoints if the REST module is not available.
-            $this->controllerNamespace = 'cfiles/commands';
-        }
-    }
 
     /**
      * @inheritdoc
