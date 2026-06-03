@@ -5,9 +5,10 @@ Changelog
 ----------------------
 - Enh #272: Update for HumHub 1.19
 
-0.17.4 - (Unreleased)
-----------------------
+0.17.4 - May 5, 2026
+--------------------
 - Fix #278: Improved download count accuracy
+- Fix #282: Fix virtual root folder ownership and recovery
 
 0.17.3 - March 2, 2026
 ----------------------

@@ -7,6 +7,7 @@ use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\controllers\FileController;
 use humhub\modules\file\models\File;
 use humhub\modules\space\widgets\Menu;
+use humhub\modules\space\models\Space;
 use humhub\modules\user\widgets\ProfileMenu;
 
 return [
@@ -24,6 +25,7 @@ return [
         [File::class, File::EVENT_AFTER_NEW_STORED_FILE, ['humhub\modules\cfiles\Events', 'onAfterNewStoredFile']],
         [ContentContainerActiveRecord::class, ContentContainerActiveRecord::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerActiveRecordInsert']],
         [ContentContainerModuleState::class, ContentContainerModuleState::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerModuleStateInsert']],
+        [Space::class, Space::EVENT_AFTER_UPDATE, ['humhub\modules\cfiles\Events', 'onSpaceAfterUpdate']],
         ['humhub\modules\rest\Module', 'restApiAddRules', ['humhub\modules\cfiles\Events', 'onRestApiAddRules']],
         ['humhub\modules\custom_pages\modules\template\services\ElementTypeService', 'init', ['humhub\modules\cfiles\Events', 'onCustomPagesTemplateElementTypeServiceInit']],
     ],

@@ -152,8 +152,7 @@ class Events
 
         if ($container instanceof ContentContainerActiveRecord
             && $container->moduleManager->isEnabled('cfiles')) {
-            Folder::initRoot($container);
-            Folder::initPostedFilesFolder($container);
+            Folder::ensureRootFolderStructure($container);
         }
     }
 
@@ -177,9 +176,20 @@ class Events
 
         if (($contentContainer = ContentContainer::findOne(['id' => $moduleState->contentcontainer_id]))
             && ($container = $contentContainer->getPolymorphicRelation())) {
-            Folder::initRoot($container);
-            Folder::initPostedFilesFolder($container);
+            Folder::ensureRootFolderStructure($container);
         }
+    }
+
+    public static function onSpaceAfterUpdate($event)
+    {
+        $space = $event->sender;
+        if (!($space instanceof Space)
+            || !array_key_exists('created_by', $event->changedAttributes)
+            || !$space->moduleManager->isEnabled('cfiles')) {
+            return;
+        }
+
+        Folder::ensureRootFolderStructure($space);
     }
 
     public static function onRestApiAddRules()
