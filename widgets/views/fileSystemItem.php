@@ -115,7 +115,10 @@ StreamAsset::register($this);
         <td class="file-actions">
             <?= Button::light()
                 ->icon('list')
-                ->options(['data-contextmenu-toggler' => '#bs-table tr'])
+                ->options([
+                    'aria-label' => Yii::t('base', 'Actions'),
+                    'data-contextmenu-toggler' => '#bs-table tr',
+                ])
                 ->cssClass('context-icon')
                 ->sm()
                 ->loader(false); ?>
