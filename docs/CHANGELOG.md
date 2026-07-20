@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.18.2 - Unreleased
----------------------
+0.18.2 - July 20, 2026
+----------------------
 - Fix #272: Fix Content linking with Comment
 
 0.18.1 - July 8, 2026
