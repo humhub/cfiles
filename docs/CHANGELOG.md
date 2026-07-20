@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.18.2 - Unreleased
+---------------------
+- Fix #272: Fix Content linking with Comment
+
 0.18.1 - July 8, 2026
 ---------------------
 - Enh #286: Add aria-label attribute for icon-only buttons

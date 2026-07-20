@@ -322,24 +322,26 @@ class File extends FileSystemItem
     }
 
     /**
-     * Get the post related to the given file file.
+     * Get the related Content record to the given file.
      */
-    public static function getBasePost(?BaseFile $file = null)
+    public static function getBasePost(?BaseFile $file = null): ?Content
     {
         if ($file === null) {
             return null;
         }
 
-        $searchItem = $file;
-        // if the item is connected to a Comment, we have to search for the corresponding Post
+        // If the File is linked to a Comment
         if ($file->object_model === Comment::class) {
-            $searchItem = Comment::findOne($file->object_id);
+            return Content::find()
+                ->innerJoin('comment', 'comment.content_id = content.id')
+                ->where(['comment.id' => $file->object_id])
+                ->one();
         }
 
-        return Content::find()->where([
-            'content.object_id' => $searchItem->object_id,
-            'content.object_model' => $searchItem->object_model,
-        ])->one();
+        return Content::findOne([
+            'content.object_id' => $file->object_id,
+            'content.object_model' => $file->object_model,
+        ]);
     }
 
     public function getBaseFile()
@@ -396,8 +398,8 @@ class File extends FileSystemItem
                 ->where(['content.object_model' => Post::class]),
             Comment::class => Content::find()
                 ->select('comment.id')
-                ->innerJoin('comment', 'comment.object_model = content.object_model AND comment.object_id = content.object_id')
-                ->where(['comment.object_model' => Post::class]),
+                ->innerJoin('comment', 'comment.content_id = content.id')
+                ->where(['content.object_model' => Post::class]),
         ];
 
         $query = BaseFile::find();
