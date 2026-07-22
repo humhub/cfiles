@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.18.3 - Unreleased
--------------------
+0.18.3 - July 22, 2026
+----------------------
 - Fix #287: Fix PHP error from deprecated search event/constant removed in HumHub 1.19
 
 0.18.2 - July 20, 2026
