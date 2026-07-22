@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.18.3 - Unreleased
+-------------------
+- Fix #287: Fix PHP error from deprecated search event/constant removed in HumHub 1.19
+
 0.18.2 - July 20, 2026
 ----------------------
 - Fix #272: Fix Content linking with Comment

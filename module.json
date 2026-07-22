@@ -9,7 +9,7 @@
         "organisation",
         "sharing"
     ],
-    "version": "0.18.2",
+    "version": "0.18.3",
     "humhub": {
         "minVersion": "1.19"
     },
