@@ -11,7 +11,6 @@ use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\post\models\Post;
-use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\topic\models\Topic;
 use humhub\modules\user\models\User;
 use Yii;
@@ -135,7 +134,6 @@ class File extends FileSystemItem
         if ($this->baseFile) {
             $attributes['name'] = $this->getTitle();
         }
-        $this->trigger(self::EVENT_SEARCH_ADD, new SearchAddEvent($attributes));
         return $attributes;
     }
 
