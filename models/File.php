@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\cfiles\libs\FileUploadBatch;
 use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -49,6 +50,16 @@ class File extends FileSystemItem
      * @inheritdoc
      */
     public $fileManagerEnableHistory = true;
+
+    /**
+     * @inheritdoc
+     *
+     * Uploading a set of files would otherwise create one notification and one e-mail per
+     * file. The whole upload is announced by a single FilesUploaded notification instead.
+     *
+     * @see FileUploadBatch
+     */
+    public $silentContentCreation = true;
 
     /**
      * @inheritdoc
@@ -196,6 +207,10 @@ class File extends FileSystemItem
         parent::afterSave($insert, $changedAttributes);
 
         RichText::postProcess($this->description, $this);
+
+        if ($insert) {
+            FileUploadBatch::add($this);
+        }
     }
 
     public function updateVisibility($visibility)
