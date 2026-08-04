@@ -3,7 +3,7 @@ Changelog
 
 0.19.0 - Unreleased
 -------------------
-- Enh: Send a single notification to announce all files uploaded within a short period of time, rather than sending one notification per file (humhub/humhub#5334)
+- Enh #288: Send a single notification to announce all files uploaded within a short period of time, rather than sending one notification per file (humhub/humhub#5334)
 
 0.18.3 - July 22, 2026
 ----------------------
