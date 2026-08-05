@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.19.0 - Unreleased
+-------------------
+- Enh #288: Send a single notification to announce all files uploaded within a short period of time, rather than sending one notification per file (humhub/humhub#5334)
+
 0.18.3 - July 22, 2026
 ----------------------
 - Fix #287: Fix PHP error from deprecated search event/constant removed in HumHub 1.19

@@ -16,6 +16,16 @@ use yii\helpers\Url;
 class Module extends ContentContainerModule
 {
     /**
+     * @var int Files uploaded into the same folder by the same user are announced by a single
+     *      notification, once no further file was uploaded for this many minutes.
+     *      0 announces every upload request on its own.
+     *
+     * @see \humhub\modules\cfiles\libs\FileUploadBatch
+     * @since 0.19
+     */
+    public int $uploadNotificationDelay = 10;
+
+    /**
      * @var string sort name as 'name', 'size', 'updated_at'
      * @see FileSystemItemRow::ORDER_MAPPING
      */
