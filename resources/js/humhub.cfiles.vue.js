@@ -20,7 +20,14 @@
       order: { type: String, default: "asc" },
       canWrite: { type: Boolean, default: false },
       selectionCount: { type: Number, default: 0 },
-      dropTargetId: { type: Number, default: null },
+      /**
+       * The crumb currently being dragged over, or `undefined` when nothing is.
+       *
+       * NOT `null` for "nothing": the top-level crumb's own id IS null, so a null default
+       * would make `dropTargetId === crumb.id` permanently true and paint it as an active
+       * drop target at all times.
+       */
+      dropTargetId: { type: Number, default: void 0 },
       folderUrl: { type: Function, required: true }
     },
     emits: [
@@ -943,7 +950,8 @@
         moveError: null,
         dragged: [],
         itemDropTargetKey: null,
-        crumbDropTargetId: null,
+        // undefined, not null: null is the top-level crumb's own id (see BrowserToolbar).
+        crumbDropTargetId: void 0,
         fileDragDepth: 0,
         uploadProgress: null
       };
@@ -1137,7 +1145,7 @@
       },
       moveTo(targetFolderId) {
         const items = this.moveItemsList.length ? this.moveItemsList : this.dragged;
-        this.crumbDropTargetId = null;
+        this.crumbDropTargetId = void 0;
         this.itemDropTargetKey = null;
         if (!items.length || targetFolderId === this.folderId) {
           this.showMove = false;
@@ -1295,7 +1303,7 @@
             onMoveSelection: _cache[1] || (_cache[1] = ($event) => $options.openMove($options.selectedItems)),
             onDeleteSelection: _cache[2] || (_cache[2] = ($event) => $options.confirmDelete($options.selectedItems)),
             onCrumbDragOver: _cache[3] || (_cache[3] = ($event) => $data.crumbDropTargetId = $event),
-            onCrumbDragLeave: _cache[4] || (_cache[4] = ($event) => $data.crumbDropTargetId = null),
+            onCrumbDragLeave: _cache[4] || (_cache[4] = ($event) => $data.crumbDropTargetId = void 0),
             onCrumbDrop: _cache[5] || (_cache[5] = ($event) => $options.moveTo($event))
           }, null, 8, ["path", "sort", "order", "can-write", "selection-count", "drop-target-id", "folder-url", "onOpen", "onSort", "onPickFiles"]),
           $data.uploadProgress !== null ? (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_2, [

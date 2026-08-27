@@ -23,7 +23,7 @@
                 @move-selection="openMove(selectedItems)"
                 @delete-selection="confirmDelete(selectedItems)"
                 @crumb-drag-over="crumbDropTargetId = $event"
-                @crumb-drag-leave="crumbDropTargetId = null"
+                @crumb-drag-leave="crumbDropTargetId = undefined"
                 @crumb-drop="moveTo($event)"
             />
 
@@ -179,7 +179,8 @@ export default {
 
             dragged: [],
             itemDropTargetKey: null,
-            crumbDropTargetId: null,
+            // undefined, not null: null is the top-level crumb's own id (see BrowserToolbar).
+            crumbDropTargetId: undefined,
             fileDragDepth: 0,
 
             uploadProgress: null,
@@ -402,7 +403,7 @@ export default {
         moveTo(targetFolderId) {
             const items = this.moveItemsList.length ? this.moveItemsList : this.dragged;
 
-            this.crumbDropTargetId = null;
+            this.crumbDropTargetId = undefined;
             this.itemDropTargetKey = null;
 
             if (!items.length || targetFolderId === this.folderId) {

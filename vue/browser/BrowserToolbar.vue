@@ -71,7 +71,14 @@ export default {
         order: { type: String, default: 'asc' },
         canWrite: { type: Boolean, default: false },
         selectionCount: { type: Number, default: 0 },
-        dropTargetId: { type: Number, default: null },
+        /**
+         * The crumb currently being dragged over, or `undefined` when nothing is.
+         *
+         * NOT `null` for "nothing": the top-level crumb's own id IS null, so a null default
+         * would make `dropTargetId === crumb.id` permanently true and paint it as an active
+         * drop target at all times.
+         */
+        dropTargetId: { type: Number, default: undefined },
         folderUrl: { type: Function, required: true },
     },
     emits: [
