@@ -12,3 +12,4 @@ nbproject
 **/tests/codeception/_output/**
 /.superpowers/
 /.php-cs-fixer.cache
+/node_modules/

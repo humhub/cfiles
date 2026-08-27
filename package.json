@@ -1,0 +1,20 @@
+{
+  "name": "humhub-cfiles",
+  "private": true,
+  "license": "AGPL-3.0",
+  "description": "Test tooling for the module's Vue sources. Not needed to install or run the module — the compiled artifact in resources/js is committed. Only developers editing vue/ need this.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.4.6",
+    "intl-messageformat": "^11.2.14",
+    "jquery": "~3.7.1",
+    "jsdom": "^26.1.0",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.4",
+    "vue": "~3.5.13"
+  }
+}
