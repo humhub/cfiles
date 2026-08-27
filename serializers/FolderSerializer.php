@@ -31,7 +31,6 @@ class FolderSerializer
      *     title: string,
      *     description: string,
      *     visibility: int,
-     *     isRoot: bool,
      *     parentFolderId: int|null,
      *     itemCount: int|null,
      *     createdAt: string|null,
@@ -49,13 +48,9 @@ class FolderSerializer
             'type' => 'folder',
             'id' => (int)$folder->id,
             'contentId' => (int)$content->id,
-            // The RAW stored title, deliberately not Folder::getTitle(): that localizes the
-            // root folder's name, and a localized payload depends on who is asking, which is
-            // exactly what keeps it from being cacheable. `isRoot` lets the client label it.
             'title' => (string)$folder->title,
             'description' => (string)$folder->description,
             'visibility' => (int)$content->visibility,
-            'isRoot' => $folder->isRoot(),
             'parentFolderId' => $folder->parent_folder_id ? (int)$folder->parent_folder_id : null,
             // Only filled where the list query counted children anyway; null means "not
             // counted", which a client renders as nothing rather than as zero.
@@ -68,12 +63,12 @@ class FolderSerializer
     }
 
     /**
-     * The path from the root folder down to (and including) the given folder — what a
-     * breadcrumb renders.
+     * The ancestors of the given folder, down to and including it — what a breadcrumb renders
+     * after its own top-level entry. Empty for the top level, which has no record of its own.
      *
      * @return array[]
      */
-    public static function path(Folder $folder): array
+    public static function path(?Folder $folder): array
     {
         $path = [];
         $seen = [];
@@ -89,7 +84,6 @@ class FolderSerializer
             array_unshift($path, [
                 'id' => (int)$current->id,
                 'title' => (string)$current->title,
-                'isRoot' => $current->isRoot(),
                 'url' => $current->getUrl(true),
             ]);
         }

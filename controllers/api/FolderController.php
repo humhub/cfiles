@@ -18,7 +18,12 @@ use yii\helpers\ArrayHelper;
 use yii\web\UploadedFile;
 
 /**
- * Reading and changing folders, and adding to them.
+ * Reading a level of a container's file tree, and adding to it.
+ *
+ * Everything here is addressed as a container plus an optional `parent` folder, because that
+ * is what a level actually is: there is no folder record standing in for the top, so a folder
+ * id alone cannot name every level. Changing an item that already exists is the other way
+ * round — it has an id of its own, see {@see FileController} and {@see ItemController}.
  *
  * @since 1.0
  */
@@ -33,7 +38,7 @@ class FolderController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'view' => ['GET', 'HEAD'],
+                    'items' => ['GET', 'HEAD'],
                     'update' => ['PATCH', 'PUT'],
                     'create' => ['POST'],
                     'upload' => ['POST'],
@@ -43,30 +48,36 @@ class FolderController extends BaseController
     }
 
     /**
-     * One folder: the folder itself, its path from the root, and a page of its contents with
-     * folders sorted ahead of files.
+     * One level of the tree: the folder itself (null at the top), the path down to it, and a
+     * page of its contents with folders sorted ahead of files.
+     *
+     * @param int|string $containerId the content container id
      */
-    public function actionView($id)
+    public function actionItems($containerId)
     {
         $request = Yii::$app->request;
+        $container = $this->findContainer((int)$containerId);
 
-        return (new FolderListingService($this->findFolder((int)$id)))->payload(
-            $request->get('sort'),
-            $request->get('order'),
-            (int)$request->get('page', 1),
-            (int)$request->get('pageSize', FolderListingService::DEFAULT_PAGE_SIZE),
-        );
+        return (new FolderListingService($container, $this->findParent($container, $request->get('parent'))))
+            ->payload(
+                $request->get('sort'),
+                $request->get('order'),
+                (int)$request->get('page', 1),
+                (int)$request->get('pageSize', FolderListingService::DEFAULT_PAGE_SIZE),
+            );
     }
 
     /**
-     * Creates a subfolder of `<id>`.
+     * Creates a folder at the addressed level.
      */
-    public function actionCreate($id)
+    public function actionCreate($containerId)
     {
-        $parent = $this->findFolder((int)$id);
-        $this->assertCanWrite($parent->content->container);
+        $container = $this->findContainer((int)$containerId);
+        $this->assertCanWrite($container);
 
-        $folder = (new FolderContentService($parent))->newFolder();
+        $parent = $this->findParent($container, Yii::$app->request->getBodyParam('parent'));
+
+        $folder = (new FolderContentService($container, $parent))->newFolder();
         $folder->setAttributes($this->writableAttributes(), false);
 
         if (!$folder->save()) {
@@ -96,16 +107,18 @@ class FolderController extends BaseController
     }
 
     /**
-     * Uploads one or more files into `<id>`.
+     * Uploads one or more files to the addressed level.
      *
      * Answers per file rather than failing the whole request on one bad upload: a batch in
      * which a single file is rejected should still land the others, and the client has to be
      * able to say which one did not make it.
      */
-    public function actionUpload($id)
+    public function actionUpload($containerId)
     {
-        $folder = $this->findFolder((int)$id);
-        $this->assertCanWrite($folder->content->container);
+        $container = $this->findContainer((int)$containerId);
+        $this->assertCanWrite($container);
+
+        $parent = $this->findParent($container, Yii::$app->request->post('parent'));
 
         $uploads = UploadedFile::getInstancesByName('files');
 
@@ -115,7 +128,7 @@ class FolderController extends BaseController
             return ['errors' => ['files' => [Yii::t('CfilesModule.base', 'No file uploaded.')]]];
         }
 
-        $content = new FolderContentService($folder);
+        $content = new FolderContentService($container, $parent);
         $created = [];
         $errors = [];
 
@@ -144,9 +157,9 @@ class FolderController extends BaseController
     /**
      * The attributes a folder write accepts.
      *
-     * An allowlist rather than `load()`: mass assignment would otherwise reach `type` (which
-     * decides whether a folder is THE root) and `parent_folder_id` (which is what the move
-     * endpoint is for, with its own permission rules).
+     * An allowlist rather than `load()`: mass assignment would otherwise reach
+     * `parent_folder_id`, which is what the move endpoint is for, with its own permission
+     * rules.
      */
     private function writableAttributes(): array
     {

@@ -3,15 +3,15 @@
         <nav class="cfiles-breadcrumb flex-grow-1 min-width-0" :aria-label="breadcrumbLabel">
             <ol class="breadcrumb mb-0">
                 <li
-                    v-for="(crumb, index) in path"
-                    :key="crumb.id"
+                    v-for="(crumb, index) in crumbs"
+                    :key="crumb.id ?? 'top'"
                     class="breadcrumb-item"
-                    :class="{ active: index === path.length - 1, 'cfiles-crumb-drop': dropTargetId === crumb.id }"
+                    :class="{ active: index === crumbs.length - 1, 'cfiles-crumb-drop': dropTargetId === crumb.id }"
                     @dragover="onCrumbDragOver($event, crumb, index)"
                     @dragleave="$emit('crumb-drag-leave')"
                     @drop="onCrumbDrop($event, crumb, index)"
                 >
-                    <span v-if="index === path.length - 1">{{ crumbTitle(crumb) }}</span>
+                    <span v-if="index === crumbs.length - 1">{{ crumbTitle(crumb) }}</span>
                     <a v-else :href="folderUrl(crumb.id)" @click="onCrumbClick($event, crumb)">{{ crumbTitle(crumb) }}</a>
                 </li>
             </ol>
@@ -79,6 +79,14 @@ export default {
         'move-selection', 'delete-selection', 'crumb-drag-over', 'crumb-drag-leave', 'crumb-drop',
     ],
     computed: {
+        /**
+         * The path the API sends, preceded by the container's top level. That level has no
+         * folder record, so it is not something the server could have sent — it is a client
+         * entry with a null id, which is exactly what every endpoint takes for "no parent".
+         */
+        crumbs() {
+            return [{ id: null, title: null }].concat(this.path);
+        },
         breadcrumbLabel() {
             return i18n.t('CfilesModule.base', 'Folder path');
         },
@@ -129,9 +137,7 @@ export default {
     },
     methods: {
         crumbTitle(crumb) {
-            // The API ships the root's stored title ('Root'); its display name is a client
-            // concern, like every other label.
-            return crumb.isRoot ? this.rootLabel : crumb.title;
+            return crumb.id === null ? this.rootLabel : crumb.title;
         },
         onCrumbClick(event, crumb) {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
@@ -142,7 +148,7 @@ export default {
         },
         onCrumbDragOver(event, crumb, index) {
             // Dropping onto the folder you are already in would be a no-op.
-            if (index === this.path.length - 1) {
+            if (index === this.crumbs.length - 1) {
                 return;
             }
             event.preventDefault();
@@ -150,7 +156,7 @@ export default {
             this.$emit('crumb-drag-over', crumb.id);
         },
         onCrumbDrop(event, crumb, index) {
-            if (index === this.path.length - 1) {
+            if (index === this.crumbs.length - 1) {
                 return;
             }
             event.preventDefault();

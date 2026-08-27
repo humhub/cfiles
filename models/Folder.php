@@ -3,7 +3,6 @@
 namespace humhub\modules\cfiles\models;
 
 use humhub\modules\cfiles\services\FolderContentService;
-use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\cfiles\services\ItemMoveService;
 use humhub\modules\cfiles\services\ItemVisibilityService;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -25,7 +24,6 @@ use yii\web\UploadedFile;
  * @property int $parent_folder_id
  * @property string $title
  * @property string $description
- * @property string $type
  *
  * @property-read Folder|null $parentFolder
  * @property-read Folder[] $folders direct subfolders, used by the cascade delete
@@ -33,8 +31,6 @@ use yii\web\UploadedFile;
  */
 class Folder extends FileSystemItem
 {
-    public const TYPE_FOLDER_ROOT = 'root';
-
     /**
      * @inheritdoc
      */
@@ -86,10 +82,6 @@ class Folder extends FileSystemItem
             ['title', 'uniqueTitle'],
         ]);
 
-        if (!$this->isRoot()) {
-            $result[] = ['parent_folder_id', 'required'];
-        }
-
         return $result;
     }
 
@@ -102,11 +94,13 @@ class Folder extends FileSystemItem
      */
     public function uniqueTitle($attribute, $params, $validator)
     {
-        if ($this->isRoot() || !$this->hasTitleChanged()) {
+        if (!$this->hasTitleChanged()) {
             return;
         }
 
-        if ((new FolderContentService($this->parentFolder))->folderExists($this->title)) {
+        $content = new FolderContentService($this->content->container, $this->parentFolder);
+
+        if ($content->folderExists($this->title)) {
             $this->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
         }
     }
@@ -129,22 +123,19 @@ class Folder extends FileSystemItem
      */
     public function getSearchAttributes()
     {
-        if ($this->isRoot()) {
-            $attributes = [];
-        } else {
-            $attributes = [
-                'name' => $this->title,
-                'description' => $this->description,
-            ];
+        $attributes = [
+            'name' => $this->title,
+            'description' => $this->description,
+        ];
 
-            if ($this->getCreator()) {
-                $attributes['creator'] = $this->getCreator()->getDisplayName();
-            }
-
-            if ($this->getEditor()) {
-                $attributes['editor'] = $this->getEditor()->getDisplayName();
-            }
+        if ($this->content->createdBy) {
+            $attributes['creator'] = $this->content->createdBy->getDisplayName();
         }
+
+        if ($this->content->updatedBy) {
+            $attributes['editor'] = $this->content->updatedBy->getDisplayName();
+        }
+
         return $attributes;
     }
 
@@ -236,22 +227,9 @@ class Folder extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function getContentId()
-    {
-        return $this->content->id;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getTitle()
     {
         return $this->title;
-    }
-
-    public function getDescription()
-    {
-        return $this->description;
     }
 
     /**
@@ -287,11 +265,6 @@ class Folder extends FileSystemItem
     public function getContentDescription()
     {
         return $this->title;
-    }
-
-    public function isRoot()
-    {
-        return $this->type === self::TYPE_FOLDER_ROOT;
     }
 
     /**

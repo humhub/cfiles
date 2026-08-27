@@ -12,6 +12,7 @@ use humhub\modules\file\libs\ImageHelper;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\FileContent;
 use yii\db\ActiveQuery;
@@ -19,8 +20,13 @@ use yii\imagine\Image;
 use yii\web\UploadedFile;
 
 /**
- * Everything that happens INSIDE one folder: creating items in it, listing them, and the
- * name-collision rules that govern both.
+ * Everything that happens inside one level of a container's file tree: creating items there,
+ * listing them, and the name-collision rules that govern both.
+ *
+ * A level is a container plus an optional folder — `null` is the top level, where
+ * `parent_folder_id IS NULL`. There is no root folder record: the schema's own idea of "top"
+ * is a null parent, and a record standing in for it only ever added a Content row nobody
+ * could see and an owner that could be deleted out from under the tree.
  *
  * Kept off the model deliberately. A `Folder` record is a title, a description and a parent
  * — "what happens when you drop a second `report.pdf` in here" is behaviour around that
@@ -30,8 +36,18 @@ use yii\web\UploadedFile;
  */
 class FolderContentService
 {
-    public function __construct(private Folder $folder)
+    public function __construct(
+        private ContentContainerActiveRecord $container,
+        private ?Folder $folder = null,
+    ) {
+    }
+
+    /**
+     * The id every item at this level carries as its parent — null at the top.
+     */
+    private function parentId(): ?int
     {
+        return $this->folder?->id;
     }
 
     // --- listing ---------------------------------------------------------------------
@@ -42,7 +58,11 @@ class FolderContentService
      */
     public function subFolderQuery(array $order = ['title' => SORT_ASC]): ActiveQuery
     {
-        return FolderTreeService::subFolderQuery($this->folder, $order);
+        return Folder::find()
+            ->contentContainer($this->container)
+            ->readable()
+            ->andWhere(['cfiles_folder.parent_folder_id' => $this->parentId()])
+            ->orderBy($order);
     }
 
     /**
@@ -52,9 +72,9 @@ class FolderContentService
     {
         return File::find()
             ->joinWith('baseFile')
-            ->contentContainer($this->folder->content->container)
+            ->contentContainer($this->container)
             ->readable()
-            ->andWhere(['cfiles_file.parent_folder_id' => $this->folder->id])
+            ->andWhere(['cfiles_file.parent_folder_id' => $this->parentId()])
             ->orderBy($order);
     }
 
@@ -89,8 +109,8 @@ class FolderContentService
      */
     public function newFolder(?string $title = null, ?string $description = null): Folder
     {
-        return new Folder($this->folder->content->container, $this->newItemVisibility(), [
-            'parent_folder_id' => $this->folder->id,
+        return new Folder($this->container, $this->newItemVisibility(), [
+            'parent_folder_id' => $this->parentId(),
             'title' => $title,
             'description' => $description,
         ]);
@@ -121,8 +141,8 @@ class FolderContentService
      */
     public function addFileFromPath(string $fileName, string $path): File
     {
-        $file = new File($this->folder->content->container, $this->newItemVisibility(), [
-            'parent_folder_id' => $this->folder->id,
+        $file = new File($this->container, $this->newItemVisibility(), [
+            'parent_folder_id' => $this->parentId(),
         ]);
 
         $fileContent = new FileContent([
@@ -148,12 +168,13 @@ class FolderContentService
      * What a new item in this folder is visible to.
      *
      * Everything inherits the folder it lands in, so a private folder cannot hold public
-     * files. The root has no folder above it and falls back to the container's own default.
+     * files. At the top level there is no folder to inherit from, so the container's own
+     * default applies.
      */
     public function newItemVisibility(): int
     {
-        return $this->folder->isRoot()
-            ? $this->folder->content->container->getDefaultContentVisibility()
+        return $this->folder === null
+            ? $this->container->getDefaultContentVisibility()
             : (int)$this->folder->content->visibility;
     }
 
@@ -162,18 +183,18 @@ class FolderContentService
     public function findFile(string $name): ?File
     {
         return File::find()
-            ->contentContainer($this->folder->content->container)
+            ->contentContainer($this->container)
             ->joinWith('baseFile')
             ->andWhere(['file_name' => $name])
-            ->andWhere(['cfiles_file.parent_folder_id' => $this->folder->id])
+            ->andWhere(['cfiles_file.parent_folder_id' => $this->parentId()])
             ->one();
     }
 
     public function findFolder(string $name): ?Folder
     {
         return Folder::find()
-            ->contentContainer($this->folder->content->container)
-            ->andWhere(['title' => $name, 'parent_folder_id' => $this->folder->id])
+            ->contentContainer($this->container)
+            ->andWhere(['title' => $name, 'parent_folder_id' => $this->parentId()])
             ->one();
     }
 
@@ -181,14 +202,14 @@ class FolderContentService
     {
         return File::find()
             ->joinWith('baseFile')
-            ->where(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->folder->id])
+            ->where(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->parentId()])
             ->exists();
     }
 
     public function folderExists(string $name): bool
     {
         return Folder::find()
-            ->where(['title' => $name, 'parent_folder_id' => $this->folder->id])
+            ->where(['title' => $name, 'parent_folder_id' => $this->parentId()])
             ->exists();
     }
 
@@ -223,8 +244,8 @@ class FolderContentService
             ItemMoveService::renameConflicted($existing);
         }
 
-        return new File($this->folder->content->container, $this->newItemVisibility(), [
-            'parent_folder_id' => $this->folder->id,
+        return new File($this->container, $this->newItemVisibility(), [
+            'parent_folder_id' => $this->parentId(),
         ]);
     }
 }

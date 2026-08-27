@@ -8,7 +8,6 @@
 
 namespace humhub\modules\cfiles\tests\codeception\unit;
 
-use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\jobs\SendFileUploadNotification;
 use humhub\modules\cfiles\libs\FileUploadBatch;
@@ -55,9 +54,9 @@ class FileUploadBatchTest extends HumHubDbTestCase
         // notifications cannot interfere with the assertions below.
         $this->useDelayingQueue();
 
-        $space = Space::findOne(self::SPACE_ID);
-        $this->folder = FolderTreeService::initRoot($space);
-        $this->assertInstanceOf(Folder::class, $this->folder);
+        // Uploads land at the container's top level; there is no root folder record.
+        $this->space = Space::findOne(self::SPACE_ID);
+        $this->folder = null;
 
         $this->uploaderId = $this->becomeUser(self::UPLOADER)->id;
     }
@@ -87,7 +86,7 @@ class FileUploadBatchTest extends HumHubDbTestCase
 
         for ($i = 1; $i <= $count; $i++) {
             // The same entry point the upload action uses
-            $file = (new FolderContentService($folder))->addUploadedFile(new UploadedFile([
+            $file = (new FolderContentService($this->space, $folder))->addUploadedFile(new UploadedFile([
                 'name' => 'batch-test-' . $i . '-' . uniqid('', true) . '.txt',
                 'size' => 1024,
                 'type' => 'text/plain',
@@ -297,7 +296,7 @@ class FileUploadBatchTest extends HumHubDbTestCase
 
     public function testBatchesOfDifferentFoldersAreIndependent()
     {
-        $other = (new FolderContentService($this->folder))->newFolder('Other', 'Other folder');
+        $other = (new FolderContentService($this->space, $this->folder))->newFolder('Other', 'Other folder');
         $this->assertTrue($other->save());
 
         $this->upload(3);

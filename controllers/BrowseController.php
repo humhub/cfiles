@@ -9,7 +9,6 @@
 namespace humhub\modules\cfiles\controllers;
 
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\services\FolderListingService;
 use humhub\modules\content\components\ContentContainerController;
@@ -33,17 +32,18 @@ class BrowseController extends ContentContainerController
     public $hideSidebar = true;
 
     /**
-     * @param int $fid the folder to open; 0 (or absent) is the container's root folder. The
+     * @param int $fid the folder to open; 0 (or absent) is the container's top level. The
      *        parameter name is unchanged from the server-rendered browser, so every existing
      *        permalink, notification link and search result still opens the right folder.
+     * @param string|null $edit an item to open the edit dialog for, as `file:<id>` or
+     *        `folder:<id>`. This is where a stream entry's Edit control links to — the browser
+     *        owns that dialog, so there is no second one to render (see `widgets\WallEntryFile`).
      */
-    public function actionIndex($fid = 0)
+    public function actionIndex($fid = 0, $edit = null)
     {
-        FolderTreeService::ensureRootStructure($this->contentContainer);
-
         $folder = $this->resolveFolder((int)$fid);
 
-        if (!$folder->content->canView()) {
+        if ($folder !== null && !$folder->content->canView()) {
             throw new HttpException(403);
         }
 
@@ -51,22 +51,22 @@ class BrowseController extends ContentContainerController
             'contentContainer' => $this->contentContainer,
             'folder' => $folder,
             // The first page travels with the HTML, so the island paints without a request.
-            'listing' => (new FolderListingService($folder))->payload(),
+            'listing' => (new FolderListingService($this->contentContainer, $folder))->payload(),
             // Container-wide, not per folder, so the island can keep it across navigation.
             'canWrite' => $this->contentContainer->permissionManager->can(WriteAccess::class),
+            // Passed through untouched: the island looks it up among the rows it received and
+            // ignores it when there is no match, so a stale link just opens the folder.
+            'editItem' => is_string($edit) && preg_match('/^(file|folder):\d+$/', $edit) ? $edit : null,
         ]);
     }
 
-    private function resolveFolder(int $fid): Folder
+    /**
+     * @return Folder|null null for the container's top level, which has no folder record.
+     */
+    private function resolveFolder(int $fid): ?Folder
     {
         if ($fid === 0) {
-            $root = FolderTreeService::getRoot($this->contentContainer);
-
-            if (!$root instanceof Folder) {
-                throw new HttpException(404);
-            }
-
-            return $root;
+            return null;
         }
 
         $folder = Folder::find()

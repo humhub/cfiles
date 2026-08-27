@@ -6,8 +6,15 @@
  */
 import { apiUrl, client } from '@humhub/vue';
 
-export const loadFolder = (folderId, { sort, order, page, pageSize } = {}) => {
+/**
+ * One level of a container's tree. `parent` is a folder id, or null for the top level, which
+ * has no folder record of its own — that is why the container is what the URL addresses.
+ */
+export const loadItems = (containerId, parent, { sort, order, page, pageSize } = {}) => {
     const params = {};
+    if (parent) {
+        params.parent = parent;
+    }
     if (sort) {
         params.sort = sort;
         params.order = order || 'asc';
@@ -19,18 +26,20 @@ export const loadFolder = (folderId, { sort, order, page, pageSize } = {}) => {
         params.pageSize = pageSize;
     }
 
-    return client.get(apiUrl('cfiles/folder/' + folderId, params));
+    return client.get(apiUrl('cfiles/' + containerId + '/items', params));
 };
 
-export const createFolder = (parentFolderId, attributes) =>
-    client.post(apiUrl('cfiles/folder/' + parentFolderId + '/folders'), { data: attributes });
+export const createFolder = (containerId, parent, attributes) =>
+    client.post(apiUrl('cfiles/' + containerId + '/folders'), {
+        data: { ...attributes, parent },
+    });
 
 export const updateItem = (item, attributes) =>
     client.put(apiUrl('cfiles/' + item.type + '/' + item.id), { data: attributes });
 
-export const moveItems = (items, targetFolderId) =>
+export const moveItems = (containerId, items, targetFolderId) =>
     client.post(apiUrl('cfiles/items/move'), {
-        data: { items: items.map(descriptor), targetFolderId },
+        data: { containerId, items: items.map(descriptor), targetFolderId },
     });
 
 export const deleteItems = (items) =>
@@ -41,12 +50,15 @@ export const deleteItems = (items) =>
  * upload-progress signal and a file browser without a progress bar is a file browser people
  * think has hung.
  */
-export const uploadFiles = (folderId, files, onProgress) => new Promise((resolve, reject) => {
+export const uploadFiles = (containerId, parent, files, onProgress) => new Promise((resolve, reject) => {
     const form = new FormData();
     Array.prototype.forEach.call(files, (file) => form.append('files[]', file));
+    if (parent) {
+        form.append('parent', parent);
+    }
 
     const request = new XMLHttpRequest();
-    request.open('POST', apiUrl('cfiles/folder/' + folderId + '/files'));
+    request.open('POST', apiUrl('cfiles/' + containerId + '/files'));
     request.setRequestHeader('X-CSRF-Token', csrfToken());
     request.setRequestHeader('Accept', 'application/json');
 

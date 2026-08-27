@@ -92,13 +92,10 @@ class FileController extends BaseController
             return $file->baseFile->getFirstError('file_name');
         }
 
-        // An orphan (its folder was hard-deleted underneath it) has no siblings to collide
-        // with; the integrity check is what cleans those up.
-        $duplicate = $file->parentFolder === null
-            ? null
-            : (new FolderContentService($file->parentFolder))->findFile($file->baseFile->file_name);
+        $duplicate = (new FolderContentService($file->content->container, $file->parentFolder))
+            ->findFile($file->baseFile->file_name);
 
-        if ($duplicate && !$duplicate->is($file)) {
+        if ($duplicate && (int)$duplicate->id !== (int)$file->id) {
             return Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.');
         }
 

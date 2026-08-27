@@ -35,6 +35,14 @@
       "crumb-drop"
     ],
     computed: {
+      /**
+       * The path the API sends, preceded by the container's top level. That level has no
+       * folder record, so it is not something the server could have sent — it is a client
+       * entry with a null id, which is exactly what every endpoint takes for "no parent".
+       */
+      crumbs() {
+        return [{ id: null, title: null }].concat(this.path);
+      },
       breadcrumbLabel() {
         return vue.i18n.t("CfilesModule.base", "Folder path");
       },
@@ -84,7 +92,7 @@
     },
     methods: {
       crumbTitle(crumb) {
-        return crumb.isRoot ? this.rootLabel : crumb.title;
+        return crumb.id === null ? this.rootLabel : crumb.title;
       },
       onCrumbClick(event, crumb) {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
@@ -94,7 +102,7 @@
         this.$emit("open", crumb.id);
       },
       onCrumbDragOver(event, crumb, index) {
-        if (index === this.path.length - 1) {
+        if (index === this.crumbs.length - 1) {
           return;
         }
         event.preventDefault();
@@ -102,7 +110,7 @@
         this.$emit("crumb-drag-over", crumb.id);
       },
       onCrumbDrop(event, crumb, index) {
-        if (index === this.path.length - 1) {
+        if (index === this.crumbs.length - 1) {
           return;
         }
         event.preventDefault();
@@ -135,15 +143,15 @@
           (vue$1.openBlock(true), vue$1.createElementBlock(
             vue$1.Fragment,
             null,
-            vue$1.renderList($props.path, (crumb, index) => {
+            vue$1.renderList($options.crumbs, (crumb, index) => {
               return vue$1.openBlock(), vue$1.createElementBlock("li", {
-                key: crumb.id,
-                class: vue$1.normalizeClass(["breadcrumb-item", { active: index === $props.path.length - 1, "cfiles-crumb-drop": $props.dropTargetId === crumb.id }]),
+                key: crumb.id ?? "top",
+                class: vue$1.normalizeClass(["breadcrumb-item", { active: index === $options.crumbs.length - 1, "cfiles-crumb-drop": $props.dropTargetId === crumb.id }]),
                 onDragover: ($event) => $options.onCrumbDragOver($event, crumb, index),
                 onDragleave: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("crumb-drag-leave")),
                 onDrop: ($event) => $options.onCrumbDrop($event, crumb, index)
               }, [
-                index === $props.path.length - 1 ? (vue$1.openBlock(), vue$1.createElementBlock(
+                index === $options.crumbs.length - 1 ? (vue$1.openBlock(), vue$1.createElementBlock(
                   "span",
                   _hoisted_5$3,
                   vue$1.toDisplayString($options.crumbTitle(crumb)),
@@ -534,8 +542,11 @@
     ], 42, _hoisted_1$4);
   }
   const ItemRow = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$4]]);
-  const loadFolder = (folderId, { sort, order, page, pageSize } = {}) => {
+  const loadItems = (containerId, parent, { sort, order, page, pageSize } = {}) => {
     const params = {};
+    if (parent) {
+      params.parent = parent;
+    }
     if (sort) {
       params.sort = sort;
       params.order = order || "asc";
@@ -546,19 +557,24 @@
     if (pageSize) {
       params.pageSize = pageSize;
     }
-    return vue.client.get(vue.apiUrl("cfiles/folder/" + folderId, params));
+    return vue.client.get(vue.apiUrl("cfiles/" + containerId + "/items", params));
   };
-  const createFolder = (parentFolderId, attributes) => vue.client.post(vue.apiUrl("cfiles/folder/" + parentFolderId + "/folders"), { data: attributes });
+  const createFolder = (containerId, parent, attributes) => vue.client.post(vue.apiUrl("cfiles/" + containerId + "/folders"), {
+    data: { ...attributes, parent }
+  });
   const updateItem = (item, attributes) => vue.client.put(vue.apiUrl("cfiles/" + item.type + "/" + item.id), { data: attributes });
-  const moveItems = (items, targetFolderId) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
-    data: { items: items.map(descriptor), targetFolderId }
+  const moveItems = (containerId, items, targetFolderId) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
+    data: { containerId, items: items.map(descriptor), targetFolderId }
   });
   const deleteItems = (items) => vue.client.post(vue.apiUrl("cfiles/items/delete"), { data: { items: items.map(descriptor) } });
-  const uploadFiles = (folderId, files, onProgress) => new Promise((resolve, reject) => {
+  const uploadFiles = (containerId, parent, files, onProgress) => new Promise((resolve, reject) => {
     const form = new FormData();
     Array.prototype.forEach.call(files, (file) => form.append("files[]", file));
+    if (parent) {
+      form.append("parent", parent);
+    }
     const request = new XMLHttpRequest();
-    request.open("POST", vue.apiUrl("cfiles/folder/" + folderId + "/files"));
+    request.open("POST", vue.apiUrl("cfiles/" + containerId + "/files"));
     request.setRequestHeader("X-CSRF-Token", csrfToken());
     request.setRequestHeader("Accept", "application/json");
     request.upload.addEventListener("progress", (event) => {
@@ -702,7 +718,7 @@
   const _sfc_main$2 = {
     props: {
       show: { type: Boolean, default: false },
-      rootId: { type: Number, required: true },
+      contentContainerId: { type: Number, required: true },
       // Items being moved — they and their descendants are not valid targets.
       items: { type: Array, default: () => [] },
       busy: { type: Boolean, default: false },
@@ -717,8 +733,8 @@
         immediate: true,
         handler(open) {
           if (open) {
-            this.selectedId = null;
-            this.nodes = [{ id: this.rootId, title: "", isRoot: true, depth: 0, expanded: false, children: null }];
+            this.selectedId = void 0;
+            this.nodes = [{ id: null, title: "", isTop: true, depth: 0, expanded: false, children: null }];
             this.toggle(this.nodes[0]);
           }
         }
@@ -767,11 +783,11 @@
         if (node.children !== null) {
           return;
         }
-        loadFolder(node.id, { pageSize: 200 }).then((payload) => {
+        loadItems(this.contentContainerId, node.id, { pageSize: 200 }).then((payload) => {
           node.children = (payload.results || []).filter((row) => row.type === "folder").filter((row) => this.movedFolderIds.indexOf(row.id) === -1).map((row) => ({
             id: row.id,
             title: row.title,
-            isRoot: false,
+            isTop: false,
             depth: node.depth + 1,
             expanded: false,
             children: null,
@@ -815,7 +831,7 @@
         vue$1.createElementVNode("button", {
           type: "button",
           class: "btn btn-primary",
-          disabled: $data.selectedId === null || $props.busy,
+          disabled: $data.selectedId === void 0 || $props.busy,
           onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("confirm", $data.selectedId))
         }, vue$1.toDisplayString($options.moveLabel), 9, _hoisted_6)
       ]),
@@ -834,7 +850,7 @@
             vue$1.renderList($options.flatTree, (node) => {
               return vue$1.openBlock(), vue$1.createElementBlock("div", {
                 key: node.id,
-                class: vue$1.normalizeClass({ selected: node.id === $data.selectedId }),
+                class: vue$1.normalizeClass({ selected: node.id === $data.selectedId && $data.selectedId !== void 0 }),
                 style: vue$1.normalizeStyle({ paddingLeft: 10 + node.depth * 18 + "px" }),
                 role: "button",
                 tabindex: "0",
@@ -860,7 +876,7 @@
                   /* CACHED */
                 )),
                 vue$1.createTextVNode(
-                  " " + vue$1.toDisplayString(node.isRoot ? $options.rootLabel : node.title),
+                  " " + vue$1.toDisplayString(node.isTop ? $options.rootLabel : node.title),
                   1
                   /* TEXT */
                 )
@@ -892,7 +908,18 @@
       listing: { type: Object, required: true },
       canWrite: { type: Boolean, default: false },
       /** Base URL of the browser page — `?fid=` is appended to it. */
-      browseUrl: { type: String, required: true }
+      browseUrl: { type: String, required: true },
+      /**
+       * The container whose tree this is. The API addresses levels by container plus an
+       * optional parent folder, because the top level has no folder record to name.
+       */
+      contentContainerId: { type: Number, required: true },
+      /**
+       * Key of an item to open the edit dialog for on mount, as `file:<id>` /
+       * `folder:<id>`. A stream entry's Edit control links here rather than loading an edit
+       * form of its own — this browser owns that dialog, and one form beats two.
+       */
+      editKey: { type: String, default: null }
     },
     data() {
       return {
@@ -922,9 +949,9 @@
       };
     },
     computed: {
-      rootId() {
-        const root = this.path.find((crumb) => crumb.isRoot);
-        return root ? root.id : this.folder.id;
+      /** The id of the level currently open — null at the top. */
+      folderId() {
+        return this.folder ? this.folder.id : null;
       },
       selectedItems() {
         return this.items.filter((item) => this.selection.indexOf(keyOf(item)) !== -1);
@@ -941,18 +968,33 @@
     },
     mounted() {
       window.addEventListener("popstate", this.onPopState);
+      this.openRequestedEdit();
       const urlFolderId = this.folderIdFromUrl();
-      if (urlFolderId !== null && urlFolderId !== 0 && urlFolderId !== this.folder.id) {
-        this.open(urlFolderId, { push: false });
+      if (urlFolderId !== null && (urlFolderId || null) !== this.folderId) {
+        this.open(urlFolderId || null, { push: false });
       }
     },
     beforeUnmount() {
       window.removeEventListener("popstate", this.onPopState);
     },
     methods: {
+      /**
+       * Opens the edit dialog for the item a deep link asked for.
+       *
+       * Looked up among the rows already received, so a link to something that is not on
+       * this page — or no longer exists — simply opens the folder instead of failing.
+       */
+      openRequestedEdit() {
+        if (!this.editKey) {
+          return;
+        }
+        const match = this.items.find((item) => keyOf(item) === this.editKey);
+        if (match) {
+          this.openEdit(match);
+        }
+      },
       folderUrl(folderId) {
-        const id = folderId === this.rootId ? 0 : folderId;
-        return this.browseUrl + (this.browseUrl.indexOf("?") === -1 ? "?" : "&") + "fid=" + id;
+        return this.browseUrl + (this.browseUrl.indexOf("?") === -1 ? "?" : "&") + "fid=" + (folderId || 0);
       },
       folderIdFromUrl() {
         const value = new URLSearchParams(window.location.search).get("fid");
@@ -974,7 +1016,7 @@
           return;
         }
         this.loading = true;
-        loadFolder(folderId, { sort: this.sort, order: this.order }).then((payload) => {
+        loadItems(this.contentContainerId, folderId, { sort: this.sort, order: this.order }).then((payload) => {
           this.applyPayload(payload);
           this.loading = false;
           if (push) {
@@ -990,13 +1032,13 @@
         if (folderId === null) {
           return;
         }
-        const target = folderId === 0 ? this.rootId : folderId;
-        if (target !== this.folder.id) {
+        const target = folderId === 0 ? null : folderId;
+        if (target !== this.folderId) {
           this.open(target, { push: false });
         }
       },
       reload() {
-        this.open(this.folder.id, { push: false });
+        this.open(this.folderId, { push: false });
       },
       setSort(sort) {
         this.order = this.sort === sort && this.order === "asc" ? "desc" : "asc";
@@ -1008,7 +1050,7 @@
           return;
         }
         this.loadingMore = true;
-        loadFolder(this.folder.id, { sort: this.sort, order: this.order, page: this.page + 1 }).then((payload) => {
+        loadItems(this.contentContainerId, this.folderId, { sort: this.sort, order: this.order, page: this.page + 1 }).then((payload) => {
           this.items = this.items.concat(payload.results);
           this.page = payload.page;
           this.pages = payload.pages;
@@ -1097,12 +1139,12 @@
         const items = this.moveItemsList.length ? this.moveItemsList : this.dragged;
         this.crumbDropTargetId = null;
         this.itemDropTargetKey = null;
-        if (!items.length || targetFolderId === this.folder.id) {
+        if (!items.length || targetFolderId === this.folderId) {
           this.showMove = false;
           return;
         }
         this.moveBusy = true;
-        moveItems(items, targetFolderId).then((response) => {
+        moveItems(this.contentContainerId, items, targetFolderId).then((response) => {
           this.moveBusy = false;
           this.showMove = false;
           this.moveItemsList = [];
@@ -1158,7 +1200,7 @@
           return;
         }
         this.uploadProgress = 0;
-        uploadFiles(this.folder.id, files, (percent) => {
+        uploadFiles(this.contentContainerId, this.folderId, files, (percent) => {
           this.uploadProgress = percent;
         }).then((response) => {
           this.uploadProgress = null;
@@ -1307,10 +1349,11 @@
           default: vue$1.withCtx(() => [
             $data.showCreate ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
               key: 0,
-              "parent-folder-id": $data.folder.id,
+              "content-container-id": $props.contentContainerId,
+              "parent-folder-id": $options.folderId,
               onSaved: $options.onCreated,
               onCancel: _cache[10] || (_cache[10] = ($event) => $data.showCreate = false)
-            }, null, 8, ["parent-folder-id", "onSaved"])) : vue$1.createCommentVNode("v-if", true)
+            }, null, 8, ["content-container-id", "parent-folder-id", "onSaved"])) : vue$1.createCommentVNode("v-if", true)
           ]),
           _: 1
           /* STABLE */
@@ -1333,13 +1376,13 @@
         }, 8, ["show", "title"]),
         vue$1.createVNode(_component_MoveDialog, {
           show: $data.showMove,
-          "root-id": $options.rootId,
+          "content-container-id": $props.contentContainerId,
           items: $data.moveItemsList,
           busy: $data.moveBusy,
           error: $data.moveError,
           onClose: _cache[14] || (_cache[14] = ($event) => $data.showMove = false),
           onConfirm: $options.moveTo
-        }, null, 8, ["show", "root-id", "items", "busy", "error", "onConfirm"])
+        }, null, 8, ["show", "content-container-id", "items", "busy", "error", "onConfirm"])
       ],
       34
       /* CLASS, NEED_HYDRATION */
@@ -1351,7 +1394,9 @@
     props: {
       /** The serialized item being edited; omit (with `parentFolderId` set) to create. */
       item: { type: Object, default: null },
-      /** Set when creating a folder inside this parent. */
+      /** The container to create in — required together with `parentFolderId`. */
+      contentContainerId: { type: Number, default: null },
+      /** Set when creating a folder; null creates it at the container's top level. */
       parentFolderId: { type: Number, default: null },
       standalone: { type: Boolean, default: false }
     },
@@ -1410,7 +1455,7 @@
           description: this.values.description,
           visibility: Number(this.values.visibility)
         };
-        const request = this.isCreate ? createFolder(this.parentFolderId, attributes) : updateItem(this.item, attributes);
+        const request = this.isCreate ? createFolder(this.contentContainerId, this.parentFolderId, attributes) : updateItem(this.item, attributes);
         request.then((saved) => {
           this.busy = false;
           if (this.standalone) {

@@ -21,12 +21,12 @@ class WallEntryFolder extends WallStreamModuleEntryWidget
     /**
      * @inheritdoc
      */
-    public $editRoute = '/cfiles/edit/folder';
+    public $editRoute = '/cfiles/browse/index';
 
     /**
      * @inheritdoc
      */
-    public $editMode = self::EDIT_MODE_MODAL;
+    public $editMode = self::EDIT_MODE_NEW_WINDOW;
 
     /**
      * @var Folder
@@ -45,9 +45,11 @@ class WallEntryFolder extends WallStreamModuleEntryWidget
     }
 
     /**
-     * Returns the edit url to edit the content (if supported)
+     * Editing happens in the file browser, not in a modal of its own.
      *
-     * @return string url
+     * The browser already owns the edit dialog; rendering a second one here would mean a
+     * second form and a second render path for the same thing. The stream links into it
+     * instead, with the folder to open and the item to edit.
      */
     public function getEditUrl()
     {
@@ -55,11 +57,10 @@ class WallEntryFolder extends WallStreamModuleEntryWidget
             return '';
         }
 
-        if ($this->model instanceof Folder) {
-            return $this->model->content->container->createUrl($this->editRoute, ['id' => $this->model->id, 'fromWall' => true]);
-        }
-
-        return '';
+        return $this->model->content->container->createUrl($this->editRoute, [
+            'fid' => $this->model->parent_folder_id,
+            'edit' => 'folder:' . $this->model->id,
+        ]);
     }
 
     /**

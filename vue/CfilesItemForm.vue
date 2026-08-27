@@ -39,7 +39,9 @@ export default {
     props: {
         /** The serialized item being edited; omit (with `parentFolderId` set) to create. */
         item: { type: Object, default: null },
-        /** Set when creating a folder inside this parent. */
+        /** The container to create in — required together with `parentFolderId`. */
+        contentContainerId: { type: Number, default: null },
+        /** Set when creating a folder; null creates it at the container's top level. */
         parentFolderId: { type: Number, default: null },
         standalone: { type: Boolean, default: false },
     },
@@ -104,7 +106,7 @@ export default {
             };
 
             const request = this.isCreate
-                ? createFolder(this.parentFolderId, attributes)
+                ? createFolder(this.contentContainerId, this.parentFolderId, attributes)
                 : updateItem(this.item, attributes);
 
             request.then((saved) => {

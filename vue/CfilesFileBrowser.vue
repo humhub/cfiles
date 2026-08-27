@@ -70,7 +70,8 @@
         <UiModal v-model:show="showCreate" :title="createTitle">
             <CfilesItemForm
                 v-if="showCreate"
-                :parent-folder-id="folder.id"
+                :content-container-id="contentContainerId"
+                :parent-folder-id="folderId"
                 @saved="onCreated"
                 @cancel="showCreate = false"
             />
@@ -87,7 +88,7 @@
 
         <MoveDialog
             :show="showMove"
-            :root-id="rootId"
+            :content-container-id="contentContainerId"
             :items="moveItemsList"
             :busy="moveBusy"
             :error="moveError"
@@ -128,7 +129,7 @@ import { i18n, log, modal, status } from '@humhub/vue';
 import BrowserToolbar from './browser/BrowserToolbar.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
-import { deleteItems, keyOf, loadFolder, moveItems, uploadFiles } from './browser/api';
+import { deleteItems, keyOf, loadItems, moveItems, uploadFiles } from './browser/api';
 
 export default {
     components: { BrowserToolbar, ItemList, MoveDialog },
@@ -140,6 +141,17 @@ export default {
         canWrite: { type: Boolean, default: false },
         /** Base URL of the browser page — `?fid=` is appended to it. */
         browseUrl: { type: String, required: true },
+        /**
+         * The container whose tree this is. The API addresses levels by container plus an
+         * optional parent folder, because the top level has no folder record to name.
+         */
+        contentContainerId: { type: Number, required: true },
+        /**
+         * Key of an item to open the edit dialog for on mount, as `file:<id>` /
+         * `folder:<id>`. A stream entry's Edit control links here rather than loading an edit
+         * form of its own — this browser owns that dialog, and one form beats two.
+         */
+        editKey: { type: String, default: null },
     },
     data() {
         return {
@@ -174,9 +186,9 @@ export default {
         };
     },
     computed: {
-        rootId() {
-            const root = this.path.find((crumb) => crumb.isRoot);
-            return root ? root.id : this.folder.id;
+        /** The id of the level currently open — null at the top. */
+        folderId() {
+            return this.folder ? this.folder.id : null;
         },
         selectedItems() {
             return this.items.filter((item) => this.selection.indexOf(keyOf(item)) !== -1);
@@ -196,22 +208,41 @@ export default {
     mounted() {
         window.addEventListener('popstate', this.onPopState);
 
+        this.openRequestedEdit();
+
         const urlFolderId = this.folderIdFromUrl();
 
-        // The URL wins - see the class docblock. `fid=0`/absent means the root, which the
-        // embedded prop already resolved to a real id, so only a mismatch is worth a request.
-        if (urlFolderId !== null && urlFolderId !== 0 && urlFolderId !== this.folder.id) {
-            this.open(urlFolderId, { push: false });
+        // The URL wins - see the class docblock. `fid=0`/absent is the top level, which the
+        // embedded payload already represents, so only a mismatch is worth a request.
+        if (urlFolderId !== null && (urlFolderId || null) !== this.folderId) {
+            this.open(urlFolderId || null, { push: false });
         }
     },
     beforeUnmount() {
         window.removeEventListener('popstate', this.onPopState);
     },
     methods: {
+        /**
+         * Opens the edit dialog for the item a deep link asked for.
+         *
+         * Looked up among the rows already received, so a link to something that is not on
+         * this page — or no longer exists — simply opens the folder instead of failing.
+         */
+        openRequestedEdit() {
+            if (!this.editKey) {
+                return;
+            }
+
+            const match = this.items.find((item) => keyOf(item) === this.editKey);
+
+            if (match) {
+                this.openEdit(match);
+            }
+        },
         folderUrl(folderId) {
-            // The root keeps its canonical `fid=0` form, the shape links have always had.
-            const id = folderId === this.rootId ? 0 : folderId;
-            return this.browseUrl + (this.browseUrl.indexOf('?') === -1 ? '?' : '&') + 'fid=' + id;
+            // `fid=0` is the top level, the shape links have always had.
+            return this.browseUrl + (this.browseUrl.indexOf('?') === -1 ? '?' : '&')
+                + 'fid=' + (folderId || 0);
         },
         folderIdFromUrl() {
             const value = new URLSearchParams(window.location.search).get('fid');
@@ -234,7 +265,7 @@ export default {
             }
             this.loading = true;
 
-            loadFolder(folderId, { sort: this.sort, order: this.order }).then((payload) => {
+            loadItems(this.contentContainerId, folderId, { sort: this.sort, order: this.order }).then((payload) => {
                 this.applyPayload(payload);
                 this.loading = false;
 
@@ -255,14 +286,14 @@ export default {
                 return;
             }
 
-            const target = folderId === 0 ? this.rootId : folderId;
+            const target = folderId === 0 ? null : folderId;
 
-            if (target !== this.folder.id) {
+            if (target !== this.folderId) {
                 this.open(target, { push: false });
             }
         },
         reload() {
-            this.open(this.folder.id, { push: false });
+            this.open(this.folderId, { push: false });
         },
         setSort(sort) {
             // Same column again reverses it; a different column starts ascending.
@@ -276,7 +307,7 @@ export default {
             }
             this.loadingMore = true;
 
-            loadFolder(this.folder.id, { sort: this.sort, order: this.order, page: this.page + 1 })
+            loadItems(this.contentContainerId, this.folderId, { sort: this.sort, order: this.order, page: this.page + 1 })
                 .then((payload) => {
                     this.items = this.items.concat(payload.results);
                     this.page = payload.page;
@@ -374,14 +405,14 @@ export default {
             this.crumbDropTargetId = null;
             this.itemDropTargetKey = null;
 
-            if (!items.length || targetFolderId === this.folder.id) {
+            if (!items.length || targetFolderId === this.folderId) {
                 this.showMove = false;
                 return;
             }
 
             this.moveBusy = true;
 
-            moveItems(items, targetFolderId).then((response) => {
+            moveItems(this.contentContainerId, items, targetFolderId).then((response) => {
                 this.moveBusy = false;
                 this.showMove = false;
                 this.moveItemsList = [];
@@ -443,7 +474,7 @@ export default {
 
             this.uploadProgress = 0;
 
-            uploadFiles(this.folder.id, files, (percent) => {
+            uploadFiles(this.contentContainerId, this.folderId, files, (percent) => {
                 this.uploadProgress = percent;
             }).then((response) => {
                 this.uploadProgress = null;

@@ -14,6 +14,7 @@ use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\modules\content\models\ContentContainer;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
@@ -34,6 +35,54 @@ abstract class BaseController extends ApiBaseController
      * methods contributed by the `rest` module work as well.
      */
     protected bool $enableSessionAuth = true;
+
+    /**
+     * The content container an endpoint is scoped to.
+     *
+     * Files belong to a container, and every level of its tree — including the top, which has
+     * no folder record of its own — is addressed relative to it.
+     *
+     * The only gate here is that the module is enabled on the container. What the caller may
+     * SEE is decided one level down by the `readable()` content scope, so an outsider asking
+     * about a private space gets an empty listing rather than an error, and what the caller
+     * may CHANGE is decided by {@see self::assertCanWrite()}. There is no single "can access
+     * this container" call in the platform — that is a rule set on the controller stack, and
+     * an API endpoint answering with what is readable needs neither.
+     *
+     * @throws NotFoundHttpException for an unknown container, or one without the module
+     */
+    protected function findContainer(int $id): ContentContainerActiveRecord
+    {
+        $container = ContentContainer::findOne(['id' => $id])?->polymorphicRelation;
+
+        if (!$container instanceof ContentContainerActiveRecord
+            || !$container->moduleManager->isEnabled('cfiles')) {
+            throw new NotFoundHttpException();
+        }
+
+        return $container;
+    }
+
+    /**
+     * The folder a request addresses within a container, or null for its top level.
+     *
+     * @throws NotFoundHttpException when the folder does not exist, is not readable, or
+     *         belongs to a different container than the one addressed
+     */
+    protected function findParent(ContentContainerActiveRecord $container, $parentId): ?Folder
+    {
+        if ($parentId === null || $parentId === '' || (int)$parentId === 0) {
+            return null;
+        }
+
+        $folder = $this->findFolder((int)$parentId);
+
+        if ($folder->content->container->contentcontainer_id !== $container->contentcontainer_id) {
+            throw new NotFoundHttpException();
+        }
+
+        return $folder;
+    }
 
     /**
      * A folder the caller may see.

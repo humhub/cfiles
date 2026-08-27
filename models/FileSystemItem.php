@@ -3,7 +3,6 @@
 namespace humhub\modules\cfiles\models;
 
 use humhub\modules\cfiles\Module;
-use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -84,8 +83,6 @@ abstract class FileSystemItem extends ContentActiveRecord
      */
     abstract public function getUrl(bool $scheme = false);
 
-    abstract public function getDescription();
-
     /**
      * @inheritdoc
      */
@@ -94,7 +91,6 @@ abstract class FileSystemItem extends ContentActiveRecord
         return [
             'visibility' => Yii::t('CfilesModule.base', 'Is Public'),
             'hidden' => Yii::t('CfilesModule.base', 'Hide in Stream'),
-            'download_count' => Yii::t('CfilesModule.base', 'Downloads'),
         ];
     }
 
@@ -169,47 +165,17 @@ abstract class FileSystemItem extends ContentActiveRecord
     public function afterMove(?ContentContainerActiveRecord $container = null)
     {
         parent::afterMove($container);
-        $this->updateParentFolder();
-    }
 
-    /**
-     * Update parent Folder if it is from different Content Container(Space/User)
-     * This File/Folder will be moved into the root Folder of the current Content Container
-     *
-     * @return bool True on success moving or if parent Folder is already in the same Content Container
-     */
-    public function updateParentFolder(): bool
-    {
         $parentFolder = Folder::findOne(['id' => $this->parent_folder_id]);
-        if ($parentFolder && $parentFolder->content->contentcontainer_id == $this->content->contentcontainer_id) {
-            return true;
+
+        if ($parentFolder && $parentFolder->content->contentcontainer_id === $this->content->contentcontainer_id) {
+            return;
         }
 
-        if (!($root = FolderTreeService::getOrInitRoot($this->content->getContainer()))) {
-            return false;
-        }
-
-        $this->parent_folder_id = $root->id;
-        return $this->save();
-    }
-
-    public function hasAttributeChanged($attributeName)
-    {
-        return $this->hasAttribute($attributeName) && ($this->isNewRecord || $this->getOldAttribute($attributeName) != $this->$attributeName);
-    }
-
-    /**
-     * Whether this is the same item — same kind, same row. A file and a folder can share a
-     * numeric id, so the class is part of the comparison.
-     */
-    public function is(FileSystemItem $item)
-    {
-        return static::class === $item::class && (int)$this->id === (int)$item->id;
-    }
-
-    public function hasParent(FileSystemItem $folder)
-    {
-        return $folder instanceof Folder && $folder->id === $this->parent_folder_id;
+        // The parent stayed behind in the old container, so this lands at the top level of the
+        // new one — which is simply a null parent.
+        $this->parent_folder_id = null;
+        $this->save();
     }
 
     /**
@@ -224,69 +190,16 @@ abstract class FileSystemItem extends ContentActiveRecord
     }
 
     /**
-     * @inheritdoc
-     */
-    public function getWallUrl()
-    {
-        return $this->getUrl();
-    }
-
-    /**
-     * Returns the base content
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getBaseContent()
-    {
-        $query = $this->hasOne(\humhub\modules\content\models\Content::className(), ['object_id' => 'id']);
-        $query->andWhere(['file.object_model' => self::className()]);
-        return $query;
-    }
-
-    /**
      * Check if a parent folder is valid or lies in itsself, etc.
      *
      * @param string $attribute the parent folder attribute to validate
      */
     public function validateParentFolderId($attribute = 'parent_folder_id')
     {
-        if ($this->parent_folder_id != 0 && !($this->parentFolder instanceof Folder)) {
+        // A null parent is the container's top level, and valid.
+        if ($this->parent_folder_id !== null && !($this->parentFolder instanceof Folder)) {
             $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->getTitle()]));
         }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getCreator()
-    {
-        return $this->content->createdBy;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getEditor()
-    {
-        return $this->content->updatedBy;
-    }
-
-    /**
-     * Whether this item is a folder that may be renamed, moved or deleted — every folder
-     * except the container's root, which is the tree itself rather than a node in it.
-     */
-    public function isEditableFolder(): bool
-    {
-        return ($this instanceof Folder) && !$this->isRoot();
-    }
-
-    /**
-     * Whether this item may be deleted. Files always may; the root folder never may, since
-     * deleting it would take the container's whole tree with it.
-     */
-    public function isDeletable(): bool
-    {
-        return !($this instanceof Folder) || !$this->isRoot();
     }
 
     public function canManage(): bool

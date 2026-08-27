@@ -8,7 +8,6 @@
 
 namespace humhub\modules\cfiles\tests\codeception\unit;
 
-use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\services\FolderListingService;
@@ -22,18 +21,18 @@ use Yii;
  */
 class FolderListingServiceTest extends HumHubDbTestCase
 {
-    private Folder $root;
+    private Space $space;
 
     public function _before()
     {
         parent::_before();
         $this->becomeUser('Admin');
-        $this->root = FolderTreeService::getOrInitRoot(Space::findOne(1));
+        $this->space = Space::findOne(1);
     }
 
     public function testEmptyFolderListsNothingButStillDescribesItself()
     {
-        $payload = (new FolderListingService($this->root))->payload();
+        $payload = (new FolderListingService($this->space))->payload();
 
         $this->assertSame([], $payload['results']);
         $this->assertSame(0, $payload['total']);
@@ -48,7 +47,7 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->addFolder('Zebra');
         $this->addFile('alpha.txt');
 
-        $payload = (new FolderListingService($this->root))->payload();
+        $payload = (new FolderListingService($this->space))->payload();
 
         $this->assertSame(['folder', 'file'], array_column($payload['results'], 'type'));
         $this->assertSame('Zebra', $payload['results'][0]['title']);
@@ -67,7 +66,7 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->addFile('c.txt');
         $this->addFile('d.txt');
 
-        $service = new FolderListingService($this->root);
+        $service = new FolderListingService($this->space);
 
         $first = $service->payload(null, null, 1, 3);
         $second = $service->payload(null, null, 2, 3);
@@ -86,21 +85,21 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->addFolder('A folder');
         $this->addFolder('B folder');
 
-        $descending = (new FolderListingService($this->root))->payload('name', 'desc');
+        $descending = (new FolderListingService($this->space))->payload('name', 'desc');
         $this->assertSame(
             ['B folder', 'A folder'],
             array_column($descending['results'], 'title'),
         );
 
         // A later request that names no sort inherits the one the user last chose.
-        $remembered = (new FolderListingService($this->root))->payload();
+        $remembered = (new FolderListingService($this->space))->payload();
         $this->assertSame('name', $remembered['sort']);
         $this->assertSame('desc', $remembered['order']);
     }
 
     public function testAnUnknownSortFallsBackInsteadOfReachingTheQuery()
     {
-        $payload = (new FolderListingService($this->root))->payload('; DROP TABLE cfiles_file', 'asc');
+        $payload = (new FolderListingService($this->space))->payload('; DROP TABLE cfiles_file', 'asc');
 
         $this->assertSame('name', $payload['sort']);
     }
@@ -110,15 +109,15 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $child = $this->addFolder('With children');
         $this->addFile('inside.txt', $child);
 
-        $payload = (new FolderListingService($this->root))->payload();
+        $payload = (new FolderListingService($this->space))->payload();
 
         $this->assertSame(1, $payload['results'][0]['itemCount']);
     }
 
     private function addFolder(string $title, ?Folder $parent = null): Folder
     {
-        $parent = $parent ?? $this->root;
-        $folder = (new FolderContentService($parent))->newFolder($title, '');
+        // null is the top level
+        $folder = (new FolderContentService($this->space, $parent))->newFolder($title, '');
 
         $this->assertTrue($folder->save(), implode(' ', $folder->getFirstErrors()));
 
@@ -127,11 +126,11 @@ class FolderListingServiceTest extends HumHubDbTestCase
 
     private function addFile(string $name, ?Folder $parent = null): void
     {
-        $parent = $parent ?? $this->root;
+        // null is the top level
         $path = Yii::getAlias('@runtime') . '/' . $name;
         file_put_contents($path, 'test');
 
-        $file = (new FolderContentService($parent))->addFileFromPath($name, $path);
+        $file = (new FolderContentService($this->space, $parent))->addFileFromPath($name, $path);
 
         $this->assertFalse($file->hasErrors(), implode(' ', $file->getFirstErrors()));
     }

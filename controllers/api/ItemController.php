@@ -52,12 +52,17 @@ class ItemController extends BaseController
     }
 
     /**
-     * Moves `items` into `targetFolderId`.
+     * Moves `items` into `targetFolderId`, or to the container's top level when that is
+     * omitted or null.
      */
     public function actionMove()
     {
-        $target = $this->findFolder((int)Yii::$app->request->getBodyParam('targetFolderId'));
-        $this->assertCanWrite($target->content->container);
+        $request = Yii::$app->request;
+        $container = $this->findContainer((int)$request->getBodyParam('containerId'));
+        $this->assertCanWrite($container);
+
+        // Null target = the container's top level, which has no folder record to name.
+        $target = $this->findParent($container, $request->getBodyParam('targetFolderId'));
 
         $moved = [];
         $errors = [];
@@ -65,12 +70,12 @@ class ItemController extends BaseController
         foreach ($this->requestedItems() as $item) {
             // Cross-container moves are a different feature (content move) with its own
             // permission rules; this endpoint only rearranges one container's own tree.
-            if ($item->content->container->id !== $target->content->container->id) {
+            if ($item->content->container->contentcontainer_id !== $container->contentcontainer_id) {
                 $errors[] = $this->itemError($item, Yii::t('CfilesModule.base', 'Wrong target folder!'));
                 continue;
             }
 
-            if (ItemMoveService::moveInto($target, $item)) {
+            if (ItemMoveService::moveInto($container, $target, $item)) {
                 $moved[] = $this->descriptor($item);
                 continue;
             }
@@ -95,13 +100,6 @@ class ItemController extends BaseController
         foreach ($this->requestedItems() as $item) {
             if (!$item->content->canEdit()) {
                 throw new ForbiddenHttpException();
-            }
-
-            // The root folder is not deletable — deleting it would take the whole module's
-            // tree with it, so it is refused rather than reported per item.
-            if (!$item->isDeletable()) {
-                $errors[] = $this->itemError($item, Yii::t('CfilesModule.base', 'This item cannot be deleted.'));
-                continue;
             }
 
             $descriptor = $this->descriptor($item);

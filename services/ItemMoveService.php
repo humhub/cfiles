@@ -28,12 +28,12 @@ use Yii;
 class ItemMoveService
 {
     /**
-     * Moves an item into a folder.
+     * Moves an item into a folder, or to the container's top level when `$target` is null.
      *
      * Failures are reported on the ITEM (`$item->getErrors()`), keyed by its title, because a
      * caller moving a whole selection needs to know which one refused.
      */
-    public static function moveInto(Folder $target, FileSystemItem $item): bool
+    public static function moveInto(ContentContainerActiveRecord $container, ?Folder $target, FileSystemItem $item): bool
     {
         if (!$item->canManage()) {
             return self::refuse($item, $item instanceof File
@@ -41,25 +41,23 @@ class ItemMoveService
                 : Yii::t('CfilesModule.base', 'You cannot move the folder "{name}"!', ['name' => $item->getTitle()]));
         }
 
-        if ($item instanceof Folder && !$item->isEditableFolder()) {
-            return self::refuse($item, Yii::t('CfilesModule.base', 'Folder {name} given folder is not editable!', ['name' => $item->getTitle()]));
-        }
-
-        if ($item instanceof Folder && (int)$item->id === (int)$target->id) {
+        if ($target !== null && $item instanceof Folder && (int)$item->id === (int)$target->id) {
             return self::refuse($item, Yii::t('CfilesModule.base', 'Folder {name} can\'t be moved to itself!', ['name' => $item->getTitle()]));
         }
 
         // Already there — a no-op, not a failure.
-        if ($item->hasParent($target) || $item->is($target)) {
+        if ((int)$item->parent_folder_id === (int)$target?->id) {
             return true;
         }
 
         // Set the requested visibility rather than the content's directly, so a folder runs
         // its recursive visibility change on save (see ItemVisibilityService).
-        $item->visibility = (int)$target->content->visibility;
-        $item->parent_folder_id = $target->id;
+        $item->visibility = $target === null
+            ? $container->getDefaultContentVisibility()
+            : (int)$target->content->visibility;
+        $item->parent_folder_id = $target?->id;
 
-        $resolved = self::resolveCollision($target, $item);
+        $resolved = self::resolveCollision($container, $target, $item);
 
         if ($resolved === null) {
             // A subitem failed on its way into an existing folder of the same name; the errors
@@ -67,10 +65,11 @@ class ItemMoveService
             return false;
         }
 
-        // Either nothing collided, or a file was renamed out of the way — in both cases the
-        // item itself is what gets saved. A folder merged into an existing one has nothing
-        // left to save; its children moved and it was deleted.
-        return $item->is($resolved) ? $resolved->save() : true;
+        // Either nothing collided, or a file was renamed out of the way — in both cases
+        // resolveCollision() handed back the item itself, and that is what gets saved. A
+        // folder merged into an existing one has nothing left to save; its children moved and
+        // it was deleted.
+        return $resolved === $item ? $item->save() : true;
     }
 
     /**
@@ -127,14 +126,14 @@ class ItemMoveService
     }
 
     /**
-     * Resolves a name collision in the target folder.
+     * Resolves a name collision at the target level.
      *
      * @return FileSystemItem|null the item that should be saved, or null when merging a
      *         folder into an existing one failed partway
      */
-    private static function resolveCollision(Folder $target, FileSystemItem $item): ?FileSystemItem
+    private static function resolveCollision(ContentContainerActiveRecord $container, ?Folder $target, FileSystemItem $item): ?FileSystemItem
     {
-        $content = new FolderContentService($target);
+        $content = new FolderContentService($container, $target);
 
         if ($item instanceof File) {
             // A duplicate file name is indexed rather than refused.
@@ -149,15 +148,15 @@ class ItemMoveService
 
         $existing = $content->findFolder($item->title);
 
-        if ($existing === null || $existing->is($item)) {
+        if ($existing === null || (int)$existing->id === (int)$item->id) {
             return $item;
         }
 
         // Same name as an existing folder: merge into it rather than creating a second one.
         $failed = false;
 
-        foreach ((new FolderContentService($item))->children() as $child) {
-            if (static::moveInto($existing, $child)) {
+        foreach ((new FolderContentService($container, $item))->children() as $child) {
+            if (self::moveInto($container, $existing, $child)) {
                 continue;
             }
 

@@ -8,6 +8,7 @@ use humhub\widgets\VueComponent;
 /* @var $folder humhub\modules\cfiles\models\Folder */
 /* @var $listing array the first page, embedded so the island paints without a request */
 /* @var $canWrite bool */
+/* @var $editItem string|null */
 
 ?>
 <?= VueComponent::widget([
@@ -22,5 +23,7 @@ use humhub\widgets\VueComponent;
         'listing' => $listing,
         'canWrite' => $canWrite,
         'browseUrl' => $contentContainer->createUrl('/cfiles/browse/index'),
+        'contentContainerId' => $contentContainer->contentcontainer_id,
+        'editKey' => $editItem,
     ],
 ]) ?>

@@ -100,7 +100,6 @@ class File extends FileSystemItem
     public function rules()
     {
         $rules = [
-            [['parent_folder_id'], 'required'],
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
             ['description', 'string', 'max' => 1000],
@@ -108,7 +107,8 @@ class File extends FileSystemItem
             ['hidden', 'boolean'],
         ];
 
-        if ($this->parentFolder && $this->parentFolder->content->isPublic()) {
+        // At the top level there is no folder to be more restrictive than the request.
+        if ($this->parentFolder === null || $this->parentFolder->content->isPublic()) {
             $rules[] = ['visibility', 'integer', 'min' => 0, 'max' => 1];
         }
 
@@ -123,6 +123,7 @@ class File extends FileSystemItem
         return array_merge(parent::attributeLabels(), [
             'id' => 'ID',
             'parent_folder_id' => Yii::t('CfilesModule.base', 'Folder ID'),
+            'download_count' => Yii::t('CfilesModule.base', 'Downloads'),
         ]);
     }
 
@@ -135,12 +136,12 @@ class File extends FileSystemItem
             'description' => $this->description,
         ];
 
-        if ($this->getCreator()) {
-            $attributes['creator'] = $this->getCreator()->getDisplayName();
+        if ($this->content->createdBy) {
+            $attributes['creator'] = $this->content->createdBy->getDisplayName();
         }
 
-        if ($this->getEditor()) {
-            $attributes['editor'] = $this->getEditor()->getDisplayName();
+        if ($this->content->updatedBy) {
+            $attributes['editor'] = $this->content->updatedBy->getDisplayName();
         }
 
         if ($this->baseFile) {
@@ -217,14 +218,6 @@ class File extends FileSystemItem
     /**
      * @inheritdoc
      */
-    public function getContentId()
-    {
-        return $this->content->id;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getTitle()
     {
         // needs to be checked cause used with uninitialized basefile by search index
@@ -233,14 +226,6 @@ class File extends FileSystemItem
         } else {
             return '';
         }
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription()
-    {
-        return $this->description;
     }
 
     public function setTitle($title)

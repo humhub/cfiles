@@ -6,7 +6,7 @@
             <div
                 v-for="node in flatTree"
                 :key="node.id"
-                :class="{ selected: node.id === selectedId }"
+                :class="{ selected: node.id === selectedId && selectedId !== undefined }"
                 :style="{ paddingLeft: (10 + node.depth * 18) + 'px' }"
                 role="button"
                 tabindex="0"
@@ -21,7 +21,7 @@
                     @click.stop="toggle(node)"
                 ></i>
                 <i class="fa fa-folder text-muted" aria-hidden="true"></i>
-                {{ node.isRoot ? rootLabel : node.title }}
+                {{ node.isTop ? rootLabel : node.title }}
             </div>
         </div>
 
@@ -32,7 +32,7 @@
             <button
                 type="button"
                 class="btn btn-primary"
-                :disabled="selectedId === null || busy"
+                :disabled="selectedId === undefined || busy"
                 @click="$emit('confirm', selectedId)"
             >{{ moveLabel }}</button>
         </template>
@@ -48,12 +48,12 @@
  * directory pane will reuse this tree.
  */
 import { i18n, log } from '@humhub/vue';
-import { loadFolder } from './api';
+import { loadItems } from './api';
 
 export default {
     props: {
         show: { type: Boolean, default: false },
-        rootId: { type: Number, required: true },
+        contentContainerId: { type: Number, required: true },
         // Items being moved — they and their descendants are not valid targets.
         items: { type: Array, default: () => [] },
         busy: { type: Boolean, default: false },
@@ -68,8 +68,10 @@ export default {
             immediate: true,
             handler(open) {
                 if (open) {
-                    this.selectedId = null;
-                    this.nodes = [{ id: this.rootId, title: '', isRoot: true, depth: 0, expanded: false, children: null }];
+                    // The top level is a node with no id: `null` is what the move endpoint
+                    // takes for "no parent".
+                    this.selectedId = undefined;
+                    this.nodes = [{ id: null, title: '', isTop: true, depth: 0, expanded: false, children: null }];
                     this.toggle(this.nodes[0]);
                 }
             },
@@ -122,7 +124,7 @@ export default {
                 return;
             }
 
-            loadFolder(node.id, { pageSize: 200 }).then((payload) => {
+            loadItems(this.contentContainerId, node.id, { pageSize: 200 }).then((payload) => {
                 node.children = (payload.results || [])
                     .filter((row) => row.type === 'folder')
                     // A folder cannot be moved into itself or into its own subtree; the
@@ -131,7 +133,7 @@ export default {
                     .map((row) => ({
                         id: row.id,
                         title: row.title,
-                        isRoot: false,
+                        isTop: false,
                         depth: node.depth + 1,
                         expanded: false,
                         children: null,

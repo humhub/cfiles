@@ -7,7 +7,6 @@
  *
  */
 
-use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\services\ItemMoveService;
 use humhub\modules\cfiles\models\File;
@@ -29,7 +28,7 @@ class MoveTest extends HumHubDbTestCase
     {
         $this->becomeUser('Admin');
         $space1 = Space::findOne(1);
-        $root = FolderTreeService::initRoot($space1);
+        $root = null; // the container's top level
 
         // Create a file within root
         $fileA = new File($space1);
@@ -39,19 +38,19 @@ class MoveTest extends HumHubDbTestCase
             'type' => 'text/plain',
         ]));
 
-        $this->assertTrue(ItemMoveService::moveInto($root, $fileA));
+        $this->assertTrue(ItemMoveService::moveInto($space1, $root, $fileA));
 
         $this->assertTrue($fileA->save());
 
 
         // Check children of root
-        $children = (new FolderContentService($root))->children();
+        $children = (new FolderContentService($space1, $root))->children();
         $this->assertEquals(count($children), 1);
         $this->assertEquals($fileA->id, $children[0]->id);
         $this->assertEquals('fileA.txt', $children[0]->getTitle());
         $this->assertEquals($root->id, $fileA->getParentFolder()->one()->id);
 
-        $folderA = (new FolderContentService($root))->newFolder('FolderA', 'FolderA description');
+        $folderA = (new FolderContentService($space1, $root))->newFolder('FolderA', 'FolderA description');
         $this->assertTrue($folderA->save());
 
         $folders = $root->folders;
@@ -59,8 +58,8 @@ class MoveTest extends HumHubDbTestCase
         $this->assertEquals('FolderA', $folders[0]->getTitle());
 
         // Move fileA from root to folderA
-        ItemMoveService::moveInto($folderA, $fileA);
-        $children = (new FolderContentService($root))->children();
+        ItemMoveService::moveInto($space1, $folderA, $fileA);
+        $children = (new FolderContentService($space1, $root))->children();
         $this->assertEquals(1, count($children));
         $this->assertEquals('FolderA', $children[0]->getTitle());
         $this->assertEquals('FolderA', $children[0]->getTitle());
@@ -71,12 +70,12 @@ class MoveTest extends HumHubDbTestCase
     {
         $this->becomeUser('Admin');
         $space1 = Space::findOne(1);
-        $root = FolderTreeService::initRoot($space1);
+        $root = null; // the container's top level
 
-        $folderA = (new FolderContentService($root))->newFolder('FolderA', 'FolderA description');
+        $folderA = (new FolderContentService($space1, $root))->newFolder('FolderA', 'FolderA description');
         $this->assertTrue($folderA->save());
 
-        $folderB = (new FolderContentService($root))->newFolder('FolderB', 'FolderB description');
+        $folderB = (new FolderContentService($space1, $root))->newFolder('FolderB', 'FolderB description');
         $this->assertTrue($folderB->save());
 
         // Create a file within root
@@ -87,13 +86,13 @@ class MoveTest extends HumHubDbTestCase
             'type' => 'text/plain',
         ]));
 
-        ItemMoveService::moveInto($folderB, $fileA);
+        ItemMoveService::moveInto($space1, $folderB, $fileA);
 
         // prevent move to own content
-        $this->assertFalse(ItemMoveService::moveInto($folderA, $folderA));
-        $this->assertTrue(ItemMoveService::moveInto($folderA, $folderB));
+        $this->assertFalse(ItemMoveService::moveInto($space1, $folderA, $folderA));
+        $this->assertTrue(ItemMoveService::moveInto($space1, $folderA, $folderB));
 
-        $searchFolderB = (new FolderContentService($folderA))->findFolder('FolderB');
+        $searchFolderB = (new FolderContentService($space1, $folderA))->findFolder('FolderB');
         $this->assertNotNull($searchFolderB);
         $this->assertEquals($folderB->id, $searchFolderB->id);
         $this->assertEquals($folderA->id, $searchFolderB->parentFolder->id);
@@ -124,18 +123,18 @@ class MoveTest extends HumHubDbTestCase
 
         $this->becomeUser('Admin');
         $space1 = Space::findOne(1);
-        $root = FolderTreeService::initRoot($space1);
+        $root = null; // the container's top level
 
         # /A
-        $folderA = (new FolderContentService($root))->newFolder('FolderA', 'FolderA description');
+        $folderA = (new FolderContentService($space1, $root))->newFolder('FolderA', 'FolderA description');
         $this->assertTrue($folderA->save());
 
         # /A/B
-        $folderBinA = (new FolderContentService($folderA))->newFolder('FolderB', 'FolderB description');
+        $folderBinA = (new FolderContentService($space1, $folderA))->newFolder('FolderB', 'FolderB description');
         $this->assertTrue($folderBinA->save());
 
         # /A/B/C
-        $folderCinBinA = (new FolderContentService($folderBinA))->newFolder('FolderC', 'FolderC description');
+        $folderCinBinA = (new FolderContentService($space1, $folderBinA))->newFolder('FolderC', 'FolderC description');
         $this->assertTrue($folderCinBinA->save());
 
         # /A/B/C/fileA.txt
@@ -145,14 +144,14 @@ class MoveTest extends HumHubDbTestCase
             'size' => 1024,
             'type' => 'text/plain',
         ]));
-        $this->assertTrue(ItemMoveService::moveInto($folderCinBinA, $originalFileA));
+        $this->assertTrue(ItemMoveService::moveInto($space1, $folderCinBinA, $originalFileA));
 
         # /B
-        $folderB = (new FolderContentService($root))->newFolder('FolderB', 'FolderB description');
+        $folderB = (new FolderContentService($space1, $root))->newFolder('FolderB', 'FolderB description');
         $this->assertTrue($folderB->save());
 
         # /B/C
-        $folderCinB = (new FolderContentService($folderB))->newFolder('FolderC', 'FolderC description');
+        $folderCinB = (new FolderContentService($space1, $folderB))->newFolder('FolderC', 'FolderC description');
         $this->assertTrue($folderCinB->save());
 
         # /B/C/fileA.txt
@@ -163,7 +162,7 @@ class MoveTest extends HumHubDbTestCase
             'type' => 'text/plain',
         ]));
 
-        $this->assertTrue(ItemMoveService::moveInto($folderCinB, $otherFileA));
+        $this->assertTrue(ItemMoveService::moveInto($space1, $folderCinB, $otherFileA));
 
         # /B/C/other.txt
         $fileB = new File($space1);
@@ -173,24 +172,24 @@ class MoveTest extends HumHubDbTestCase
             'type' => 'text/plain',
         ]));
 
-        $this->assertTrue(ItemMoveService::moveInto($folderCinB, $fileB));
+        $this->assertTrue(ItemMoveService::moveInto($space1, $folderCinB, $fileB));
 
         // Move roots B to folder A
-        $this->assertTrue(ItemMoveService::moveInto($folderA, $folderB));
+        $this->assertTrue(ItemMoveService::moveInto($space1, $folderA, $folderB));
 
-        $childrenC = (new FolderContentService($folderCinBinA))->children();
+        $childrenC = (new FolderContentService($space1, $folderCinBinA))->children();
 
         $this->assertEquals(3, count($childrenC));
 
-        $searchFileA = (new FolderContentService($folderCinBinA))->findFile('fileA.txt');
+        $searchFileA = (new FolderContentService($space1, $folderCinBinA))->findFile('fileA.txt');
         $this->assertNotNull($searchFileA);
         $this->assertEquals($originalFileA->id, $searchFileA->id);
 
-        $searchOtherFileA = (new FolderContentService($folderCinBinA))->findFile('fileA(1).txt');
+        $searchOtherFileA = (new FolderContentService($space1, $folderCinBinA))->findFile('fileA(1).txt');
         $this->assertNotNull($searchOtherFileA);
         $this->assertEquals($otherFileA->id, $searchOtherFileA->id);
 
-        $searchOtherFileB = (new FolderContentService($folderCinBinA))->findFile('fileB.txt');
+        $searchOtherFileB = (new FolderContentService($space1, $folderCinBinA))->findFile('fileB.txt');
         $this->assertNotNull($searchOtherFileB);
         $this->assertEquals($fileB->id, $searchOtherFileB->id);
 
@@ -217,18 +216,18 @@ class MoveTest extends HumHubDbTestCase
     {
         $this->becomeUser('Admin');
         $space1 = Space::findOne(1);
-        $root = FolderTreeService::initRoot($space1);
+        $root = null; // the container's top level
 
         # /A
-        $folderA = (new FolderContentService($root))->newFolder('FolderA', 'FolderA description');
+        $folderA = (new FolderContentService($space1, $root))->newFolder('FolderA', 'FolderA description');
         $this->assertTrue($folderA->save());
 
         # /A/B
-        $folderBinA = (new FolderContentService($folderA))->newFolder('FolderB', 'FolderB description');
+        $folderBinA = (new FolderContentService($space1, $folderA))->newFolder('FolderB', 'FolderB description');
         $this->assertTrue($folderBinA->save());
 
         # /B
-        $folderB = (new FolderContentService($root))->newFolder('FolderB', 'FolderB description');
+        $folderB = (new FolderContentService($space1, $root))->newFolder('FolderB', 'FolderB description');
         $this->assertTrue($folderB->save());
 
         # /B/fileA.txt
@@ -238,10 +237,10 @@ class MoveTest extends HumHubDbTestCase
             'size' => 1024,
             'type' => 'text/plain',
         ]));
-        $this->assertTrue(ItemMoveService::moveInto($folderB, $fileA));
+        $this->assertTrue(ItemMoveService::moveInto($space1, $folderB, $fileA));
 
         # /B/X
-        $folderX = (new FolderContentService($folderB))->newFolder('FolderX', 'FolderB description');
+        $folderX = (new FolderContentService($space1, $folderB))->newFolder('FolderX', 'FolderB description');
         $this->assertTrue($folderX->save());
 
         //Invalidate FolderX
@@ -249,7 +248,7 @@ class MoveTest extends HumHubDbTestCase
         $folderX->update(false, ['title']);
 
         // Move of some files failed
-        $this->assertFalse(ItemMoveService::moveInto($folderA, $folderB));
+        $this->assertFalse(ItemMoveService::moveInto($space1, $folderA, $folderB));
 
         // Original B was not totally moved so its not deleted
         $this->assertNotNull(Folder::findOne($folderB->id));

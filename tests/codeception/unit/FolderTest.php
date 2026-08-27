@@ -4,91 +4,97 @@
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
  * @license https://www.humhub.com/licences
- *
  */
 
 namespace humhub\modules\cfiles\tests\codeception\unit;
 
-use humhub\modules\cfiles\services\FolderTreeService;
-use humhub\modules\cfiles\services\FolderContentService;
-use humhub\modules\cfiles\Events;
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\content\models\Content;
+use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\space\models\Space;
 use tests\codeception\_support\HumHubDbTestCase;
-use Yii;
-use yii\db\AfterSaveEvent;
 
 /**
- * Created by PhpStorm.
- * User: buddha
- * Date: 16.07.2017
- * Time: 20:52
+ * The folder model's own rules.
+ *
+ * There is no root folder anymore — the top level of a container is `parent_folder_id IS
+ * NULL` — so what is left to test here is what a folder record itself enforces.
  */
 class FolderTest extends HumHubDbTestCase
 {
-    public function testCreateRoot()
-    {
-        $this->becomeUser('Admin');
-        $space = Space::findOne(1);
-        $rootFolder = FolderTreeService::initRoot($space);
+    private Space $space;
 
-        $this->assertTrue($rootFolder instanceof Folder);
-        $this->assertEquals($space->created_by, $rootFolder->content->created_by);
-        // Prevent double root initialization
-        $this->assertNull(FolderTreeService::initRoot($space));
+    public function _before()
+    {
+        parent::_before();
+        $this->becomeUser('Admin');
+        $this->space = Space::findOne(1);
     }
 
-    public function testEnsureRootFolderOwner()
+    public function testAFolderIsCreatedAtTheTopLevelWithoutAParent()
     {
-        $this->becomeUser('Admin');
-        $space = Space::findOne(2);
-        $rootFolder = FolderTreeService::initRoot($space);
+        $folder = (new FolderContentService($this->space))->newFolder('Projects', '');
 
-        $rootFolder->content->created_by = 1;
-        $this->assertTrue($rootFolder->content->save(false, ['created_by']));
-
-        $this->assertTrue(FolderTreeService::ensureRootOwner($rootFolder, $space));
-
-        $rootFolder->refresh();
-        $rootFolder->content->refresh();
-
-        $this->assertEquals($space->created_by, $rootFolder->content->created_by);
-        $this->assertFalse(FolderTreeService::ensureRootOwner($rootFolder, $space));
+        $this->assertTrue($folder->save(), implode(' ', $folder->getFirstErrors()));
+        $this->assertNull($folder->parent_folder_id);
     }
 
-    public function testEnsureRootFolderStructure()
+    public function testASubfolderKeepsItsParent()
     {
-        $this->becomeUser('Admin');
-        $space = Space::findOne(2);
-        $rootFolder = FolderTreeService::initRoot($space);
-        $otherFolder = (new FolderContentService($rootFolder))->newFolder('Other', 'Other folder');
-        $this->assertTrue($otherFolder->save());
+        $parent = $this->addFolder('Projects');
+        $child = (new FolderContentService($this->space, $parent))->newFolder('Drafts', '');
 
-        $rootFolder->content->created_by = 1;
-        $this->assertTrue($rootFolder->content->save(false, ['created_by']));
-
-        FolderTreeService::ensureRootStructure($space);
-
-        $rootFolder->refresh();
-        $rootFolder->content->refresh();
-
-        $this->assertEquals($space->created_by, $rootFolder->content->created_by);
-        $this->assertFalse($rootFolder->isNewRecord);
+        $this->assertTrue($child->save(), implode(' ', $child->getFirstErrors()));
+        $this->assertEquals($parent->id, $child->parent_folder_id);
     }
 
-    public function testEnsureRootFolderStructureCreatesTheRootWhenMissing()
+    public function testTwoFoldersOfTheSameNameCannotShareALevel()
     {
-        $this->becomeUser('Admin');
-        $space = Space::findOne(2);
+        $this->addFolder('Projects');
 
-        $this->assertNull(FolderTreeService::getRoot($space));
+        $duplicate = (new FolderContentService($this->space))->newFolder('Projects', '');
 
-        FolderTreeService::ensureRootStructure($space);
-
-        $root = FolderTreeService::getRoot($space);
-        $this->assertInstanceOf(Folder::class, $root);
-        $this->assertEquals($space->created_by, $root->content->created_by);
+        $this->assertFalse($duplicate->save());
+        $this->assertArrayHasKey('title', $duplicate->getErrors());
     }
 
+    public function testTheSameNameIsFineOnDifferentLevels()
+    {
+        $parent = $this->addFolder('Projects');
+        $child = (new FolderContentService($this->space, $parent))->newFolder('Projects', '');
+
+        $this->assertTrue($child->save(), implode(' ', $child->getFirstErrors()));
+    }
+
+    /**
+     * A folder that is its own ancestor would make the tree unwalkable — every recursive
+     * operation (visibility, delete, the breadcrumb) would spin.
+     */
+    public function testAFolderCannotBecomeItsOwnAncestor()
+    {
+        $parent = $this->addFolder('Projects');
+        $child = $this->addFolder('Drafts', $parent);
+
+        $parent->parent_folder_id = $child->id;
+
+        $this->assertFalse($parent->save());
+        $this->assertArrayHasKey('parent_folder_id', $parent->getErrors());
+    }
+
+    public function testDeletingAFolderTakesItsSubfoldersWithIt()
+    {
+        $parent = $this->addFolder('Projects');
+        $child = $this->addFolder('Drafts', $parent);
+
+        $this->assertTrue((bool)$parent->delete());
+        $this->assertNull(Folder::findOne(['id' => $child->id]));
+    }
+
+    private function addFolder(string $title, ?Folder $parent = null): Folder
+    {
+        $folder = (new FolderContentService($this->space, $parent))->newFolder($title, '');
+
+        $this->assertTrue($folder->save(), implode(' ', $folder->getFirstErrors()));
+
+        return $folder;
+    }
 }

@@ -11,6 +11,7 @@ namespace humhub\modules\cfiles\services;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\Module;
+use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use humhub\modules\cfiles\serializers\FolderSerializer;
 use Yii;
@@ -50,9 +51,14 @@ class FolderListingService
 
     private FolderContentService $content;
 
-    public function __construct(private Folder $folder)
-    {
-        $this->content = new FolderContentService($folder);
+    /**
+     * @param Folder|null $folder the folder to list, or null for the container's top level.
+     */
+    public function __construct(
+        private ContentContainerActiveRecord $container,
+        private ?Folder $folder = null,
+    ) {
+        $this->content = new FolderContentService($container, $folder);
     }
 
     /**
@@ -74,7 +80,8 @@ class FolderListingService
         $pagination->setPage(max(1, $page) - 1);
 
         return [
-            'folder' => FolderSerializer::folder($this->folder),
+            // null at the top level: there is no folder record standing in for it.
+            'folder' => $this->folder === null ? null : FolderSerializer::folder($this->folder),
             'path' => FolderSerializer::path($this->folder),
             'sort' => $sort,
             'order' => $sortOrder === SORT_DESC ? 'desc' : 'asc',

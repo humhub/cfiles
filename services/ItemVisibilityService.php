@@ -49,7 +49,7 @@ class ItemVisibilityService
     {
         $folder->content->visibility = $visibility;
 
-        $content = new FolderContentService($folder);
+        $content = new FolderContentService($folder->content->container, $folder);
 
         foreach ($content->subFiles() as $file) {
             $file->content->visibility = $visibility;

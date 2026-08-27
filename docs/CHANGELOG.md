@@ -8,6 +8,9 @@ Changelog
 - Enh: A folder listing is now paginated. Large folders no longer render every single row.
 - Enh: The row context menu is the new core `ContentControls` island. Modules contributing entries through `WallEntryControls::EVENT_INIT` keep working unchanged; see the core migration guide.
 - Enh: The models hold persistence and content integration only. Everything that was behaviour around a record — the folder tree and its root, creating items, moving them, name-collision rules, recursive visibility, the download counter, the integrity check — moved into `services/`. `models/` went from 3.440 to 1.050 lines; the module's server-side code from 9.508 to 4.998.
+- Enh: Dropped the per-container root folder. Top level is `parent_folder_id IS NULL` again, which is what the schema always allowed — the root was a Content record nobody could see, whose creator being deleted took the container's whole tree with it. With it go the `cfiles_folder.type` column, three event handlers and a service. A migration detaches the children and removes the records.
+- Enh: The API addresses a level of the tree as a container plus an optional `parent` folder (`GET /api/v2/cfiles/<containerId>/items?parent=<id>`), because the top level has no folder record a single id could name.
+- Enh: The stream's Edit control links into the file browser instead of loading an edit form of its own. One edit form in the module rather than two render paths.
 - Enh: Requires HumHub 1.20.
 - Removed: "Files from the stream". Files attached to posts and comments are no longer listed in the files module; they are unaffected otherwise, and a migration deletes the marker folder.
 - Removed: ZIP import and export, including the "Disable archive (ZIP) support" setting.
