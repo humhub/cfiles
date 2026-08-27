@@ -2,15 +2,15 @@
 
 namespace humhub\modules\cfiles\libs;
 
-use humhub\modules\file\models\File;
-use humhub\modules\comment\models\Comment;
-use humhub\modules\content\models\Content;
-use humhub\modules\post\models\Post;
-
 /**
- * This is a utility lib for files.
+ * Maps a file extension onto the FontAwesome icon the stream and the search results show
+ * for it.
  *
- * @package humhub.modules.gallery.libs
+ * Not replaceable by the core's `MimeHelper`: that one answers the `mime-*` CSS classes the
+ * platform's own file widgets are styled with, which is a different vocabulary. The API uses
+ * `MimeHelper` (see `serializers\FileSerializer`) because a client renders its own icons;
+ * this stays for the server-rendered stream entry.
+ *
  * @since 1.0
  * @author Sebastian Stumpf
  */
@@ -119,68 +119,6 @@ class FileUtils
             }
         }
         return self::$map['default']['icon'];
-    }
-
-    /**
-     * Get the extensions type.
-     *
-     * @param string $ext
-     *            the extension.
-     * @return string the type or 'unknown'.
-     */
-    public static function getItemTypeByExt($ext)
-    {
-        $ext = strtolower($ext);
-        foreach (self::$map as $type => $info) {
-            if (in_array($ext, $info['ext'])) {
-                return $type;
-            }
-        }
-        return 'unknown';
-    }
-
-    /**
-     * Get the content model the file is connected to.
-     * @param File $basefile the file.
-     */
-    public static function getBaseContent($file = null)
-    {
-        if ($file === null) {
-            return null;
-        }
-        $searchItem = $file;
-        // if the item is connected to a Comment, we have to search for the corresponding Post
-        if ($file->object_model === Comment::className()) {
-            $searchItem = Comment::findOne([
-                'id' => $file->object_id,
-            ]);
-        }
-        $query = Content::find();
-        $query->andWhere([
-            'content.object_id' => $searchItem->object_id,
-            'content.object_model' => $searchItem->object_model,
-        ]);
-        return $query->one();
-    }
-
-    /**
-     * Get the post the file is connected to.
-     * @param File $basefile the file.
-     */
-    public static function getBasePost($file = null)
-    {
-        if ($file === null) {
-            return null;
-        }
-        $searchItem = $file;
-        // if the item is connected to a Comment, we have to search for the corresponding Post
-        if ($file->object_model === Comment::className()) {
-            $searchItem = Comment::findOne([
-                'id' => $file->object_id,
-            ]);
-        }
-        $return = Post::findOne(['id' => $searchItem->object_id,
-        ]);
     }
 
 }

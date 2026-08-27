@@ -1,8 +1,19 @@
 Changelog
 =========
 
-0.19.0 - Unreleased
--------------------
+1.0.0 - Unreleased
+------------------
+- Enh: Rebuilt the file browser as a Vue.js island on the new core HTTP API (`/api/v2/cfiles`). The module no longer renders any of the browser server-side; folder navigation happens without a page load, and the URL (`?fid=`) is unchanged, so existing links keep working.
+- Enh: Added drag & drop — files from the desktop upload into the open folder, rows dragged onto a folder or a breadcrumb segment move there.
+- Enh: A folder listing is now paginated. Large folders no longer render every single row.
+- Enh: The row context menu is the new core `ContentControls` island. Modules contributing entries through `WallEntryControls::EVENT_INIT` keep working unchanged; see the core migration guide.
+- Enh: The models hold persistence and content integration only. Everything that was behaviour around a record — the folder tree and its root, creating items, moving them, name-collision rules, recursive visibility, the download counter, the integrity check — moved into `services/`. `models/` went from 3.440 to 1.050 lines; the module's server-side code from 9.508 to 4.998.
+- Enh: Requires HumHub 1.20.
+- Removed: "Files from the stream". Files attached to posts and comments are no longer listed in the files module; they are unaffected otherwise, and a migration deletes the marker folder.
+- Removed: ZIP import and export, including the "Disable archive (ZIP) support" setting.
+- Removed: The file version history UI. Versioning itself stays a core file-module feature.
+- Removed: The `/api/v1` endpoints of this module, superseded by `/api/v2/cfiles`.
+- Removed: The Custom Pages template elements (File, Files, Folder, Folders).
 - Enh #288: Send a single notification to announce all files uploaded within a short period of time, rather than sending one notification per file (humhub/humhub#5334)
 
 0.18.3 - July 22, 2026

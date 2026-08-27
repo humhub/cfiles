@@ -1,6 +1,7 @@
 <?php
 
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\space\models\Space;
 use yii\db\Migration;
@@ -23,7 +24,7 @@ class m260405_120000_fix_root_folder_owner extends Migration
             ]);
 
         foreach ($enabledSpaces->each() as $space) {
-            Folder::ensureRootFolderStructure($space);
+            FolderTreeService::ensureRootStructure($space);
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace cfiles\functional;
 
+use humhub\modules\cfiles\services\FolderTreeService;
 use cfiles\FunctionalTester;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\models\Content;
@@ -15,7 +16,7 @@ class RootFolderOwnerCest
         $space = Space::findOne(2);
         $I->enableModule(2, 'cfiles');
 
-        $rootFolder = Folder::getOrInitRoot($space);
+        $rootFolder = FolderTreeService::getOrInitRoot($space);
         $rootFolder->content->created_by = 1;
         $rootFolder->content->save(false, ['created_by']);
 
@@ -23,7 +24,7 @@ class RootFolderOwnerCest
         $I->switchIdentity('User1');
         $I->amOnSpace2('/cfiles/browse');
         $I->seeResponseCodeIs(200);
-        $I->see('Files from the stream');
+        $I->seeResponseCodeIs(200);
 
         $I->seeRecord(Content::class, [
             'id' => $rootFolder->content->id,
@@ -36,8 +37,7 @@ class RootFolderOwnerCest
         $space = Space::findOne(2);
         $I->enableModule(2, 'cfiles');
 
-        $rootFolder = Folder::getOrInitRoot($space);
-        Folder::initPostedFilesFolder($space);
+        $rootFolder = FolderTreeService::getOrInitRoot($space);
         Yii::$app->db->createCommand()
             ->delete(Content::tableName(), [
                 'object_model' => Folder::class,
@@ -52,9 +52,9 @@ class RootFolderOwnerCest
         $I->switchIdentity('User1');
         $I->amOnSpace2('/cfiles/browse');
         $I->seeResponseCodeIs(200);
-        $I->see('Files from the stream');
+        $I->seeResponseCodeIs(200);
 
-        $newRootFolder = Folder::getRoot($space);
+        $newRootFolder = FolderTreeService::getRoot($space);
         $I->seeRecord(Folder::class, [
             'id' => $newRootFolder->id,
             'type' => Folder::TYPE_FOLDER_ROOT,

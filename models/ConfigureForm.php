@@ -13,7 +13,6 @@ use humhub\modules\cfiles\Module;
  */
 class ConfigureForm extends \yii\base\Model
 {
-    public $disableZipSupport;
     public $displayDownloadCount;
 
     public $contentHiddenDefault;
@@ -23,7 +22,6 @@ class ConfigureForm extends \yii\base\Model
         parent::init();
 
         $module = $this->getModule();
-        $this->disableZipSupport = !$module->isZipSupportEnabled();
         $this->displayDownloadCount = $module->getDisplayDownloadCount();
         $this->contentHiddenDefault = $module->getContentHiddenGlobalDefault();
     }
@@ -42,7 +40,7 @@ class ConfigureForm extends \yii\base\Model
     public function rules()
     {
         return [
-            [['disableZipSupport', 'displayDownloadCount', 'contentHiddenDefault'], 'boolean'],
+            [['displayDownloadCount', 'contentHiddenDefault'], 'boolean'],
         ];
     }
 
@@ -52,7 +50,6 @@ class ConfigureForm extends \yii\base\Model
     public function attributeLabels()
     {
         return [
-            'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support'),
             'displayDownloadCount' => Yii::t('CfilesModule.base', 'Display a download count column'),
         ];
     }
@@ -64,7 +61,6 @@ class ConfigureForm extends \yii\base\Model
         }
 
         $module = $this->getModule();
-        $module->settings->set('disableZipSupport', $this->disableZipSupport);
         $module->settings->set('displayDownloadCount', $this->displayDownloadCount);
         $module->settings->set('contentHiddenGlobalDefault', $this->contentHiddenDefault);
 

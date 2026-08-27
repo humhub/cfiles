@@ -8,93 +8,77 @@
 
 namespace humhub\modules\cfiles\controllers;
 
-use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\cfiles\models\rows\FileRow;
-use humhub\modules\cfiles\widgets\FileList;
-use humhub\modules\cfiles\widgets\FileSystemItem;
-use Yii;
+use humhub\modules\cfiles\services\FolderTreeService;
+use humhub\modules\cfiles\permissions\WriteAccess;
+use humhub\modules\cfiles\services\FolderListingService;
+use humhub\modules\content\components\ContentContainerController;
 use yii\web\HttpException;
 
 /**
- * Description of BrowseController
+ * The file browser page.
+ *
+ * All it does is mount the `FileBrowser` island and hand it the folder it should open,
+ * already filled with its first page — everything after that runs against `/api/v2/cfiles`.
+ * Folder navigation inside the browser never comes back here; the island rewrites the URL
+ * itself (see `vue/FileBrowser.vue`).
  *
  * @author luke, Sebastian Stumpf
  */
-class BrowseController extends BaseController
+class BrowseController extends ContentContainerController
 {
-    public function actionIndex()
+    /**
+     * @inheritdoc
+     */
+    public $hideSidebar = true;
+
+    /**
+     * @param int $fid the folder to open; 0 (or absent) is the container's root folder. The
+     *        parameter name is unchanged from the server-rendered browser, so every existing
+     *        permalink, notification link and search result still opens the right folder.
+     */
+    public function actionIndex($fid = 0)
     {
-        $currentFolder = $this->getCurrentFolder();
-        if (!$currentFolder->content->canView()) {
+        FolderTreeService::ensureRootStructure($this->contentContainer);
+
+        $folder = $this->resolveFolder((int)$fid);
+
+        if (!$folder->content->canView()) {
             throw new HttpException(403);
         }
 
         return $this->render('index', [
             'contentContainer' => $this->contentContainer,
-            'folder' => $currentFolder,
-            'canWrite' => $this->canWrite(),
-        ]);
-    }
-
-    public function actionFileList()
-    {
-        return $this->asJson(['output' => $this->renderFileList()]);
-    }
-
-    /**
-     * Returns rendered file list.
-     *
-     * @return string
-     */
-    public function renderFileList(): string
-    {
-        return FileList::widget([
-            'folder' => $this->getCurrentFolder(),
-            'contentContainer' => $this->contentContainer,
-        ]);
-    }
-
-    public function actionLoadEntry()
-    {
-        if ($file = $this->getFileById()) {
-            return $this->asJson([
-                'output' => $this->renderFileRow($file),
-                // Additional scripts may be generated here in order to display some messages in info footer bar
-                'scripts' => $this->renderAjaxContent(''),
-            ]);
-        }
-
-        return $this->asJson([
-            'success' => false,
-            'error' => Yii::t('CfilesModule.base', 'No file found!'),
-        ]);
-    }
-
-    private function getFileById(): ?File
-    {
-        $fileId = Yii::$app->request->get('id');
-        $fileId = str_starts_with((string) $fileId, 'file_') ? substr((string) $fileId, 5) : 0;
-
-        if (empty($fileId)) {
-            return null;
-        }
-
-        return File::find()->readable()->where(['cfiles_file.id' => $fileId])->one();
-    }
-
-    private function renderFileRow(File $file)
-    {
-        if ($file->parent_folder_id) {
-            $folder = Folder::findOne(['id' => $file->parent_folder_id]);
-        } else {
-            $folder = $this->getRootFolder();
-        }
-
-        return FileSystemItem::widget([
             'folder' => $folder,
-            'row' => new FileRow(['item' => $file]),
+            // The first page travels with the HTML, so the island paints without a request.
+            'listing' => (new FolderListingService($folder))->payload(),
+            // Container-wide, not per folder, so the island can keep it across navigation.
+            'canWrite' => $this->contentContainer->permissionManager->can(WriteAccess::class),
         ]);
     }
 
+    private function resolveFolder(int $fid): Folder
+    {
+        if ($fid === 0) {
+            $root = FolderTreeService::getRoot($this->contentContainer);
+
+            if (!$root instanceof Folder) {
+                throw new HttpException(404);
+            }
+
+            return $root;
+        }
+
+        $folder = Folder::find()
+            ->contentContainer($this->contentContainer)
+            ->readable()
+            ->where(['cfiles_folder.id' => $fid])
+            ->one();
+
+        if (!$folder instanceof Folder) {
+            throw new HttpException(404);
+        }
+
+        return $folder;
+    }
 }

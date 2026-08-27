@@ -11,137 +11,50 @@ namespace humhub\modules\cfiles\controllers;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
-use humhub\modules\cfiles\models\forms\SelectionForm;
-use humhub\modules\cfiles\Module;
-use humhub\modules\content\models\Content;
-use Yii;
+use humhub\modules\cfiles\serializers\FileSerializer;
+use humhub\modules\cfiles\serializers\FolderSerializer;
+use humhub\modules\content\components\ContentContainerController;
 use yii\web\HttpException;
 
 /**
- * Description of BrowseController
+ * The edit dialog reached from a wall entry in the stream.
  *
- * @property Module $module
+ * The file browser edits inline — it opens `ItemForm` in a Vue modal of its own and never
+ * comes here. The stream is still server-rendered, though, and its wall entry controls open
+ * an edit URL as a modal (`WallEntryFile::$editRoute`, `EDIT_MODE_MODAL`), so that URL has to
+ * keep answering with a modal.
+ *
+ * It answers with the SAME island the browser uses, wrapped in a modal shell. There is one
+ * edit form in this module, not two.
+ *
  * @author luke, Sebastian Stumpf
  */
-class EditController extends BrowseController
+class EditController extends ContentContainerController
 {
-    /**
-     * Action to edit a given folder.
-     *
-     * @return string
-     */
-    public function actionFolder($id = null)
+    public function actionFile($id)
     {
-        $folder = FileSystemItem::getItemById($id);
+        $file = File::find()->readable()->where(['cfiles_file.id' => (int)$id])->one();
 
-        $post = Yii::$app->request->post();
+        return $this->renderItem($file, FileSerializer::file(...));
+    }
 
-        // create new folder if no folder was found or folder is not editable.
-        if (!($folder instanceof Folder) || !$folder->isEditableFolder()) {
-            $this->getCurrentFolder()->resolveConflictsBeforeCreate($post['Folder']['title'] ?? null);
-            $folder = $this->getCurrentFolder()->newFolder();
-            $folder->content->container = $this->contentContainer;
-            $folder->hidden = $this->module->getContentHiddenDefault($this->contentContainer);
-        }
+    public function actionFolder($id)
+    {
+        $folder = Folder::find()->readable()->where(['cfiles_folder.id' => (int)$id])->one();
 
-        if (!($folder instanceof Folder) || $folder->content->container->id !== $this->contentContainer->id) {
+        return $this->renderItem($folder, FolderSerializer::folder(...));
+    }
+
+    private function renderItem(?FileSystemItem $item, callable $serialize): string
+    {
+        if ($item === null || $item->content->container->id !== $this->contentContainer->id) {
             throw new HttpException(404);
         }
 
-        if (!$folder->content->canEdit()) {
+        if (!$item->content->canEdit()) {
             throw new HttpException(403);
         }
 
-        if ($folder->load($post) && $folder->save()) {
-            $this->view->saved();
-            return $this->htmlRedirect($folder->createUrl('/cfiles/browse/index'));
-        }
-
-        return $this->renderPartial('modal_edit_folder', [
-            'folder' => $folder,
-            'submitUrl' => $this->getCurrentFolder()->createUrl('/cfiles/edit/folder', ['id' => $folder->getItemId()]),
-        ]);
+        return $this->renderAjax('modal', ['item' => $serialize($item)]);
     }
-
-    /**
-     * Action to edit a given file.
-     *
-     * @return string
-     */
-    public function actionFile($id, $fromWall = 0)
-    {
-        $file = FileSystemItem::getItemById($id);
-
-        if ($file && $file->content->container->id !== $this->contentContainer->id) {
-            throw new HttpException(404);
-        }
-
-        // if not return cause this should not happen
-        if (empty($file) || !($file instanceof File)) {
-            throw new HttpException(404, Yii::t('CfilesModule.base', 'Cannot edit non existing file.'));
-        }
-
-        if (!$file->content->canEdit()) {
-            throw new HttpException(403);
-        }
-
-        if ($file->baseFile->load(Yii::$app->request->post()) && $file->baseFile->validate()) {
-            $duplicate = File::getFileByName($file->baseFile->file_name, $file->parent_folder_id, $this->contentContainer);
-            if ($duplicate && !$duplicate->is($file)) {
-                $file->baseFile->addErrors(['file_name' => Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.')]);
-            } elseif ($file->load(Yii::$app->request->post()) && $file->save()) {
-                if ($fromWall) {
-                    return $this->asJson(['success' => true]);
-                } else {
-                    $this->view->saved();
-                    return $this->htmlRedirect($this->contentContainer->createUrl('/cfiles/browse/index', ['fid' => $file->parent_folder_id]));
-                }
-            }
-        }
-
-        return $this->renderPartial('modal_edit_file', [
-            'file' => $file,
-            'submitUrl' =>  $this->contentContainer->createUrl('/cfiles/edit/file', ['fid' => $file->parent_folder_id, 'id' => $file->getItemId(), 'fromWall' => $fromWall]),
-        ]);
-    }
-
-    /**
-     * @return string
-     */
-    public function actionMakePrivate()
-    {
-        return $this->updateVisibility(new SelectionForm(), Content::VISIBILITY_PRIVATE);
-    }
-
-    /**
-     * @return string
-     */
-    public function actionMakePublic()
-    {
-        return $this->updateVisibility(new SelectionForm(), Content::VISIBILITY_PUBLIC);
-    }
-
-    /**
-     * @param SelectionForm $model
-     * @param $visibility
-     * @return string
-     */
-    private function updateVisibility(SelectionForm $model, $visibility)
-    {
-        foreach ($model->selection as $itemId) {
-            $item = FileSystemItem::getItemById($itemId);
-
-            if (!$item->content->canEdit()) {
-                throw new HttpException(403);
-            }
-
-            if ($item && $item->content->container->id === $this->contentContainer->id) {
-                $item->updateVisibility($visibility);
-                $item->content->save();
-            }
-        }
-
-        return $this->renderFileList();
-    }
-
 }

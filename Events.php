@@ -2,18 +2,14 @@
 
 namespace humhub\modules\cfiles;
 
-use humhub\commands\IntegrityController;
 use humhub\helpers\ControllerHelper;
-use humhub\modules\cfiles\extensions\custom_pages\elements\FileElement;
-use humhub\modules\cfiles\extensions\custom_pages\elements\FilesElement;
-use humhub\modules\cfiles\extensions\custom_pages\elements\FolderElement;
-use humhub\modules\cfiles\extensions\custom_pages\elements\FoldersElement;
 use humhub\modules\cfiles\models\File;
-use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\services\DownloadCounterService;
+use humhub\modules\cfiles\services\FolderTreeService;
+use humhub\modules\cfiles\services\IntegrityService;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainer;
 use humhub\modules\content\models\ContentContainerModuleState;
-use humhub\modules\file\actions\DownloadAction;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\space\models\Space;
 use humhub\modules\space\widgets\Menu;
@@ -46,39 +42,19 @@ class Events
     }
 
     /**
-     * Callback to validate module database records.
-     *
-     * @param Event $event
+     * Validates the module's records — see {@see IntegrityService}.
      */
     public static function onIntegrityCheck($event)
     {
-        /* @var IntegrityController $integrityController */
-        $integrityController = $event->sender;
-        $integrityController->showTestHeadline("CFile Module (" . File::find()->count() . " entries)");
+        IntegrityService::check($event->sender);
+    }
 
-        foreach (File::find()->each() as $file) {
-            /* @var $file \humhub\modules\cfiles\models\File */
-
-            // If parent_folder_id is 0 or null its an old root child which is not merged yet.
-            if (!empty($file->parent_folder_id) && empty($file->parentFolder)) {
-                if ($integrityController->showFix("Deleting cfile id " . $file->id . " without existing parent!")) {
-                    $file->hardDelete();
-                }
-            }
-        }
-
-        $integrityController->showTestHeadline("CFile Module (" . File::find()->count() . " entries)");
-
-        foreach (Folder::find()->each() as $folder) {
-            /* @var $file \humhub\modules\cfiles\models\File */
-
-            // If parent_folder_id is 0 or null its either an old root child which is not merged yet or an root directory.
-            if (!empty($folder->parent_folder_id) && empty($folder->parentFolder)) {
-                if ($integrityController->showFix("Deleting cfile folder id " . $folder->id . " without existing parent!")) {
-                    $folder->hardDelete();
-                }
-            }
-        }
+    /**
+     * Counts a download the core file module just served — see {@see DownloadCounterService}.
+     */
+    public static function onAfterFileAction(Event $event)
+    {
+        DownloadCounterService::track($event->action ?? null);
     }
 
     public static function onProfileMenuInit($event)
@@ -96,49 +72,6 @@ class Events
     }
 
     /**
-     * Callback on after file controller action
-     *
-     * @param Event $event
-     */
-    public static function onAfterFileAction(Event $event)
-    {
-        if (!isset($event->action) || !$event->action instanceof DownloadAction) {
-            return;
-        }
-
-        $request = Yii::$app->request;
-        $response = Yii::$app->response;
-        $guid = $request->get('guid');
-
-        if (
-            empty($guid)
-            || !$request->isGet
-            || $request->isHead
-            || $request->get('variant') !== null
-            || $request->get('suffix') !== null
-            || !$request->get('download', false)
-            || $response->statusCode !== 200
-        ) {
-            return;
-        }
-
-        $downloadedFile = File::getFileByGuid($guid);
-        if (!$downloadedFile) {
-            return;
-        }
-
-        $trackedDownloads = Yii::$app->session->get('trackedDownloads', []);
-        if (in_array($downloadedFile->id, $trackedDownloads, true)) {
-            return;
-        }
-
-        $trackedDownloads[] = $downloadedFile->id;
-        Yii::$app->session->set('trackedDownloads', $trackedDownloads);
-
-        File::updateAllCounters(['download_count' => 1], ['id' => $downloadedFile->id]);
-    }
-
-    /**
      * Callback when user or space is inserted
      *
      * @param Event $event
@@ -152,7 +85,7 @@ class Events
 
         if ($container instanceof ContentContainerActiveRecord
             && $container->moduleManager->isEnabled('cfiles')) {
-            Folder::ensureRootFolderStructure($container);
+            FolderTreeService::ensureRootStructure($container);
         }
     }
 
@@ -176,7 +109,7 @@ class Events
 
         if (($contentContainer = ContentContainer::findOne(['id' => $moduleState->contentcontainer_id]))
             && ($container = $contentContainer->getPolymorphicRelation())) {
-            Folder::ensureRootFolderStructure($container);
+            FolderTreeService::ensureRootStructure($container);
         }
     }
 
@@ -189,35 +122,7 @@ class Events
             return;
         }
 
-        Folder::ensureRootFolderStructure($space);
-    }
-
-    public static function onRestApiAddRules()
-    {
-        /* @var \humhub\modules\rest\Module $restModule */
-        $restModule = Yii::$app->getModule('rest');
-        $restModule->addRules([
-
-            //File
-            ['pattern' => 'cfiles/files/container/<containerId:\d+>', 'route' => 'cfiles/rest/file/find-by-container', 'verb' => 'GET'],
-            ['pattern' => 'cfiles/files/container/<containerId:\d+>', 'route' => 'cfiles/rest/file/upload', 'verb' => 'POST'],
-            ['pattern' => 'cfiles/file/<id:\d+>', 'route' => 'cfiles/rest/file/view', 'verb' => ['GET', 'HEAD']],
-            ['pattern' => 'cfiles/file/<id:\d+>', 'route' => 'cfiles/rest/file/delete', 'verb' => 'DELETE'],
-
-            //Folder
-            ['pattern' => 'cfiles/folders/container/<containerId:\d+>', 'route' => 'cfiles/rest/folder/find-by-container', 'verb' => 'GET'],
-            ['pattern' => 'cfiles/folders/container/<containerId:\d+>', 'route' => 'cfiles/rest/folder/create', 'verb' => 'POST'],
-            ['pattern' => 'cfiles/folder/<id:\d+>', 'route' => 'cfiles/rest/folder/view', 'verb' => ['GET', 'HEAD']],
-            ['pattern' => 'cfiles/folder/<id:\d+>', 'route' => 'cfiles/rest/folder/update', 'verb' => 'PUT'],
-            ['pattern' => 'cfiles/folder/<id:\d+>', 'route' => 'cfiles/rest/folder/delete', 'verb' => 'DELETE'],
-
-            //Items management
-            ['pattern' => 'cfiles/items/container/<containerId:\d+>/make-public', 'route' => 'cfiles/rest/manage/make-public', 'verb' => 'PATCH'],
-            ['pattern' => 'cfiles/items/container/<containerId:\d+>/make-private', 'route' => 'cfiles/rest/manage/make-private', 'verb' => 'PATCH'],
-            ['pattern' => 'cfiles/items/container/<containerId:\d+>/move', 'route' => 'cfiles/rest/manage/move', 'verb' => 'POST'],
-            ['pattern' => 'cfiles/items/container/<containerId:\d+>/delete', 'route' => 'cfiles/rest/manage/delete', 'verb' => 'DELETE'],
-
-        ], 'cfiles');
+        FolderTreeService::ensureRootStructure($space);
     }
 
     public static function onAfterNewStoredFile($event)
@@ -236,16 +141,6 @@ class Events
             'updated_at' => $baseFile->updated_at,
             'updated_by' => $baseFile->updated_by,
         ]);
-    }
-
-    public static function onCustomPagesTemplateElementTypeServiceInit($event)
-    {
-        /* @var \humhub\modules\custom_pages\modules\template\services\ElementTypeService $elementTypeService */
-        $elementTypeService = $event->sender;
-        $elementTypeService->addType(FileElement::class);
-        $elementTypeService->addType(FilesElement::class);
-        $elementTypeService->addType(FolderElement::class);
-        $elementTypeService->addType(FoldersElement::class);
     }
 
 }

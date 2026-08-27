@@ -3,6 +3,7 @@
 namespace humhub\modules\cfiles\models;
 
 use humhub\modules\cfiles\Module;
+use humhub\modules\cfiles\services\FolderTreeService;
 use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -11,25 +12,39 @@ use humhub\modules\content\models\Content;
 use Yii;
 
 /**
- * This is the model class for table "cfiles_file".
+ * What a cfiles file and a cfiles folder have in common: a row with a parent, wrapped in a
+ * HumHub content record.
+ *
+ * Deliberately thin. Everything that is BEHAVIOUR around the tree — creating items, moving
+ * them, resolving name collisions, propagating visibility, managing the root — lives in
+ * `services\`, so what remains here is persistence and the content integration the platform
+ * requires.
  *
  * @property int $id
  * @property int $parent_folder_id
- * @property string description
+ * @property string $description
  *
  * @property-read Folder|null $parentFolder
  */
-abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface
+abstract class FileSystemItem extends ContentActiveRecord
 {
     /**
-     * @var int used for edit form
-     */
-    public $visibility;
-
-    /**
-     * @var ?int used for edit form
+     * @var ?int whether the item is hidden from the stream.
+     *
+     * Not a column either: synced from the content record in {@see self::afterFind()},
+     * defaulted from the module setting on insert in {@see self::beforeSave()}, and written
+     * back in {@see self::afterSave()}.
      */
     public $hidden = null;
+
+    /**
+     * @var int|null the requested content visibility.
+     *
+     * Not a column: {@see Folder::beforeSave()} and {@see File::afterSave()} apply it to the
+     * content record, recursively for a folder. A write leaves it null to keep the current
+     * visibility.
+     */
+    public $visibility;
 
     /**
      * @inheritdoc
@@ -57,34 +72,19 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         ];
     }
 
-    abstract public function updateVisibility($visibility);
-
     abstract public function getSize();
 
-    abstract public function getItemType();
+    /**
+     * @return string the item's display name — a folder's title, a file's file name.
+     */
+    abstract public function getTitle();
+
+    /**
+     * @return string the item's own URL, or the folder URL a file lives in
+     */
+    abstract public function getUrl(bool $scheme = false);
 
     abstract public function getDescription();
-
-    abstract public function getDownloadCount();
-
-    abstract public function getVisibilityTitle();
-
-    /**
-     * @return string
-     */
-    abstract public function getVersionsUrl(int $versionId = 0): ?string;
-
-    /**
-     * @return string
-     */
-    abstract public function getDeleteVersionUrl(int $versionId): ?string;
-
-    /**
-     * Rename a conflicted Item with same name
-     *
-     * @return bool
-     */
-    abstract public function renameConflicted(): bool;
 
     /**
      * @inheritdoc
@@ -176,7 +176,6 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      * Update parent Folder if it is from different Content Container(Space/User)
      * This File/Folder will be moved into the root Folder of the current Content Container
      *
-     * @param ContentContainerActiveRecord $container
      * @return bool True on success moving or if parent Folder is already in the same Content Container
      */
     public function updateParentFolder(): bool
@@ -186,7 +185,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
             return true;
         }
 
-        if (!($root = Folder::getOrInitRoot($this->content->getContainer()))) {
+        if (!($root = FolderTreeService::getOrInitRoot($this->content->getContainer()))) {
             return false;
         }
 
@@ -199,9 +198,13 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         return $this->hasAttribute($attributeName) && ($this->isNewRecord || $this->getOldAttribute($attributeName) != $this->$attributeName);
     }
 
+    /**
+     * Whether this is the same item — same kind, same row. A file and a folder can share a
+     * numeric id, so the class is part of the comparison.
+     */
     public function is(FileSystemItem $item)
     {
-        return $this->getItemId() === $item->getItemId();
+        return static::class === $item::class && (int)$this->id === (int)$item->id;
     }
 
     public function hasParent(FileSystemItem $folder)
@@ -248,7 +251,7 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function validateParentFolderId($attribute = 'parent_folder_id')
     {
         if ($this->parent_folder_id != 0 && !($this->parentFolder instanceof Folder)) {
-            $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->title]));
+            $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->getTitle()]));
         }
     }
 
@@ -269,51 +272,21 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     }
 
     /**
-     * Determines this item is an editable folder.
-     *
-     * @param \humhub\modules\cfiles\models\FileSystemItem $item
-     * @return bool
+     * Whether this item is a folder that may be renamed, moved or deleted — every folder
+     * except the container's root, which is the tree itself rather than a node in it.
      */
-    public function isEditableFolder()
+    public function isEditableFolder(): bool
     {
-        // TODO: not that clean...
-        return ($this instanceof Folder) && !($this->isRoot() || $this->isAllPostedFiles());
+        return ($this instanceof Folder) && !$this->isRoot();
     }
 
     /**
-     * Determines if this item is deletable. The root folder and posted files folder is not deletable.
-     * @return bool
+     * Whether this item may be deleted. Files always may; the root folder never may, since
+     * deleting it would take the container's whole tree with it.
      */
-    public function isDeletable()
+    public function isDeletable(): bool
     {
-        if ($this instanceof Folder) {
-            return !($this->isRoot() || $this->isAllPostedFiles());
-        }
-        return true;
-    }
-
-    /**
-     * Returns a FileSystemItem instance by the given item id of form {type}_{id}
-     *
-     * @param string $itemId item id of form {type}_{id}
-     * @return FileSystemItem
-     */
-    public static function getItemById($itemId)
-    {
-        $params = empty($itemId) ? [] : explode('_', $itemId);
-
-        if (count($params) < 2) {
-            return null;
-        }
-
-        [$type, $id] = $params;
-        if ($type == 'file') {
-            return File::find()->andWhere(['cfiles_file.id' => $id])->readable()->one();
-        } elseif ($type == 'folder') {
-            return Folder::find()->andWhere(['cfiles_folder.id' => $id])->readable()->one();
-        }
-
-        return null;
+        return !($this instanceof Folder) || !$this->isRoot();
     }
 
     public function canManage(): bool

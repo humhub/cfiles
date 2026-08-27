@@ -62,7 +62,7 @@ class WallEntryFile extends WallStreamModuleEntryWidget
         }
 
         if ($this->model instanceof File) {
-            return $this->model->content->container->createUrl($this->editRoute, ['id' => $this->model->getItemId(), 'fromWall' => true]);
+            return $this->model->content->container->createUrl($this->editRoute, ['id' => $this->model->id, 'fromWall' => true]);
         }
 
         return '';

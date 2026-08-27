@@ -4,6 +4,7 @@ namespace humhub\modules\cfiles\models;
 
 use humhub\modules\cfiles\libs\FileUploadBatch;
 use humhub\modules\cfiles\libs\FileUtils;
+use humhub\modules\cfiles\services\ItemVisibilityService;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\Content;
@@ -202,7 +203,7 @@ class File extends FileSystemItem
         // Save topics
         Topic::attach($this->content, $this->topics);
 
-        $this->updateVisibility($this->visibility);
+        ItemVisibilityService::apply($this, $this->visibility === null ? null : (int)$this->visibility);
 
         parent::afterSave($insert, $changedAttributes);
 
@@ -213,59 +214,12 @@ class File extends FileSystemItem
         }
     }
 
-    public function updateVisibility($visibility)
-    {
-        if ($visibility === null) {
-            return;
-        }
-
-        if (!$this->parentFolder->content->isPrivate() || $visibility == Content::VISIBILITY_PRIVATE) {
-            // For user profile files we use Content::VISIBILITY_OWNER isntead of private
-            $this->content->visibility = $visibility;
-        }
-    }
-
-    public function getVisibilityTitle()
-    {
-        if (Yii::$app->getModule('friendship')->settings->get('enable') && $this->content->container instanceof User) {
-            if ($this->content->container->isCurrentuser()) {
-                $privateText =  Yii::t('CfilesModule.base', 'This file is only visible for you and your friends.');
-            } else {
-                $privateText =  Yii::t('CfilesModule.base', 'This file is protected.');
-            }
-
-            return  $this->content->isPublic()
-                ? Yii::t('CfilesModule.base', 'This file is public.')
-                : $privateText;
-        }
-
-        return  $this->content->isPublic()
-            ? Yii::t('CfilesModule.base', 'This file is public.')
-            : Yii::t('CfilesModule.base', 'This file is private.');
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getItemId()
-    {
-        return 'file_' . $this->id;
-    }
-
     /**
      * @inheritdoc
      */
     public function getContentId()
     {
         return $this->content->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getItemType()
-    {
-        return FileUtils::getItemTypeByExt(FileHelper::getExtension($this->baseFile));
     }
 
     /**
@@ -287,14 +241,6 @@ class File extends FileSystemItem
     public function getDescription()
     {
         return $this->description;
-    }
-
-    /**
-     * @return int
-     */
-    public function getDownloadCount()
-    {
-        return $this->download_count;
     }
 
     public function setTitle($title)
@@ -326,190 +272,10 @@ class File extends FileSystemItem
         return $this->parentFolder->getUrl($scheme);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getEditUrl()
-    {
-        return $this->content->container->createUrl('/cfiles/edit/file', ['id' => $this->getItemId()]);
-    }
-
-    /**
-     * Get the related Content record to the given file.
-     */
-    public static function getBasePost(?BaseFile $file = null): ?Content
-    {
-        if ($file === null) {
-            return null;
-        }
-
-        // If the File is linked to a Comment
-        if ($file->object_model === Comment::class) {
-            return Content::find()
-                ->innerJoin('comment', 'comment.content_id = content.id')
-                ->where(['comment.id' => $file->object_id])
-                ->one();
-        }
-
-        return Content::findOne([
-            'content.object_id' => $file->object_id,
-            'content.object_model' => $file->object_model,
-        ]);
-    }
-
     public function getBaseFile()
     {
         return $this->hasOne(BaseFile::class, ['object_id' => 'id'])
             ->andWhere(['file.object_model' => self::class]);
     }
 
-    public static function getPathFromId($id, $parentFolderPath = false, $separator = '/', $withRoot = false)
-    {
-        if ($id == 0) {
-            return $separator;
-        }
-        $item = File::findOne(['id' => $id]);
-
-        if (empty($item)) {
-            return null;
-        }
-
-        $tempFolder = $item->parentFolder;
-        $path = $separator;
-        if (!$parentFolderPath) {
-            $path .= $item->title;
-        }
-        $counter = 0;
-        // break at maxdepth 20 to avoid hangs
-        while (!empty($tempFolder) && $counter++ <= 20) {
-            $path = $separator . $tempFolder->title . $path;
-            $tempFolder = $tempFolder->parentFolder;
-        }
-        return $path;
-    }
-
-    public function getFullPath($separator = '/')
-    {
-        return static::getPathFromId($this->id, false, $separator);
-    }
-
-    /**
-     * Returns a query for all posted files visible for the current user.
-     *
-     * @param $contentContainer ContentContainerActiveRecord
-     * @param array $filesOrder orderBy array appended to the files query
-     * @return ActiveQuery
-     */
-    public static function getPostedFiles($contentContainer, $filesOrder = ['file.updated_at' => SORT_ASC, 'file.title' => SORT_ASC])
-    {
-        // only accept Posts as the base content, so stuff from sumbmodules like files itsself or gallery will be excluded
-
-        // Initialise sub queries to get files from Posts and Comments
-        $subQueries = [
-            Post::class => Content::find()
-                ->select('content.object_id')
-                ->where(['content.object_model' => Post::class]),
-            Comment::class => Content::find()
-                ->select('comment.id')
-                ->innerJoin('comment', 'comment.content_id = content.id')
-                ->where(['content.object_model' => Post::class]),
-        ];
-
-        $query = BaseFile::find();
-
-        foreach ($subQueries as $objectClass => $subQuery) {
-            // Filter Content records by container and visibility states
-            $subQuery->andWhere(['content.contentcontainer_id' => $contentContainer->contentContainerRecord->id])
-                ->andWhere(['content.state' => Content::STATE_PUBLISHED]);
-            if (!$contentContainer->canAccessPrivateContent()) {
-                // Note this will cut comment images, but including the visibility of comments is pretty complex...
-                $subQuery->andWhere(['content.visibility' => Content::VISIBILITY_PUBLIC]);
-            }
-
-            $query->orWhere([
-                'AND',
-                ['file.object_model' => $objectClass],
-                ['IN', 'file.object_id', $subQuery],
-            ]);
-        }
-
-        return $query->orderBy($filesOrder);
-    }
-
-    /**
-     * @return file of given name in given parent folder
-     */
-    public static function getFileByName($name, $parentFolderId, $contentContainer)
-    {
-        $filesQuery = self::find()->contentContainer($contentContainer)
-                ->joinWith('baseFile')
-                ->readable()
-                ->andWhere([
-                    'file_name' => $name,
-                    'cfiles_file.parent_folder_id' => $parentFolderId,
-                ]);
-        return $filesQuery->one();
-    }
-
-    /**
-     * Get File by guid
-     *
-     * @param $guid
-     * @return array|File|\yii\db\ActiveRecord
-     */
-    public static function getFileByGuid($guid)
-    {
-        return self::find()
-            ->innerJoin('file', 'object_id = ' . self::tableName() . '.id')
-            ->where(['guid' => $guid])
-            ->andWhere(['object_model' => self::class])
-            ->one();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getVersionsUrl(int $versionId = 0): ?string
-    {
-        if (!$this->content->canEdit()) {
-            return null;
-        }
-
-        $options = ['id' => $this->id];
-
-        if (!empty($versionId)) {
-            $options['version'] = $versionId;
-        }
-
-        return $this->content->container->createUrl('/cfiles/version', $options);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getDeleteVersionUrl(int $versionId): ?string
-    {
-        if (!$this->canManage()) {
-            return null;
-        }
-
-        return $this->content->container->createUrl('/cfiles/version/delete', [
-            'id' => $this->id,
-            'version' => $versionId,
-        ]);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function renameConflicted(): bool
-    {
-        if ($this->isNewRecord) {
-            return false;
-        }
-
-        $this->baseFile->file_name = 'conflict' . $this->baseFile->id . '-' . $this->baseFile->file_name;
-
-        return $this->baseFile->save();
-    }
 }

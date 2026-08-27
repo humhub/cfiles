@@ -1,189 +1,142 @@
-#cfiles-folderView a:not(:hover) {
-    color: var(--hh-text-color-highlight);
-}
+/*
+ * The file browser is a Vue island rendered into the platform's own `.hh-list` row shape
+ * (see protected/humhub/resources/scss/_list.scss in core), so almost everything it needs -
+ * row padding, hover, the accent border, `h4`/`h5` typography - comes from there. What is
+ * left here is the grid of a row, the drag & drop affordances and the move-dialog tree.
+ *
+ * Every colour is a theme variable; the browser must not look different in a dark theme.
+ */
 
-.overflow-ellipsis {
-  position: relative;
-  overflow: hidden;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .cfiles-content .breadcrumb {
-  border-radius: 0;
-  margin: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
+    background: none;
 }
 
-.cfiles-content .file-controls {
-  font-size: 11px;
-  color: var(--hh-text-color-soft2);
-  margin-top: 10px;
-  margin-bottom: 0;
-}
-.cfiles-content .file-controls a {
-  font-size: 11px;
-  color: var(--hh-text-color-soft2);
-  margin-top: 10px;
-  margin-bottom: 0;
-}
-.fileinput-button input {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 0;
-  opacity: 0;
-  -ms-filter: 'alpha(opacity=0)';
-  font-size: 200px;
-  direction: ltr;
-  cursor: pointer;
+.cfiles-toolbar {
+    padding-bottom: 8px;
 }
 
-.panel .panel-body .files-action-menu .btn {
-  font-size: 1em !important;
-  font-weight: normal !important;
-}
-.panel .panel-body .files-action-menu .btn-group .split-toggle {
-  width: auto !important;
-  float: right !important;
-  border-radius: 0px 3px 3px 0px;
-}
-.panel .panel-body .files-action-menu .btn-group .split-toggle:not(:first-child):not(:last-child):not(.dropdown-toggle) {
-  border-radius: 0px 3px 3px 0px;
-}
-.panel .panel-body .files-action-menu .btn-group > .split-button {
-  width: auto !important;
-  overflow: hidden;
-  display: block;
-  float: none !important;
-  border-radius: 3px 0px 0px 3px;
+/* A sort control is a button with a menu, not a navigation and not a content-controls menu,
+   so it does NOT wear `DropdownMenu`'s default `.nav-pills.preferences` root: `_nav.scss`
+   fills `.nav-pills .dropdown-menu` with the primary colour (right for a context menu, wrong
+   for this) and positions `.preferences` absolutely. It brings its own label through the
+   component's toggle slot. */
+.cfiles-sort-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-.filedelete-button {
-  cursor: pointer;
-}
-.filemove-button {
-  cursor: pointer;
-}
-.downloadzipped-button {
-  cursor: pointer;
-}
-.table-responsive td .title,
-.table-responsive td .timestamp,
-.table-responsive td .creator,
-.table-responsive td .size {
-  overflow: hidden;
-  -ms-text-overflow: ellipsis;
-  -o-text-overflow: ellipsis;
-  text-overflow: ellipsis;
-  display: block;
-  white-space: nowrap;
-}
-.table-responsive > table > tbody > tr > td {
-  vertical-align: middle;
-}
-.table-responsive .table .file-controls {
-  font-size: 11px;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.table-responsive .table .file-controls a {
-  font-size: 11px;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.table-responsive .table .file-controls hr {
-  margin-top: 2px;
-  margin-bottom: 2px;
+.cfiles-sort-menu > li {
+    position: relative;
 }
 
-#fileList .table-responsive {
-  overflow: initial;
-  border: none;
+/* --- rows ---------------------------------------------------------------- */
+
+/* `.hh-list` styles its direct children, which is what a row is. */
+.cfiles-list > .cfiles-row {
+    cursor: default;
 }
 
-#bs-table.table .file-actions {
-  padding-left: 0;
-  padding-right: 2px;
-  width: 0;
+.cfiles-row-select,
+.cfiles-row-creator,
+.cfiles-row-controls {
+    flex: 0 0 auto;
 }
 
-@media (min-width: 418px) {
-  #bs-table.table tr .context-icon {
-    display: none;
-  }
-  #bs-table.table tr:hover .context-icon {
-    display: inline-block;
-  }
+.cfiles-row-icon {
+    flex: 0 0 30px;
+    text-align: center;
+    font-size: 18px;
 }
 
-#bs-table.table>thead>tr>th,
-#bs-table.table>tbody>tr>th,
-#bs-table.table>tfoot>tr>th,
-#bs-table.table>thead>tr>td,
-#bs-table.table>tbody>tr>td,
-#bs-table.table>tfoot>tr>td {
-  padding: 10px 5px 5px 5px;
-  height: 45px;
+.cfiles-icon-folder {
+    color: var(--bs-accent);
 }
 
-#bs-table.table>thead>tr>th label,
-#bs-table.table>tbody>tr>th label,
-#bs-table.table>tfoot>tr>th label,
-#bs-table.table>thead>tr>td label,
-#bs-table.table>tbody>tr>td label,
-#bs-table.table>tfoot>tr>td label {
-  margin-bottom: 0px;
+.cfiles-icon-file {
+    color: var(--hh-text-color-soft2);
 }
 
-#bs-table.table ul.contextMenu li a {
-  font-size: 14px;
-  font-weight: normal;
+.cfiles-thumb {
+    width: 30px;
+    height: 24px;
+    object-fit: cover;
+    border-radius: 3px;
 }
 
-#bs-table.table tr.ui-draggable-dragging {
-  z-index: 10000;
+/* Bootstrap has no `min-width: 0` utility, and without it a flex child's text refuses to
+   truncate - the row would grow instead of ellipsizing. */
+.min-width-0 {
+    min-width: 0;
 }
 
-#fileList [data-ui-sort] {
-  font-weight:bold;
-  cursor: pointer;
+.cfiles-row-meta {
+    /* `.hh-list h5` already sets colour and weight; only the size differs here. */
+    font-size: 11.5px;
 }
 
-#fileList [data-ui-order="ASC"]:after {
-  content: "\25bc";
+/* The row menu is the platform's standard content-controls menu, so it keeps
+   `DropdownMenu`'s default `.nav-pills.preferences` root and looks like every other one —
+   including the primary-coloured surface `_nav.scss` gives it.
+
+   One thing does not fit: `_nav.scss` positions `.nav-pills.preferences` `absolute;
+   right: 10px; top: 10px`, which pins a stream entry's menu to its corner. A list row wants
+   it in the flex flow, and since the row is itself `position: relative` (via `.hh-list > div`)
+   leaving it alone would drop the menu on top of the row's own title. */
+.cfiles-row-controls .nav-pills.preferences {
+    position: static;
+    margin: 0;
 }
 
-#fileList [data-ui-order="DESC"]:after {
-  content: "\25b2";
-}
-
-
-.table-responsive td .title {
-  position: absolute;
-  width: 100%;
-  top: -10px;
-}
-@media (min-width: 420px) {
-  .table-responsive td:nth-child(2) {
-    width: 25%;
-    max-width: 25%;
-  }
-}
+/* The meatball appears on hover on the desktop and stays put on touch, where there is no
+   hover to reveal it. `:not(.show)` keeps an OPEN menu's toggle visible once the pointer
+   leaves the row — the same guard _comment.scss uses for the comment entry. */
 @media (min-width: 768px) {
-  .table-responsive td:nth-child(2) {
-    width: 30%;
-    max-width: 30%;
-  }
+    .cfiles-row .cfiles-row-toggle:not(.show) {
+        visibility: hidden;
+    }
+
+    .cfiles-row:hover .cfiles-row-toggle,
+    .cfiles-row:focus-within .cfiles-row-toggle {
+        visibility: visible;
+    }
 }
-@media (min-width: 992px) {
-  .table-responsive td:nth-child(2) {
-    width: 35%;
-    max-width: 35%;
-  }
+
+/* --- drag & drop --------------------------------------------------------- */
+
+.cfiles-row-drop,
+.cfiles-crumb-drop {
+    outline: 2px dashed var(--bs-accent);
+    outline-offset: -3px;
+    background-color: var(--hh-background-color-highlight-soft);
 }
-@media (min-width: 1200px) {
-  .table-responsive td:nth-child(2) {
-    width: 40%;
-    max-width: 40%;
-  }
+
+.cfiles-dropping {
+    outline: 2px dashed var(--bs-accent);
+    outline-offset: -6px;
+    background-color: var(--hh-background-color-highlight-soft);
+}
+
+.cfiles-upload-progress {
+    height: 6px;
+}
+
+/* --- empty state and move dialog ---------------------------------------- */
+
+.cfiles-empty {
+    font-size: 14px;
+}
+
+.cfiles-move-tree {
+    max-height: 40vh;
+    overflow-y: auto;
+    border: 1px solid var(--hh-background-color-page);
+    border-radius: 4px;
+}
+
+.cfiles-move-tree > div {
+    cursor: pointer;
 }
