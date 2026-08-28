@@ -2,6 +2,7 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\cfiles\libs\FileUploadBatch;
 use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -11,7 +12,6 @@ use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\post\models\Post;
-use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\topic\models\Topic;
 use humhub\modules\user\models\User;
 use Yii;
@@ -50,6 +50,16 @@ class File extends FileSystemItem
      * @inheritdoc
      */
     public $fileManagerEnableHistory = true;
+
+    /**
+     * @inheritdoc
+     *
+     * Uploading a set of files would otherwise create one notification and one e-mail per
+     * file. The whole upload is announced by a single FilesUploaded notification instead.
+     *
+     * @see FileUploadBatch
+     */
+    public $silentContentCreation = true;
 
     /**
      * @inheritdoc
@@ -135,7 +145,6 @@ class File extends FileSystemItem
         if ($this->baseFile) {
             $attributes['name'] = $this->getTitle();
         }
-        $this->trigger(self::EVENT_SEARCH_ADD, new SearchAddEvent($attributes));
         return $attributes;
     }
 
@@ -198,6 +207,10 @@ class File extends FileSystemItem
         parent::afterSave($insert, $changedAttributes);
 
         RichText::postProcess($this->description, $this);
+
+        if ($insert) {
+            FileUploadBatch::add($this);
+        }
     }
 
     public function updateVisibility($visibility)
@@ -322,24 +335,26 @@ class File extends FileSystemItem
     }
 
     /**
-     * Get the post related to the given file file.
+     * Get the related Content record to the given file.
      */
-    public static function getBasePost(?BaseFile $file = null)
+    public static function getBasePost(?BaseFile $file = null): ?Content
     {
         if ($file === null) {
             return null;
         }
 
-        $searchItem = $file;
-        // if the item is connected to a Comment, we have to search for the corresponding Post
+        // If the File is linked to a Comment
         if ($file->object_model === Comment::class) {
-            $searchItem = Comment::findOne($file->object_id);
+            return Content::find()
+                ->innerJoin('comment', 'comment.content_id = content.id')
+                ->where(['comment.id' => $file->object_id])
+                ->one();
         }
 
-        return Content::find()->where([
-            'content.object_id' => $searchItem->object_id,
-            'content.object_model' => $searchItem->object_model,
-        ])->one();
+        return Content::findOne([
+            'content.object_id' => $file->object_id,
+            'content.object_model' => $file->object_model,
+        ]);
     }
 
     public function getBaseFile()
@@ -396,8 +411,8 @@ class File extends FileSystemItem
                 ->where(['content.object_model' => Post::class]),
             Comment::class => Content::find()
                 ->select('comment.id')
-                ->innerJoin('comment', 'comment.object_model = content.object_model AND comment.object_id = content.object_id')
-                ->where(['comment.object_model' => Post::class]),
+                ->innerJoin('comment', 'comment.content_id = content.id')
+                ->where(['content.object_model' => Post::class]),
         ];
 
         $query = BaseFile::find();

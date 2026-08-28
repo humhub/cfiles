@@ -116,4 +116,7 @@ return [
     'You cannot move the folder "{name}"!' => 'U kunt de map "{name}" niet verplaatsen!',
     'ZIP selected' => 'ZIPpen',
     'ZIP support is not enabled.' => 'ZIP-ondersteuning is niet ingeschakeld.',
+    '{displayName} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}".' => '',
+    '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}"' => '',
+    '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}" in Space {space}' => '',
 ];

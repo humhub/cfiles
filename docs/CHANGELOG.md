@@ -1,6 +1,26 @@
 Changelog
 =========
 
+0.19.0 - Unreleased
+-------------------
+- Enh #288: Send a single notification to announce all files uploaded within a short period of time, rather than sending one notification per file (humhub/humhub#5334)
+
+0.18.3 - July 22, 2026
+----------------------
+- Fix #287: Fix PHP error from deprecated search event/constant removed in HumHub 1.19
+
+0.18.2 - July 20, 2026
+----------------------
+- Fix #272: Fix Content linking with Comment
+
+0.18.1 - July 8, 2026
+---------------------
+- Enh #286: Add aria-label attribute for icon-only buttons
+
+0.18.0 - June 5, 2026
+---------------------
+- Enh #272: Update for HumHub 1.19
+
 0.17.4 - May 5, 2026
 --------------------
 - Fix #278: Improved download count accuracy
