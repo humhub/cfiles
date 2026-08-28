@@ -9,7 +9,7 @@
         "organisation",
         "sharing"
     ],
-    "version": "0.17.4",
+    "version": "0.17.5",
     "humhub": {
         "minVersion": "1.18.1",
         "maxVersion": "1.18"
@@ -25,7 +25,6 @@
         {
             "name": "Julian Harrer"
         }
-
     ],
     "screenshots": [
         "resources/screenshot1.png",

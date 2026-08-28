@@ -88,17 +88,13 @@ abstract class BaseController extends ContentContainerController
 
     protected function getRootFolder()
     {
-        if ($this->_rootFolder === null) {
-            $this->_rootFolder = Folder::getRoot($this->contentContainer);
-        }
+        $this->_rootFolder ??= Folder::getRoot($this->contentContainer);
         return $this->_rootFolder;
     }
 
     protected function getAllPostedFilesFolder()
     {
-        if ($this->_allPostedFilesFolder === null) {
-            $this->_allPostedFilesFolder = Folder::getPostedFilesFolder($this->contentContainer);
-        }
+        $this->_allPostedFilesFolder ??= Folder::getPostedFilesFolder($this->contentContainer);
         return $this->_allPostedFilesFolder;
     }
 
