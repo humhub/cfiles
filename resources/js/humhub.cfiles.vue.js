@@ -152,7 +152,7 @@
     "aria-haspopup": "true",
     "aria-expanded": "false"
   };
-  const _hoisted_13 = { class: "visually-hidden" };
+  const _hoisted_13$1 = { class: "visually-hidden" };
   const _hoisted_14 = ["innerHTML"];
   function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_DropdownMenu = vue$1.resolveComponent("DropdownMenu");
@@ -241,7 +241,7 @@
           ]),
           $props.createHandlersHtml ? (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 0 }, [
             vue$1.createElementVNode("button", _hoisted_12$1, [
-              vue$1.createElementVNode("span", _hoisted_13, vue$1.toDisplayString($options.handlersLabel), 1)
+              vue$1.createElementVNode("span", _hoisted_13$1, vue$1.toDisplayString($options.handlersLabel), 1)
             ]),
             vue$1.withDirectives(vue$1.createElementVNode("ul", {
               class: "dropdown-menu dropdown-menu-end",
@@ -324,7 +324,12 @@
       draggable: { type: Boolean, default: false },
       dropTarget: { type: Boolean, default: false },
       entries: { type: Array, default: () => [] },
-      folderUrl: { type: Function, required: true }
+      folderUrl: { type: Function, required: true },
+      /**
+       * `recordId => {total, liked, canLike}` for the whole page, as the listing payload
+       * carries it. Empty where the like module is off, which is what hides the button.
+       */
+      likeStates: { type: Object, default: () => ({}) }
     },
     emits: ["open", "toggle-select", "drag-start", "drag-end", "drop-on"],
     data() {
@@ -354,6 +359,11 @@
       },
       meta() {
         return itemMeta(this.item);
+      },
+      /** This row's like state, or null when there is nothing to render a button from. */
+      likeState() {
+        const state = this.likeStates[this.item.recordId];
+        return state && (state.canLike || state.total > 0) ? state : null;
       },
       privateLabel() {
         return vue.i18n.t("CfilesModule.base", "Private");
@@ -460,9 +470,14 @@
   const _hoisted_8$2 = ["href"];
   const _hoisted_9$2 = ["title", "aria-label"];
   const _hoisted_10$2 = { class: "mb-0 text-truncate cfiles-row-meta" };
-  const _hoisted_11$1 = { class: "cfiles-row-creator" };
-  const _hoisted_12 = { class: "cfiles-row-controls" };
+  const _hoisted_11$1 = {
+    key: 1,
+    class: "cfiles-row-social"
+  };
+  const _hoisted_12 = { class: "cfiles-row-creator" };
+  const _hoisted_13 = { class: "cfiles-row-controls" };
   function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_LikeButton = vue$1.resolveComponent("LikeButton");
     const _component_UserImage = vue$1.resolveComponent("UserImage");
     const _component_ContentControls = vue$1.resolveComponent("ContentControls");
     return vue$1.openBlock(), vue$1.createElementBlock("div", {
@@ -515,10 +530,17 @@
         ]),
         vue$1.createElementVNode("h5", _hoisted_10$2, vue$1.toDisplayString($options.meta), 1)
       ]),
-      vue$1.createElementVNode("div", _hoisted_11$1, [
+      $options.likeState ? (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_11$1, [
+        vue$1.createVNode(_component_LikeButton, {
+          "record-id": $props.item.recordId,
+          "like-count": $options.likeState.total,
+          "current-user-liked": $options.likeState.liked
+        }, null, 8, ["record-id", "like-count", "current-user-liked"])
+      ])) : vue$1.createCommentVNode("", true),
+      vue$1.createElementVNode("div", _hoisted_12, [
         $props.item.creator ? (vue$1.openBlock(), vue$1.createBlock(_component_UserImage, vue$1.mergeProps({ key: 0 }, $props.item.creator, { size: 21 }), null, 16)) : vue$1.createCommentVNode("", true)
       ]),
-      vue$1.createElementVNode("div", _hoisted_12, [
+      vue$1.createElementVNode("div", _hoisted_13, [
         vue$1.createVNode(_component_ContentControls, {
           ref: "controls",
           "content-id": $props.item.contentId,
@@ -775,7 +797,9 @@
       canWrite: { type: Boolean, default: false },
       view: { type: String, default: "list" },
       entriesFor: { type: Function, required: true },
-      folderUrl: { type: Function, required: true }
+      folderUrl: { type: Function, required: true },
+      /** Handed straight to `ItemRow` — see `socialProps` below. */
+      likeStates: { type: Object, default: () => ({}) }
     },
     emits: [
       "open",
@@ -791,6 +815,16 @@
     computed: {
       itemComponent() {
         return this.view === "tiles" ? "ItemTile" : "ItemRow";
+      },
+      /**
+       * The like state map, bound only in the row list.
+       *
+       * A tile has no room for a like link and `ItemTile` declares no such prop, so binding
+       * it there would put a stray attribute on every tile's root element rather than
+       * nothing at all.
+       */
+      socialProps() {
+        return this.view === "tiles" ? {} : { likeStates: this.likeStates };
       },
       containerClass() {
         return this.view === "tiles" ? "cfiles-tiles" : "hh-list cfiles-list";
@@ -914,7 +948,7 @@
         class: vue$1.normalizeClass($options.containerClass)
       }, [
         (vue$1.openBlock(true), vue$1.createElementBlock(vue$1.Fragment, null, vue$1.renderList($props.items, (item) => {
-          return vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.itemComponent), {
+          return vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.itemComponent), vue$1.mergeProps({
             key: $options.keyOf(item),
             item,
             selected: $options.isSelected(item),
@@ -922,13 +956,14 @@
             draggable: $props.draggable,
             "drop-target": $props.dropTargetKey === $options.keyOf(item),
             entries: $props.entriesFor(item),
-            "folder-url": $props.folderUrl,
+            "folder-url": $props.folderUrl
+          }, { ref_for: true }, $options.socialProps, {
             onOpen: _cache[3] || (_cache[3] = ($event) => _ctx.$emit("open", $event)),
             onToggleSelect: _cache[4] || (_cache[4] = ($event) => _ctx.$emit("toggle-select", $event)),
             onDragStart: _cache[5] || (_cache[5] = ($event) => _ctx.$emit("drag-start", $event)),
             onDragEnd: _cache[6] || (_cache[6] = ($event) => _ctx.$emit("drag-end")),
             onDropOn: _cache[7] || (_cache[7] = ($event) => _ctx.$emit("drop-on", $event))
-          }, null, 40, ["item", "selected", "selectable", "draggable", "drop-target", "entries", "folder-url"]);
+          }), null, 16, ["item", "selected", "selectable", "draggable", "drop-target", "entries", "folder-url"]);
         }), 128))
       ], 2)) : !$props.loading ? (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_7, [
         vue$1.createElementVNode("p", _hoisted_8, [
@@ -1125,6 +1160,7 @@
         folder: this.listing.folder,
         path: this.listing.path,
         items: this.listing.results,
+        likeStates: this.listing.likeStates || {},
         sort: this.listing.sort,
         order: this.listing.order,
         view: this.listing.view,
@@ -1216,6 +1252,7 @@
         this.folder = payload.folder;
         this.path = payload.path;
         this.items = payload.results;
+        this.likeStates = payload.likeStates || {};
         this.sort = payload.sort;
         this.order = payload.order;
         this.view = payload.view;
@@ -1287,6 +1324,7 @@
           page: this.page + 1
         }).then((payload) => {
           this.items = this.items.concat(payload.results);
+          this.likeStates = { ...this.likeStates, ...payload.likeStates || {} };
           this.page = payload.page;
           this.pages = payload.pages;
           this.total = payload.total;
@@ -1569,6 +1607,7 @@
           view: $data.view,
           "entries-for": $options.entriesFor,
           "folder-url": $options.folderUrl,
+          "like-states": $data.likeStates,
           onOpen: _cache[4] || (_cache[4] = ($event) => $options.open($event.id)),
           onToggleSelect: $options.toggleSelect,
           onToggleAll: $options.toggleAll,
@@ -1578,7 +1617,7 @@
           onDragStart: _cache[7] || (_cache[7] = ($event) => $data.dragged = [$event]),
           onDragEnd: _cache[8] || (_cache[8] = ($event) => $data.itemDropTargetKey = null),
           onDropOn: $options.onDropOnFolder
-        }, null, 8, ["items", "selection", "selectable", "draggable", "drop-target-key", "has-more", "loading", "loading-more", "can-write", "view", "entries-for", "folder-url", "onToggleSelect", "onToggleAll", "onLoadMore", "onDropOn"])
+        }, null, 8, ["items", "selection", "selectable", "draggable", "drop-target-key", "has-more", "loading", "loading-more", "can-write", "view", "entries-for", "folder-url", "like-states", "onToggleSelect", "onToggleAll", "onLoadMore", "onDropOn"])
       ]),
       vue$1.createElementVNode("input", {
         ref: "fileInput",

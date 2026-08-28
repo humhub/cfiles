@@ -51,6 +51,7 @@
                 :view="view"
                 :entries-for="entriesFor"
                 :folder-url="folderUrl"
+                :like-states="likeStates"
                 @open="open($event.id)"
                 @toggle-select="toggleSelect"
                 @toggle-all="toggleAll"
@@ -166,6 +167,7 @@ export default {
             folder: this.listing.folder,
             path: this.listing.path,
             items: this.listing.results,
+            likeStates: this.listing.likeStates || {},
             sort: this.listing.sort,
             order: this.listing.order,
             view: this.listing.view,
@@ -272,6 +274,7 @@ export default {
             this.folder = payload.folder;
             this.path = payload.path;
             this.items = payload.results;
+            this.likeStates = payload.likeStates || {};
             this.sort = payload.sort;
             this.order = payload.order;
             this.view = payload.view;
@@ -354,6 +357,8 @@ export default {
             })
                 .then((payload) => {
                     this.items = this.items.concat(payload.results);
+                    // A further page brings the like states of its own rows only.
+                    this.likeStates = { ...this.likeStates, ...(payload.likeStates || {}) };
                     this.page = payload.page;
                     this.pages = payload.pages;
                     this.total = payload.total;

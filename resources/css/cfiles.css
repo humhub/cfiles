@@ -79,6 +79,32 @@
     font-size: 11.5px;
 }
 
+/* --- the like link on a row ------------------------------------------------- */
+
+/* The platform's own like link, at the size the stream gives its own entry controls
+   (`_stream.scss`: 11px, `--hh-text-color-soft`) — a file row is not the place where it
+   should shout. */
+.cfiles-row-social {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.cfiles-row-social a {
+    color: var(--hh-text-color-soft);
+    transition: color 0.3s;
+}
+
+/* A narrow screen has no room for it next to the name, which is what a file browser is
+   actually for. */
+@media (max-width: 767px) {
+    .cfiles-row-social {
+        display: none;
+    }
+}
+
 /* The row menu is the platform's standard content-controls menu, so it keeps
    `DropdownMenu`'s default `.nav-pills.preferences` root and looks like every other one —
    including the primary-coloured surface `_nav.scss` gives it.

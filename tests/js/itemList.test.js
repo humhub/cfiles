@@ -73,6 +73,25 @@ describe('ItemList', () => {
         });
     });
 
+    /**
+     * The like link is a row-list affordance. A tile declares no such prop, so binding it
+     * there would leave a stray attribute on every tile instead of nothing.
+     */
+    describe('the like link per view', () => {
+        const props = { likeStates: { 1201: { total: 1, liked: false, canLike: true } } };
+
+        it('gives the row list what it needs', () => {
+            expect(list(props).find('.likeLinkContainer').exists()).toBe(true);
+        });
+
+        it('leaves the tiles alone, attributes included', () => {
+            const wrapper = list({ ...props, view: 'tiles' });
+
+            expect(wrapper.find('.likeLinkContainer').exists()).toBe(false);
+            expect(wrapper.find('.cfiles-tile').attributes('likestates')).toBeUndefined();
+        });
+    });
+
     describe('select all', () => {
         const box = (wrapper) => wrapper.find('.cfiles-list-header input[type="checkbox"]');
 

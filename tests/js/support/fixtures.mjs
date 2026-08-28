@@ -20,6 +20,7 @@ export const folderRow = (over = {}) => ({
     type: 'folder',
     id: 11,
     contentId: 101,
+    recordId: 1101,
     title: 'Entwürfe',
     description: '',
     visibility: 1,
@@ -36,6 +37,7 @@ export const fileRow = (over = {}) => ({
     type: 'file',
     id: 21,
     contentId: 201,
+    recordId: 1201,
     guid: 'f-21',
     title: 'Angebot.pdf',
     description: '',
@@ -65,6 +67,20 @@ export const fileRow = (over = {}) => ({
     ...over,
 });
 
+/**
+ * A like state per row, the way the listing carries them: keyed by record id, NOT by the
+ * content id the rest of the payload uses.
+ */
+export const likeStates = (results) => {
+    const states = {};
+
+    results.forEach((item) => {
+        states[item.recordId] = { total: 0, liked: false, canLike: true };
+    });
+
+    return states;
+};
+
 /** A listing of the container's top level, which has no folder record of its own. */
 export const topLevel = (results = [folderRow(), fileRow()], over = {}) => ({
     folder: null,
@@ -73,6 +89,8 @@ export const topLevel = (results = [folderRow(), fileRow()], over = {}) => ({
     order: 'asc',
     view: 'list',
     results,
+    // The payload's per-caller section (see FolderListingService::payload()).
+    likeStates: likeStates(results),
     total: results.length,
     page: 1,
     pageSize: 50,
@@ -91,6 +109,8 @@ export const insideFolder = (results = [], over = {}) => ({
     order: 'asc',
     view: 'list',
     results,
+    // The payload's per-caller section (see FolderListingService::payload()).
+    likeStates: likeStates(results),
     total: results.length,
     page: 1,
     pageSize: 50,

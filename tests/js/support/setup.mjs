@@ -10,6 +10,7 @@
 import { config } from '@vue/test-utils';
 import { IntlMessageFormat } from 'intl-messageformat';
 import ContentControls from '@core/modules/content/vue/ContentControls.vue';
+import LikeButton from '@core/modules/like/vue/LikeButton.vue';
 import UserImage from '@core/modules/user/vue/UserImage.vue';
 import CheckboxField from '@core/vue/CheckboxField.vue';
 import DropdownMenu from '@core/vue/DropdownMenu.vue';
@@ -48,6 +49,9 @@ globalThis.humhubStubs.i18n.t = (category, message, params) => {
 
 config.global.components = {
     CheckboxField,
+    // The platform's own island this module nests: a like link per row. Registered in
+    // production by CfilesVueAsset's dependency on LikeVueAsset.
+    LikeButton,
     ContentControls,
     DropdownMenu,
     HumHubForm,

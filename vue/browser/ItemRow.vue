@@ -45,6 +45,14 @@
             <h5 class="mb-0 text-truncate cfiles-row-meta">{{ meta }}</h5>
         </div>
 
+        <div v-if="likeState" class="cfiles-row-social">
+            <LikeButton
+                :record-id="item.recordId"
+                :like-count="likeState.total"
+                :current-user-liked="likeState.liked"
+            />
+        </div>
+
         <div class="cfiles-row-creator">
             <UserImage v-if="item.creator" v-bind="item.creator" :size="21" />
         </div>
@@ -85,6 +93,11 @@ export default {
         dropTarget: { type: Boolean, default: false },
         entries: { type: Array, default: () => [] },
         folderUrl: { type: Function, required: true },
+        /**
+         * `recordId => {total, liked, canLike}` for the whole page, as the listing payload
+         * carries it. Empty where the like module is off, which is what hides the button.
+         */
+        likeStates: { type: Object, default: () => ({}) },
     },
     emits: ['open', 'toggle-select', 'drag-start', 'drag-end', 'drop-on'],
     data() {
@@ -120,6 +133,12 @@ export default {
         },
         meta() {
             return itemMeta(this.item);
+        },
+        /** This row's like state, or null when there is nothing to render a button from. */
+        likeState() {
+            const state = this.likeStates[this.item.recordId];
+
+            return state && (state.canLike || state.total > 0) ? state : null;
         },
         privateLabel() {
             return i18n.t('CfilesModule.base', 'Private');

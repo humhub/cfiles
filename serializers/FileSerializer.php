@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\serializers;
 
 use humhub\components\api\Format;
 use humhub\libs\MimeHelper;
+use humhub\models\RecordMap;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\file\converter\PreviewImage;
 use humhub\modules\file\handler\DownloadFileHandler;
@@ -38,6 +39,7 @@ class FileSerializer
      *     type: string,
      *     id: int,
      *     contentId: int,
+     *     recordId: int,
      *     guid: string|null,
      *     title: string,
      *     description: string,
@@ -65,6 +67,8 @@ class FileSerializer
             'type' => 'file',
             'id' => (int)$file->id,
             'contentId' => (int)$content->id,
+            // See FolderSerializer.
+            'recordId' => RecordMap::getId($file),
             'guid' => $baseFile?->guid,
             // The file name IS the title of a cfiles file - renaming one renames the stored
             // file (see File::setTitle()).

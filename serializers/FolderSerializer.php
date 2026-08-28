@@ -9,6 +9,7 @@
 namespace humhub\modules\cfiles\serializers;
 
 use humhub\components\api\Format;
+use humhub\models\RecordMap;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\user\serializers\UserSerializer;
 
@@ -28,6 +29,7 @@ class FolderSerializer
      *     type: string,
      *     id: int,
      *     contentId: int,
+     *     recordId: int,
      *     title: string,
      *     description: string,
      *     visibility: int,
@@ -48,6 +50,9 @@ class FolderSerializer
             'type' => 'folder',
             'id' => (int)$folder->id,
             'contentId' => (int)$content->id,
+            // What the like API addresses a record by — a platform-wide id, not the content's
+            // (see humhub\models\RecordMap).
+            'recordId' => RecordMap::getId($folder),
             'title' => (string)$folder->title,
             'description' => (string)$folder->description,
             'visibility' => (int)$content->visibility,

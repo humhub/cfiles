@@ -8,12 +8,15 @@
 
 namespace humhub\modules\cfiles\services;
 
+use humhub\models\RecordMap;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\Module;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use humhub\modules\cfiles\serializers\FolderSerializer;
+use humhub\modules\like\serializers\LikeSerializer;
 use Yii;
 use yii\data\Pagination;
 use yii\db\ActiveQuery;
@@ -61,6 +64,13 @@ class FolderListingService
     private FolderContentService $content;
 
     /**
+     * Filled while serializing a page — see {@see self::collectLikeStates()}.
+     *
+     * @var array<int, array{total: int, liked: bool, canLike: bool}> record id => like state
+     */
+    private array $likeStates = [];
+
+    /**
      * @param Folder|null $folder the folder to list, or null for the container's top level.
      */
     public function __construct(
@@ -95,6 +105,8 @@ class FolderListingService
         $pagination->setPageSize(max(1, min($pageSize, self::MAX_PAGE_SIZE)));
         $pagination->setPage(max(1, $page) - 1);
 
+        $results = $this->page($folderQuery, $folderCount, $fileQuery, $pagination);
+
         return [
             // null at the top level: there is no folder record standing in for it.
             'folder' => $this->folder === null ? null : FolderSerializer::folder($this->folder),
@@ -102,7 +114,11 @@ class FolderListingService
             'sort' => $sort,
             'order' => $sortOrder === SORT_DESC ? 'desc' : 'asc',
             'view' => $view,
-            'results' => $this->page($folderQuery, $folderCount, $fileQuery, $pagination),
+            'results' => $results,
+            // The one per-caller section of this payload. Kept out of the rows themselves,
+            // which stay caller-neutral (see FileSerializer/FolderSerializer): who liked what
+            // is about the reader, not about the file.
+            'likeStates' => $this->likeStates,
             'total' => (int)$pagination->totalCount,
             'page' => $pagination->getPage() + 1,
             'pageSize' => $pagination->getPageSize(),
@@ -235,6 +251,7 @@ class FolderListingService
             : [];
 
         $itemCounts = $this->countChildren($folders);
+        $this->collectLikeStates(array_merge($folders, $files));
 
         return array_merge(
             array_map(
@@ -243,6 +260,40 @@ class FolderListingService
             ),
             array_map(FileSerializer::file(...), $files),
         );
+    }
+
+    /**
+     * The like states of one page, in two grouped queries rather than two per row.
+     *
+     * They belong to the page as a whole: a row list shows a like link per item, and asking
+     * per item is what makes a list of 50 rows cost 100 queries. Stashed on the instance
+     * because they are per caller and therefore travel in their own section of the payload,
+     * not inside the rows.
+     *
+     * @param FileSystemItem[] $items
+     */
+    private function collectLikeStates(array $items): void
+    {
+        $this->likeStates = [];
+
+        if ($items === [] || !$this->likesEnabled()) {
+            return;
+        }
+
+        $records = [];
+        foreach ($items as $item) {
+            $records[RecordMap::getId($item)] = $item;
+        }
+
+        $this->likeStates = LikeSerializer::statesForRecords($records);
+    }
+
+    private function likesEnabled(): bool
+    {
+        /** @var \humhub\modules\like\Module|null $module */
+        $module = Yii::$app->getModule('like');
+
+        return $module !== null && $module->isEnabled;
     }
 
     /**

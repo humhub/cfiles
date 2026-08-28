@@ -36,6 +36,7 @@
                 :drop-target="dropTargetKey === keyOf(item)"
                 :entries="entriesFor(item)"
                 :folder-url="folderUrl"
+                v-bind="socialProps"
                 @open="$emit('open', $event)"
                 @toggle-select="$emit('toggle-select', $event)"
                 @drag-start="$emit('drag-start', $event)"
@@ -94,6 +95,8 @@ export default {
         view: { type: String, default: 'list' },
         entriesFor: { type: Function, required: true },
         folderUrl: { type: Function, required: true },
+        /** Handed straight to `ItemRow` — see `socialProps` below. */
+        likeStates: { type: Object, default: () => ({}) },
     },
     emits: [
         'open', 'toggle-select', 'toggle-all', 'load-more',
@@ -102,6 +105,16 @@ export default {
     computed: {
         itemComponent() {
             return this.view === 'tiles' ? 'ItemTile' : 'ItemRow';
+        },
+        /**
+         * The like state map, bound only in the row list.
+         *
+         * A tile has no room for a like link and `ItemTile` declares no such prop, so binding
+         * it there would put a stray attribute on every tile's root element rather than
+         * nothing at all.
+         */
+        socialProps() {
+            return this.view === 'tiles' ? {} : { likeStates: this.likeStates };
         },
         containerClass() {
             // `.hh-list` is the platform's row-list styling and applies to its direct

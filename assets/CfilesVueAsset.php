@@ -12,6 +12,7 @@ use humhub\assets\CoreApiAsset;
 use humhub\assets\CoreVueAsset;
 use humhub\components\assets\AssetBundle;
 use humhub\modules\content\assets\ContentVueAsset;
+use humhub\modules\like\assets\LikeVueAsset;
 use humhub\modules\user\assets\UserVueAsset;
 
 /**
@@ -56,5 +57,8 @@ class CfilesVueAsset extends AssetBundle
         ContentVueAsset::class,
         // <UserImage> — the creator avatar on every row.
         UserVueAsset::class,
+        // <LikeButton> on every row — the platform's own island, rendered by this module
+        // without a line of like logic of its own.
+        LikeVueAsset::class,
     ];
 }

@@ -270,6 +270,54 @@ describe('ItemRow', () => {
         });
     });
 
+    /**
+     * The like link IS core's `LikeButton` island — this module renders it and nothing else,
+     * with the state the listing already brought.
+     */
+    describe('likes', () => {
+        const states = (over = {}) => ({ 1201: { total: 3, liked: true, canLike: true }, ...over });
+
+        it('renders the platform like link with the state the listing brought', () => {
+            const wrapper = row(fileRow(), { likeStates: states() });
+
+            const like = wrapper.find('.likeLinkContainer');
+            expect(like.exists()).toBe(true);
+            // Liked already, so it offers the way back — and says how many.
+            expect(like.find('a.unlike').exists()).toBe(true);
+            expect(like.find('.likeCount').text()).toBe('(3)');
+        });
+
+        it('renders no like link where there is no state for the row', () => {
+            // What a listing looks like with the like module switched off.
+            expect(row(fileRow()).find('.likeLinkContainer').exists()).toBe(false);
+        });
+
+        it('renders no like link for a reader who may not like and nothing to count', () => {
+            const wrapper = row(fileRow(), {
+                likeStates: states({ 1201: { total: 0, liked: false, canLike: false } }),
+            });
+
+            expect(wrapper.find('.likeLinkContainer').exists()).toBe(false);
+        });
+
+        it('still shows an existing like count to a reader who may not like', () => {
+            const wrapper = row(fileRow(), {
+                likeStates: states({ 1201: { total: 2, liked: false, canLike: false } }),
+            });
+
+            expect(wrapper.find('.likeCount').text()).toBe('(2)');
+        });
+
+        // The row is one big click target; the like link must not trigger it.
+        it('does not open the item when the like link is clicked', async () => {
+            const wrapper = row(folderRow(), { likeStates: { 1101: { total: 1, liked: false, canLike: true } } });
+
+            await wrapper.find('.likeLinkContainer a').trigger('click');
+
+            expect(wrapper.emitted('open')).toBeFalsy();
+        });
+    });
+
     describe('drag and drop', () => {
         it('offers a folder as a drop target and a file not', async () => {
             const folder = row(folderRow(), { draggable: true });

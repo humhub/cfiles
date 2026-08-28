@@ -8,6 +8,7 @@ Changelog
 - Enh: Added select-all. It covers the items that are loaded, not everything in the folder — with paging, a checkbox that silently included rows nobody has seen would make the delete button far more dangerous than it looks. Selection and the bulk actions moved from the toolbar into a header above the list.
 - Enh: The whole row opens the item it shows, and a right-click anywhere on a row or a tile raises that item's context menu where the cursor is. Ctrl+right-click still gets the browser's own menu.
 - Enh: The create and rename dialogs put the cursor in the title field as they open.
+- Enh: Every row in the list view carries the platform's own like link (`LikeButton`), with the state for a whole page fetched in two grouped queries rather than one request per row. The module adds no like logic of its own.
 - Enh: The "Add files" button carries the file handlers a module contributed again ("new spreadsheet", "import from …"), as a split dropdown beside it.
 - Fix: Clicking a file reaches the handler a module contributed for it again — a viewer or an editor opens in the file dialog, and a file that only has the download handler stays a direct link. The list rendered a plain link to the file in every case.
 - Fix: Uploading did not work at all. The request was built with a hand-rolled XMLHttpRequest reading a CSRF token from a meta tag that HumHub does not render, so every upload was rejected. It goes through the platform client now, which is what attaches the token.
