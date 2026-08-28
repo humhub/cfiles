@@ -4,6 +4,14 @@ Changelog
 1.0.0 - Unreleased
 ------------------
 - Enh: Rebuilt the file browser as a Vue.js island on the new core HTTP API (`/api/v2/cfiles`). The module no longer renders any of the browser server-side; folder navigation happens without a page load, and the URL (`?fid=`) is unchanged, so existing links keep working.
+- Enh: Added a tile display next to the list, switched from the toolbar and remembered per user the way the sort order is. A tile grid asks the server for a bigger page than a row list.
+- Enh: Added select-all. It covers the items that are loaded, not everything in the folder — with paging, a checkbox that silently included rows nobody has seen would make the delete button far more dangerous than it looks. Selection and the bulk actions moved from the toolbar into a header above the list.
+- Enh: The whole row opens the item it shows, and a right-click anywhere on a row or a tile raises that item's context menu where the cursor is. Ctrl+right-click still gets the browser's own menu.
+- Enh: The create and rename dialogs put the cursor in the title field as they open.
+- Enh: The "Add files" button carries the file handlers a module contributed again ("new spreadsheet", "import from …"), as a split dropdown beside it.
+- Fix: Clicking a file reaches the handler a module contributed for it again — a viewer or an editor opens in the file dialog, and a file that only has the download handler stays a direct link. The list rendered a plain link to the file in every case.
+- Fix: Uploading did not work at all. The request was built with a hand-rolled XMLHttpRequest reading a CSRF token from a meta tag that HumHub does not render, so every upload was rejected. It goes through the platform client now, which is what attaches the token.
+- Fix: A tile's context menu was clipped by the tile's own overflow.
 - Enh: Added drag & drop — files from the desktop upload into the open folder, rows dragged onto a folder or a breadcrumb segment move there.
 - Enh: A folder listing is now paginated. Large folders no longer render every single row.
 - Enh: The row context menu is the new core `ContentControls` island. Modules contributing entries through `WallEntryControls::EVENT_INIT` keep working unchanged; see the core migration guide.

@@ -3,6 +3,8 @@
         class="cfiles-row d-flex align-items-center gap-2"
         :class="{ 'cfiles-row-drop': dropTarget, selected: selected }"
         :draggable="draggable"
+        @click="onRowClick"
+        @contextmenu="onContextMenu"
         @dragstart="onDragStart"
         @dragend="$emit('drag-end')"
         @dragover="onDragOver"
@@ -25,11 +27,17 @@
         </div>
 
         <div class="flex-grow-1 min-width-0">
-            <h4 class="mb-0 text-truncate">
-                <a :href="linkUrl" @click="onOpen">{{ displayTitle }}</a>
+            <h4 class="mb-0 d-flex align-items-center gap-1">
+                <a
+                    ref="titleLink"
+                    :href="linkUrl"
+                    v-bind="linkAttributes"
+                    class="text-truncate"
+                    @click="onOpen"
+                >{{ displayTitle }}</a>
                 <i
                     v-if="isPrivate"
-                    class="fa fa-lock text-muted ms-1"
+                    class="fa fa-lock text-muted flex-shrink-0"
                     :title="privateLabel"
                     :aria-label="privateLabel"
                 ></i>
@@ -43,6 +51,7 @@
 
         <div class="cfiles-row-controls">
             <ContentControls
+                ref="controls"
                 :content-id="item.contentId"
                 view-context="browser"
                 :entries="entries"
@@ -64,38 +73,8 @@
  * Both kinds share this component on purpose — they differ in the icon, what the title links
  * to and which context-menu entries apply, and in nothing else.
  */
-import { getConfig, i18n } from '@humhub/vue';
-
-/**
- * Core control entries the browser renders itself, so the server must not send them too —
- * exactly the set the server-rendered `FileListContextMenu` used to switch off. Without it
- * the row menu shows the whole stream-entry stack (pin, archive, permalink, …) next to the
- * file actions.
- */
-const SUPPRESSED_CORE_ENTRIES = ['edit', 'delete', 'permalink', 'pin', 'move', 'archive'];
-
-const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
-
-/** Largest first, so the first match is the coarsest unit that still fits. */
-const RELATIVE_UNITS = [
-    ['day', 24 * 60 * 60],
-    ['hour', 60 * 60],
-    ['minute', 60],
-    ['second', 1],
-];
-
-const MIME_ICONS = {
-    'mime-image': 'fa-file-image-o',
-    'mime-pdf': 'fa-file-pdf-o',
-    'mime-archive': 'fa-file-archive-o',
-    'mime-audio': 'fa-file-audio-o',
-    'mime-video': 'fa-file-video-o',
-    'mime-text': 'fa-file-text-o',
-    'mime-code': 'fa-file-code-o',
-    'mime-excel': 'fa-file-excel-o',
-    'mime-word': 'fa-file-word-o',
-    'mime-powerpoint': 'fa-file-powerpoint-o',
-};
+import { itemMeta, mimeIconClass, SUPPRESSED_CORE_ENTRIES } from './itemPresentation';
+import { i18n } from '@humhub/vue';
 
 export default {
     props: {
@@ -123,73 +102,24 @@ export default {
         },
         linkUrl() {
             // A folder link is a real page URL even though opening it never navigates — that
-            // is what keeps middle-click, "open in new tab" and copy-link working.
-            return this.isFolder ? this.folderUrl(this.item.id) : (this.item.url || '#');
+            // is what keeps middle-click, "open in new tab" and copy-link working. A file
+            // links wherever the server said, which is not always the file itself: a module
+            // may have contributed a viewer or an editor for it (see FileSerializer::link()).
+            return this.isFolder
+                ? this.folderUrl(this.item.id)
+                : (this.item.link?.url || this.item.url || '#');
+        },
+        /** Attributes the file's link needs — the download hooks, or the modal target. */
+        linkAttributes() {
+            return this.isFolder ? {} : (this.item.link?.attributes || {});
         },
         iconClass() {
-            if (this.isFolder) {
-                return 'fa fa-folder cfiles-icon-folder';
-            }
-            return 'fa ' + (MIME_ICONS[this.item.mimeIcon] || 'fa-file-o') + ' cfiles-icon-file';
+            return this.isFolder
+                ? 'fa fa-folder cfiles-icon-folder'
+                : 'fa ' + mimeIconClass(this.item) + ' cfiles-icon-file';
         },
         meta() {
-            const parts = [];
-
-            if (this.isFolder) {
-                if (typeof this.item.itemCount === 'number') {
-                    parts.push(i18n.t('CfilesModule.base', '{count, plural, =0{empty} one{# item} other{# items}}', {
-                        count: this.item.itemCount,
-                    }));
-                }
-            } else {
-                parts.push(this.formattedSize);
-            }
-
-            parts.push(this.relativeTime);
-
-            if (this.item.description) {
-                parts.push(this.item.description);
-            }
-
-            return parts.filter(Boolean).join(' · ');
-        },
-        formattedSize() {
-            const size = this.item.size || 0;
-            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-            let value = size;
-            let unit = 0;
-            while (value >= 1024 && unit < units.length - 1) {
-                value /= 1024;
-                unit++;
-            }
-            return (unit === 0 ? value : value.toFixed(1)) + ' ' + units[unit];
-        },
-        /**
-         * Recent changes read as "3 days ago", older ones as a date — the same split the
-         * platform's own `TimeAgo` widget makes, and what the server-rendered list showed
-         * before. Formatted in the HumHub language rather than the browser's, which is what
-         * `toLocaleDateString()` with no locale would have used.
-         */
-        relativeTime() {
-            const stamp = this.item.updatedAt || this.item.createdAt;
-
-            if (!stamp) {
-                return '';
-            }
-
-            const date = new Date(stamp);
-            const locale = getConfig('i18n').language || undefined;
-            const seconds = Math.round((Date.now() - date.getTime()) / 1000);
-
-            if (seconds >= 0 && seconds < WEEK_IN_SECONDS) {
-                const [unit, size] = RELATIVE_UNITS.find(([, unitSize]) => seconds >= unitSize)
-                    ?? ['second', 1];
-
-                return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
-                    .format(-Math.floor(seconds / size), unit);
-            }
-
-            return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
+            return itemMeta(this.item);
         },
         privateLabel() {
             return i18n.t('CfilesModule.base', 'Private');
@@ -202,6 +132,61 @@ export default {
         },
     },
     methods: {
+        /**
+         * The row is one big click target for the item it shows — a file browser where only
+         * the name is clickable makes every open a precision exercise.
+         *
+         * Everything inside the row that means something else keeps its own click: the select
+         * checkbox, the context menu, the creator's profile link, and the title link itself,
+         * which is also what a click here ends up going through.
+         */
+        onRowClick(event) {
+            if (event.target.closest('a, button, input, label, .dropdown-menu')) {
+                return;
+            }
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+                return;
+            }
+            // A click that ends a text selection inside this row is a selection, not an open.
+            const selection = window.getSelection ? window.getSelection() : null;
+            if (selection && !selection.isCollapsed && this.$el.contains(selection.anchorNode)) {
+                return;
+            }
+
+            this.openItem();
+        },
+        /**
+         * Raises this item's context menu where the cursor is, the way the platform's legacy
+         * `$.fn.contextMenu` did for server-rendered lists (see `humhub.ui.additions.js`).
+         */
+        onContextMenu(event) {
+            // Ctrl+right-click asks for the browser's own menu — the same escape hatch the
+            // legacy plugin left open.
+            if (event.ctrlKey) {
+                return;
+            }
+            // A right-click inside the open menu belongs to the menu.
+            if (event.target.closest('.dropdown-menu')) {
+                return;
+            }
+
+            event.preventDefault();
+            this.$refs.controls.open(event);
+        },
+        openItem() {
+            if (this.isFolder) {
+                this.$emit('open', this.item);
+                return;
+            }
+
+            // A file's link is not always the file itself: a module may have contributed a
+            // viewer, an editor, a modal or a download carrying its own data attributes (see
+            // `FileSerializer::link()`), some of them read off the DOM by delegated document
+            // handlers. Clicking the real anchor is what keeps every one of those working.
+            if (this.$refs.titleLink) {
+                this.$refs.titleLink.click();
+            }
+        },
         onOpen(event) {
             if (!this.isFolder) {
                 return;

@@ -91,6 +91,13 @@ export default {
         },
     },
     methods: {
+        /**
+         * Focuses the title field — what the dialog this form sits in calls once it is open,
+         * so creating a folder is type-and-enter instead of click-then-type.
+         */
+        focus() {
+            this.$refs.form.focusFirstField();
+        },
         submit() {
             if (this.busy) {
                 return;

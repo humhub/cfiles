@@ -35,9 +35,10 @@
 
 /* --- rows ---------------------------------------------------------------- */
 
-/* `.hh-list` styles its direct children, which is what a row is. */
+/* `.hh-list` styles its direct children, which is what a row is. The whole row opens the
+   item it shows, so it says so. */
 .cfiles-list > .cfiles-row {
-    cursor: default;
+    cursor: pointer;
 }
 
 .cfiles-row-select,
@@ -103,6 +104,145 @@
     .cfiles-row:focus-within .cfiles-row-toggle {
         visibility: visible;
     }
+}
+
+/* --- selection header ------------------------------------------------------ */
+
+/* Aligned with the row checkboxes below it, so the select-all box sits in the same column as
+   the boxes it controls. */
+.cfiles-list-header {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--hh-background-color-page);
+    min-height: 38px;
+}
+
+.cfiles-list-header > .form-check-input {
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+/* --- tiles ------------------------------------------------------------------ */
+
+/* auto-fill rather than auto-fit: a folder with two items keeps tile-sized tiles instead of
+   stretching them across the width. */
+.cfiles-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    padding: 10px;
+}
+
+.cfiles-tile {
+    position: relative;
+    border: 1px solid var(--hh-background-color-page);
+    border-radius: 4px;
+    background-color: var(--hh-background-color-main);
+}
+
+.cfiles-tile:hover {
+    background-color: var(--hh-background-color-secondary);
+}
+
+.cfiles-tile.selected {
+    border-color: var(--bs-accent);
+    background-color: var(--hh-background-color-highlight-soft);
+}
+
+/* The clipping lives here, not on the tile: a rounded tile that clips its own overflow also
+   clips the context menu, which has to be able to hang outside. */
+.cfiles-tile-preview {
+    overflow: hidden;
+    border-radius: 3px 3px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 96px;
+    font-size: 42px;
+    color: var(--hh-text-color-soft2);
+    text-decoration: none;
+}
+
+.cfiles-tile-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cfiles-tile-caption {
+    padding: 6px 8px 8px;
+    border-top: 1px solid var(--hh-background-color-page);
+}
+
+/* The lock marker sits BESIDE the title, not inside it: the title is what gets truncated, and
+   a long name must not be able to hide the fact that an item is private. */
+.cfiles-tile-name {
+    min-width: 0;
+}
+
+.cfiles-tile-title {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--hh-text-color-highlight);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cfiles-tile-meta {
+    display: block;
+    font-size: 11px;
+    color: var(--hh-text-color-soft);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The checkbox and the menu overlay the preview, so they need a surface of their own to stay
+   legible on top of a photo. */
+.cfiles-tile-actions {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.cfiles-tile-actions > * {
+    pointer-events: auto;
+}
+
+.cfiles-tile-actions .form-check-input,
+.cfiles-tile-toggle {
+    background-color: var(--hh-background-color-main);
+    border-radius: 3px;
+    box-shadow: 0 0 0 2px var(--hh-background-color-main);
+}
+
+/* Same reveal-on-hover as the row menu, and the same `:not(.show)` guard so an open menu does
+   not vanish when the pointer leaves the tile. */
+@media (min-width: 768px) {
+    .cfiles-tile .cfiles-tile-toggle:not(.show),
+    .cfiles-tile:not(.selected) .cfiles-tile-actions .form-check-input:not(:checked) {
+        visibility: hidden;
+    }
+
+    .cfiles-tile:hover .cfiles-tile-toggle,
+    .cfiles-tile:focus-within .cfiles-tile-toggle,
+    .cfiles-tile:hover .form-check-input,
+    .cfiles-tile:focus-within .form-check-input {
+        visibility: visible;
+    }
+}
+
+.cfiles-tile-controls .nav-pills.preferences,
+.cfiles-tile-actions .nav-pills.preferences {
+    position: static;
+    margin: 0;
 }
 
 /* --- drag & drop --------------------------------------------------------- */

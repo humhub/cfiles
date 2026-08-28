@@ -9,6 +9,7 @@ use humhub\widgets\VueComponent;
 /* @var $listing array the first page, embedded so the island paints without a request */
 /* @var $canWrite bool */
 /* @var $editItem string|null */
+/* @var $createHandlersHtml string */
 
 ?>
 <?= VueComponent::widget([
@@ -25,5 +26,6 @@ use humhub\widgets\VueComponent;
         'browseUrl' => $contentContainer->createUrl('/cfiles/browse/index'),
         'contentContainerId' => $contentContainer->contentcontainer_id,
         'editKey' => $editItem,
+        'createHandlersHtml' => $createHandlersHtml,
     ],
 ]) ?>

@@ -1,7 +1,32 @@
 <template>
     <div>
-        <div v-if="items.length" class="hh-list cfiles-list">
-            <ItemRow
+        <div v-if="selectable && items.length" class="cfiles-list-header d-flex align-items-center gap-2">
+            <input
+                ref="selectAll"
+                type="checkbox"
+                class="form-check-input"
+                :checked="allSelected"
+                :aria-label="selectAllLabel"
+                @change="$emit('toggle-all')"
+            />
+
+            <template v-if="selection.length">
+                <span class="text-muted small flex-grow-1">{{ selectionLabel }}</span>
+                <button type="button" class="btn btn-light btn-sm" @click="$emit('move-selection')">
+                    <i class="fa fa-arrows" aria-hidden="true"></i>
+                    <span class="d-none d-sm-inline ms-1">{{ moveLabel }}</span>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" @click="$emit('delete-selection')">
+                    <i class="fa fa-trash" aria-hidden="true"></i>
+                    <span class="d-none d-sm-inline ms-1">{{ deleteLabel }}</span>
+                </button>
+            </template>
+            <span v-else class="text-muted small">{{ selectAllLabel }}</span>
+        </div>
+
+        <div v-if="items.length" :class="containerClass">
+            <component
+                :is="itemComponent"
                 v-for="item in items"
                 :key="keyOf(item)"
                 :item="item"
@@ -34,16 +59,28 @@
 
 <script>
 /**
- * The rows of the open folder, in the platform's `.hh-list` container, plus the empty state
- * and the "show more" step. Paging appends in place — the same behaviour `UserList` and
- * `ActivityBox` have, so a long folder never replaces what the reader is looking at.
+ * The items of the open level, in whichever shape the reader chose, plus the empty state, the
+ * "show more" step and the selection header.
+ *
+ * The two shapes are `ItemRow` and `ItemTile`, and this component does not know the difference
+ * between them: both take the same props and emit the same events, so switching is one
+ * `:is`. What changes with them is the container — `.hh-list` styles its own children, which
+ * is right for rows and wrong for a grid.
+ *
+ * ## Select all
+ *
+ * Covers the items that are LOADED, not everything in the folder. With paging, a checkbox that
+ * silently included rows the reader has never seen would make the delete button far more
+ * dangerous than it looks. The box shows an indeterminate state while only some are selected,
+ * so it never claims more than it did.
  */
 import { i18n } from '@humhub/vue';
 import ItemRow from './ItemRow.vue';
+import ItemTile from './ItemTile.vue';
 import { keyOf } from './api';
 
 export default {
-    components: { ItemRow },
+    components: { ItemRow, ItemTile },
     props: {
         items: { type: Array, default: () => [] },
         selection: { type: Array, default: () => [] },
@@ -54,11 +91,43 @@ export default {
         loading: { type: Boolean, default: false },
         loadingMore: { type: Boolean, default: false },
         canWrite: { type: Boolean, default: false },
+        view: { type: String, default: 'list' },
         entriesFor: { type: Function, required: true },
         folderUrl: { type: Function, required: true },
     },
-    emits: ['open', 'toggle-select', 'load-more', 'drag-start', 'drag-end', 'drop-on'],
+    emits: [
+        'open', 'toggle-select', 'toggle-all', 'load-more',
+        'drag-start', 'drag-end', 'drop-on', 'move-selection', 'delete-selection',
+    ],
     computed: {
+        itemComponent() {
+            return this.view === 'tiles' ? 'ItemTile' : 'ItemRow';
+        },
+        containerClass() {
+            // `.hh-list` is the platform's row-list styling and applies to its direct
+            // children; a grid brings its own.
+            return this.view === 'tiles' ? 'cfiles-tiles' : 'hh-list cfiles-list';
+        },
+        allSelected() {
+            return this.items.length > 0 && this.selection.length === this.items.length;
+        },
+        someSelected() {
+            return this.selection.length > 0 && !this.allSelected;
+        },
+        selectAllLabel() {
+            return i18n.t('CfilesModule.base', 'Select all');
+        },
+        selectionLabel() {
+            return i18n.t('CfilesModule.base', '{count, plural, one{# selected} other{# selected}}', {
+                count: this.selection.length,
+            });
+        },
+        moveLabel() {
+            return i18n.t('CfilesModule.base', 'Move');
+        },
+        deleteLabel() {
+            return i18n.t('CfilesModule.base', 'Delete');
+        },
         emptyTitle() {
             return i18n.t('CfilesModule.base', 'This folder is empty.');
         },
@@ -72,6 +141,20 @@ export default {
         },
         loadingLabel() {
             return i18n.t('base', 'Loading...');
+        },
+    },
+    watch: {
+        // `indeterminate` is a DOM property, not an attribute, so it cannot be bound in the
+        // template.
+        someSelected: {
+            immediate: true,
+            handler(partial) {
+                this.$nextTick(() => {
+                    if (this.$refs.selectAll) {
+                        this.$refs.selectAll.indeterminate = partial;
+                    }
+                });
+            },
         },
     },
     methods: {

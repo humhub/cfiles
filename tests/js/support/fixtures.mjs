@@ -45,6 +45,17 @@ export const fileRow = (over = {}) => ({
     size: 1258291,
     url: '/file/f-21',
     downloadUrl: '/s/x/cfiles/download/f-21',
+    // Only the download handler applies: a plain link with the platform's download hooks.
+    link: {
+        url: '/file/f-21',
+        attributes: {
+            target: '_blank',
+            'data-file-download': true,
+            'data-file-url': '/file/f-21?download=1',
+            'data-file-name': 'Angebot.pdf',
+            'data-file-mime': 'application/pdf',
+        },
+    },
     previewUrl: null,
     downloadCount: 0,
     parentFolderId: null,
@@ -60,6 +71,7 @@ export const topLevel = (results = [folderRow(), fileRow()], over = {}) => ({
     path: [],
     sort: 'name',
     order: 'asc',
+    view: 'list',
     results,
     total: results.length,
     page: 1,
@@ -77,6 +89,7 @@ export const insideFolder = (results = [], over = {}) => ({
     ],
     sort: 'name',
     order: 'asc',
+    view: 'list',
     results,
     total: results.length,
     page: 1,

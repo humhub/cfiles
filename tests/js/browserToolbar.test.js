@@ -81,16 +81,74 @@ describe('BrowserToolbar', () => {
 
     describe('write actions', () => {
         it('offers creating and uploading when the caller may write', () => {
-            expect(toolbar().findAll('button').length).toBeGreaterThanOrEqual(2);
+            const wrapper = toolbar();
+
+            expect(wrapper.find('button .fa-folder').exists()).toBe(true);
+            expect(wrapper.find('button .fa-upload').exists()).toBe(true);
         });
 
         it('offers neither when the caller may not', () => {
-            expect(toolbar({ canWrite: false }).findAll('button')).toHaveLength(0);
+            const wrapper = toolbar({ canWrite: false });
+
+            expect(wrapper.find('button .fa-folder').exists()).toBe(false);
+            expect(wrapper.find('button .fa-upload').exists()).toBe(false);
+        });
+    });
+
+    // File handlers a module contributed ("new spreadsheet", "import from …") stay
+    // server-rendered: they carry legacy data-action-click attributes and build their own URLs.
+    describe('file handlers', () => {
+        it('offers no split toggle when no module contributed a handler', () => {
+            expect(toolbar().find('.dropdown-toggle-split').exists()).toBe(false);
         });
 
-        it('shows the bulk actions only while something is selected', () => {
-            expect(toolbar().find('.cfiles-selection').exists()).toBe(false);
-            expect(toolbar({ selectionCount: 2 }).find('.cfiles-selection').exists()).toBe(true);
+        it('offers the handlers beside the upload button when one did', () => {
+            const wrapper = toolbar({
+                createHandlersHtml: '<li><a class="dropdown-item" data-action-click="x">New sheet</a></li>',
+            });
+
+            expect(wrapper.find('.dropdown-toggle-split').exists()).toBe(true);
+            expect(wrapper.find('.cfiles-add-files .dropdown-menu a').text()).toBe('New sheet');
+        });
+
+        it('hides them from the caller who may not write at all', () => {
+            const wrapper = toolbar({
+                canWrite: false,
+                createHandlersHtml: '<li><a class="dropdown-item">New sheet</a></li>',
+            });
+
+            expect(wrapper.find('.dropdown-toggle-split').exists()).toBe(false);
+        });
+    });
+
+    // Two displays of the same items; the toolbar only says which one is in force.
+    describe('view switch', () => {
+        const viewButtons = (wrapper) => wrapper.findAll('.cfiles-view-switch button');
+
+        it('offers a list and a tile display', () => {
+            expect(viewButtons(toolbar())).toHaveLength(2);
+        });
+
+        it('marks the display in force, for the eye and for a screen reader', () => {
+            const buttons = viewButtons(toolbar({ view: 'tiles' }));
+
+            expect(buttons[0].classes()).not.toContain('active');
+            expect(buttons[0].attributes('aria-pressed')).toBe('false');
+            expect(buttons[1].classes()).toContain('active');
+            expect(buttons[1].attributes('aria-pressed')).toBe('true');
+        });
+
+        it('emits the display that was picked', async () => {
+            const wrapper = toolbar({ view: 'list' });
+            await viewButtons(wrapper)[1].trigger('click');
+
+            expect(wrapper.emitted('view')).toEqual([['tiles']]);
+        });
+
+        it('names each display for a screen reader, since the buttons are icons only', () => {
+            const buttons = viewButtons(toolbar());
+
+            expect(buttons.map((b) => b.attributes('aria-label'))).toEqual(['List', 'Tiles']);
         });
     });
 });

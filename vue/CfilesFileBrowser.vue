@@ -13,15 +13,15 @@
                 :sort="sort"
                 :order="order"
                 :can-write="canWrite"
-                :selection-count="selection.length"
+                :view="view"
+                :create-handlers-html="createHandlersHtml"
                 :drop-target-id="crumbDropTargetId"
                 :folder-url="folderUrl"
                 @open="open"
                 @sort="setSort"
+                @view="setView"
                 @create-folder="showCreate = true"
                 @pick-files="pickFiles"
-                @move-selection="openMove(selectedItems)"
-                @delete-selection="confirmDelete(selectedItems)"
                 @crumb-drag-over="crumbDropTargetId = $event"
                 @crumb-drag-leave="crumbDropTargetId = undefined"
                 @crumb-drop="moveTo($event)"
@@ -48,10 +48,14 @@
                 :loading="loading"
                 :loading-more="loadingMore"
                 :can-write="canWrite"
+                :view="view"
                 :entries-for="entriesFor"
                 :folder-url="folderUrl"
                 @open="open($event.id)"
                 @toggle-select="toggleSelect"
+                @toggle-all="toggleAll"
+                @move-selection="openMove(selectedItems)"
+                @delete-selection="confirmDelete(selectedItems)"
                 @load-more="loadMore"
                 @drag-start="dragged = [$event]"
                 @drag-end="itemDropTargetKey = null"
@@ -67,9 +71,10 @@
             @change="onFilesPicked"
         />
 
-        <UiModal v-model:show="showCreate" :title="createTitle">
+        <UiModal v-model:show="showCreate" :title="createTitle" @opened="focusForm('createForm')">
             <CfilesItemForm
                 v-if="showCreate"
+                ref="createForm"
                 :content-container-id="contentContainerId"
                 :parent-folder-id="folderId"
                 @saved="onCreated"
@@ -77,9 +82,10 @@
             />
         </UiModal>
 
-        <UiModal v-model:show="showEdit" :title="editTitle">
+        <UiModal v-model:show="showEdit" :title="editTitle" @opened="focusForm('editForm')">
             <CfilesItemForm
                 v-if="showEdit"
+                ref="editForm"
                 :item="editItem"
                 @saved="onUpdated"
                 @cancel="showEdit = false"
@@ -152,6 +158,8 @@ export default {
          * form of its own — this browser owns that dialog, and one form beats two.
          */
         editKey: { type: String, default: null },
+        /** See `BrowserToolbar`'s prop of the same name. */
+        createHandlersHtml: { type: String, default: '' },
     },
     data() {
         return {
@@ -160,6 +168,7 @@ export default {
             items: this.listing.results,
             sort: this.listing.sort,
             order: this.listing.order,
+            view: this.listing.view,
             total: this.listing.total,
             page: this.listing.page,
             pages: this.listing.pages,
@@ -224,6 +233,16 @@ export default {
     },
     methods: {
         /**
+         * Puts the cursor in a dialog's first field once the dialog is actually open.
+         *
+         * The modal focuses its own dialog element first (so Escape and the tab ring work
+         * from the moment it appears), which is why this waits for `opened` rather than
+         * focusing on mount.
+         */
+        focusForm(ref) {
+            this.$refs[ref]?.focus();
+        },
+        /**
          * Opens the edit dialog for the item a deep link asked for.
          *
          * Looked up among the rows already received, so a link to something that is not on
@@ -255,6 +274,7 @@ export default {
             this.items = payload.results;
             this.sort = payload.sort;
             this.order = payload.order;
+            this.view = payload.view;
             this.total = payload.total;
             this.page = payload.page;
             this.pages = payload.pages;
@@ -266,7 +286,11 @@ export default {
             }
             this.loading = true;
 
-            loadItems(this.contentContainerId, folderId, { sort: this.sort, order: this.order }).then((payload) => {
+            loadItems(this.contentContainerId, folderId, {
+                sort: this.sort,
+                order: this.order,
+                view: this.view,
+            }).then((payload) => {
                 this.applyPayload(payload);
                 this.loading = false;
 
@@ -302,13 +326,32 @@ export default {
             this.sort = sort;
             this.reload();
         },
+        /**
+         * Switches display and reloads, the same way a sort change does.
+         *
+         * The reload is not just for symmetry: the endpoint is what remembers the preference
+         * per user, and a tile grid asks for a bigger page than a row list.
+         */
+        setView(view) {
+            if (view === this.view) {
+                return;
+            }
+
+            this.view = view;
+            this.reload();
+        },
         loadMore() {
             if (this.loadingMore || this.page >= this.pages) {
                 return;
             }
             this.loadingMore = true;
 
-            loadItems(this.contentContainerId, this.folderId, { sort: this.sort, order: this.order, page: this.page + 1 })
+            loadItems(this.contentContainerId, this.folderId, {
+                sort: this.sort,
+                order: this.order,
+                view: this.view,
+                page: this.page + 1,
+            })
                 .then((payload) => {
                     this.items = this.items.concat(payload.results);
                     this.page = payload.page;
@@ -329,6 +372,17 @@ export default {
             } else {
                 this.selection.splice(at, 1);
             }
+        },
+        /**
+         * Selects every LOADED item, or clears the selection when they already are.
+         *
+         * Deliberately not "everything in this folder": with paging that would arm the delete
+         * button with rows the reader has never seen.
+         */
+        toggleAll() {
+            this.selection = this.selection.length === this.items.length
+                ? []
+                : this.items.map(keyOf);
         },
 
         // --- context menu ------------------------------------------------------------
@@ -479,13 +533,24 @@ export default {
                 this.uploadProgress = percent;
             }).then((response) => {
                 this.uploadProgress = null;
-                (response.errors || []).forEach((error) => {
-                    status('error', error.fileName + ': ' + (error.messages || []).join(' '));
-                });
+                this.reportUploadErrors(response.errors);
                 this.reload();
-            }).catch((e) => {
+            }).catch((response) => {
                 this.uploadProgress = null;
-                log.error(e, true);
+
+                // The endpoint answers 422 only when NOTHING landed, and then says why per
+                // file — that is a result, not a transport failure.
+                if (response && response.status === 422 && Array.isArray(response.errors)) {
+                    this.reportUploadErrors(response.errors);
+                    return;
+                }
+
+                log.error(response, true);
+            });
+        },
+        reportUploadErrors(errors) {
+            (errors || []).forEach((error) => {
+                status('error', error.fileName + ': ' + (error.messages || []).join(' '));
             });
         },
 

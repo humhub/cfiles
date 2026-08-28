@@ -38,6 +38,15 @@ class FolderListingService
     public const DEFAULT_PAGE_SIZE = 50;
 
     /**
+     * How a listing may be displayed. A tile grid fits more on a screen than a row list, so
+     * each brings its own page size.
+     */
+    public const VIEWS = [
+        'list' => 50,
+        'tiles' => 96,
+    ];
+
+    /**
      * Sort keys the listing understands, mapped to the order expression of each row type.
      * A null means the type cannot be sorted that way and falls back to its name — folders
      * have no size, so sorting a mixed listing by size still has to put them somewhere.
@@ -65,9 +74,16 @@ class FolderListingService
      * The folder, its path from the root, and one page of its contents with folders sorted
      * ahead of files.
      */
-    public function payload(?string $sort = null, ?string $order = null, int $page = 1, int $pageSize = self::DEFAULT_PAGE_SIZE): array
-    {
+    public function payload(
+        ?string $sort = null,
+        ?string $order = null,
+        int $page = 1,
+        ?int $pageSize = null,
+        ?string $view = null,
+    ): array {
         [$sort, $sortOrder] = $this->resolveSortOrder($sort, $order);
+        $view = $this->resolveView($view);
+        $pageSize ??= self::VIEWS[$view];
 
         $folderQuery = $this->subFolderQuery($sort, $sortOrder);
         $fileQuery = $this->subFileQuery($sort, $sortOrder);
@@ -85,6 +101,7 @@ class FolderListingService
             'path' => FolderSerializer::path($this->folder),
             'sort' => $sort,
             'order' => $sortOrder === SORT_DESC ? 'desc' : 'asc',
+            'view' => $view,
             'results' => $this->page($folderQuery, $folderCount, $fileQuery, $pagination),
             'total' => (int)$pagination->totalCount,
             'page' => $pagination->getPage() + 1,
@@ -143,6 +160,39 @@ class FolderListingService
      * A null column means the type cannot be sorted that way (a folder has no size); it falls
      * back to the name so a mixed listing still has a defined order.
      */
+    /**
+     * The display the caller asked for, remembered per user the same way the sort is.
+     *
+     * A display preference is not part of a request's meaning, so it has nowhere else to live:
+     * the browser has no settings screen, and putting it in the URL would make every shared
+     * link carry one reader's taste.
+     */
+    private function resolveView(?string $view): string
+    {
+        /** @var Module $module */
+        $module = Yii::$app->getModule('cfiles');
+
+        if ($view !== null && !isset(self::VIEWS[$view])) {
+            $view = null;
+        }
+
+        if (Yii::$app->user->isGuest) {
+            return $view ?? $module->defaultView;
+        }
+
+        $settings = $module->settings->user(Yii::$app->user->getIdentity());
+
+        if ($view !== null) {
+            $settings->set('defaultView', $view);
+
+            return $view;
+        }
+
+        $stored = (string)$settings->get('defaultView', $module->defaultView);
+
+        return isset(self::VIEWS[$stored]) ? $stored : $module->defaultView;
+    }
+
     private function subFolderQuery(string $sort, int $order): ActiveQuery
     {
         $column = self::SORT_COLUMNS[$sort]['folder'] ?? null;

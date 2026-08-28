@@ -63,7 +63,8 @@ class FolderController extends BaseController
                 $request->get('sort'),
                 $request->get('order'),
                 (int)$request->get('page', 1),
-                (int)$request->get('pageSize', FolderListingService::DEFAULT_PAGE_SIZE),
+                $request->get('pageSize') === null ? null : (int)$request->get('pageSize'),
+                $request->get('view'),
             );
     }
 

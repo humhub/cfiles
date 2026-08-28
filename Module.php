@@ -37,6 +37,12 @@ class Module extends ContentContainerModule
     public $defaultOrder = SORT_ASC;
 
     /**
+     * @var string how a folder listing is displayed, one of
+     *      {@see \humhub\modules\cfiles\services\FolderListingService::VIEWS}.
+     */
+    public $defaultView = 'list';
+
+    /**
      * @inheritdoc
      */
     public function getContentContainerTypes()

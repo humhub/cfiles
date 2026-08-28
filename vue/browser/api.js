@@ -10,7 +10,7 @@ import { apiUrl, client } from '@humhub/vue';
  * One level of a container's tree. `parent` is a folder id, or null for the top level, which
  * has no folder record of its own — that is why the container is what the URL addresses.
  */
-export const loadItems = (containerId, parent, { sort, order, page, pageSize } = {}) => {
+export const loadItems = (containerId, parent, { sort, order, view, page, pageSize } = {}) => {
     const params = {};
     if (parent) {
         params.parent = parent;
@@ -18,6 +18,9 @@ export const loadItems = (containerId, parent, { sort, order, page, pageSize } =
     if (sort) {
         params.sort = sort;
         params.order = order || 'asc';
+    }
+    if (view) {
+        params.view = view;
     }
     if (page) {
         params.page = page;
@@ -46,57 +49,52 @@ export const deleteItems = (items) =>
     client.post(apiUrl('cfiles/items/delete'), { data: { items: items.map(descriptor) } });
 
 /**
- * Uploads through XMLHttpRequest rather than the client bridge, because the bridge has no
- * upload-progress signal and a file browser without a progress bar is a file browser people
- * think has hung.
+ * Uploads a batch of files to one level of the tree.
+ *
+ * Goes through the platform client rather than a hand-rolled XMLHttpRequest, which is what
+ * makes it work at all: Yii's ajax prefilter is what attaches the CSRF token, and a
+ * session-authenticated POST without one is rejected by `SessionAuth`. There is no
+ * `csrf-token` meta tag on a HumHub page to read it from — only the installer layout renders
+ * one. Modelled on the core's own `vue/upload/uploadClient.js`.
+ *
+ * The custom `xhr` factory exists for one reason: upload progress is an XHR-level event
+ * jQuery does not surface. Everything else — CSRF, error handling, Response wrapping — stays
+ * with the platform.
  */
-export const uploadFiles = (containerId, parent, files, onProgress) => new Promise((resolve, reject) => {
+export const uploadFiles = (containerId, parent, files, onProgress) => {
     const form = new FormData();
+
     Array.prototype.forEach.call(files, (file) => form.append('files[]', file));
+
     if (parent) {
         form.append('parent', parent);
     }
 
-    const request = new XMLHttpRequest();
-    request.open('POST', apiUrl('cfiles/' + containerId + '/files'));
-    request.setRequestHeader('X-CSRF-Token', csrfToken());
-    request.setRequestHeader('Accept', 'application/json');
+    return client.post(apiUrl('cfiles/' + containerId + '/files'), {
+        data: form,
+        // Hand the FormData to the browser untouched: jQuery must neither serialize it nor
+        // set a Content-Type, or the multipart boundary is lost.
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        xhr: () => {
+            const xhr = jQuery.ajaxSettings.xhr();
 
-    request.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable && typeof onProgress === 'function') {
-            onProgress(Math.round((event.loaded / event.total) * 100));
-        }
+            if (onProgress && xhr.upload) {
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable && event.total > 0) {
+                        onProgress(Math.round((event.loaded / event.total) * 100));
+                    }
+                });
+            }
+
+            return xhr;
+        },
     });
-
-    request.addEventListener('load', () => {
-        let body = {};
-        try {
-            body = JSON.parse(request.responseText || '{}');
-        } catch (e) {
-            reject(new Error('Malformed upload response'));
-            return;
-        }
-        // 422 with a `results` array is a partial success: some files landed. The caller
-        // shows both halves, so it is not an error here.
-        if (request.status >= 200 && request.status < 300) {
-            resolve(body);
-        } else if (request.status === 422 && Array.isArray(body.results)) {
-            resolve(body);
-        } else {
-            reject(new Error(request.statusText || 'Upload failed'));
-        }
-    });
-    request.addEventListener('error', () => reject(new Error('Upload failed')));
-
-    request.send(form);
-});
+};
 
 const descriptor = (item) => ({ type: item.type, id: item.id });
 
-const csrfToken = () => {
-    const meta = document.querySelector('meta[name="csrf-token"]');
-    return meta ? meta.getAttribute('content') : '';
-};
 
 /** Stable identity of a row across reloads — a file and a folder can share a numeric id. */
 export const keyOf = (item) => item.type + ':' + item.id;

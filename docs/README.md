@@ -7,6 +7,7 @@ Enhance your network's efficiency with the Files Module, a complete solution for
 - **File Overview:** Get instant access to all files from your stream and profile.
 - **Interact:** Comment on and like files for better collaboration and feedback.
 - **Folder Structure:** Organize your files into unlimited folders and subfolders.
+- **Two Displays:** Switch between a compact list and a tile grid with previews; your choice is remembered.
 - **Migration:** Effortlessly move files and folders within your network.
 - **File Info:** Always visible information about the creator, editor, and creation date.
 - **Import Files:** Import files and folder structures directly from a .zip file.

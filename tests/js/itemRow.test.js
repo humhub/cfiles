@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import ItemRow from '../../vue/browser/ItemRow.vue';
+import ContentControls from '@core/modules/content/vue/ContentControls.vue';
 import { fileRow, folderRow } from './support/fixtures.mjs';
 
 const row = (item, over = {}) => mount(ItemRow, {
@@ -11,6 +12,24 @@ const row = (item, over = {}) => mount(ItemRow, {
         ...over,
     },
 });
+
+/**
+ * A real right-click. `wrapper.trigger()` cannot be used here: the assertions are about the
+ * pointer coordinates and about whether the native menu was suppressed, and both live on the
+ * event object itself.
+ */
+const rightClick = (wrapper, init = {}) => {
+    const event = new MouseEvent('contextmenu', {
+        bubbles: true, cancelable: true, clientX: 40, clientY: 90, ...init,
+    });
+    wrapper.element.dispatchEvent(event);
+
+    return event;
+};
+
+/** Watches the row's context menu without letting it reach Bootstrap, which is not loaded here. */
+const watchMenu = (wrapper) => vi.spyOn(wrapper.findComponent(ContentControls).vm, 'open')
+    .mockImplementation(() => {});
 
 describe('ItemRow', () => {
     beforeEach(() => {
@@ -25,6 +44,41 @@ describe('ItemRow', () => {
         it('links a folder to its own page and a file to the file itself', () => {
             expect(row(folderRow()).find('h4 a').attributes('href')).toBe('/b?fid=11');
             expect(row(fileRow()).find('h4 a').attributes('href')).toBe('/file/f-21');
+        });
+
+        // A file is not always just a download: a module may have contributed a viewer or an
+        // editor, and the server says which of the two link shapes applies.
+        describe('what the name links to', () => {
+            it('carries the download hooks when only the download handler applies', () => {
+                const link = row(fileRow()).find('h4 a');
+
+                expect(link.attributes('href')).toBe('/file/f-21');
+                expect(link.attributes('target')).toBe('_blank');
+                expect(link.attributes('data-file-name')).toBe('Angebot.pdf');
+            });
+
+            it('opens the file dialog when a module contributed a handler', () => {
+                const link = row(fileRow({
+                    link: { url: '/file/view?guid=f-21', attributes: { 'data-bs-target': '#globalModal' } },
+                })).find('h4 a');
+
+                expect(link.attributes('href')).toBe('/file/view?guid=f-21');
+                expect(link.attributes('data-bs-target')).toBe('#globalModal');
+                expect(link.attributes('target')).toBeUndefined();
+            });
+
+            it('falls back to the plain file url when the payload carries no decision', () => {
+                const link = row(fileRow({ link: undefined })).find('h4 a');
+
+                expect(link.attributes('href')).toBe('/file/f-21');
+            });
+
+            it('never applies any of it to a folder', () => {
+                const link = row(folderRow()).find('h4 a');
+
+                expect(link.attributes('href')).toBe('/b?fid=11');
+                expect(link.attributes('data-bs-target')).toBeUndefined();
+            });
         });
 
         it('shows a folder icon for a folder and a mime icon for a file', () => {
@@ -118,6 +172,101 @@ describe('ItemRow', () => {
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('viewContext=browser');
+        });
+
+        it('raises the menu at the cursor on a right-click anywhere on the row', () => {
+            const wrapper = row(fileRow());
+            const open = watchMenu(wrapper);
+
+            const event = rightClick(wrapper);
+
+            expect(open).toHaveBeenCalledTimes(1);
+            expect(open.mock.calls[0][0].clientX).toBe(40);
+            expect(open.mock.calls[0][0].clientY).toBe(90);
+            expect(event.defaultPrevented).toBe(true);
+        });
+
+        it('leaves ctrl+right-click to the browser, as the platform always has', () => {
+            const wrapper = row(fileRow());
+            const open = watchMenu(wrapper);
+
+            const event = rightClick(wrapper, { ctrlKey: true });
+
+            expect(open).not.toHaveBeenCalled();
+            expect(event.defaultPrevented).toBe(false);
+        });
+
+        it('leaves a right-click inside the open menu to the menu', () => {
+            const wrapper = row(fileRow());
+            const open = watchMenu(wrapper);
+
+            wrapper.find('.dropdown-menu').element.dispatchEvent(
+                new MouseEvent('contextmenu', { bubbles: true, cancelable: true }),
+            );
+
+            expect(open).not.toHaveBeenCalled();
+        });
+    });
+
+    /**
+     * The row itself is the click target for the item it shows — a browser where only the
+     * name is clickable makes every open a precision exercise.
+     */
+    describe('opening by clicking the row', () => {
+        it('opens a folder', async () => {
+            const wrapper = row(folderRow());
+
+            await wrapper.trigger('click');
+
+            expect(wrapper.emitted('open')[0][0].id).toBe(11);
+        });
+
+        it('follows a file through its own link, whatever the server made of it', async () => {
+            const wrapper = row(fileRow({
+                link: { url: '/file/view?guid=f-21', attributes: { 'data-bs-target': '#globalModal' } },
+            }));
+            const link = wrapper.find('h4 a').element;
+            const clicks = vi.fn((event) => event.preventDefault());
+            link.addEventListener('click', clicks);
+
+            await wrapper.trigger('click');
+
+            // Through the anchor, not around it: its attributes are what the platform's own
+            // delegated handlers read to decide what opening this file means.
+            expect(clicks).toHaveBeenCalledTimes(1);
+            expect(wrapper.emitted('open')).toBeFalsy();
+        });
+
+        it('leaves the checkbox, the menu and the creator link their own clicks', async () => {
+            const wrapper = row(folderRow(), { selectable: true });
+
+            await wrapper.find('input[type="checkbox"]').trigger('click');
+            await wrapper.find('a[data-bs-toggle="dropdown"]').trigger('click');
+
+            expect(wrapper.emitted('open')).toBeFalsy();
+        });
+
+        it('leaves a modifier click to the browser', async () => {
+            const wrapper = row(folderRow());
+
+            await wrapper.trigger('click', { metaKey: true });
+            await wrapper.trigger('click', { ctrlKey: true });
+            await wrapper.trigger('click', { shiftKey: true });
+
+            expect(wrapper.emitted('open')).toBeFalsy();
+        });
+
+        it('does not open when the click only ended a text selection', async () => {
+            const wrapper = row(folderRow());
+            vi.spyOn(window, 'getSelection').mockReturnValue({
+                isCollapsed: false,
+                anchorNode: wrapper.find('h5').element,
+            });
+
+            await wrapper.trigger('click');
+
+            expect(wrapper.emitted('open')).toBeFalsy();
+            window.getSelection.mockRestore();
         });
     });
 

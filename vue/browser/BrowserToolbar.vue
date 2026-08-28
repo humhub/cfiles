@@ -17,14 +17,18 @@
             </ol>
         </nav>
 
-        <div v-if="selectionCount" class="cfiles-selection d-flex align-items-center gap-2">
-            <span class="text-muted small">{{ selectionLabel }}</span>
-            <button type="button" class="btn btn-light btn-sm" @click="$emit('move-selection')">
-                <i class="fa fa-arrows" aria-hidden="true"></i> {{ moveLabel }}
-            </button>
-            <button type="button" class="btn btn-danger btn-sm" @click="$emit('delete-selection')">
-                <i class="fa fa-trash" aria-hidden="true"></i> {{ deleteLabel }}
-            </button>
+        <div class="btn-group btn-group-sm cfiles-view-switch" role="group" :aria-label="viewLabel">
+            <button
+                v-for="option in viewOptions"
+                :key="option.value"
+                type="button"
+                class="btn btn-light"
+                :class="{ active: view === option.value }"
+                :aria-pressed="view === option.value ? 'true' : 'false'"
+                :title="option.label"
+                :aria-label="option.label"
+                @click="$emit('view', option.value)"
+            ><i :class="'fa fa-' + option.icon" aria-hidden="true"></i></button>
         </div>
 
         <DropdownMenu
@@ -43,10 +47,22 @@
                 <i class="fa fa-folder" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline ms-1">{{ addFolderLabel }}</span>
             </button>
-            <button type="button" class="btn btn-accent btn-sm" @click="$emit('pick-files')">
-                <i class="fa fa-upload" aria-hidden="true"></i>
-                <span class="d-none d-sm-inline ms-1">{{ addFilesLabel }}</span>
-            </button>
+            <div class="btn-group btn-group-sm cfiles-add-files">
+                <button type="button" class="btn btn-accent" @click="$emit('pick-files')">
+                    <i class="fa fa-upload" aria-hidden="true"></i>
+                    <span class="d-none d-sm-inline ms-1">{{ addFilesLabel }}</span>
+                </button>
+                <template v-if="createHandlersHtml">
+                    <button
+                        type="button"
+                        class="btn btn-accent dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    ><span class="visually-hidden">{{ handlersLabel }}</span></button>
+                    <ul class="dropdown-menu dropdown-menu-end" v-additions v-html="createHandlersHtml"></ul>
+                </template>
+            </div>
         </template>
     </div>
 </template>
@@ -70,7 +86,15 @@ export default {
         sort: { type: String, default: 'name' },
         order: { type: String, default: 'asc' },
         canWrite: { type: Boolean, default: false },
-        selectionCount: { type: Number, default: 0 },
+        /** Which display is in force, one of `FolderListingService::VIEWS`. */
+        view: { type: String, default: 'list' },
+        /**
+         * Server-rendered `<li>` entries for the file handlers a module contributed — "new
+         * spreadsheet", "import from …". They stay server-rendered because they are menu
+         * entries carrying legacy `data-action-click` attributes and build their own URLs from
+         * the request; the same arrangement the core's `UploadField` uses.
+         */
+        createHandlersHtml: { type: String, default: '' },
         /**
          * The crumb currently being dragged over, or `undefined` when nothing is.
          *
@@ -82,8 +106,8 @@ export default {
         folderUrl: { type: Function, required: true },
     },
     emits: [
-        'open', 'sort', 'create-folder', 'pick-files',
-        'move-selection', 'delete-selection', 'crumb-drag-over', 'crumb-drag-leave', 'crumb-drop',
+        'open', 'sort', 'view', 'create-folder', 'pick-files',
+        'crumb-drag-over', 'crumb-drag-leave', 'crumb-drop',
     ],
     computed: {
         /**
@@ -100,25 +124,26 @@ export default {
         sortLabel() {
             return i18n.t('CfilesModule.base', 'Sort by');
         },
-        moveLabel() {
-            return i18n.t('CfilesModule.base', 'Move');
-        },
-        deleteLabel() {
-            return i18n.t('CfilesModule.base', 'Delete');
-        },
         addFolderLabel() {
             return i18n.t('CfilesModule.base', 'Add folder');
         },
         addFilesLabel() {
             return i18n.t('CfilesModule.base', 'Add files');
         },
+        handlersLabel() {
+            return i18n.t('CfilesModule.base', 'More ways to add a file');
+        },
         rootLabel() {
             return i18n.t('CfilesModule.base', 'Files');
         },
-        selectionLabel() {
-            return i18n.t('CfilesModule.base', '{count, plural, one{# selected} other{# selected}}', {
-                count: this.selectionCount,
-            });
+        viewLabel() {
+            return i18n.t('CfilesModule.base', 'View');
+        },
+        viewOptions() {
+            return [
+                { value: 'list', icon: 'list', label: i18n.t('CfilesModule.base', 'List') },
+                { value: 'tiles', icon: 'th', label: i18n.t('CfilesModule.base', 'Tiles') },
+            ];
         },
         sortLabels() {
             return {
