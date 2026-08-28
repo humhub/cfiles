@@ -49,7 +49,7 @@ $uploadUrl = $contentContainer->createUrl('/cfiles/upload', ['fid' => $folder->i
                         ->icon('fa-folder') ?>
                     <?php if (!$folder->isRoot()): ?>
                         <button id="directory-toggle" type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            <span class="sr-only"></span>
+                            <span class="visually-hidden"></span>
                         </button>
                         <ul id="folder-dropdown" class="dropdown-menu">
                             <li>
