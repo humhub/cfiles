@@ -16,6 +16,18 @@ import { getConfig, i18n } from '@humhub/vue';
 export const SUPPRESSED_CORE_ENTRIES = ['edit', 'delete', 'permalink', 'pin', 'move', 'archive'];
 
 /**
+ * The render-options profile the server resolves this menu under. It has to be one of core's
+ * `StreamEntryOptions::VIEW_CONTEXT_*` values — `browser`, which this used to pass, is not
+ * one and only worked by accident: any unknown string is "neither `default` nor `detail`",
+ * which is what kept the stream-only Pin entry away.
+ *
+ * `detail` is the honest one here: a row shows a single content record on its own, outside a
+ * stream. The remaining values name core's own stream surfaces (`default`, `dashboard`,
+ * `search`) or a modal, none of which this is.
+ */
+export const CONTROLS_VIEW_CONTEXT = 'detail';
+
+/**
  * The platform's mime classes (`mime-pdf`) mapped onto the FontAwesome icons this browser
  * draws. `FileSerializer` ships the class; the icon set is a client concern.
  */

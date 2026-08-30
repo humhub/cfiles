@@ -61,7 +61,7 @@
             <ContentControls
                 ref="controls"
                 :content-id="item.contentId"
-                view-context="browser"
+                :view-context="CONTROLS_VIEW_CONTEXT"
                 :entries="entries"
                 :suppress="SUPPRESSED_CORE_ENTRIES"
                 :context="{ item }"
@@ -81,7 +81,7 @@
  * Both kinds share this component on purpose — they differ in the icon, what the title links
  * to and which context-menu entries apply, and in nothing else.
  */
-import { itemMeta, mimeIconClass, SUPPRESSED_CORE_ENTRIES } from './itemPresentation';
+import { itemMeta, mimeIconClass, CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES } from './itemPresentation';
 import { i18n } from '@humhub/vue';
 
 export default {
@@ -101,7 +101,7 @@ export default {
     },
     emits: ['open', 'toggle-select', 'drag-start', 'drag-end', 'drop-on'],
     data() {
-        return { SUPPRESSED_CORE_ENTRIES };
+        return { CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES };
     },
     computed: {
         isFolder() {

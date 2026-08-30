@@ -256,6 +256,7 @@
   }
   const BrowserToolbar = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$6]]);
   const SUPPRESSED_CORE_ENTRIES = ["edit", "delete", "permalink", "pin", "move", "archive"];
+  const CONTROLS_VIEW_CONTEXT = "detail";
   const MIME_ICONS = {
     "mime-image": "fa-file-image-o",
     "mime-pdf": "fa-file-pdf-o",
@@ -333,7 +334,7 @@
     },
     emits: ["open", "toggle-select", "drag-start", "drag-end", "drop-on"],
     data() {
-      return { SUPPRESSED_CORE_ENTRIES };
+      return { CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES };
     },
     computed: {
       isFolder() {
@@ -544,13 +545,13 @@
         vue$1.createVNode(_component_ContentControls, {
           ref: "controls",
           "content-id": $props.item.contentId,
-          "view-context": "browser",
+          "view-context": $data.CONTROLS_VIEW_CONTEXT,
           entries: $props.entries,
           suppress: $data.SUPPRESSED_CORE_ENTRIES,
           context: { item: $props.item },
           "toggle-class": "nav-link dropdown-toggle cfiles-row-toggle",
           "toggle-aria-label": $options.actionsLabel
-        }, null, 8, ["content-id", "entries", "suppress", "context", "toggle-aria-label"])
+        }, null, 8, ["content-id", "view-context", "entries", "suppress", "context", "toggle-aria-label"])
       ])
     ], 42, _hoisted_1$5);
   }
@@ -567,7 +568,7 @@
     },
     emits: ["open", "toggle-select", "drag-start", "drag-end", "drop-on"],
     data() {
-      return { SUPPRESSED_CORE_ENTRIES };
+      return { CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES };
     },
     computed: {
       isFolder() {
@@ -685,13 +686,13 @@
         vue$1.createVNode(_component_ContentControls, {
           ref: "controls",
           "content-id": $props.item.contentId,
-          "view-context": "browser",
+          "view-context": $data.CONTROLS_VIEW_CONTEXT,
           entries: $props.entries,
           suppress: $data.SUPPRESSED_CORE_ENTRIES,
           context: { item: $props.item },
           "toggle-class": "nav-link dropdown-toggle cfiles-tile-toggle",
           "toggle-aria-label": $options.actionsLabel
-        }, null, 8, ["content-id", "entries", "suppress", "context", "toggle-aria-label"])
+        }, null, 8, ["content-id", "view-context", "entries", "suppress", "context", "toggle-aria-label"])
       ]),
       vue$1.createElementVNode("a", vue$1.mergeProps({ href: $options.linkUrl }, $options.linkAttributes, {
         class: "cfiles-tile-preview",

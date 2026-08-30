@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import ItemRow from '../../vue/browser/ItemRow.vue';
 import ContentControls from '@core/modules/content/vue/ContentControls.vue';
 import { fileRow, folderRow } from './support/fixtures.mjs';
+import { CONTROLS_VIEW_CONTEXT } from '../../vue/browser/itemPresentation';
 
 const row = (item, over = {}) => mount(ItemRow, {
     props: {
@@ -164,14 +165,20 @@ describe('ItemRow', () => {
                 .toContain('suppress=edit%2Cdelete%2Cpermalink%2Cpin%2Cmove%2Carchive');
         });
 
-        it('asks for the browser view context, not the stream one', async () => {
+        // The value has to be one of core's own VIEW_CONTEXT_* values; anything else is
+        // silently treated as "not the default profile" and would break the day core starts
+        // matching on the name. See CONTROLS_VIEW_CONTEXT for why it is this one.
+        it('asks for a non-stream view context core actually knows', async () => {
             const wrapper = row(fileRow());
 
             wrapper.find('a[data-bs-toggle="dropdown"]').element
                 .dispatchEvent(new Event('show.bs.dropdown'));
             await flushPromises();
 
-            expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('viewContext=browser');
+            const url = globalThis.humhubStubs.client.get.mock.calls[0][0];
+
+            expect(url).toContain(`viewContext=${CONTROLS_VIEW_CONTEXT}`);
+            expect(['default', 'dashboard', 'search', 'detail', 'modal']).toContain(CONTROLS_VIEW_CONTEXT);
         });
 
         it('raises the menu at the cursor on a right-click anywhere on the row', () => {
