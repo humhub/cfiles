@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.17.5 (Unreleased)
+-------------------
+- Enh: Automated code refactoring for HumHub 1.18.1 using Rector
+
 0.17.4 - May 5, 2026
 --------------------
 - Fix #278: Improved download count accuracy
