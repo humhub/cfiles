@@ -191,9 +191,7 @@ class Folder extends FileSystemItem
 
     public function moveSubFoldersToContainer(?ContentContainerActiveRecord $container = null)
     {
-        if ($container === null) {
-            $container = $this->content->getContainer();
-        }
+        $container ??= $this->content->getContainer();
 
         $folders = Folder::find()
             ->andWhere(['parent_folder_id' => $this->id])
@@ -207,9 +205,7 @@ class Folder extends FileSystemItem
 
     public function moveSubFilesToContainer(?ContentContainerActiveRecord $container = null)
     {
-        if ($container === null) {
-            $container = $this->content->getContainer();
-        }
+        $container ??= $this->content->getContainer();
 
         $files = File::find()
             ->joinWith('baseFile')
