@@ -8,7 +8,6 @@ use humhub\modules\file\libs\ImageHelper;
 use humhub\modules\file\models\FileContent;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\user\models\User;
-use humhub\modules\search\events\SearchAddEvent;
 use humhub\modules\space\models\Space;
 use Yii;
 use yii\db\ActiveQuery;
@@ -162,7 +161,6 @@ class Folder extends FileSystemItem
                 $attributes['editor'] = $this->getEditor()->getDisplayName();
             }
         }
-        $this->trigger(self::EVENT_SEARCH_ADD, new SearchAddEvent($attributes));
         return $attributes;
     }
 
