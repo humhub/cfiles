@@ -13,3 +13,4 @@ nbproject
 /.superpowers/
 /.php-cs-fixer.cache
 /node_modules/
+/docs/superpowers/
