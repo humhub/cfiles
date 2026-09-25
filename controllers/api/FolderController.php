@@ -31,6 +31,15 @@ class FolderController extends BaseController
 {
     /**
      * @inheritdoc
+     *
+     * A guest may open the browser of a public space, so the levels and pages after the first,
+     * which the page embeds, have to be readable for them too. The listing is guest-safe
+     * through the `readable()` content scope, the same one that page render runs.
+     */
+    protected array $guestAllowedActions = ['items'];
+
+    /**
+     * @inheritdoc
      */
     public function behaviors()
     {

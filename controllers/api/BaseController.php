@@ -34,7 +34,7 @@ abstract class BaseController extends ApiBaseController
      * The file browser is a browser UI, so it authenticates with the session cookie; token
      * methods contributed by the `rest` module work as well.
      */
-    protected bool $enableSessionAuth = true;
+    protected bool $allowSessionAuth = true;
 
     /**
      * The content container an endpoint is scoped to.
