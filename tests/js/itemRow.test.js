@@ -84,7 +84,7 @@ describe('ItemRow', () => {
 
         it('shows a folder icon for a folder and a mime icon for a file', () => {
             expect(row(folderRow()).find('.cfiles-icon-folder').exists()).toBe(true);
-            expect(row(fileRow()).find('.fa-file-pdf-o').exists()).toBe(true);
+            expect(row(fileRow()).find('.ti-file-type-pdf').exists()).toBe(true);
         });
 
         it('prefers a thumbnail over an icon when there is one', () => {
@@ -95,8 +95,8 @@ describe('ItemRow', () => {
         });
 
         it('marks a private item and leaves a public one unmarked', () => {
-            expect(row(fileRow({ visibility: 0 })).find('.fa-lock').exists()).toBe(true);
-            expect(row(fileRow({ visibility: 1 })).find('.fa-lock').exists()).toBe(false);
+            expect(row(fileRow({ visibility: 0 })).find('.ti-lock').exists()).toBe(true);
+            expect(row(fileRow({ visibility: 1 })).find('.ti-lock').exists()).toBe(false);
         });
 
         it('counts a folder\'s items and sizes a file', () => {

@@ -406,7 +406,7 @@ export default {
                     label: isFolder
                         ? i18n.t('CfilesModule.base', 'Open')
                         : i18n.t('CfilesModule.base', 'Download'),
-                    icon: isFolder ? 'folder-open' : 'cloud-download',
+                    icon: isFolder ? 'folder-open-filled' : 'cloud-download',
                     url: isFolder ? this.folderUrl(item.id) : (item.downloadUrl || item.url),
                     onClick: isFolder ? () => this.open(item.id) : undefined,
                 },
@@ -422,7 +422,7 @@ export default {
                     id: 'cfiles-move',
                     sortOrder: 50,
                     label: i18n.t('CfilesModule.base', 'Move'),
-                    icon: 'arrows',
+                    icon: 'arrows-move',
                     condition: (context) => this.canWrite && context.capabilities.canEdit === true,
                     onClick: () => this.openMove([item]),
                 },
@@ -430,7 +430,7 @@ export default {
                     id: 'cfiles-delete',
                     sortOrder: 60,
                     label: i18n.t('CfilesModule.base', 'Delete'),
-                    icon: 'trash',
+                    icon: 'trash-filled',
                     condition: (context) => context.capabilities.canDelete === true,
                     onClick: () => this.confirmDelete([item]),
                 },

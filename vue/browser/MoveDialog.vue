@@ -15,12 +15,12 @@
                 @keydown.space.prevent="select(node)"
             >
                 <i
-                    class="fa fa-fw"
-                    :class="node.expanded ? 'fa-caret-down' : (node.hasChildren === false ? '' : 'fa-caret-right')"
+                    class="ti icon-fw"
+                    :class="node.expanded ? 'ti-caret-down-filled' : (node.hasChildren === false ? '' : 'ti-caret-right-filled')"
                     aria-hidden="true"
                     @click.stop="toggle(node)"
                 ></i>
-                <i class="fa fa-folder text-muted" aria-hidden="true"></i>
+                <i class="ti ti-folder-filled text-muted" aria-hidden="true"></i>
                 {{ node.isTop ? rootLabel : node.title }}
             </div>
         </div>

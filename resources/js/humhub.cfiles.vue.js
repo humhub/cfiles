@@ -81,7 +81,7 @@
       viewOptions() {
         return [
           { value: "list", icon: "list", label: vue.i18n.t("CfilesModule.base", "List") },
-          { value: "tiles", icon: "th", label: vue.i18n.t("CfilesModule.base", "Tiles") }
+          { value: "tiles", icon: "layout-grid", label: vue.i18n.t("CfilesModule.base", "Tiles") }
         ];
       },
       sortLabels() {
@@ -196,7 +196,7 @@
             onClick: ($event) => _ctx.$emit("view", option.value)
           }, [
             vue$1.createElementVNode("i", {
-              class: vue$1.normalizeClass("fa fa-" + option.icon),
+              class: vue$1.normalizeClass("ti ti-" + option.icon),
               "aria-hidden": "true"
             }, null, 2)
           ], 10, _hoisted_8$3);
@@ -222,7 +222,7 @@
           onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("create-folder"))
         }, [
           _cache[3] || (_cache[3] = vue$1.createElementVNode("i", {
-            class: "fa fa-folder",
+            class: "ti ti-folder-filled",
             "aria-hidden": "true"
           }, null, -1)),
           vue$1.createElementVNode("span", _hoisted_9$3, vue$1.toDisplayString($options.addFolderLabel), 1)
@@ -234,7 +234,7 @@
             onClick: _cache[2] || (_cache[2] = ($event) => _ctx.$emit("pick-files"))
           }, [
             _cache[4] || (_cache[4] = vue$1.createElementVNode("i", {
-              class: "fa fa-upload",
+              class: "ti ti-upload",
               "aria-hidden": "true"
             }, null, -1)),
             vue$1.createElementVNode("span", _hoisted_11$2, vue$1.toDisplayString($options.addFilesLabel), 1)
@@ -258,16 +258,16 @@
   const SUPPRESSED_CORE_ENTRIES = ["edit", "delete", "permalink", "pin", "move", "archive"];
   const CONTROLS_VIEW_CONTEXT = "detail";
   const MIME_ICONS = {
-    "mime-image": "fa-file-image-o",
-    "mime-pdf": "fa-file-pdf-o",
-    "mime-archive": "fa-file-archive-o",
-    "mime-audio": "fa-file-audio-o",
-    "mime-video": "fa-file-video-o",
-    "mime-text": "fa-file-text-o",
-    "mime-code": "fa-file-code-o",
-    "mime-excel": "fa-file-excel-o",
-    "mime-word": "fa-file-word-o",
-    "mime-powerpoint": "fa-file-powerpoint-o"
+    "mime-image": "ti-photo",
+    "mime-pdf": "ti-file-type-pdf",
+    "mime-archive": "ti-file-zip",
+    "mime-audio": "ti-file-music",
+    "mime-video": "ti-movie",
+    "mime-text": "ti-file-text",
+    "mime-code": "ti-file-code",
+    "mime-excel": "ti-file-spreadsheet",
+    "mime-word": "ti-file-type-doc",
+    "mime-powerpoint": "ti-presentation"
   };
   const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
   const RELATIVE_UNITS = [
@@ -276,7 +276,7 @@
     ["minute", 60],
     ["second", 1]
   ];
-  const mimeIconClass = (item) => MIME_ICONS[item.mimeIcon] || "fa-file-o";
+  const mimeIconClass = (item) => MIME_ICONS[item.mimeIcon] || "ti-file";
   const formatSize = (size) => {
     const units = ["B", "KB", "MB", "GB", "TB"];
     let value = size || 0;
@@ -356,7 +356,7 @@
         return this.isFolder ? {} : ((_a = this.item.link) == null ? void 0 : _a.attributes) || {};
       },
       iconClass() {
-        return this.isFolder ? "fa fa-folder cfiles-icon-folder" : "fa " + mimeIconClass(this.item) + " cfiles-icon-file";
+        return this.isFolder ? "ti ti-folder-filled cfiles-icon-folder" : "ti " + mimeIconClass(this.item) + " cfiles-icon-file";
       },
       meta() {
         return itemMeta(this.item);
@@ -524,7 +524,7 @@
           }), vue$1.toDisplayString($options.displayTitle), 17, _hoisted_8$2),
           $options.isPrivate ? (vue$1.openBlock(), vue$1.createElementBlock("i", {
             key: 0,
-            class: "fa fa-lock text-muted flex-shrink-0",
+            class: "ti ti-lock text-muted flex-shrink-0",
             title: $options.privateLabel,
             "aria-label": $options.privateLabel
           }, null, 8, _hoisted_9$2)) : vue$1.createCommentVNode("", true)
@@ -587,7 +587,7 @@
         return this.isFolder ? {} : ((_a = this.item.link) == null ? void 0 : _a.attributes) || {};
       },
       iconClass() {
-        return this.isFolder ? "fa fa-folder cfiles-icon-folder" : "fa " + mimeIconClass(this.item) + " cfiles-icon-file";
+        return this.isFolder ? "ti ti-folder-filled cfiles-icon-folder" : "ti " + mimeIconClass(this.item) + " cfiles-icon-file";
       },
       /** Without the description: there is no room for it under a thumbnail. */
       meta() {
@@ -718,7 +718,7 @@
           }), vue$1.toDisplayString($props.item.title), 17, _hoisted_8$1),
           $options.isPrivate ? (vue$1.openBlock(), vue$1.createElementBlock("i", {
             key: 0,
-            class: "fa fa-lock text-muted flex-shrink-0",
+            class: "ti ti-lock text-muted flex-shrink-0",
             title: $options.privateLabel,
             "aria-label": $options.privateLabel
           }, null, 8, _hoisted_9$1)) : vue$1.createCommentVNode("", true)
@@ -751,7 +751,7 @@
   const createFolder = (containerId, parent, attributes) => vue.client.post(vue.apiUrl("cfiles/" + containerId + "/folders"), {
     data: { ...attributes, parent }
   });
-  const updateItem = (item, attributes) => vue.client.put(vue.apiUrl("cfiles/" + item.type + "/" + item.id), { data: attributes });
+  const updateItem = (item, attributes) => vue.client.patch(vue.apiUrl("cfiles/" + item.type + "/" + item.id), { data: attributes });
   const moveItems = (containerId, items, targetFolderId) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
     data: { containerId, items: items.map(descriptor), targetFolderId }
   });
@@ -926,7 +926,7 @@
             onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("move-selection"))
           }, [
             _cache[9] || (_cache[9] = vue$1.createElementVNode("i", {
-              class: "fa fa-arrows",
+              class: "ti ti-arrows-move",
               "aria-hidden": "true"
             }, null, -1)),
             vue$1.createElementVNode("span", _hoisted_4$1, vue$1.toDisplayString($options.moveLabel), 1)
@@ -937,7 +937,7 @@
             onClick: _cache[2] || (_cache[2] = ($event) => _ctx.$emit("delete-selection"))
           }, [
             _cache[10] || (_cache[10] = vue$1.createElementVNode("i", {
-              class: "fa fa-trash",
+              class: "ti ti-trash-filled",
               "aria-hidden": "true"
             }, null, -1)),
             vue$1.createElementVNode("span", _hoisted_5$1, vue$1.toDisplayString($options.deleteLabel), 1)
@@ -1114,12 +1114,12 @@
               ]
             }, [
               vue$1.createElementVNode("i", {
-                class: vue$1.normalizeClass(["fa fa-fw", node.expanded ? "fa-caret-down" : node.hasChildren === false ? "" : "fa-caret-right"]),
+                class: vue$1.normalizeClass(["ti icon-fw", node.expanded ? "ti-caret-down-filled" : node.hasChildren === false ? "" : "ti-caret-right-filled"]),
                 "aria-hidden": "true",
                 onClick: vue$1.withModifiers(($event) => $options.toggle(node), ["stop"])
               }, null, 10, _hoisted_4),
               _cache[3] || (_cache[3] = vue$1.createElementVNode("i", {
-                class: "fa fa-folder text-muted",
+                class: "ti ti-folder-filled text-muted",
                 "aria-hidden": "true"
               }, null, -1)),
               vue$1.createTextVNode(" " + vue$1.toDisplayString(node.isTop ? $options.rootLabel : node.title), 1)
@@ -1366,7 +1366,7 @@
             id: "cfiles-open",
             sortOrder: 10,
             label: isFolder ? vue.i18n.t("CfilesModule.base", "Open") : vue.i18n.t("CfilesModule.base", "Download"),
-            icon: isFolder ? "folder-open" : "cloud-download",
+            icon: isFolder ? "folder-open-filled" : "cloud-download",
             url: isFolder ? this.folderUrl(item.id) : item.downloadUrl || item.url,
             onClick: isFolder ? () => this.open(item.id) : void 0
           },
@@ -1382,7 +1382,7 @@
             id: "cfiles-move",
             sortOrder: 50,
             label: vue.i18n.t("CfilesModule.base", "Move"),
-            icon: "arrows",
+            icon: "arrows-move",
             condition: (context) => this.canWrite && context.capabilities.canEdit === true,
             onClick: () => this.openMove([item])
           },
@@ -1390,7 +1390,7 @@
             id: "cfiles-delete",
             sortOrder: 60,
             label: vue.i18n.t("CfilesModule.base", "Delete"),
-            icon: "trash",
+            icon: "trash-filled",
             condition: (context) => context.capabilities.canDelete === true,
             onClick: () => this.confirmDelete([item])
           }

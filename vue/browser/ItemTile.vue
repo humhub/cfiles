@@ -43,7 +43,7 @@
                 </a>
                 <i
                     v-if="isPrivate"
-                    class="fa fa-lock text-muted flex-shrink-0"
+                    class="ti ti-lock text-muted flex-shrink-0"
                     :title="privateLabel"
                     :aria-label="privateLabel"
                 ></i>
@@ -99,8 +99,8 @@ export default {
         },
         iconClass() {
             return this.isFolder
-                ? 'fa fa-folder cfiles-icon-folder'
-                : 'fa ' + mimeIconClass(this.item) + ' cfiles-icon-file';
+                ? 'ti ti-folder-filled cfiles-icon-folder'
+                : 'ti ' + mimeIconClass(this.item) + ' cfiles-icon-file';
         },
         /** Without the description: there is no room for it under a thumbnail. */
         meta() {

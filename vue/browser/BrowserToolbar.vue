@@ -28,7 +28,7 @@
                 :title="option.label"
                 :aria-label="option.label"
                 @click="$emit('view', option.value)"
-            ><i :class="'fa fa-' + option.icon" aria-hidden="true"></i></button>
+            ><i :class="'ti ti-' + option.icon" aria-hidden="true"></i></button>
         </div>
 
         <DropdownMenu
@@ -44,12 +44,12 @@
 
         <template v-if="canWrite">
             <button type="button" class="btn btn-light btn-sm" @click="$emit('create-folder')">
-                <i class="fa fa-folder" aria-hidden="true"></i>
+                <i class="ti ti-folder-filled" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline ms-1">{{ addFolderLabel }}</span>
             </button>
             <div class="btn-group btn-group-sm cfiles-add-files">
                 <button type="button" class="btn btn-accent" @click="$emit('pick-files')">
-                    <i class="fa fa-upload" aria-hidden="true"></i>
+                    <i class="ti ti-upload" aria-hidden="true"></i>
                     <span class="d-none d-sm-inline ms-1">{{ addFilesLabel }}</span>
                 </button>
                 <template v-if="createHandlersHtml">
@@ -142,7 +142,7 @@ export default {
         viewOptions() {
             return [
                 { value: 'list', icon: 'list', label: i18n.t('CfilesModule.base', 'List') },
-                { value: 'tiles', icon: 'th', label: i18n.t('CfilesModule.base', 'Tiles') },
+                { value: 'tiles', icon: 'layout-grid', label: i18n.t('CfilesModule.base', 'Tiles') },
             ];
         },
         sortLabels() {

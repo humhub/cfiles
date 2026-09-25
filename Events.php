@@ -31,7 +31,7 @@ class Events
             $menu->addEntry(new MenuLink([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'url' => $event->sender->space->createUrl('/cfiles/browse'),
-                'icon' => 'files-o',
+                'icon' => 'files',
                 'isActive' => ControllerHelper::isActivePath('cfiles'),
             ]));
         }
@@ -61,7 +61,7 @@ class Events
             $menu->addEntry(new MenuLink([
                 'label' => Yii::t('CfilesModule.base', 'Files'),
                 'url' => $event->sender->user->createUrl('/cfiles/browse'),
-                'icon' => 'files-o',
+                'icon' => 'files',
                 'isActive' => ControllerHelper::isActivePath('cfiles'),
             ]));
         }

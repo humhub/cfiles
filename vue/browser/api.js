@@ -38,7 +38,7 @@ export const createFolder = (containerId, parent, attributes) =>
     });
 
 export const updateItem = (item, attributes) =>
-    client.put(apiUrl('cfiles/' + item.type + '/' + item.id), { data: attributes });
+    client.patch(apiUrl('cfiles/' + item.type + '/' + item.id), { data: attributes });
 
 export const moveItems = (containerId, items, targetFolderId) =>
     client.post(apiUrl('cfiles/items/move'), {

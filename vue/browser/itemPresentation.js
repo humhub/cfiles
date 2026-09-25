@@ -32,16 +32,16 @@ export const CONTROLS_VIEW_CONTEXT = 'detail';
  * draws. `FileSerializer` ships the class; the icon set is a client concern.
  */
 const MIME_ICONS = {
-    'mime-image': 'fa-file-image-o',
-    'mime-pdf': 'fa-file-pdf-o',
-    'mime-archive': 'fa-file-archive-o',
-    'mime-audio': 'fa-file-audio-o',
-    'mime-video': 'fa-file-video-o',
-    'mime-text': 'fa-file-text-o',
-    'mime-code': 'fa-file-code-o',
-    'mime-excel': 'fa-file-excel-o',
-    'mime-word': 'fa-file-word-o',
-    'mime-powerpoint': 'fa-file-powerpoint-o',
+    'mime-image': 'ti-photo',
+    'mime-pdf': 'ti-file-type-pdf',
+    'mime-archive': 'ti-file-zip',
+    'mime-audio': 'ti-file-music',
+    'mime-video': 'ti-movie',
+    'mime-text': 'ti-file-text',
+    'mime-code': 'ti-file-code',
+    'mime-excel': 'ti-file-spreadsheet',
+    'mime-word': 'ti-file-type-doc',
+    'mime-powerpoint': 'ti-presentation',
 };
 
 const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
@@ -54,7 +54,7 @@ const RELATIVE_UNITS = [
     ['second', 1],
 ];
 
-export const mimeIconClass = (item) => MIME_ICONS[item.mimeIcon] || 'fa-file-o';
+export const mimeIconClass = (item) => MIME_ICONS[item.mimeIcon] || 'ti-file';
 
 export const formatSize = (size) => {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];

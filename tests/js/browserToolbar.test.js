@@ -83,15 +83,15 @@ describe('BrowserToolbar', () => {
         it('offers creating and uploading when the caller may write', () => {
             const wrapper = toolbar();
 
-            expect(wrapper.find('button .fa-folder').exists()).toBe(true);
-            expect(wrapper.find('button .fa-upload').exists()).toBe(true);
+            expect(wrapper.find('button .ti-folder-filled').exists()).toBe(true);
+            expect(wrapper.find('button .ti-upload').exists()).toBe(true);
         });
 
         it('offers neither when the caller may not', () => {
             const wrapper = toolbar({ canWrite: false });
 
-            expect(wrapper.find('button .fa-folder').exists()).toBe(false);
-            expect(wrapper.find('button .fa-upload').exists()).toBe(false);
+            expect(wrapper.find('button .ti-folder-filled').exists()).toBe(false);
+            expect(wrapper.find('button .ti-upload').exists()).toBe(false);
         });
     });
 

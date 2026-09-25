@@ -21,6 +21,7 @@ Changelog
 - Enh: The API addresses a level of the tree as a container plus an optional `parent` folder (`GET /api/v2/cfiles/<containerId>/items?parent=<id>`), because the top level has no folder record a single id could name.
 - Enh: The stream's Edit control links into the file browser instead of loading an edit form of its own. One edit form in the module rather than two render paths.
 - Enh: Requires HumHub 1.20.
+- Enh: Switched the icons from Font Awesome 4 to Tabler Icons (humhub/humhub#8504).
 - Removed: "Files from the stream". Files attached to posts and comments are no longer listed in the files module; they are unaffected otherwise, and a migration deletes the marker folder.
 - Removed: ZIP import and export, including the "Disable archive (ZIP) support" setting.
 - Removed: The file version history UI. Versioning itself stays a core file-module feature.

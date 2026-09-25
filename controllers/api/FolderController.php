@@ -39,7 +39,7 @@ class FolderController extends BaseController
                 'class' => VerbFilter::class,
                 'actions' => [
                     'items' => ['GET', 'HEAD'],
-                    'update' => ['PATCH', 'PUT'],
+                    'update' => ['PATCH'],
                     'create' => ['POST'],
                     'upload' => ['POST'],
                 ],

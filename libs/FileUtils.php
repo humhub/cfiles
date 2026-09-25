@@ -24,7 +24,7 @@ class FileUtils
                 'bat',
                 'xml',
             ],
-            'icon' => 'fa-file-code-o',
+            'icon' => 'file-code',
         ],
         'archive' => [
             'ext' => [
@@ -33,21 +33,21 @@ class FileUtils
                 'gz',
                 'tar',
             ],
-            'icon' => 'fa-file-archive-o',
+            'icon' => 'file-zip',
         ],
         'audio' => [
             'ext' => [
                 'mp3',
                 'wav',
             ],
-            'icon' => 'fa-file-audio-o',
+            'icon' => 'file-music',
         ],
         'excel' => [
             'ext' => [
                 'xls',
                 'xlsx',
             ],
-            'icon' => 'fa-file-excel-o',
+            'icon' => 'file-spreadsheet',
         ],
         'image' => [
             'ext' => [
@@ -59,20 +59,20 @@ class FileUtils
                 'tiff',
                 'png',
             ],
-            'icon' => 'fa-file-image-o',
+            'icon' => 'photo',
         ],
         'pdf' => [
             'ext' => [
                 'pdf',
             ],
-            'icon' => 'fa-file-pdf-o',
+            'icon' => 'file-type-pdf',
         ],
         'powerpoint' => [
             'ext' => [
                 'ppt',
                 'pptx',
             ],
-            'icon' => 'fa-file-powerpoint-o',
+            'icon' => 'presentation',
         ],
         'text' => [
             'ext' => [
@@ -80,7 +80,7 @@ class FileUtils
                 'log',
                 'md',
             ],
-            'icon' => 'fa-file-text-o',
+            'icon' => 'file-text',
         ],
         'video' => [
             'ext' => [
@@ -88,18 +88,18 @@ class FileUtils
                 'mpeg',
                 'swf',
             ],
-            'icon' => 'fa-file-video-o',
+            'icon' => 'movie',
         ],
         'word' => [
             'ext' => [
                 'doc',
                 'docx',
             ],
-            'icon' => 'fa-file-word-o',
+            'icon' => 'file-type-doc',
         ],
         'default' => [
             'ext' => [],
-            'icon' => 'fa-file-o',
+            'icon' => 'file',
         ],
     ];
 

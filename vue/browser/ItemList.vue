@@ -13,11 +13,11 @@
             <template v-if="selection.length">
                 <span class="text-muted small flex-grow-1">{{ selectionLabel }}</span>
                 <button type="button" class="btn btn-light btn-sm" @click="$emit('move-selection')">
-                    <i class="fa fa-arrows" aria-hidden="true"></i>
+                    <i class="ti ti-arrows-move" aria-hidden="true"></i>
                     <span class="d-none d-sm-inline ms-1">{{ moveLabel }}</span>
                 </button>
                 <button type="button" class="btn btn-danger btn-sm" @click="$emit('delete-selection')">
-                    <i class="fa fa-trash" aria-hidden="true"></i>
+                    <i class="ti ti-trash-filled" aria-hidden="true"></i>
                     <span class="d-none d-sm-inline ms-1">{{ deleteLabel }}</span>
                 </button>
             </template>

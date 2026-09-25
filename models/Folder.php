@@ -62,7 +62,7 @@ class Folder extends FileSystemItem
      */
     public function getIcon()
     {
-        return'fa-folder';
+        return 'folder-filled';
     }
 
     /**

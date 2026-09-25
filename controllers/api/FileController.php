@@ -33,7 +33,7 @@ class FileController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'update' => ['PATCH', 'PUT'],
+                    'update' => ['PATCH'],
                 ],
             ],
         ]);
