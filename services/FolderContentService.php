@@ -201,6 +201,7 @@ class FolderContentService
     public function fileExists(string $name): bool
     {
         return File::find()
+            ->contentContainer($this->container)
             ->joinWith('baseFile')
             ->where(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->parentId()])
             ->exists();
@@ -209,6 +210,7 @@ class FolderContentService
     public function folderExists(string $name): bool
     {
         return Folder::find()
+            ->contentContainer($this->container)
             ->where(['title' => $name, 'parent_folder_id' => $this->parentId()])
             ->exists();
     }
