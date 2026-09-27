@@ -15,7 +15,7 @@ return [
         // Pretty, cache-busting download URLs — see components\UrlRule.
         ['class' => UrlRule::class],
         // The module's only JSON surface (see docs/develop/concept-api.md in core). The Vue
-        // file browser is built entirely on these seven endpoints.
+        // file browser is built entirely on these eight endpoints.
         //
         // Reading and adding are addressed as a container plus an optional `parent`
         // folder: the top level has no folder record, so a folder id alone cannot name
@@ -28,6 +28,8 @@ return [
         ['pattern' => 'api/v2/cfiles/file/<id:\d+>', 'route' => 'cfiles/api/file/update', 'verb' => 'PATCH'],
         ['pattern' => 'api/v2/cfiles/items/move', 'route' => 'cfiles/api/item/move', 'verb' => 'POST'],
         ['pattern' => 'api/v2/cfiles/items/delete', 'route' => 'cfiles/api/item/delete', 'verb' => 'POST'],
+        // The caller's own browser preferences (the view), not tied to a container.
+        ['pattern' => 'api/v2/cfiles/preferences', 'route' => 'cfiles/api/preferences/update', 'verb' => 'PATCH'],
     ],
     'events' => [
         [Menu::class, Menu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onSpaceMenuInit']],

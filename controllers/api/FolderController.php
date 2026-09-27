@@ -8,7 +8,11 @@
 
 namespace humhub\modules\cfiles\controllers\api;
 
+use humhub\components\listing\ListContext;
+use humhub\components\listing\ListValidationException;
+use humhub\modules\cfiles\components\FolderList;
 use humhub\modules\cfiles\serializers\FileSerializer;
+use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\serializers\FolderSerializer;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\services\FolderListingService;
@@ -60,21 +64,44 @@ class FolderController extends BaseController
      * One level of the tree: the folder itself (null at the top), the path down to it, and a
      * page of its contents with folders sorted ahead of files.
      *
+     * Parameters are those of {@see FolderList} (`parent`, the filters `q`, `userId`, `type`,
+     * `modified`, and `sort`) plus `page`/`pageSize`; with a filter set the page holds the hits in the folder
+     * and all its subfolders (`resultsMode`, a `path` per item);
+     * any other is refused (`422`), as is a `parent` that is not a readable folder of this
+     * container. Without `sort` the user's last choice applies, a `sort` sent is remembered
+     * ({@see BrowserPreferences}). Without `pageSize` the page is that of the user's view.
+     *
      * @param int|string $containerId the content container id
      */
     public function actionItems($containerId)
     {
-        $request = Yii::$app->request;
         $container = $this->findContainer((int)$containerId);
+        // The container travels in the path; the rule puts it among the query parameters.
+        $params = array_diff_key($this->listParams(), ['containerId' => true]);
 
-        return (new FolderListingService($container, $this->findParent($container, $request->get('parent'))))
-            ->payload(
-                $request->get('sort'),
-                $request->get('order'),
-                (int)$request->get('page', 1),
-                $request->get('pageSize') === null ? null : (int)$request->get('pageSize'),
-                $request->get('view'),
-            );
+        $context = ListContext::forCurrentUser(null, $container);
+        $preferences = new BrowserPreferences($context->user);
+
+        try {
+            $list = (new FolderList(['storedSort' => $preferences->sort()]))->build($params, $context);
+        } catch (ListValidationException $e) {
+            return $this->validationErrors($e->errors);
+        }
+
+        // A sort sent is the user's choice from now on; `default` forgets it. Remembered here,
+        // not by the list, which has no side effects. Deliberately also a sort that came with a
+        // shared link (the page URL's, sent on the next load): it is what the reader now sees.
+        $sort = $params[FolderList::SORT_PARAM] ?? null;
+        if (is_string($sort) && $sort !== '') {
+            $preferences->setSort($sort === FolderList::SORT_DEFAULT ? null : $sort);
+        }
+
+        $request = Yii::$app->request;
+
+        return (new FolderListingService($list))->payload(
+            (int)$request->get('page', 1),
+            $request->get('pageSize') === null ? null : (int)$request->get('pageSize'),
+        );
     }
 
     /**

@@ -11,19 +11,34 @@ import { config } from '@vue/test-utils';
 import { IntlMessageFormat } from 'intl-messageformat';
 import ContentControls from '@core/modules/content/vue/ContentControls.vue';
 import LikeButton from '@core/modules/like/vue/LikeButton.vue';
+import UserFilterControl from '@core/modules/user/vue/UserFilterControl.vue';
 import UserImage from '@core/modules/user/vue/UserImage.vue';
+import UserList from '@core/modules/user/vue/UserList.vue';
 import CheckboxField from '@core/vue/CheckboxField.vue';
 import DropdownMenu from '@core/vue/DropdownMenu.vue';
+import DropZone from '@core/vue/DropZone.vue';
+import FilterBar from '@core/vue/FilterBar.vue';
 import HumHubForm from '@core/vue/HumHubForm.vue';
+import PageToolbar from '@core/vue/PageToolbar.vue';
+import PathBar from '@core/vue/PathBar.vue';
+import ProgressFrame from '@core/vue/ProgressFrame.vue';
+import SelectionMenu from '@core/vue/SelectionMenu.vue';
 import SelectField from '@core/vue/SelectField.vue';
 import SubmitButton from '@core/vue/SubmitButton.vue';
 import TextField from '@core/vue/TextField.vue';
 import TextareaField from '@core/vue/TextareaField.vue';
+import TileGrid from '@core/vue/TileGrid.vue';
 import UiModal from '@core/vue/UiModal.vue';
+import ViewSwitch from '@core/vue/ViewSwitch.vue';
 import CfilesItemForm from '../../../vue/CfilesItemForm.vue';
 
 await import('@core/resources/js/humhub/humhub.url.js');
 await import('@core/resources/js/humhub/humhub.vue.js');
+
+// The `user` filter type of the FilterBar (the Author filter), registered as the user module's
+// Vue entry does in production (`modules/user/vue/index.js`, loaded through UserVueAsset).
+globalThis.humhub.modules.vue.register('UserFilterControl', UserFilterControl);
+globalThis.humhub.modules.vue.registerFilterType('user', 'UserFilterControl');
 
 /**
  * Formats messages the way the platform does, rather than the way the core's test stub does.
@@ -60,7 +75,20 @@ config.global.components = {
     TextField,
     TextareaField,
     UiModal,
+    UserFilterControl,
     UserImage,
+    // Nested by LikeButton's "who liked this" modal.
+    UserList,
+    // The core's item-browser kit the file browser is built on. Registered in production by
+    // the core's Vue component registry, like the components above.
+    DropZone,
+    FilterBar,
+    PageToolbar,
+    PathBar,
+    ProgressFrame,
+    SelectionMenu,
+    TileGrid,
+    ViewSwitch,
     // Referenced by tag from CfilesFileBrowser's modals; auto-registered in production
     // because it is a top-level file in vue/.
     CfilesItemForm,

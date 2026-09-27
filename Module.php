@@ -26,8 +26,8 @@ class Module extends ContentContainerModule
     public int $uploadNotificationDelay = 10;
 
     /**
-     * @var string the sort a folder listing falls back to, one of the keys of
-     *      {@see \humhub\modules\cfiles\services\FolderListingService::SORT_COLUMNS}.
+     * @var string the column a folder listing is ordered by without a chosen sort (`default`),
+     *      one of the keys of {@see \humhub\modules\cfiles\components\FolderList::SORT_COLUMNS}.
      */
     public $defaultSort = 'name';
 

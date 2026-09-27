@@ -8,6 +8,8 @@
 
 namespace humhub\modules\cfiles\tests\codeception\unit;
 
+use humhub\components\listing\ListContext;
+use humhub\modules\cfiles\components\FolderList;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\services\FolderListingService;
@@ -32,7 +34,7 @@ class FolderListingServiceTest extends HumHubDbTestCase
 
     public function testEmptyFolderListsNothingButStillDescribesItself()
     {
-        $payload = (new FolderListingService($this->space))->payload();
+        $payload = $this->payload();
 
         $this->assertSame([], $payload['results']);
         $this->assertSame(0, $payload['total']);
@@ -47,7 +49,7 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->addFolder('Zebra');
         $this->addFile('alpha.txt');
 
-        $payload = (new FolderListingService($this->space))->payload();
+        $payload = $this->payload();
 
         $this->assertSame(['folder', 'file'], array_column($payload['results'], 'type'));
         $this->assertSame('Zebra', $payload['results'][0]['title']);
@@ -66,10 +68,8 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->addFile('c.txt');
         $this->addFile('d.txt');
 
-        $service = new FolderListingService($this->space);
-
-        $first = $service->payload(null, null, 1, 3);
-        $second = $service->payload(null, null, 2, 3);
+        $first = $this->payload([], 1, 3);
+        $second = $this->payload([], 2, 3);
 
         $this->assertSame(4, $first['total']);
         $this->assertSame(2, $first['pages']);
@@ -80,28 +80,41 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->assertSame(['d.txt'], array_column($second['results'], 'title'));
     }
 
-    public function testSortOrderReversesAndIsRemembered()
+    public function testSortReversesAndIsReportedAsItsKey()
     {
         $this->addFolder('A folder');
         $this->addFolder('B folder');
 
-        $descending = (new FolderListingService($this->space))->payload('name', 'desc');
+        $descending = $this->payload(['sort' => 'nameDesc']);
         $this->assertSame(
             ['B folder', 'A folder'],
             array_column($descending['results'], 'title'),
         );
-
-        // A later request that names no sort inherits the one the user last chose.
-        $remembered = (new FolderListingService($this->space))->payload();
-        $this->assertSame('name', $remembered['sort']);
-        $this->assertSame('desc', $remembered['order']);
+        // The key is reported, there is no separate direction any more.
+        $this->assertSame('nameDesc', $descending['sort']);
+        $this->assertArrayNotHasKey('order', $descending);
     }
 
-    public function testAnUnknownSortFallsBackInsteadOfReachingTheQuery()
+    public function testTheDefaultOrderIsReportedAsDefault()
     {
-        $payload = (new FolderListingService($this->space))->payload('; DROP TABLE cfiles_file', 'asc');
+        $this->assertSame('default', $this->payload()['sort']);
+    }
 
-        $this->assertSame('name', $payload['sort']);
+    /**
+     * The view is a preference of its own (`PATCH preferences`), not a parameter of the list:
+     * the payload reports the stored one, and without a `pageSize` the page is that view's.
+     */
+    public function testThePageSizeFollowsTheStoredView()
+    {
+        $this->assertSame('list', $this->payload()['view']);
+        $this->assertSame(FolderListingService::VIEWS['list'], $this->payload()['pageSize']);
+
+        Yii::$app->getModule('cfiles')->settings->user(Yii::$app->user->getIdentity())->set('defaultView', 'tiles');
+
+        $this->assertSame('tiles', $this->payload()['view']);
+        $this->assertSame(FolderListingService::VIEWS['tiles'], $this->payload()['pageSize']);
+        // An explicit page size wins.
+        $this->assertSame(10, $this->payload([], 1, 10)['pageSize']);
     }
 
     public function testAFolderReportsHowManyItemsItHolds()
@@ -109,9 +122,53 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $child = $this->addFolder('With children');
         $this->addFile('inside.txt', $child);
 
-        $payload = (new FolderListingService($this->space))->payload();
+        $payload = $this->payload();
 
         $this->assertSame(1, $payload['results'][0]['itemCount']);
+    }
+
+    public function testALevelIsNoResultListAndItsItemsHaveNoPath()
+    {
+        $this->addFolder('Brand');
+        $this->addFile('top.txt');
+
+        $payload = $this->payload();
+
+        $this->assertFalse($payload['resultsMode']);
+        $this->assertSame([[], []], array_column($payload['results'], 'path'));
+    }
+
+    public function testAResultListSaysSoAndPlacesEachHit()
+    {
+        $brand = $this->addFolder('Brand');
+        $logos = $this->addFolder('Logos', $brand);
+        $this->addFile('logo-top.png');
+        $this->addFile('logo-brand.png', $brand);
+        $this->addFile('logo-deep.png', $logos);
+
+        $payload = $this->payload(['q' => 'logo', 'sort' => 'name']);
+
+        $this->assertTrue($payload['resultsMode']);
+        $this->assertSame(4, $payload['total']);
+        $this->assertSame(
+            ['Logos' => [['id' => $brand->id, 'title' => 'Brand']], 'logo-brand.png' => [['id' => $brand->id, 'title' => 'Brand']],
+                'logo-deep.png' => [['id' => $brand->id, 'title' => 'Brand'], ['id' => $logos->id, 'title' => 'Logos']], 'logo-top.png' => []],
+            array_column($payload['results'], 'path', 'title'),
+        );
+
+        // Relative to the open folder, which is not part of it.
+        $inBrand = $this->payload(['parent' => $brand->id, 'q' => 'logo', 'sort' => 'name']);
+        $this->assertSame(
+            ['Logos' => [], 'logo-brand.png' => [], 'logo-deep.png' => [['id' => $logos->id, 'title' => 'Logos']]],
+            array_column($inBrand['results'], 'path', 'title'),
+        );
+    }
+
+    private function payload(array $params = [], int $page = 1, ?int $pageSize = null): array
+    {
+        $builder = (new FolderList())->build($params, ListContext::forCurrentUser(null, $this->space));
+
+        return (new FolderListingService($builder))->payload($page, $pageSize);
     }
 
     private function addFolder(string $title, ?Folder $parent = null): Folder

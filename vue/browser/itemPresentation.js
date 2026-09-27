@@ -27,23 +27,6 @@ export const SUPPRESSED_CORE_ENTRIES = ['edit', 'delete', 'permalink', 'pin', 'm
  */
 export const CONTROLS_VIEW_CONTEXT = 'detail';
 
-/**
- * The platform's mime classes (`mime-pdf`) mapped onto the FontAwesome icons this browser
- * draws. `FileSerializer` ships the class; the icon set is a client concern.
- */
-const MIME_ICONS = {
-    'mime-image': 'ti-photo',
-    'mime-pdf': 'ti-file-type-pdf',
-    'mime-archive': 'ti-file-zip',
-    'mime-audio': 'ti-file-music',
-    'mime-video': 'ti-movie',
-    'mime-text': 'ti-file-text',
-    'mime-code': 'ti-file-code',
-    'mime-excel': 'ti-file-spreadsheet',
-    'mime-word': 'ti-file-type-doc',
-    'mime-powerpoint': 'ti-presentation',
-};
-
 const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
 /** Largest first, so the first match is the coarsest unit that still fits. */
@@ -54,7 +37,8 @@ const RELATIVE_UNITS = [
     ['second', 1],
 ];
 
-export const mimeIconClass = (item) => MIME_ICONS[item.mimeIcon] || 'ti-file';
+/** The Tabler glyph of an item's file type, as the serializer names it (`file` if none). */
+export const fileIcon = (item) => 'ti-' + (item.icon || 'file');
 
 export const formatSize = (size) => {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -119,3 +103,42 @@ export const itemMeta = (item, { description = true } = {}) => {
 
     return parts.filter(Boolean).join(' · ');
 };
+
+/**
+ * The line under a tile's name: how much a folder holds, how big a file is.
+ *
+ * `itemCount` is only known inside a listing (see `FolderListingService`) — a folder payload
+ * from a create/update response has it `null`, and there is nothing honest to show for "how
+ * many items" then, so this reads empty rather than claiming zero.
+ */
+export const tileMeta = (item) => (item.type === 'folder'
+    ? (typeof item.itemCount === 'number'
+        ? i18n.t('CfilesModule.base', '{count, plural, =0{empty} one{# item} other{# items}}', {
+            count: item.itemCount,
+        })
+        : '')
+    : formatSize(item.size));
+
+/**
+ * Where a hit of a result list lies, relative to the open folder (the payload's `path`,
+ * see `FolderListingService`): the folder it is in, as the item the views emit `open` with,
+ * and the line naming it ("in Brand › Logos"). `null` for an item directly in the open folder
+ * — and for every item of a level, which are all there.
+ */
+export const itemLocation = (item) => {
+    const path = item.path || [];
+
+    if (!path.length) {
+        return null;
+    }
+
+    const parent = path[path.length - 1];
+
+    return {
+        folder: { type: 'folder', id: parent.id, title: parent.title },
+        label: i18n.t('CfilesModule.base', 'in {path}', { path: path.map((level) => level.title).join(' › ') }),
+    };
+};
+
+/** A click that means "open it here", not "somewhere else" (a new tab, a download …). */
+export const isPlainClick = (event) => !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0);

@@ -30,6 +30,8 @@ export const folderRow = (over = {}) => ({
     updatedAt: '2026-08-25T09:00:00+00:00',
     creator: creator(),
     url: '/s/x/cfiles/browse/index?fid=11',
+    // Where it lies relative to the open folder (FolderListingService): empty = directly in it.
+    path: [],
     ...over,
 });
 
@@ -44,6 +46,7 @@ export const fileRow = (over = {}) => ({
     visibility: 1,
     mimeType: 'application/pdf',
     mimeIcon: 'mime-pdf',
+    icon: 'file-type-pdf',
     size: 1258291,
     url: '/file/f-21',
     downloadUrl: '/s/x/cfiles/download/f-21',
@@ -64,6 +67,7 @@ export const fileRow = (over = {}) => ({
     createdAt: '2026-08-20T09:00:00+00:00',
     updatedAt: '2026-08-25T09:00:00+00:00',
     creator: creator(),
+    path: [],
     ...over,
 });
 
@@ -85,10 +89,12 @@ export const likeStates = (results) => {
 export const topLevel = (results = [folderRow(), fileRow()], over = {}) => ({
     folder: null,
     path: [],
-    sort: 'name',
-    order: 'asc',
+    // The sort key the list was built with; `default` = none chosen (see FolderList).
+    sort: 'default',
     view: 'list',
     results,
+    // The hits of the filters in the folder and its subfolders rather than the level.
+    resultsMode: false,
     // The payload's per-caller section (see FolderListingService::payload()).
     likeStates: likeStates(results),
     total: results.length,
@@ -105,10 +111,12 @@ export const insideFolder = (results = [], over = {}) => ({
         { id: 7, title: 'test123', url: '/s/x/cfiles/browse/index?fid=7' },
         { id: 9, title: 'sgadgasdg', url: '/s/x/cfiles/browse/index?fid=9' },
     ],
-    sort: 'name',
-    order: 'asc',
+    // The sort key the list was built with; `default` = none chosen (see FolderList).
+    sort: 'default',
     view: 'list',
     results,
+    // The hits of the filters in the folder and its subfolders rather than the level.
+    resultsMode: false,
     // The payload's per-caller section (see FolderListingService::payload()).
     likeStates: likeStates(results),
     total: results.length,
@@ -123,5 +131,57 @@ export const browserProps = (listing, over = {}) => ({
     canWrite: true,
     browseUrl: '/s/x/cfiles/browse/index',
     contentContainerId: CONTAINER_ID,
+    // What FolderList::definitions() renders (FilterDefinition::toArray()).
+    filters: [
+        { key: 'q', type: 'text', label: 'Search', placeholder: 'Search', placement: 'primary' },
+        { key: 'userId', type: 'user', label: 'Author', placement: 'primary' },
+        {
+            key: 'type',
+            type: 'select',
+            label: 'File Type',
+            placeholder: 'File Type',
+            options: [
+                { value: 'image', label: 'Images' },
+                { value: 'document', label: 'Documents' },
+                { value: 'spreadsheet', label: 'Spreadsheets' },
+                { value: 'presentation', label: 'Presentations' },
+                { value: 'media', label: 'Audio & Video' },
+            ],
+            placement: 'primary',
+        },
+        {
+            key: 'modified',
+            type: 'select',
+            label: 'Modified',
+            placeholder: 'Modified',
+            options: [
+                { value: '7d', label: 'Last 7 days' },
+                { value: '30d', label: 'Last 30 days' },
+                { value: '12m', label: 'Last 12 months' },
+                { value: 'older', label: 'Older' },
+            ],
+            placement: 'primary',
+        },
+        {
+            key: 'sort',
+            type: 'select',
+            label: 'Sort by',
+            options: [
+                { value: 'name', label: 'Name (A–Z)' },
+                { value: 'nameDesc', label: 'Name (Z–A)' },
+                { value: 'newest', label: 'Newest first' },
+                { value: 'oldest', label: 'Oldest first' },
+                { value: 'largest', label: 'Largest first' },
+                { value: 'smallest', label: 'Smallest first' },
+            ],
+            placement: 'primary',
+        },
+    ],
+    // The filter values the page was built with (BrowseController::firstListing()).
+    initialFilters: { q: '', userId: '', type: '', modified: '' },
+    settingsUrl: null,
     ...over,
 });
+
+/** A result list: the hits of the filters in the folder and its subfolders. */
+export const results = (listing, over = {}) => ({ ...listing, resultsMode: true, ...over });

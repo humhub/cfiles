@@ -10,6 +10,9 @@ use humhub\widgets\VueComponent;
 /* @var $canWrite bool */
 /* @var $editItem string|null */
 /* @var $createHandlersHtml string */
+/* @var $filters array the `FilterBar` definitions ({@see \humhub\modules\cfiles\components\FolderList::definitions()}) */
+/* @var $initialFilters array<string, string> the filter values the first page was built with, from the page URL */
+/* @var $settingsUrl string|null the container's cfiles settings page, or null for those who may not change them */
 
 ?>
 <?= VueComponent::widget([
@@ -17,8 +20,8 @@ use humhub\widgets\VueComponent;
     'assetBundle' => CfilesVueAsset::class,
     'options' => [
         'id' => 'cfiles-container',
-        // A custom element is inline by default, and this one is a panel.
-        'class' => 'panel panel-default cfiles-content d-block',
+        // A custom element is inline by default.
+        'class' => 'cfiles-content d-block',
     ],
     'props' => [
         'listing' => $listing,
@@ -27,5 +30,8 @@ use humhub\widgets\VueComponent;
         'contentContainerId' => $contentContainer->contentcontainer_id,
         'editKey' => $editItem,
         'createHandlersHtml' => $createHandlersHtml,
+        'filters' => $filters,
+        'initialFilters' => $initialFilters,
+        'settingsUrl' => $settingsUrl,
     ],
 ]) ?>

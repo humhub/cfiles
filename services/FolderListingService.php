@@ -9,11 +9,11 @@
 namespace humhub\modules\cfiles\services;
 
 use humhub\models\RecordMap;
+use humhub\modules\cfiles\components\FolderList;
+use humhub\modules\cfiles\components\FolderListBuilder;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\FileSystemItem;
-use humhub\modules\cfiles\Module;
-use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use humhub\modules\cfiles\serializers\FolderSerializer;
 use humhub\modules\like\serializers\LikeSerializer;
@@ -22,10 +22,12 @@ use yii\data\Pagination;
 use yii\db\ActiveQuery;
 
 /**
- * The contents of one folder, as the file browser needs them.
+ * The contents of one folder, as the file browser needs them: one page of a level
+ * {@see FolderList} built (which folder, filtered and ordered), cut across the folder/file seam
+ * and serialized.
  *
  * Used from both ends of the same payload: the API endpoint
- * ({@see \humhub\modules\cfiles\controllers\api\FolderController::actionView()}) and the page
+ * ({@see \humhub\modules\cfiles\controllers\api\FolderController::actionItems()}) and the page
  * controller, which embeds the first page in the island's props so the first paint needs no
  * request at all. One implementation, so the two cannot disagree.
  *
@@ -50,20 +52,6 @@ class FolderListingService
     ];
 
     /**
-     * Sort keys the listing understands, mapped to the order expression of each row type.
-     * A null means the type cannot be sorted that way and falls back to its name — folders
-     * have no size, so sorting a mixed listing by size still has to put them somewhere.
-     */
-    public const SORT_COLUMNS = [
-        'name' => ['folder' => 'cfiles_folder.title', 'file' => 'file.file_name'],
-        'size' => ['folder' => null, 'file' => 'cast(file.size as unsigned)'],
-        'updatedAt' => ['folder' => 'content.updated_at', 'file' => 'file.updated_at'],
-        'downloadCount' => ['folder' => null, 'file' => 'cfiles_file.download_count'],
-    ];
-
-    private FolderContentService $content;
-
-    /**
      * Filled while serializing a page — see {@see self::collectLikeStates()}.
      *
      * @var array<int, array{total: int, liked: bool, canLike: bool}> record id => like state
@@ -71,32 +59,29 @@ class FolderListingService
     private array $likeStates = [];
 
     /**
-     * @param Folder|null $folder the folder to list, or null for the container's top level.
+     * @param FolderListBuilder $list the level to list, filtered and ordered
+     *        ({@see FolderList::build()})
      */
-    public function __construct(
-        private ContentContainerActiveRecord $container,
-        private ?Folder $folder = null,
-    ) {
-        $this->content = new FolderContentService($container, $folder);
+    public function __construct(private FolderListBuilder $list)
+    {
     }
 
     /**
      * The folder, its path from the root, and one page of its contents with folders sorted
      * ahead of files.
+     *
+     * @param int|null $pageSize null = the page of the user's view ({@see self::VIEWS}): the
+     *        view is a preference of its own, not a parameter of the list
+     *        ({@see BrowserPreferences}), so a client asks for its view's page size itself
      */
-    public function payload(
-        ?string $sort = null,
-        ?string $order = null,
-        int $page = 1,
-        ?int $pageSize = null,
-        ?string $view = null,
-    ): array {
-        [$sort, $sortOrder] = $this->resolveSortOrder($sort, $order);
-        $view = $this->resolveView($view);
+    public function payload(int $page = 1, ?int $pageSize = null): array
+    {
+        $view = (new BrowserPreferences($this->list->context->user))->view();
         $pageSize ??= self::VIEWS[$view];
+        $folder = $this->list->folder();
 
-        $folderQuery = $this->subFolderQuery($sort, $sortOrder);
-        $fileQuery = $this->subFileQuery($sort, $sortOrder);
+        $folderQuery = $this->list->folderQuery();
+        $fileQuery = $this->list->fileQuery();
 
         $folderCount = (int)(clone $folderQuery)->count();
         $fileCount = (int)(clone $fileQuery)->count();
@@ -109,12 +94,15 @@ class FolderListingService
 
         return [
             // null at the top level: there is no folder record standing in for it.
-            'folder' => $this->folder === null ? null : FolderSerializer::folder($this->folder),
-            'path' => FolderSerializer::path($this->folder),
-            'sort' => $sort,
-            'order' => $sortOrder === SORT_DESC ? 'desc' : 'asc',
+            'folder' => $folder === null ? null : FolderSerializer::folder($folder),
+            'path' => FolderSerializer::path($folder),
+            // The key the list was built with — `default` when none was chosen.
+            'sort' => $this->list->sort,
             'view' => $view,
             'results' => $results,
+            // The hits in the open folder and all its subfolders, not the level: every row
+            // then says where it lies (`path`, relative to the open folder).
+            'resultsMode' => $this->list->resultsMode,
             // The one per-caller section of this payload. Kept out of the rows themselves,
             // which stay caller-neutral (see FileSerializer/FolderSerializer): who liked what
             // is about the reader, not about the file.
@@ -124,107 +112,6 @@ class FolderListingService
             'pageSize' => $pagination->getPageSize(),
             'pages' => $pagination->getPageCount(),
         ];
-    }
-
-    /**
-     * The sort to apply, remembered per user.
-     *
-     * The browser has no settings screen to persist a sort through, so the listing owns it,
-     * exactly as the old `FileList` widget did: an explicit sort both sorts and is remembered,
-     * and a request without one gets what the user last chose, falling back to the module
-     * default.
-     *
-     * @return array{0: string, 1: int}
-     */
-    private function resolveSortOrder(?string $sort, ?string $order): array
-    {
-        /** @var Module $module */
-        $module = Yii::$app->getModule('cfiles');
-
-        $sortOrder = strtolower((string)$order) === 'desc' ? SORT_DESC : SORT_ASC;
-
-        if ($sort !== null && !isset(self::SORT_COLUMNS[$sort])) {
-            $sort = null;
-        }
-
-        if (Yii::$app->user->isGuest) {
-            return $sort === null
-                ? [$module->defaultSort, (int)$module->defaultOrder]
-                : [$sort, $sortOrder];
-        }
-
-        $settings = $module->settings->user(Yii::$app->user->getIdentity());
-
-        if ($sort !== null) {
-            $settings->set('defaultSort', $sort);
-            $settings->set('defaultOrder', $sortOrder);
-
-            return [$sort, $sortOrder];
-        }
-
-        $stored = (string)$settings->get('defaultSort', $module->defaultSort);
-
-        return [
-            isset(self::SORT_COLUMNS[$stored]) ? $stored : $module->defaultSort,
-            (int)$settings->get('defaultOrder', $module->defaultOrder),
-        ];
-    }
-
-    /**
-     * The folder's own queries, ordered by the requested sort.
-     *
-     * A null column means the type cannot be sorted that way (a folder has no size); it falls
-     * back to the name so a mixed listing still has a defined order.
-     */
-    /**
-     * The display the caller asked for, remembered per user the same way the sort is.
-     *
-     * A display preference is not part of a request's meaning, so it has nowhere else to live:
-     * the browser has no settings screen, and putting it in the URL would make every shared
-     * link carry one reader's taste.
-     */
-    private function resolveView(?string $view): string
-    {
-        /** @var Module $module */
-        $module = Yii::$app->getModule('cfiles');
-
-        if ($view !== null && !isset(self::VIEWS[$view])) {
-            $view = null;
-        }
-
-        if (Yii::$app->user->isGuest) {
-            return $view ?? $module->defaultView;
-        }
-
-        $settings = $module->settings->user(Yii::$app->user->getIdentity());
-
-        if ($view !== null) {
-            $settings->set('defaultView', $view);
-
-            return $view;
-        }
-
-        $stored = (string)$settings->get('defaultView', $module->defaultView);
-
-        return isset(self::VIEWS[$stored]) ? $stored : $module->defaultView;
-    }
-
-    private function subFolderQuery(string $sort, int $order): ActiveQuery
-    {
-        $column = self::SORT_COLUMNS[$sort]['folder'] ?? null;
-
-        return $this->content->subFolderQuery(
-            [$column ?? 'cfiles_folder.title' => $column === null ? SORT_ASC : $order],
-        );
-    }
-
-    private function subFileQuery(string $sort, int $order): ActiveQuery
-    {
-        $column = self::SORT_COLUMNS[$sort]['file'] ?? null;
-
-        return $this->content->subFileQuery(
-            [$column ?? 'file.file_name' => $column === null ? SORT_ASC : $order],
-        );
     }
 
     /**
@@ -253,13 +140,17 @@ class FolderListingService
         $itemCounts = $this->countChildren($folders);
         $this->collectLikeStates(array_merge($folders, $files));
 
-        return array_merge(
+        // Where each row lies, relative to the open folder: part of this listing, not of the
+        // item, so it is added here rather than by the serializers.
+        $placed = fn(array $row) => $row + ['path' => $this->list->pathOf($row['parentFolderId'])];
+
+        return array_map($placed, array_merge(
             array_map(
                 static fn(Folder $subFolder) => FolderSerializer::folder($subFolder, $itemCounts[$subFolder->id] ?? 0),
                 $folders,
             ),
             array_map(FileSerializer::file(...), $files),
-        );
+        ));
     }
 
     /**

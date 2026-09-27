@@ -55,7 +55,8 @@ class CfilesVueAsset extends AssetBundle
         CoreVueAsset::class,
         // <ContentControls> — the row context menu.
         ContentVueAsset::class,
-        // <UserImage> — the creator avatar on every row.
+        // <UserImage> — the creator avatar on every row —, and <UserFilterControl>, the filter
+        // bar's `user` type (the Author filter).
         UserVueAsset::class,
         // <LikeButton> on every row — the platform's own island, rendered by this module
         // without a line of like logic of its own.

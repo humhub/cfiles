@@ -93,7 +93,7 @@ abstract class BaseController extends ApiBaseController
      */
     protected function findFolder(int $id): Folder
     {
-        $folder = Folder::find()->readable()->where(['cfiles_folder.id' => $id])->one();
+        $folder = Folder::find()->readable()->andWhere(['cfiles_folder.id' => $id])->one();
 
         if (!$folder instanceof Folder) {
             throw new NotFoundHttpException();
@@ -109,7 +109,7 @@ abstract class BaseController extends ApiBaseController
      */
     protected function findFile(int $id): File
     {
-        $file = File::find()->readable()->where(['cfiles_file.id' => $id])->one();
+        $file = File::find()->readable()->andWhere(['cfiles_file.id' => $id])->one();
 
         if (!$file instanceof File) {
             throw new NotFoundHttpException();

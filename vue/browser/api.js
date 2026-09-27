@@ -9,18 +9,25 @@ import { apiUrl, client } from '@humhub/vue';
 /**
  * One level of a container's tree. `parent` is a folder id, or null for the top level, which
  * has no folder record of its own — that is why the container is what the URL addresses.
+ *
+ * `sort` is a key of the list's sort select (`default` = the module's order, forgetting the
+ * one the user chose last; left out = the one the user chose last), `pageSize` the page the
+ * caller's view shows (see `FolderList` and `FolderListingService::VIEWS`). `filters` are the
+ * values of the list's filters by key (`q`, `userId`, `type`, `modified`); an empty one is not sent —
+ * with any of them set, the list searches the folder and all its subfolders.
  */
-export const loadItems = (containerId, parent, { sort, order, view, page, pageSize } = {}) => {
+export const loadItems = (containerId, parent, { sort, page, pageSize, filters = {} } = {}) => {
     const params = {};
     if (parent) {
         params.parent = parent;
     }
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== null && value !== undefined) {
+            params[key] = value;
+        }
+    });
     if (sort) {
         params.sort = sort;
-        params.order = order || 'asc';
-    }
-    if (view) {
-        params.view = view;
     }
     if (page) {
         params.page = page;
@@ -31,6 +38,10 @@ export const loadItems = (containerId, parent, { sort, order, view, page, pageSi
 
     return client.get(apiUrl('cfiles/' + containerId + '/items', params));
 };
+
+/** Remembers the caller's view (`tiles` or `list`); answers the stored preferences. */
+export const savePreferences = ({ view }) =>
+    client.patch(apiUrl('cfiles/preferences'), { data: { view } });
 
 export const createFolder = (containerId, parent, attributes) =>
     client.post(apiUrl('cfiles/' + containerId + '/folders'), {
