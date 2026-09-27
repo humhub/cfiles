@@ -2,8 +2,8 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\libs\MimeHelper;
 use humhub\modules\cfiles\libs\FileUploadBatch;
-use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\cfiles\services\ItemVisibilityService;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\components\ContentContainerActiveRecord;
@@ -91,7 +91,7 @@ class File extends FileSystemItem
      */
     public function getIcon()
     {
-        return FileUtils::getIconClassByExt(FileHelper::getExtension($this->baseFile));
+        return MimeHelper::getIconNameByExtension(FileHelper::getExtension($this->baseFile));
     }
 
     /**

@@ -46,6 +46,7 @@ class FileSerializer
      *     visibility: int,
      *     mimeType: string|null,
      *     mimeIcon: string|null,
+     *     icon: string,
      *     size: int,
      *     url: string|null,
      *     downloadUrl: string|null,
@@ -79,6 +80,11 @@ class FileSerializer
             'mimeIcon' => $baseFile
                 ? MimeHelper::getMimeIconClassByExtension(FileHelper::getExtension($baseFile->file_name))
                 : null,
+            // The Tabler name of the file type's glyph, for the Vue browser's
+            // `<i class="ti ti-<icon>">` — see MimeHelper::getIconNameByExtension().
+            'icon' => $baseFile
+                ? MimeHelper::getIconNameByExtension(FileHelper::getExtension($baseFile->file_name))
+                : 'file',
             'size' => (int)($baseFile?->size ?? 0),
             // Opens the file the way the browser prefers (inline for what it can render).
             'url' => $baseFile?->getUrl([], true),
