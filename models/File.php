@@ -273,7 +273,7 @@ class File extends FileSystemItem
      */
     public function getDescription()
     {
-        return $this->description;
+        return $this->getAttribute('description');
     }
 
     /**
@@ -281,7 +281,7 @@ class File extends FileSystemItem
      */
     public function getDownloadCount()
     {
-        return $this->download_count;
+        return $this->getAttribute('download_count');
     }
 
     public function setTitle($title)
