@@ -589,7 +589,7 @@ class Folder extends FileSystemItem
             return  Yii::t('CfilesModule.base', 'Files from the stream');
         }
 
-        return $this->title;
+        return $this->getAttribute('title');
     }
 
     public function getDescription()
@@ -600,7 +600,7 @@ class Folder extends FileSystemItem
             return  Yii::t('CfilesModule.base', 'You can find all files that have been posted to this stream here.');
         }
 
-        return $this->description;
+        return $this->getAttribute('description');
     }
 
     /**

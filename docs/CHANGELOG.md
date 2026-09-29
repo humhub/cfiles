@@ -4,6 +4,7 @@ Changelog
 0.17.5 (Unreleased)
 -------------------
 - Enh: Automated code refactoring for HumHub 1.18.1 using Rector
+- Fix #269: Use getAttribute() in getter methods to avoid recursion when the attribute is missing
 
 0.17.4 - May 5, 2026
 --------------------
