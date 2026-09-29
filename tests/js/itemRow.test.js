@@ -106,6 +106,23 @@ describe('ItemRow', () => {
             expect(row(fileRow()).find('.cfiles-row-meta').text()).toContain('1.2 MB');
         });
 
+        it('names the topics of the item, each with its colour', () => {
+            const topics = row(fileRow({ topics: [{ id: 4, name: 'Budget', color: '#ff0000' }, { id: 6, name: 'Brand', color: null }] }))
+                .findAll('.cfiles-row-meta .cfiles-row-topic');
+
+            expect(topics.map((topic) => topic.text())).toEqual(['Budget', 'Brand']);
+            expect(topics[0].find('.cfiles-row-topic__dot').attributes('style')).toContain('background-color');
+            expect(row(fileRow()).find('.cfiles-row-topic').exists()).toBe(false);
+        });
+
+        // Read out as "Topics: Budget Brand", not as two stray words after the date.
+        it('introduces the topics for a screen reader only', () => {
+            const hidden = row(fileRow({ topics: [{ id: 4, name: 'Budget', color: null }] })).find('.cfiles-row-meta .visually-hidden');
+
+            expect(hidden.text()).toBe('Topics:');
+            expect(row(fileRow()).find('.cfiles-row-meta .visually-hidden').exists()).toBe(false);
+        });
+
         it('appends the description when there is one', () => {
             const meta = row(fileRow({ description: 'Erste Fassung' })).find('.cfiles-row-meta').text();
 
@@ -524,6 +541,10 @@ describe('ItemRow', () => {
 
         it('is not there for an item directly in the open folder', () => {
             expect(row(fileRow()).find('.cfiles-location').exists()).toBe(false);
+        });
+
+        it('names the folder it opens', () => {
+            expect(row(hit()).find('.cfiles-location').attributes('aria-label')).toBe('Open Logos');
         });
 
         // The meta line is cut at its end: a long description must not hide where the hit is.

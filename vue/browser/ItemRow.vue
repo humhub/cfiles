@@ -2,7 +2,7 @@
     <div
         class="cfiles-row d-flex align-items-center gap-2"
         :class="{ 'is-drop-target': dropTarget, 'is-selected': selected, 'is-uploading': item.uploading }"
-        :draggable="draggable && !item.uploading"
+        :draggable="draggable && !item.uploading && item.type !== 'space'"
         @click="onRowClick"
         @contextmenu="onContextMenu"
         @dragstart="onDragStart"
@@ -29,6 +29,25 @@
                         :aria-label="uploadingLabel"
                     ></div>
                 </div>
+            </div>
+        </template>
+
+        <template v-else-if="isSpace">
+            <div class="cfiles-row-icon">
+                <SpaceImage v-bind="spaceImageProps" :width="32" aria-hidden="true" />
+            </div>
+
+            <div class="flex-grow-1 min-width-0">
+                <h4 class="mb-0 d-flex align-items-center gap-1">
+                    <a
+                        ref="titleLink"
+                        :href="linkUrl"
+                        draggable="false"
+                        class="text-truncate"
+                        @click="onOpen"
+                    >{{ displayTitle }}</a>
+                </h4>
+                <h5 class="mb-0 text-truncate cfiles-row-meta">{{ meta }}</h5>
             </div>
         </template>
 
@@ -65,12 +84,18 @@
                         :aria-label="privateLabel"
                     ></i>
                 </h4>
-                <h5 class="mb-0 text-truncate cfiles-row-meta">{{ meta }}<template v-if="location"> · <a
-                    class="cfiles-location"
-                    :href="folderUrl(location.folder.id)"
-                    draggable="false"
-                    @click="onOpenLocation"
-                >{{ location.label }}</a></template></h5>
+                <h5 class="mb-0 text-truncate cfiles-row-meta">{{ meta }}<template v-if="location"> · <ItemLocation
+                    :location="location"
+                    :folder-url="folderUrl"
+                    @open="(target) => $emit('open', target)"
+                /></template><span
+                    v-if="item.topics && item.topics.length"
+                    class="visually-hidden"
+                > {{ topicsLabel }}</span><span
+                    v-for="topic in item.topics || []"
+                    :key="topic.id"
+                    class="cfiles-row-topic"
+                ><span class="cfiles-row-topic__dot" :style="topic.color ? { backgroundColor: topic.color } : null" aria-hidden="true"></span>{{ topic.name }}</span></h5>
             </div>
 
             <!-- The avatar and the like link are links (and an image) that would start a native
@@ -114,18 +139,22 @@
  * to and which context-menu entries apply, and in nothing else. An upload in progress
  * (`uploading: true`) is a row too: its name and a progress bar, nothing to select, drag or
  * open a menu on. A hit of a result list names the folder it lies in at the end of its meta
- * line, a link that opens that folder.
+ * line, a link that opens that folder (`ItemLocation`). A space of the global files page's top
+ * level (`type: 'space'`) is its image, its name and how much it holds — opened like a folder,
+ * with nothing to select, drag or act on.
  *
  * Speaks the core `TileGrid`'s event vocabulary — `toggle-select(item, { range })`,
  * `drag-start`/`drag-end`/`drag-over`/`drag-leave`/`drop-on(item, event)`, with `canDrop`
  * deciding where a drag may land — so the browser treats the list and the tiles alike.
  */
+import ItemLocation from './ItemLocation.vue';
 import {
-    itemLocation, itemMeta, fileIcon, isPlainClick, CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES,
+    itemLocation, itemMeta, fileIcon, spaceImage, CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES,
 } from './itemPresentation';
 import { i18n } from '@humhub/vue';
 
 export default {
+    components: { ItemLocation },
     props: {
         item: { type: Object, required: true },
         selected: { type: Boolean, default: false },
@@ -158,19 +187,31 @@ export default {
         isFolder() {
             return this.item.type === 'folder';
         },
+        /** A space of the global files page's top level: opened like a folder, nothing else. */
+        isSpace() {
+            return this.item.type === 'space';
+        },
+        spaceImageProps() {
+            return spaceImage(this.item);
+        },
         isPrivate() {
             return this.item.visibility === 0;
         },
         displayTitle() {
-            return this.item.title;
+            // A space names itself the core's way, `name` (see GlobalListingService).
+            return this.isSpace ? this.item.name : this.item.title;
         },
         linkUrl() {
             // A folder link is a real page URL even though opening it never navigates — that
             // is what keeps middle-click, "open in new tab" and copy-link working. A file
             // links wherever the server said, which is not always the file itself: a module
             // may have contributed a viewer or an editor for it (see FileSerializer::link()).
+            if (this.isSpace) {
+                return this.folderUrl(null, this.item);
+            }
+            // A folder hit of the global page lies in a space of its own (its path says which).
             return this.isFolder
-                ? this.folderUrl(this.item.id)
+                ? this.folderUrl(this.item.id, this.location?.space ?? undefined)
                 : (this.item.link?.url || this.item.url || '#');
         },
         /** Attributes the file's link needs — the download hooks, or the modal target. */
@@ -198,6 +239,9 @@ export default {
         },
         privateLabel() {
             return i18n.t('CfilesModule.base', 'Private');
+        },
+        topicsLabel() {
+            return i18n.t('CfilesModule.base', 'Topics:');
         },
         selectLabel() {
             return i18n.t('CfilesModule.base', 'Select {name}', { name: this.item.title });
@@ -238,8 +282,8 @@ export default {
          * `$.fn.contextMenu` did for server-rendered lists (see `humhub.ui.additions.js`).
          */
         onContextMenu(event) {
-            // An upload has no menu of its own: leave the browser's.
-            if (this.isUpload) {
+            // An upload or a space has no menu of its own: leave the browser's.
+            if (this.isUpload || this.isSpace) {
                 return;
             }
             // Ctrl+right-click asks for the browser's own menu — the same escape hatch the
@@ -266,7 +310,7 @@ export default {
             });
         },
         openItem() {
-            if (this.isFolder) {
+            if (this.isFolder || this.isSpace) {
                 this.$emit('open', this.item);
                 return;
             }
@@ -280,7 +324,7 @@ export default {
             }
         },
         onOpen(event) {
-            if (!this.isFolder) {
+            if (!this.isFolder && !this.isSpace) {
                 return;
             }
             // Let the browser handle any click that means "somewhere else": modifier keys and
@@ -291,20 +335,9 @@ export default {
             event.preventDefault();
             this.$emit('open', this.item);
         },
-        /**
-         * Opens the folder a hit of a result list lies in (`open` with that folder, as a
-         * folder row emits it); any other click follows the link.
-         */
-        onOpenLocation(event) {
-            if (!isPlainClick(event)) {
-                return;
-            }
-            event.preventDefault();
-            this.$emit('open', this.location.folder);
-        },
         onDragStart(event) {
             // Images are draggable on their own, and their dragstart bubbles up here.
-            if (!this.draggable || this.item.uploading) {
+            if (!this.draggable || this.item.uploading || this.isSpace) {
                 return;
             }
             if (event.dataTransfer) {

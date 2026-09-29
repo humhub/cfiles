@@ -7,22 +7,16 @@
 import { apiUrl, client } from '@humhub/vue';
 
 /**
- * One level of a container's tree. `parent` is a folder id, or null for the top level, which
- * has no folder record of its own — that is why the container is what the URL addresses.
- *
- * `sort` is a key of the list's sort select (`default` = the module's order, forgetting the
- * one the user chose last; left out = the one the user chose last), `pageSize` the page the
- * caller's view shows (see `FolderList` and `FolderListingService::VIEWS`). `filters` are the
- * values of the list's filters by key (`q`, `userId`, `type`, `modified`); an empty one is not sent —
- * with any of them set, the list searches the folder and all its subfolders.
+ * The request parameters of a listing: the filters with a value (an array, a filter with
+ * several values, comma-separated), the sort, the page.
  */
-export const loadItems = (containerId, parent, { sort, page, pageSize, filters = {} } = {}) => {
-    const params = {};
-    if (parent) {
-        params.parent = parent;
-    }
+const listParams = ({ sort, page, pageSize, filters = {} }, params = {}) => {
     Object.entries(filters).forEach(([key, value]) => {
-        if (value !== '' && value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+            if (value.length) {
+                params[key] = value.join(',');
+            }
+        } else if (value !== '' && value !== null && value !== undefined) {
             params[key] = value;
         }
     });
@@ -36,8 +30,38 @@ export const loadItems = (containerId, parent, { sort, page, pageSize, filters =
         params.pageSize = pageSize;
     }
 
-    return client.get(apiUrl('cfiles/' + containerId + '/items', params));
+    return params;
 };
+
+/**
+ * One level of a container's tree. `parent` is a folder id, or null for the top level, which
+ * has no folder record of its own — that is why the container is what the URL addresses.
+ *
+ * `sort` is a key of the list's sort select (`default` = the module's order, forgetting the
+ * one the user chose last; left out = the one the user chose last), `pageSize` the page the
+ * caller's view shows (see `FolderList` and `FolderListingService::VIEWS`). `filters` are the
+ * values of the list's filters by key (`q`, `userId`, `topicId`, `type`, `modified`); an empty one is not sent —
+ * with any of them set, the list searches the folder and all its subfolders. The endpoint
+ * answers `422` for a parameter it does not know: send only its own filters.
+ */
+export const loadItems = (containerId, parent, options = {}) =>
+    client.get(apiUrl('cfiles/' + containerId + '/items', listParams(options, parent ? { parent } : {})));
+
+/**
+ * The top level of the global files page (`GET cfiles/items`, `GlobalFolderList`): a tile per
+ * space of the user, or — with a result filter — the hits across them. Takes what `loadItems()`
+ * takes but the container and the parent; its filters add `spaceId`.
+ */
+export const loadGlobalItems = (options = {}) => client.get(apiUrl('cfiles/items', listParams(options)));
+
+/**
+ * Which of the topic ids a container takes — its own topics and the global ones: the topics
+ * `GET topic/picker` names of them for that container (the rule of its Topic filter). One
+ * request, at most the 20 ids the picker resolves.
+ */
+export const resolveTopics = (containerId, ids) =>
+    client.get(apiUrl('topic/picker', { ids: ids.join(','), containerId, pageSize: ids.length }))
+        .then((response) => (response.results || []).map((topic) => String(topic.id)));
 
 /** Remembers the caller's view (`tiles` or `list`); answers the stored preferences. */
 export const savePreferences = ({ view }) =>

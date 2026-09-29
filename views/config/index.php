@@ -18,6 +18,8 @@ use humhub\widgets\form\ContentHiddenCheckbox;
 
         <?= $form->field($model, 'displayDownloadCount')->checkbox(); ?>
 
+        <?= $form->field($model, 'showGlobalMenuItem')->checkbox(); ?>
+
         <?= $form->field($model, 'contentHiddenDefault')->widget(ContentHiddenCheckbox::class, [
             'type' => ContentHiddenCheckbox::TYPE_GLOBAL,
         ]); ?>

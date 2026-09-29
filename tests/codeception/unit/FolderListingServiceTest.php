@@ -10,6 +10,7 @@ namespace humhub\modules\cfiles\tests\codeception\unit;
 
 use humhub\components\listing\ListContext;
 use humhub\modules\cfiles\components\FolderList;
+use humhub\modules\cfiles\components\FolderListBuilder;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\services\FolderListingService;
@@ -151,17 +152,78 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->assertTrue($payload['resultsMode']);
         $this->assertSame(4, $payload['total']);
         $this->assertSame(
-            ['Logos' => [['id' => $brand->id, 'title' => 'Brand']], 'logo-brand.png' => [['id' => $brand->id, 'title' => 'Brand']],
-                'logo-deep.png' => [['id' => $brand->id, 'title' => 'Brand'], ['id' => $logos->id, 'title' => 'Logos']], 'logo-top.png' => []],
+            ['Logos' => [['type' => 'folder', 'id' => $brand->id, 'title' => 'Brand']], 'logo-brand.png' => [['type' => 'folder', 'id' => $brand->id, 'title' => 'Brand']],
+                'logo-deep.png' => [['type' => 'folder', 'id' => $brand->id, 'title' => 'Brand'], ['type' => 'folder', 'id' => $logos->id, 'title' => 'Logos']], 'logo-top.png' => []],
             array_column($payload['results'], 'path', 'title'),
         );
 
         // Relative to the open folder, which is not part of it.
         $inBrand = $this->payload(['parent' => $brand->id, 'q' => 'logo', 'sort' => 'name']);
         $this->assertSame(
-            ['Logos' => [], 'logo-brand.png' => [], 'logo-deep.png' => [['id' => $logos->id, 'title' => 'Logos']]],
+            ['Logos' => [], 'logo-brand.png' => [], 'logo-deep.png' => [['type' => 'folder', 'id' => $logos->id, 'title' => 'Logos']]],
             array_column($inBrand['results'], 'path', 'title'),
         );
+    }
+
+    public function testAResultListOverSeveralSpacesPlacesEachHitInItsSpace()
+    {
+        $other = Space::findOne(3);
+        $brand = $this->addFolder('Brand', null, $other);
+        $this->addFile('logo-top.png');
+        $this->addFile('logo-brand.png', $brand, $other);
+
+        $builder = new FolderListBuilder([$this->space, $other], ListContext::forCurrentUser());
+        $builder->prefixContainer = true;
+        $builder->scopeToSubtree();
+        $builder->folderQuery()->orderBy(['cfiles_folder.title' => SORT_ASC]);
+        $builder->fileQuery()->orderBy(['file.file_name' => SORT_ASC]);
+        $payload = (new FolderListingService($builder))->payload();
+
+        $space1 = ['type' => 'space', 'id' => $this->space->id, 'contentContainerId' => $this->space->contentcontainer_id, 'guid' => $this->space->guid, 'title' => $this->space->name];
+        $space3 = ['type' => 'space', 'id' => $other->id, 'contentContainerId' => $other->contentcontainer_id, 'guid' => $other->guid, 'title' => $other->name];
+        $this->assertSame(
+            ['Brand' => [$space3], 'logo-brand.png' => [$space3, ['type' => 'folder', 'id' => $brand->id, 'title' => 'Brand']], 'logo-top.png' => [$space1]],
+            array_column($payload['results'], 'path', 'title'),
+        );
+    }
+
+    /**
+     * The file browser of the global page takes the right to write from each level it opens.
+     */
+    public function testALevelSaysWhetherTheUserMayWriteInItsContainer()
+    {
+        $this->assertTrue($this->payload()['canWrite']);
+
+        // User1 is no member of space 1: they may read its public files, not add any.
+        $this->becomeUser('User1');
+        // Fresh, as in a request of theirs: the record caches the permissions of its user.
+        $this->space = Space::findOne(1);
+        $this->assertFalse($this->payload()['canWrite']);
+    }
+
+    public function testAListOverSeveralContainersHasNoRightToWrite()
+    {
+        $builder = new FolderListBuilder([$this->space, Space::findOne(3)], ListContext::forCurrentUser());
+        $builder->prefixContainer = true;
+        $builder->scopeToSubtree();
+
+        $this->assertFalse((new FolderListingService($builder))->payload()['canWrite']);
+    }
+
+    /**
+     * The rows reuse the listed container records rather than looking up each row's own: a
+     * change the record has only in memory shows in the row.
+     */
+    public function testTheRowsUseTheListedContainers()
+    {
+        $this->addFile('logo.png');
+        $space = Space::findOne($this->space->id);
+        $space->guid = 'in-memory-only';
+
+        $builder = new FolderListBuilder([$space], ListContext::forCurrentUser());
+        $payload = (new FolderListingService($builder))->payload();
+
+        $this->assertStringContainsString('in-memory-only', $payload['results'][0]['downloadUrl']);
     }
 
     private function payload(array $params = [], int $page = 1, ?int $pageSize = null): array
@@ -171,23 +233,23 @@ class FolderListingServiceTest extends HumHubDbTestCase
         return (new FolderListingService($builder))->payload($page, $pageSize);
     }
 
-    private function addFolder(string $title, ?Folder $parent = null): Folder
+    private function addFolder(string $title, ?Folder $parent = null, ?Space $space = null): Folder
     {
         // null is the top level
-        $folder = (new FolderContentService($this->space, $parent))->newFolder($title, '');
+        $folder = (new FolderContentService($space ?? $this->space, $parent))->newFolder($title, '');
 
         $this->assertTrue($folder->save(), implode(' ', $folder->getFirstErrors()));
 
         return $folder;
     }
 
-    private function addFile(string $name, ?Folder $parent = null): void
+    private function addFile(string $name, ?Folder $parent = null, ?Space $space = null): void
     {
         // null is the top level
         $path = Yii::getAlias('@runtime') . '/' . $name;
         file_put_contents($path, 'test');
 
-        $file = (new FolderContentService($this->space, $parent))->addFileFromPath($name, $path);
+        $file = (new FolderContentService($space ?? $this->space, $parent))->addFileFromPath($name, $path);
 
         $this->assertFalse($file->hasErrors(), implode(' ', $file->getFirstErrors()));
     }

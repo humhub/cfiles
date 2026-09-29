@@ -17,6 +17,8 @@ class ConfigureForm extends \yii\base\Model
 
     public $contentHiddenDefault;
 
+    public $showGlobalMenuItem;
+
     public function init()
     {
         parent::init();
@@ -24,6 +26,7 @@ class ConfigureForm extends \yii\base\Model
         $module = $this->getModule();
         $this->displayDownloadCount = $module->getDisplayDownloadCount();
         $this->contentHiddenDefault = $module->getContentHiddenGlobalDefault();
+        $this->showGlobalMenuItem = $module->getShowGlobalMenuItem();
     }
 
     /**
@@ -40,7 +43,7 @@ class ConfigureForm extends \yii\base\Model
     public function rules()
     {
         return [
-            [['displayDownloadCount', 'contentHiddenDefault'], 'boolean'],
+            [['displayDownloadCount', 'contentHiddenDefault', 'showGlobalMenuItem'], 'boolean'],
         ];
     }
 
@@ -51,6 +54,7 @@ class ConfigureForm extends \yii\base\Model
     {
         return [
             'displayDownloadCount' => Yii::t('CfilesModule.base', 'Display a download count column'),
+            'showGlobalMenuItem' => Yii::t('CfilesModule.base', 'Add entry to main navigation'),
         ];
     }
 
@@ -63,6 +67,7 @@ class ConfigureForm extends \yii\base\Model
         $module = $this->getModule();
         $module->settings->set('displayDownloadCount', $this->displayDownloadCount);
         $module->settings->set('contentHiddenGlobalDefault', $this->contentHiddenDefault);
+        $module->settings->set('showGlobalMenuItem', $this->showGlobalMenuItem);
 
         return true;
     }

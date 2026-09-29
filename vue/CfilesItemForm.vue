@@ -2,6 +2,14 @@
     <HumHubForm ref="form" :busy="busy" @submit="submit">
         <TextField attribute="title" v-model="values.title" :label="titleLabel" :required="true" />
         <TextareaField attribute="description" v-model="values.description" :label="descriptionLabel" :rows="3" />
+        <TopicsField
+            v-if="hasTopics"
+            v-model="values.topics"
+            attribute="topics"
+            :container-id="contentContainerId"
+            :label="topicsLabel"
+            :placeholder="topicsPlaceholder"
+        />
         <SelectField
             attribute="visibility"
             v-model="values.visibility"
@@ -30,16 +38,27 @@
  *
  * Field names are bare (`title`, not `Folder[title]`): `HumHubForm` gets no `modelName`, so
  * the inputs and the API's 422 keys line up without a mapping step.
+ *
+ * Editing, the item's topics are a field too: the topic module's `TopicFilterControl` (the
+ * Topic filter's combobox, a global component — `CfilesVueAsset` depends on `TopicVueAsset`)
+ * over the topics of the item's container and the global ones, the same the endpoint accepts.
+ * Only existing topics can be chosen: the control has no free text. A refused topic (`422`
+ * under `topics`) is shown below the field (`TopicsField`).
  */
 import { i18n, log } from '@humhub/vue';
+import TopicsField from './browser/TopicsField.vue';
 import { createFolder, updateItem } from './browser/api';
 
 export default {
+    components: { TopicsField },
     i18nCategories: ['CfilesModule.base', 'base'],
     props: {
         /** The serialized item being edited; omit (with `parentFolderId` set) to create. */
         item: { type: Object, default: null },
-        /** The container to create in — required together with `parentFolderId`. */
+        /**
+         * The container to create in — required together with `parentFolderId`. Editing, the
+         * item's container, whose topics the Topics field offers (none without it).
+         */
         contentContainerId: { type: Number, default: null },
         /** Set when creating a folder; null creates it at the container's top level. */
         parentFolderId: { type: Number, default: null },
@@ -53,6 +72,8 @@ export default {
                 title: this.item ? this.item.title : '',
                 description: this.item ? this.item.description : '',
                 visibility: this.item ? String(this.item.visibility) : '1',
+                // The ids as strings, as the control takes them.
+                topics: (this.item?.topics || []).map((topic) => String(topic.id)),
             },
         };
     },
@@ -62,6 +83,15 @@ export default {
         },
         isCreate() {
             return this.item === null;
+        },
+        hasTopics() {
+            return !this.isCreate && this.contentContainerId !== null;
+        },
+        topicsPlaceholder() {
+            return i18n.t('CfilesModule.base', 'Add topics');
+        },
+        topicsLabel() {
+            return i18n.t('CfilesModule.base', 'Topics');
         },
         titleLabel() {
             return this.isFolder
@@ -111,6 +141,10 @@ export default {
                 description: this.values.description,
                 visibility: Number(this.values.visibility),
             };
+            if (this.hasTopics) {
+                // Form-encoded, an empty list is not sent at all: `''` is "none".
+                attributes.topics = this.values.topics.length ? [...this.values.topics] : '';
+            }
 
             const request = this.isCreate
                 ? createFolder(this.contentContainerId, this.parentFolderId, attributes)

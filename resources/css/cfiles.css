@@ -59,6 +59,28 @@
     text-decoration: underline;
 }
 
+/* Over several spaces (the global files page) the line links its space and its folders on
+   their own ("in Marketing › Brand › Logos"): each part is a link like the one above. */
+.cfiles-location--split:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cfiles-location__space,
+.cfiles-location__folder {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.cfiles-location__space:hover,
+.cfiles-location__space:focus-visible,
+.cfiles-location__folder:hover,
+.cfiles-location__folder:focus-visible {
+    color: var(--bs-accent);
+    text-decoration: underline;
+}
+
 /* The kit's meta line is a flex item sized to its content (the tile centres its column), so a
    long location would overflow the tile instead of being cut: held to the tile's width. */
 .cfiles-browser .c-tile-grid__meta {
@@ -83,6 +105,29 @@
     display: block;
     color: var(--cfiles-folder-color);
     font-size: 100px;
+    line-height: 1;
+}
+
+/* A space of the global files page: the folder glyph with the space's image as a badge at its
+   bottom right, ringed in the card's colour so it stands off the yellow in either mode. */
+.cfiles-tile__space {
+    position: relative;
+    display: block;
+    line-height: 1;
+}
+
+.cfiles-tile__badge {
+    position: absolute;
+    right: 8px;
+    bottom: 16px;
+    display: block;
+    line-height: 0;
+}
+
+.cfiles-tile__badge > .space-acronym,
+.cfiles-tile__badge > img {
+    box-shadow: 0 0 0 2px var(--hh-background-color-main);
+    font-size: 10px;
     line-height: 1;
 }
 
@@ -166,6 +211,22 @@
     color: var(--hh-text-color-secondary);
     font-size: 12px;
     font-weight: 400;
+}
+
+/* A topic of the item, after the meta line: its colour dot and name, as the Topic filter's chips. */
+.cfiles-row-topic {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+.cfiles-row-topic__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--hh-text-color-secondary);
 }
 
 /* An upload has no checkbox yet; where the other rows have one, it keeps their icon column. */

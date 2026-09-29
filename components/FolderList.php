@@ -15,6 +15,8 @@ use humhub\components\listing\filters\EnumFilter;
 use humhub\components\listing\filters\SearchFilter;
 use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\services\BrowserPreferences;
+use humhub\modules\content\models\ContentTagRelation;
+use humhub\modules\topic\components\listing\TopicFilter;
 use humhub\modules\user\components\listing\UserFilter;
 use Yii;
 use yii\base\InvalidConfigException;
@@ -35,9 +37,10 @@ use yii\base\InvalidConfigException;
  * Parameters: `parent` (a folder id of the container, {@see FolderParentFilter}; absent = the
  * top level), the filters of the page's bar — `q` (folder titles, file names and the
  * descriptions of both), `userId` (the author: who created the folder or file — not for
- * guests, see {@see UserFilter}), `type` (files of one of {@see self::TYPE_GROUPS}, no folders),
- * `modified` (the content's last change: `7d`, `30d`, `12m` or `older`) — and `sort` (one of
- * {@see self::sorts()}); paging stays with the caller.
+ * guests, see {@see UserFilter}), `topicId` (one or several topics of the container or global
+ * ones, {@see self::topicFilter()} — not for guests either), `type` (files of one of
+ * {@see self::TYPE_GROUPS}, no folders), `modified` (the content's last change: `7d`, `30d`,
+ * `12m` or `older`) — and `sort` (one of {@see self::sorts()}); paging stays with the caller.
  *
  * **Results mode**: once one of {@see self::RESULT_FILTERS} is set, the list no longer shows
  * the level but the hits in the open folder and all its readable subfolders (the whole
@@ -99,7 +102,7 @@ class FolderList extends FilterableList
     /**
      * The filters whose value switches the list into results mode (see the class docblock).
      */
-    public const RESULT_FILTERS = ['q', 'userId', 'type', 'modified'];
+    public const RESULT_FILTERS = ['q', 'userId', 'topicId', 'type', 'modified'];
 
     /**
      * @var string[] the keys of the filters that switch the list into results mode —
@@ -172,10 +175,35 @@ class FolderList extends FilterableList
      */
     protected function filters(): array
     {
-        // Positions in the bar: search, author, file type, modified — the sort is at 200.
+        $content = self::contentFilters();
+
+        // In the order of the bar: search, author, topic, file type, modified — the sort is at 200.
         return [
             new FolderParentFilter(),
-            new SearchFilter(
+            $content['q'],
+            $content['userId'],
+            // The topics of the context's container (and the global ones).
+            self::topicFilter(),
+            $content['type'],
+            $content['modified'],
+        ];
+    }
+
+    /**
+     * The filters of the bar that narrow the items themselves — search, author, file type and
+     * modified, by key, in the order of the bar —, shared with the global files page
+     * ({@see GlobalFolderList}): each narrows the two queries of a {@see FolderListBuilder},
+     * whatever containers it spans.
+     *
+     * Positions in the bar: search 100, author 120, file type 130, modified 140 (the global
+     * page puts its space at 110, the topic ({@see self::topicFilter()}) is at 125, the sort is at 200).
+     *
+     * @return array<string, \humhub\components\listing\ListFilter>
+     */
+    public static function contentFilters(): array
+    {
+        return [
+            'q' => new SearchFilter(
                 'q',
                 apply: static function (FolderListBuilder $list, string $keywords) {
                     $list->folderQuery()->andWhere(['or',
@@ -194,7 +222,7 @@ class FolderList extends FilterableList
                 ],
                 maxLength: 255,
             ),
-            new UserFilter(
+            'userId' => new UserFilter(
                 'userId',
                 // A callback, not `column`: the filter applies a column to a single query only.
                 apply: static function (FolderListBuilder $list, int $userId) {
@@ -206,7 +234,7 @@ class FolderList extends FilterableList
                     'sortOrder' => 120,
                 ],
             ),
-            new EnumFilter(
+            'type' => new EnumFilter(
                 'type',
                 values: [
                     'image' => Yii::t('CfilesModule.base', 'Images'),
@@ -230,7 +258,7 @@ class FolderList extends FilterableList
                     'sortOrder' => 130,
                 ],
             ),
-            new EnumFilter(
+            'modified' => new EnumFilter(
                 'modified',
                 values: [
                     '7d' => Yii::t('CfilesModule.base', 'Last 7 days'),
@@ -255,9 +283,47 @@ class FolderList extends FilterableList
     }
 
     /**
+     * The "Topic" filter (`topicId`) over the items of a {@see FolderListBuilder}: folders and
+     * files with any of the chosen topics — the {@see TopicFilter}'s own condition, applied to
+     * both queries (its default applies to the single query of a `QueryListBuilder` only).
+     *
+     * It offers and accepts the topics of the context's container and the global ones (the
+     * core filter reads the container from the context) — without a container in the context
+     * (the global files page) every topic the caller may see.
+     */
+    public static function topicFilter(): TopicFilter
+    {
+        return new TopicFilter(
+            'topicId',
+            apply: static function (FolderListBuilder $list, array $topicIds) {
+                foreach ([$list->folderQuery(), $list->fileQuery()] as $query) {
+                    $query->andWhere(['content.id' => ContentTagRelation::find()
+                        ->select('content_tag_relation.content_id')
+                        ->where(['content_tag_relation.tag_id' => $topicIds])]);
+                }
+            },
+            definition: [
+                'label' => Yii::t('CfilesModule.base', 'Topic'),
+                'sortOrder' => 125,
+            ],
+        );
+    }
+
+    /**
      * @inheritdoc
      */
     protected function sorts(): array
+    {
+        return self::sortLabels();
+    }
+
+    /**
+     * The sort keys and their labels — also those of the global files page
+     * ({@see GlobalFolderList}), whose results are ordered the same way ({@see self::orderItems()}).
+     *
+     * @return array<string, string|null>
+     */
+    public static function sortLabels(): array
     {
         // No option for the default order: the select's label is it, as "all" is for a select.
         return [
@@ -301,7 +367,7 @@ class FolderList extends FilterableList
             throw new InvalidConfigException('A folder list needs the container in its context.');
         }
 
-        return new FolderListBuilder($context->container, $context);
+        return new FolderListBuilder([$context->container], $context);
     }
 
     /**
@@ -337,22 +403,39 @@ class FolderList extends FilterableList
             $builder->fileQuery()->andWhere(['cfiles_file.parent_folder_id' => $parentId]);
         }
 
-        $sort = $this->value($values, self::SORT_PARAM);
-
-        if ($sort === null) {
-            $stored = $this->storedSort;
-            $sort = $stored !== null && array_key_exists($stored, $this->getSorts()) ? $stored : self::SORT_DEFAULT;
-        }
+        $sort = $this->value($values, self::SORT_PARAM)
+            ?? self::storedOrDefault($this->storedSort, $this->getSorts());
 
         $builder->sort = $sort;
 
         // A sort with its own callback - one a module added, also for a key of the list's own.
-        if (!$this->applySortCallback($builder, $sort, $context)) {
-            [$column, $direction] = self::SORT_ORDERS[$sort] ?? $this->defaultOrder();
-            $this->applyOrder($builder, $column, $direction);
+        self::orderItems($builder, $this->applySortCallback($builder, $sort, $context) ? null : $sort);
+    }
+
+    /**
+     * The sort applied when the request names none: the stored one if the list knows it, else
+     * `default`.
+     *
+     * @param array<string, string|null> $sorts the list's sorts
+     */
+    public static function storedOrDefault(?string $stored, array $sorts): string
+    {
+        return $stored !== null && array_key_exists($stored, $sorts) ? $stored : self::SORT_DEFAULT;
+    }
+
+    /**
+     * Orders both queries by the sort key — a key of {@see self::SORT_ORDERS}, any other the
+     * module's configured order —, or keeps the order a sort callback applied (`null`); then
+     * ends on the id, so rows with equal values keep one order and pages neither repeat nor
+     * skip them.
+     */
+    public static function orderItems(FolderListBuilder $builder, ?string $sort): void
+    {
+        if ($sort !== null) {
+            [$column, $direction] = self::SORT_ORDERS[$sort] ?? self::defaultOrder();
+            self::applyOrder($builder, $column, $direction);
         }
 
-        // Rows with equal values keep one order, so pages neither repeat nor skip them.
         $builder->folderQuery()->addOrderBy(['cfiles_folder.id' => SORT_ASC]);
         $builder->fileQuery()->addOrderBy(['cfiles_file.id' => SORT_ASC]);
     }
@@ -363,7 +446,7 @@ class FolderList extends FilterableList
      *
      * @return array{0: string, 1: int}
      */
-    private function defaultOrder(): array
+    private static function defaultOrder(): array
     {
         /** @var Module $module */
         $module = Yii::$app->getModule('cfiles');
@@ -377,7 +460,7 @@ class FolderList extends FilterableList
      * Orders both queries by the column; a type that cannot be sorted by it keeps its name
      * order.
      */
-    private function applyOrder(FolderListBuilder $builder, string $column, int $direction): void
+    private static function applyOrder(FolderListBuilder $builder, string $column, int $direction): void
     {
         $folderColumn = self::SORT_COLUMNS[$column]['folder'] ?? null;
         $fileColumn = self::SORT_COLUMNS[$column]['file'] ?? null;

@@ -11,6 +11,9 @@ import { config } from '@vue/test-utils';
 import { IntlMessageFormat } from 'intl-messageformat';
 import ContentControls from '@core/modules/content/vue/ContentControls.vue';
 import LikeButton from '@core/modules/like/vue/LikeButton.vue';
+import SpaceFilterControl from '@core/modules/space/vue/SpaceFilterControl.vue';
+import SpaceImage from '@core/modules/space/vue/SpaceImage.vue';
+import TopicFilterControl from '@core/modules/topic/vue/TopicFilterControl.vue';
 import UserFilterControl from '@core/modules/user/vue/UserFilterControl.vue';
 import UserImage from '@core/modules/user/vue/UserImage.vue';
 import UserList from '@core/modules/user/vue/UserList.vue';
@@ -21,6 +24,7 @@ import FilterBar from '@core/vue/FilterBar.vue';
 import HumHubForm from '@core/vue/HumHubForm.vue';
 import PageToolbar from '@core/vue/PageToolbar.vue';
 import PathBar from '@core/vue/PathBar.vue';
+import PickerFilterControl from '@core/vue/PickerFilterControl.vue';
 import ProgressFrame from '@core/vue/ProgressFrame.vue';
 import SelectionMenu from '@core/vue/SelectionMenu.vue';
 import SelectField from '@core/vue/SelectField.vue';
@@ -39,6 +43,12 @@ await import('@core/resources/js/humhub/humhub.vue.js');
 // Vue entry does in production (`modules/user/vue/index.js`, loaded through UserVueAsset).
 globalThis.humhub.modules.vue.register('UserFilterControl', UserFilterControl);
 globalThis.humhub.modules.vue.registerFilterType('user', 'UserFilterControl');
+// The Space and Topic filters of the global files page, as the space and topic modules' Vue
+// entries register them (SpaceVueAsset, TopicVueAsset).
+globalThis.humhub.modules.vue.register('SpaceFilterControl', SpaceFilterControl);
+globalThis.humhub.modules.vue.registerFilterType('space', 'SpaceFilterControl');
+globalThis.humhub.modules.vue.register('TopicFilterControl', TopicFilterControl);
+globalThis.humhub.modules.vue.registerFilterType('topic', 'TopicFilterControl');
 
 /**
  * Formats messages the way the platform does, rather than the way the core's test stub does.
@@ -76,6 +86,13 @@ config.global.components = {
     TextareaField,
     UiModal,
     UserFilterControl,
+    SpaceFilterControl,
+    TopicFilterControl,
+    // A space's avatar: the badge of a space tile of the global files page. Registered in
+    // production by CfilesVueAsset's dependency on SpaceVueAsset.
+    SpaceImage,
+    // The combobox the filter controls are built on, resolved by name like in production.
+    PickerFilterControl,
     UserImage,
     // Nested by LikeButton's "who liked this" modal.
     UserList,

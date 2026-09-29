@@ -29,6 +29,8 @@ export const folderRow = (over = {}) => ({
     createdAt: '2026-08-20T09:00:00+00:00',
     updatedAt: '2026-08-25T09:00:00+00:00',
     creator: creator(),
+    // `[{ id, name, color }]` (ItemTopicSerializer).
+    topics: [],
     url: '/s/x/cfiles/browse/index?fid=11',
     // Where it lies relative to the open folder (FolderListingService): empty = directly in it.
     path: [],
@@ -67,6 +69,7 @@ export const fileRow = (over = {}) => ({
     createdAt: '2026-08-20T09:00:00+00:00',
     updatedAt: '2026-08-25T09:00:00+00:00',
     creator: creator(),
+    topics: [],
     path: [],
     ...over,
 });
@@ -135,6 +138,8 @@ export const browserProps = (listing, over = {}) => ({
     filters: [
         { key: 'q', type: 'text', label: 'Search', placeholder: 'Search', placement: 'primary' },
         { key: 'userId', type: 'user', label: 'Author', placement: 'primary' },
+        // The container's topics and the global ones (FolderList::topicFilter()).
+        { key: 'topicId', type: 'topic', label: 'Topic', multiple: true, props: { containerId: CONTAINER_ID }, placement: 'primary' },
         {
             key: 'type',
             type: 'select',
@@ -178,10 +183,93 @@ export const browserProps = (listing, over = {}) => ({
         },
     ],
     // The filter values the page was built with (BrowseController::firstListing()).
-    initialFilters: { q: '', userId: '', type: '', modified: '' },
+    initialFilters: { q: '', userId: '', topicId: '', type: '', modified: '' },
     settingsUrl: null,
     ...over,
 });
 
 /** A result list: the hits of the filters in the folder and its subfolders. */
 export const results = (listing, over = {}) => ({ ...listing, resultsMode: true, ...over });
+
+// --- the global files page ---------------------------------------------------------------
+
+/** A tile of the global files page's top level (GlobalListingService::tiles()). */
+export const spaceTile = (over = {}) => ({
+    type: 'space',
+    id: 3,
+    guid: 's-3',
+    name: 'Marketing',
+    url: '/s/marketing/',
+    color: '#6fdbe8',
+    imageUrl: null,
+    contentContainerId: 7,
+    browseUrl: '/s/marketing/cfiles/browse/index',
+    itemCount: 4,
+    ...over,
+});
+
+export const salesTile = () => spaceTile({
+    id: 4, guid: 's-4', name: 'Sales', url: '/s/sales/', imageUrl: '/uploads/sales.jpg', contentContainerId: 8, itemCount: 1,
+});
+
+/** The first entry of a path over several spaces (FolderListBuilder::$prefixContainer). */
+export const spaceEntry = (over = {}) => ({ type: 'space', id: 3, contentContainerId: 7, guid: 's-3', title: 'Marketing', ...over });
+
+/** The space a page inside a space hands the island (`space` prop). */
+export const openSpace = (over = {}) => ({
+    id: 3, contentContainerId: 7, guid: 's-3', name: 'Marketing', color: '#6fdbe8', imageUrl: null, ...over,
+});
+
+/** The global top level: one tile per space (GlobalListingService::payload()). */
+export const globalTop = (results = [spaceTile(), salesTile()], over = {}) => ({
+    global: true,
+    space: null,
+    canWrite: false,
+    ...topLevel(results, { likeStates: {}, ...over }),
+});
+
+/** The hits across all spaces, each path starting with its space. */
+export const globalResults = (results, over = {}) => globalTop(results, { resultsMode: true, ...over });
+
+/** A level of a space, from the container endpoint (FolderListingService::payload()). */
+export const spaceLevel = (results = [folderRow(), fileRow()], over = {}) => topLevel(results, { canWrite: true, ...over });
+
+/** What GlobalFolderList::definitions() renders: the container's filters plus Space and Topic. */
+export const globalFilters = () => {
+    const [q, userId, , type, modified, sort] = browserProps(null).filters;
+
+    return [
+        q,
+        { key: 'spaceId', type: 'space', label: 'Space', placeholder: 'Space', multiple: true, props: { scope: 'member' }, placement: 'primary' },
+        userId,
+        { key: 'topicId', type: 'topic', label: 'Topic', placeholder: 'Topic', multiple: true, placement: 'primary' },
+        type,
+        modified,
+        sort,
+    ];
+};
+
+/**
+ * What GlobalController hands the island as a space's definitions: the container's filters for
+ * no space in particular — its Topic without a container, which the island sets.
+ */
+export const containerFilters = () => browserProps(null).filters.map((filter) => {
+    if (filter.type !== 'topic') {
+        return filter;
+    }
+    const { props, ...unscoped } = filter;
+    return unscoped;
+});
+
+export const globalProps = (listing, over = {}) => ({
+    listing,
+    global: true,
+    globalUrl: '/files',
+    space: null,
+    contentContainerId: null,
+    filters: globalFilters(),
+    containerFilters: containerFilters(),
+    initialFilters: { q: '', spaceId: '', userId: '', topicId: '', type: '', modified: '' },
+    settingsUrl: null,
+    ...over,
+});

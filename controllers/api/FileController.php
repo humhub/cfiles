@@ -40,7 +40,8 @@ class FileController extends BaseController
     }
 
     /**
-     * Renames a file, changes its description or its visibility.
+     * Renames a file, changes its description, its visibility or its topics (`topics`, see
+     * {@see self::topicsParam()}).
      *
      * Renaming means renaming the STORED file: a cfiles file has no title of its own, its
      * name is the platform file's `file_name` (see {@see File::getTitle()}). The two records
@@ -51,6 +52,11 @@ class FileController extends BaseController
     {
         $file = $this->findFile((int)$id);
         $this->assertCanEdit($file);
+
+        $topics = $this->topicsParam($file);
+        if ($topics !== null && !$topics->isValid()) {
+            return $this->validationErrors($topics->errors);
+        }
 
         $request = Yii::$app->request;
 
@@ -69,6 +75,10 @@ class FileController extends BaseController
 
         if ($request->getBodyParam('visibility') !== null) {
             $file->visibility = (int)$request->getBodyParam('visibility');
+        }
+
+        if ($topics !== null) {
+            $file->topics = $topics->present ? $topics->value : [];
         }
 
         if (!$file->save()) {

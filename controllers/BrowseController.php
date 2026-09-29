@@ -9,12 +9,12 @@
 namespace humhub\modules\cfiles\controllers;
 
 use humhub\components\listing\ListContext;
-use humhub\components\listing\ListValidationException;
 use humhub\modules\cfiles\components\FolderList;
 use humhub\modules\cfiles\components\FolderParentFilter;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\services\BrowserPreferences;
+use humhub\modules\cfiles\services\FirstListing;
 use humhub\modules\cfiles\services\FolderListingService;
 use humhub\modules\content\components\ContentContainerController;
 use humhub\modules\file\handler\FileHandlerCollection;
@@ -91,7 +91,8 @@ class BrowseController extends ContentContainerController
      *
      * Only the parameters of the list's filters and `sort` are taken from the URL — `fid`,
      * `edit` and whatever else a link carries are the page's. A value the list refuses (a
-     * stale link, a hand-edited URL) is dropped rather than failing the page.
+     * stale link, a hand-edited URL) is dropped rather than failing the page
+     * ({@see FirstListing}).
      *
      * @return array{listing: array, filters: array, initialFilters: array<string, string>} the
      *         first page (embedded, so the island paints without a request), the `FilterBar`
@@ -102,33 +103,14 @@ class BrowseController extends ContentContainerController
         $context = ListContext::forCurrentUser(null, $this->contentContainer);
         $list = new FolderList(['storedSort' => (new BrowserPreferences($context->user))->sort()]);
 
-        $params = $this->urlListParams($list);
-
-        try {
-            $builder = $list->build(['parent' => $folder?->id] + $params, $context);
-        } catch (ListValidationException $e) {
-            // Without what was refused; failing that (an error under a key of its own, such
-            // as a bracket parameter), without any of the URL's.
-            $params = array_diff_key($params, $e->errors);
-            try {
-                $builder = $list->build(['parent' => $folder?->id] + $params, $context);
-            } catch (ListValidationException) {
-                $params = [];
-                try {
-                    $builder = $list->build(['parent' => $folder?->id], $context);
-                } catch (ListValidationException) {
-                    // The folder resolved above is one the list accepts; should they ever
-                    // disagree, the page does not exist rather than failing.
-                    throw new HttpException(404);
-                }
-            }
-        }
-
-        $initialFilters = [];
-        foreach ($this->filterParams($list) as $param) {
-            $value = $params[$param] ?? '';
-            $initialFilters[$param] = is_string($value) ? trim($value) : '';
-        }
+        ['builder' => $builder, 'initialFilters' => $initialFilters] = FirstListing::build(
+            $list,
+            $context,
+            Yii::$app->request->getQueryParams(),
+            ['parent' => $folder?->id],
+            // The folder is `fid` here.
+            [FolderParentFilter::KEY],
+        );
 
         return [
             // Without a sort: the user's last choice, which the payload reports.
@@ -136,34 +118,6 @@ class BrowseController extends ContentContainerController
             'filters' => $list->definitions($context),
             'initialFilters' => $initialFilters,
         ];
-    }
-
-    /**
-     * The page URL's parameters the list knows: those of its filters (but the folder, which
-     * is `fid` here) and `sort`.
-     */
-    private function urlListParams(FolderList $list): array
-    {
-        $known = [...$this->filterParams($list), FolderList::SORT_PARAM];
-
-        return array_intersect_key(Yii::$app->request->getQueryParams(), array_flip($known));
-    }
-
-    /**
-     * The parameters of the list's filters, but the folder's (`parent`, which is `fid` here).
-     *
-     * @return string[]
-     */
-    private function filterParams(FolderList $list): array
-    {
-        $params = [];
-        foreach ($list->getFilters() as $filter) {
-            if (!$filter instanceof FolderParentFilter) {
-                $params = array_merge($params, $filter->params());
-            }
-        }
-
-        return $params;
     }
 
     private function canConfigure(): bool

@@ -9,9 +9,10 @@ use humhub\modules\cfiles\services\IntegrityService;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\space\models\Space;
 use humhub\modules\space\widgets\Menu;
-use humhub\modules\ui\menu\MenuLink;
 use humhub\modules\user\models\User;
 use humhub\modules\user\widgets\ProfileMenu;
+use humhub\widgets\menu\MenuLink;
+use humhub\widgets\TopMenu;
 use Yii;
 use yii\base\Event;
 
@@ -34,6 +35,38 @@ class Events
                 'icon' => 'files',
                 'isActive' => ControllerHelper::isActivePath('cfiles'),
             ]));
+        }
+    }
+
+    /**
+     * The main navigation entry of the global files page, while the admin enabled it.
+     */
+    public static function onTopMenuInit($event)
+    {
+        try {
+            if (Yii::$app->user->isGuest) {
+                return;
+            }
+
+            /** @var Module $module */
+            $module = Yii::$app->getModule('cfiles');
+            if (!$module->getShowGlobalMenuItem()) {
+                return;
+            }
+
+            /** @var TopMenu $menu */
+            $menu = $event->sender;
+            $menu->addEntry(new MenuLink([
+                'id' => 'cfiles-global',
+                'label' => Yii::t('CfilesModule.base', 'Files'),
+                'url' => ['/cfiles/global/index'],
+                'icon' => 'folders',
+                'sortOrder' => 500,
+                'isActive' => ControllerHelper::isActivePath('cfiles', 'global'),
+            ]));
+        } catch (\Throwable $e) {
+            // The main navigation must never break because of this entry.
+            Yii::error($e);
         }
     }
 

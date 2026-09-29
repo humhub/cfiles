@@ -123,18 +123,28 @@ class FolderController extends BaseController
 
         Yii::$app->response->statusCode = 201;
 
-        return FolderSerializer::folder($folder);
+        // A new folder has no topics yet: nothing to look up.
+        return FolderSerializer::folder($folder, null, []);
     }
 
     /**
-     * Renames a folder, changes its description or its visibility.
+     * Renames a folder, changes its description, its visibility or its topics (`topics`, see
+     * {@see self::topicsParam()}).
      */
     public function actionUpdate($id)
     {
         $folder = $this->findFolder((int)$id);
         $this->assertCanEdit($folder);
 
+        $topics = $this->topicsParam($folder);
+        if ($topics !== null && !$topics->isValid()) {
+            return $this->validationErrors($topics->errors);
+        }
+
         $folder->setAttributes($this->writableAttributes(), false);
+        if ($topics !== null) {
+            $folder->topics = $topics->present ? $topics->value : [];
+        }
 
         if (!$folder->save()) {
             return $this->validationErrors($folder);
@@ -183,7 +193,8 @@ class FolderController extends BaseController
                 continue;
             }
 
-            $created[] = FileSerializer::file($file);
+            // A new file has no topics yet: nothing to look up.
+            $created[] = FileSerializer::file($file, []);
         }
 
         Yii::$app->response->statusCode = $created === [] ? 422 : 201;

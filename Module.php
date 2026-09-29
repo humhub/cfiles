@@ -161,6 +161,14 @@ class Module extends ContentContainerModule
         return $this->settings->get('displayDownloadCount', false);
     }
 
+    /**
+     * Whether the global files page `/files` and its main navigation entry are available.
+     */
+    public function getShowGlobalMenuItem(): bool
+    {
+        return $this->settings->get('showGlobalMenuItem', false);
+    }
+
     public function getContentHiddenGlobalDefault(): bool
     {
         return $this->settings->get('contentHiddenGlobalDefault', false);

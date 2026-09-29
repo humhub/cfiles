@@ -23,7 +23,11 @@
         @load-more="$emit('load-more')"
     >
         <template #thumb="{ item }">
-            <i v-if="item.type === 'folder'" class="ti ti-folder-filled cfiles-tile__folder"></i>
+            <span v-if="item.type === 'space'" class="cfiles-tile__space">
+                <i class="ti ti-folder-filled cfiles-tile__folder"></i>
+                <SpaceImage class="cfiles-tile__badge" v-bind="spaceImage(item)" :width="20" aria-hidden="true" />
+            </span>
+            <i v-else-if="item.type === 'folder'" class="ti ti-folder-filled cfiles-tile__folder"></i>
             <img v-else-if="item.previewUrl" :src="item.previewUrl" alt="" draggable="false" class="cfiles-tile__image" />
             <span v-else class="cfiles-tile__doc"><i :class="'ti ' + fileIcon(item)"></i></span>
         </template>
@@ -34,26 +38,25 @@
                 :href="linkUrl(item)"
                 v-bind="linkAttributes(item)"
                 draggable="false"
-                :title="item.title"
+                :title="labelFor(item)"
                 @click="onOpen(item, $event)"
-            >{{ item.title }}<i
+            >{{ labelFor(item) }}<i
                 v-if="item.visibility === 0"
                 class="ti ti-lock ms-1 text-muted"
                 role="img"
                 :aria-label="privateLabel"
             ></i></a>
         </template>
-        <template #meta="{ item }">{{ item.type === 'upload' ? (item.progress || 0) + '%' : tileMeta(item) }}<a
+        <template #meta="{ item }">{{ item.type === 'upload' ? (item.progress || 0) + '%' : tileMeta(item) }}<ItemLocation
             v-if="item.type !== 'upload' && itemLocation(item)"
-            class="cfiles-location cfiles-tile__location"
-            :href="folderUrl(itemLocation(item).folder.id)"
-            :title="itemLocation(item).label"
-            draggable="false"
-            @click="onOpenLocation(item, $event)"
-        >{{ itemLocation(item).label }}</a></template>
+            class="cfiles-tile__location"
+            :location="itemLocation(item)"
+            :folder-url="folderUrl"
+            @open="(target) => $emit('open', target)"
+        /></template>
         <template #actions="{ item }">
             <ContentControls
-                v-if="item.type !== 'upload'"
+                v-if="item.type !== 'upload' && item.type !== 'space'"
                 :ref="(el) => setControls(item, el)"
                 :content-id="item.contentId"
                 :view-context="CONTROLS_VIEW_CONTEXT"
@@ -78,18 +81,22 @@
  * the filled folder glyph with its item count, a file as a document card with its type icon
  * (or its preview image) and its size, an upload in progress as a card with its percentage.
  * A hit of a result list names the folder it lies in on a second meta line, a link that opens
- * that folder (`open` with the folder, as for a folder tile).
+ * that folder (`open` with the folder, as for a folder tile; see `ItemLocation`). A space of the
+ * global files page's top level (`type: 'space'`) is a folder glyph with the space's image as
+ * its badge and how much it holds — opened like a folder, with nothing to select or act on.
  *
  * Speaks the same event vocabulary as `ItemList`, so the browser treats both views alike.
  * Items carry a `key` (`type:id`, see `api.keyOf`) the grid is keyed by — a folder and a file
  * may share a numeric id.
  */
 import { i18n } from '@humhub/vue';
+import ItemLocation from './ItemLocation.vue';
 import {
-    CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES, fileIcon, isPlainClick, itemLocation, tileMeta,
+    CONTROLS_VIEW_CONTEXT, SUPPRESSED_CORE_ENTRIES, fileIcon, isPlainClick, itemLocation, spaceImage, tileMeta,
 } from './itemPresentation';
 
 export default {
+    components: { ItemLocation },
     props: {
         items: { type: Array, default: () => [] },
         selection: { type: Array, default: () => [] },
@@ -127,15 +134,23 @@ export default {
         fileIcon,
         itemLocation,
         tileMeta,
+        spaceImage,
         labelFor(item) {
-            return item.title ?? '';
+            // A space tile names its space the core's way, `name` (see GlobalListingService).
+            return (item.type === 'space' ? item.name : item.title) ?? '';
         },
         linkUrl(item) {
+            if (item.type === 'space') {
+                return this.folderUrl(null, item);
+            }
+            // A folder hit of the global page lies in a space of its own (its path says which).
             // A file links wherever the server said (a viewer, an editor — see FileSerializer::link()).
-            return item.type === 'folder' ? this.folderUrl(item.id) : (item.link?.url || item.url || '#');
+            return item.type === 'folder'
+                ? this.folderUrl(item.id, itemLocation(item)?.space ?? undefined)
+                : (item.link?.url || item.url || '#');
         },
         linkAttributes(item) {
-            return item.type === 'folder' ? {} : (item.link?.attributes || {});
+            return item.type === 'folder' || item.type === 'space' ? {} : (item.link?.attributes || {});
         },
         setControls(item, el) {
             if (el) {
@@ -145,19 +160,11 @@ export default {
             }
         },
         onOpen(item, event) {
-            if (item.type !== 'folder' || !isPlainClick(event)) {
+            if ((item.type !== 'folder' && item.type !== 'space') || !isPlainClick(event)) {
                 return;
             }
             event.preventDefault();
             this.$emit('open', item);
-        },
-        /** The folder a hit of a result list lies in, opened like a folder tile. */
-        onOpenLocation(item, event) {
-            if (!isPlainClick(event)) {
-                return;
-            }
-            event.preventDefault();
-            this.$emit('open', itemLocation(item).folder);
         },
         onContextMenu(item, event) {
             // The open menu lives inside the tile: a right-click on it is not a new request.

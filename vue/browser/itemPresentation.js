@@ -78,11 +78,20 @@ export const formatTimestamp = (stamp) => {
     return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
 };
 
+/** How much a space holds at its top level (a tile of the global files page), as a folder reads. */
+const spaceCount = (item) => i18n.t('CfilesModule.base', '{count, plural, =0{empty} one{# item} other{# items}}', {
+    count: item.itemCount || 0,
+});
+
 /**
  * The dot-separated line under an item's name: how much it holds or how big it is, when it
  * last changed, and its description where there is room for one.
  */
 export const itemMeta = (item, { description = true } = {}) => {
+    if (item.type === 'space') {
+        return spaceCount(item);
+    }
+
     const parts = [];
 
     if (item.type === 'folder') {
@@ -111,7 +120,7 @@ export const itemMeta = (item, { description = true } = {}) => {
  * from a create/update response has it `null`, and there is nothing honest to show for "how
  * many items" then, so this reads empty rather than claiming zero.
  */
-export const tileMeta = (item) => (item.type === 'folder'
+export const tileMeta = (item) => (item.type === 'space' ? spaceCount(item) : item.type === 'folder'
     ? (typeof item.itemCount === 'number'
         ? i18n.t('CfilesModule.base', '{count, plural, =0{empty} one{# item} other{# items}}', {
             count: item.itemCount,
@@ -121,9 +130,19 @@ export const tileMeta = (item) => (item.type === 'folder'
 
 /**
  * Where a hit of a result list lies, relative to the open folder (the payload's `path`,
- * see `FolderListingService`): the folder it is in, as the item the views emit `open` with,
- * and the line naming it ("in Brand › Logos"). `null` for an item directly in the open folder
- * — and for every item of a level, which are all there.
+ * see `FolderListingService`), and the line naming it ("in Brand › Logos"). `null` for an item
+ * directly in the open folder — and for every item of a level, which are all there.
+ *
+ * A path over several spaces (the global files page, `FolderListBuilder::$prefixContainer`)
+ * starts with the item's space (`{type: 'space', id, contentContainerId, guid, title}`); the
+ * rest are its folders. So the location has two parts, each opened on its own:
+ *
+ * - `space`: that path entry, `null` for a path of folders only;
+ * - `folder`: the folder the item is in, as the item the views emit `open` with — with the
+ *   `space` it lies in, when the path names one —, `null` for an item at a space's top level;
+ * - `label`: the whole line, `folderLabel` the folders' part of it;
+ * - `before`/`after`: what the translated sentence puts around the path, for a line that
+ *   links its parts separately.
  */
 export const itemLocation = (item) => {
     const path = item.path || [];
@@ -132,13 +151,35 @@ export const itemLocation = (item) => {
         return null;
     }
 
-    const parent = path[path.length - 1];
+    const space = path[0].type === 'space' ? path[0] : null;
+    const folders = space ? path.slice(1) : path;
+    const parent = folders.length ? folders[folders.length - 1] : null;
+    const folderLabel = folders.map((level) => level.title).join(' › ');
+    const whole = [space?.title, folderLabel].filter(Boolean).join(' › ');
+    // A marker no title contains, where the translation puts the path.
+    const [before, after = ''] = i18n.t('CfilesModule.base', 'in {path}', { path: '\u0000' }).split('\u0000');
 
     return {
-        folder: { type: 'folder', id: parent.id, title: parent.title },
-        label: i18n.t('CfilesModule.base', 'in {path}', { path: path.map((level) => level.title).join(' › ') }),
+        space,
+        folder: parent ? { type: 'folder', id: parent.id, title: parent.title, ...(space ? { space } : {}) } : null,
+        label: before + whole + after,
+        folderLabel,
+        before,
+        after,
     };
 };
+
+/**
+ * What `SpaceImage` takes of a space tile — the tile carries more (`browseUrl`, `itemCount`),
+ * which would otherwise fall through to the DOM as attributes.
+ */
+export const spaceImage = (space) => ({
+    id: space.id,
+    name: space.name,
+    color: space.color ?? null,
+    imageUrl: space.imageUrl ?? null,
+    contentContainerId: space.contentContainerId ?? null,
+});
 
 /** A click that means "open it here", not "somewhere else" (a new tab, a download …). */
 export const isPlainClick = (event) => !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0);

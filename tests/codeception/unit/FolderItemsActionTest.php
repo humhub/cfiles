@@ -11,6 +11,7 @@ namespace humhub\modules\cfiles\tests\codeception\unit;
 use humhub\modules\cfiles\controllers\api\FolderController;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\space\models\Space;
+use humhub\modules\topic\models\Topic;
 use tests\codeception\_support\HumHubDbTestCase;
 use Yii;
 
@@ -93,6 +94,27 @@ class FolderItemsActionTest extends HumHubDbTestCase
     {
         $this->assertTrue($this->items(['q' => 'x'])['resultsMode']);
         $this->assertFalse($this->items([])['resultsMode']);
+    }
+
+    /**
+     * The Topic filter of a space takes its topics and the global ones, not those of a space
+     * the caller may see as well.
+     */
+    public function testATopicOfAnotherSpaceIsA422AndAGlobalOneIsTaken()
+    {
+        $foreign = new Topic(['name' => 'Elsewhere', 'contentcontainer_id' => Space::findOne(2)->contentcontainer_id]);
+        $this->assertTrue($foreign->save());
+        $global = new Topic(['name' => 'Everywhere']);
+        $this->assertTrue($global->save());
+
+        $answer = $this->items(['topicId' => (string)$foreign->id]);
+        $this->assertSame(422, Yii::$app->response->statusCode);
+        $this->assertArrayHasKey('topicId', $answer['errors']);
+
+        Yii::$app->response->statusCode = 200;
+        $answer = $this->items(['topicId' => (string)$global->id]);
+        $this->assertSame(200, Yii::$app->response->statusCode);
+        $this->assertTrue($answer['resultsMode']);
     }
 
     private function items(array $query): array

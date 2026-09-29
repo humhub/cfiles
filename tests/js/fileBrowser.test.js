@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 import CfilesFileBrowser from '../../vue/CfilesFileBrowser.vue';
+import CfilesItemForm from '../../vue/CfilesItemForm.vue';
 import FilterBar from '@core/vue/FilterBar.vue';
 import { browserProps, fileRow, folderRow, insideFolder, results, topLevel } from './support/fixtures.mjs';
 
@@ -419,6 +420,14 @@ describe('CfilesFileBrowser', () => {
 
         it('opens nothing without a link', () => {
             expect(browser(topLevel()).vm.showEdit).toBe(false);
+        });
+
+        // Its Topics field offers the topics of the item's container.
+        it('hands the dialog the container of the item', async () => {
+            const wrapper = browser(topLevel(), { editKey: 'file:21' });
+            await flushPromises();
+
+            expect(wrapper.findComponent(CfilesItemForm).props('contentContainerId')).toBe(5);
         });
     });
 
@@ -1196,7 +1205,7 @@ describe('CfilesFileBrowser', () => {
             window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=0&q=logo&type=image&sort=newest');
 
             const wrapper = browser(results(topLevel([inBrand()]), { sort: 'newest' }), {
-                initialFilters: { q: 'logo', userId: '', type: 'image', modified: '' },
+                initialFilters: { q: 'logo', userId: '', topicId: '', type: 'image', modified: '' },
             });
             await flushPromises();
 
@@ -1219,7 +1228,7 @@ describe('CfilesFileBrowser', () => {
         it('places each hit and opens its folder, filters and all', async () => {
             window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=0&q=logo');
             const wrapper = browser(results(topLevel([inBrand(), fileRow()])), {
-                initialFilters: { q: 'logo', userId: '', type: '', modified: '' },
+                initialFilters: { q: 'logo', userId: '', topicId: '', type: '', modified: '' },
             });
             const locations = wrapper.findAll('.cfiles-location');
 
@@ -1242,7 +1251,7 @@ describe('CfilesFileBrowser', () => {
         it('keeps the filters when a folder hit is opened', async () => {
             window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=0&type=image');
             const wrapper = browser(results(topLevel([folderRow()])), {
-                initialFilters: { q: '', userId: '', type: 'image', modified: '' },
+                initialFilters: { q: '', userId: '', topicId: '', type: 'image', modified: '' },
             });
 
             await wrapper.find('.cfiles-row h4 a').trigger('click');
@@ -1256,7 +1265,7 @@ describe('CfilesFileBrowser', () => {
         it('searches the whole container from the root of the path', async () => {
             window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=9&q=logo');
             const wrapper = browser(results(insideFolder([])), {
-                initialFilters: { q: 'logo', userId: '', type: '', modified: '' },
+                initialFilters: { q: 'logo', userId: '', topicId: '', type: '', modified: '' },
             });
 
             await wrapper.find('a.c-path-bar__root').trigger('click');
@@ -1269,7 +1278,7 @@ describe('CfilesFileBrowser', () => {
         it('offers to reset the filters when nothing matches', async () => {
             window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=9&q=nothing&sort=newest');
             const wrapper = browser(results(insideFolder([]), { sort: 'newest' }), {
-                initialFilters: { q: 'nothing', userId: '', type: '', modified: '' },
+                initialFilters: { q: 'nothing', userId: '', topicId: '', type: '', modified: '' },
             });
 
             expect(wrapper.find('.cfiles-empty').text()).toContain('No results in this folder and its subfolders.');
@@ -1287,7 +1296,7 @@ describe('CfilesFileBrowser', () => {
         });
 
         it('says there are no results in all files at the top level', () => {
-            const wrapper = browser(results(topLevel([])), { initialFilters: { q: 'nothing', userId: '', type: '', modified: '' } });
+            const wrapper = browser(results(topLevel([])), { initialFilters: { q: 'nothing', userId: '', topicId: '', type: '', modified: '' } });
 
             expect(wrapper.find('.cfiles-empty').text()).toContain('No results in all files.');
             expect(wrapper.findAll('button').some((b) => b.text() === 'Reset filters')).toBe(true);
@@ -1383,7 +1392,7 @@ describe('CfilesFileBrowser', () => {
 
             it('is cleared by the reset of an empty result list', async () => {
                 window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=0&userId=3');
-                const wrapper = browser(results(topLevel([])), { initialFilters: { q: '', userId: '3', type: '', modified: '' } });
+                const wrapper = browser(results(topLevel([])), { initialFilters: { q: '', userId: '3', topicId: '', type: '', modified: '' } });
                 await flushPromises();
                 expect(itemCalls()).toHaveLength(0);
 
@@ -1407,13 +1416,55 @@ describe('CfilesFileBrowser', () => {
             });
         });
 
+        // The container's topics and the global ones (FolderList::topicFilter()).
+        describe('topic', () => {
+            const budget = { id: 4, name: 'Budget', color: '#ff0000', container: { id: 5, guid: 's-x', name: 'X' } };
+            const brand = { id: 6, name: 'Brand', color: null, container: null };
+            const itemCalls = () => globalThis.humhubStubs.client.get.mock.calls.map(([url]) => url).filter((url) => url.includes('/items'));
+            const control = (wrapper) => wrapper.findComponent({ name: 'TopicFilterControl' });
+
+            beforeEach(() => {
+                // The items endpoint, and the topic picker the control searches and resolves with.
+                globalThis.humhubStubs.client.get = vi.fn((url) => Promise.resolve(url.includes('/items')
+                    ? topLevel()
+                    : { results: [budget, brand], total: 2 }));
+            });
+
+            it('renders the topic control, searching the topics of the container', () => {
+                const wrapper = browser(topLevel());
+
+                expect(control(wrapper).exists()).toBe(true);
+                expect(control(wrapper).props('filter').props.containerId).toBe(5);
+            });
+
+            it('reloads with the topics chosen and mirrors them into the page URL', async () => {
+                const wrapper = browser(topLevel());
+
+                control(wrapper).vm.$emit('update:modelValue', ['4', '6']);
+                await flushPromises();
+
+                expect(itemCalls()).toHaveLength(1);
+                expect(new URL(itemCalls()[0], 'http://localhost').searchParams.get('topicId')).toBe('4,6');
+                expect(new URLSearchParams(window.location.search).get('topicId')).toBe('4,6');
+            });
+
+            it('takes the topics the page was built with, as a list', async () => {
+                window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=0&topicId=4');
+                const wrapper = browser(results(topLevel([])), { initialFilters: { q: '', userId: '', topicId: '4', type: '', modified: '' } });
+                await flushPromises();
+
+                expect(itemCalls()).toHaveLength(0);
+                expect(wrapper.vm.filterValues.topicId).toEqual(['4']);
+            });
+        });
+
         // The page URL is put in line with what the first page was built with, before the bar
         // reads it: nothing to apply, nothing refused, no stored sort forgotten.
         describe('the page URL on mount', () => {
             it('takes the value the list used for a padded search', async () => {
                 window.history.replaceState({}, '', '/s/x/cfiles/browse/index?fid=0&q=%20logo%20');
 
-                browser(results(topLevel([inBrand()])), { initialFilters: { q: 'logo', userId: '', type: '', modified: '' } });
+                browser(results(topLevel([inBrand()])), { initialFilters: { q: 'logo', userId: '', topicId: '', type: '', modified: '' } });
                 await flushPromises();
 
                 expect(globalThis.humhubStubs.client.get).not.toHaveBeenCalled();

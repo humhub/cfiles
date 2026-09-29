@@ -20,6 +20,7 @@ use humhub\modules\cfiles\services\FolderListingService;
 use humhub\modules\content\models\Content;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\space\models\Space;
+use humhub\modules\topic\models\Topic;
 use tests\codeception\_support\HumHubDbTestCase;
 use Yii;
 
@@ -228,7 +229,58 @@ class FolderListTest extends HumHubDbTestCase
 
     public function testDefinitionsComeInTheOrderOfTheBar()
     {
-        $this->assertSame(['q', 'userId', 'type', 'modified', 'sort'], array_keys($this->definitions()));
+        $this->assertSame(['q', 'userId', 'topicId', 'type', 'modified', 'sort'], array_keys($this->definitions()));
+    }
+
+    public function testTheTopicOffersTheTopicsOfTheContainer()
+    {
+        $topic = $this->definitions()['topicId'];
+
+        $this->assertSame('topic', $topic['type']);
+        $this->assertSame('Topic', $topic['label']);
+        $this->assertTrue($topic['multiple']);
+        $this->assertSame((int)$this->space->contentcontainer_id, $topic['props']['containerId']);
+    }
+
+    public function testTopicNarrowsFoldersAndFilesInTheWholeContainer()
+    {
+        $topic = $this->addTopic('Budget', $this->space);
+        $parent = $this->addFolder('Parent');
+        $tagged = $this->addFolder('Tagged', $parent);
+        $this->addFolder('Untagged');
+        $file = $this->addFile('tagged.txt', $parent);
+        $this->addFile('untagged.txt');
+        Topic::attach($tagged->content, [$topic]);
+        Topic::attach($file->content, [$topic]);
+
+        $builder = $this->build(['topicId' => (string)$topic->id]);
+
+        $this->assertTrue($builder->resultsMode);
+        $this->assertSame(['Tagged'], $this->folderTitles($builder));
+        $this->assertSame(['tagged.txt'], $this->fileNames($builder));
+    }
+
+    public function testATopicOfAnotherSpaceIsRefused()
+    {
+        $foreign = $this->addTopic('Elsewhere', Space::findOne(2));
+
+        try {
+            $this->build(['topicId' => (string)$foreign->id]);
+            $this->fail('A topic of another space must be refused.');
+        } catch (ListValidationException $e) {
+            $this->assertArrayHasKey('topicId', $e->errors);
+        }
+    }
+
+    public function testAGlobalTopicIsAccepted()
+    {
+        $global = $this->addTopic('Everywhere', null);
+        $file = $this->addFile('global.txt');
+        Topic::attach($file->content, [$global]);
+
+        $builder = $this->build(['topicId' => [(string)$global->id]]);
+
+        $this->assertSame(['global.txt'], $this->fileNames($builder));
     }
 
     public function testDefinitionsOfTheFilters()
@@ -474,15 +526,158 @@ class FolderListTest extends HumHubDbTestCase
 
         $inBrand = $this->build(['parent' => (string)$brand->id, 'q' => 'x']);
         $this->assertSame([], $inBrand->pathOf($brand->id));
-        $this->assertSame([['id' => $logos->id, 'title' => 'Logos']], $inBrand->pathOf($logos->id));
+        $this->assertSame([['type' => 'folder', 'id' => $logos->id, 'title' => 'Logos']], $inBrand->pathOf($logos->id));
         $this->assertSame(
-            [['id' => $logos->id, 'title' => 'Logos'], ['id' => $old->id, 'title' => 'Old']],
+            [['type' => 'folder', 'id' => $logos->id, 'title' => 'Logos'], ['type' => 'folder', 'id' => $old->id, 'title' => 'Old']],
             $inBrand->pathOf($old->id),
         );
 
         $top = $this->build(['q' => 'x']);
         $this->assertSame([], $top->pathOf(null));
-        $this->assertSame([['id' => $brand->id, 'title' => 'Brand']], $top->pathOf($brand->id));
+        $this->assertSame([['type' => 'folder', 'id' => $brand->id, 'title' => 'Brand']], $top->pathOf($brand->id));
+    }
+
+    public function testTheBuilderOfOneContainerNamesIt()
+    {
+        $this->assertSame($this->space, $this->build([])->container());
+        $this->assertSame([$this->space], $this->build([])->containers);
+    }
+
+    public function testABuilderOfSeveralContainersHasNoSingleContainer()
+    {
+        $builder = $this->builderOver([$this->space, Space::findOne(3)]);
+
+        $this->expectException(\LogicException::class);
+        $builder->container();
+    }
+
+    public function testABuilderNeedsAContainer()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->builderOver([]);
+    }
+
+    public function testASubtreeOverSeveralContainersHoldsTheItemsOfEach()
+    {
+        $other = Space::findOne(3);
+        $outside = Space::findOne(4);
+        $this->addFolder('Brand');
+        $this->addFile('top-1.txt');
+        $design = $this->addFolder('Design', null, $other);
+        $this->addFile('deep-3.txt', $design, space: $other);
+        $this->addFolder('Elsewhere', null, $outside);
+        $this->addFile('elsewhere.txt', null, space: $outside);
+
+        $builder = $this->builderOver([$this->space, $other]);
+        $builder->scopeToSubtree();
+        $builder->folderQuery()->orderBy(['cfiles_folder.title' => SORT_ASC]);
+        $builder->fileQuery()->orderBy(['file.file_name' => SORT_ASC]);
+
+        $this->assertTrue($builder->resultsMode);
+        $this->assertSame(['Brand', 'Design'], $this->folderTitles($builder));
+        $this->assertSame(['deep-3.txt', 'top-1.txt'], $this->fileNames($builder));
+    }
+
+    public function testAnUnreadableFolderCutsOffItsSubtreeInItsOwnContainerOnly()
+    {
+        $other = Space::findOne(3);
+        $hidden = $this->addFolder('Hidden');
+        $this->addFile('logo-hidden.png', $hidden);
+        $shown = $this->addFolder('Hidden', null, $other);
+        $this->addFile('logo-shown.png', $shown, space: $other);
+        Content::updateAll(['state' => Content::STATE_DELETED], ['id' => $hidden->content->id]);
+
+        $builder = $this->builderOver([$this->space, $other]);
+        $builder->scopeToSubtree();
+
+        $this->assertSame(['logo-shown.png'], $this->fileNames($builder));
+        $this->assertSame([$shown->id], array_column($builder->folderQuery()->all(), 'id'));
+    }
+
+    /**
+     * User1 is a member of space 3, not of space 1: a private folder of space 1 is cut off with
+     * its subtree, a private folder of their own space 3 is not.
+     */
+    public function testAPrivateFolderOfAForeignSpaceIsCutOffForAMemberOfTheOther()
+    {
+        $other = Space::findOne(3);
+        $foreign = $this->addFolder('Private', null);
+        $foreignFile = $this->addFile('logo-foreign.png', $foreign);
+        $own = $this->addFolder('Private', null, $other);
+        $ownFile = $this->addFile('logo-own.png', $own, space: $other);
+        foreach ([$foreign, $own] as $folder) {
+            Content::updateAll(['visibility' => Content::VISIBILITY_PRIVATE], ['id' => $folder->content->id]);
+        }
+        // The file inside would be readable on its own: it is cut off by its folder.
+        foreach ([$foreignFile, $ownFile] as $file) {
+            Content::updateAll(['visibility' => Content::VISIBILITY_PUBLIC], ['id' => $file->content->id]);
+        }
+
+        $this->becomeUser('User1');
+        $builder = $this->builderOver([$this->space, $other]);
+        $builder->scopeToSubtree();
+
+        $this->assertSame([$own->id], array_column($builder->folderQuery()->all(), 'id'));
+        $this->assertSame(['logo-own.png'], $this->fileNames($builder));
+    }
+
+    public function testWithThePrefixAnUnknownContainerIsRefused()
+    {
+        $builder = $this->builderOver([$this->space, Space::findOne(3)]);
+        $builder->prefixContainer = true;
+        $builder->scopeToSubtree();
+
+        $this->expectException(\LogicException::class);
+        $builder->pathOf(null, Space::findOne(4)->contentcontainer_id);
+    }
+
+    public function testWithoutThePrefixTheContainerIdIsIgnored()
+    {
+        $builder = $this->builderOver([$this->space, Space::findOne(3)]);
+        $builder->scopeToSubtree();
+
+        $this->assertSame([], $builder->pathOf(null, 99999));
+        $this->assertSame([], $builder->pathOf(null));
+    }
+
+    public function testWithThePrefixAPathStartsWithTheSpaceOfTheItem()
+    {
+        $other = Space::findOne(3);
+        $brand = $this->addFolder('Brand', null, $other);
+        $logos = $this->addFolder('Logos', $brand, $other);
+        $top = $this->addFolder('Top');
+
+        $builder = $this->builderOver([$this->space, $other]);
+        $builder->prefixContainer = true;
+        $builder->scopeToSubtree();
+
+        $space3 = ['type' => 'space', 'id' => $other->id, 'contentContainerId' => $other->contentcontainer_id, 'guid' => $other->guid, 'title' => $other->name];
+        $space1 = ['type' => 'space', 'id' => $this->space->id, 'contentContainerId' => $this->space->contentcontainer_id, 'guid' => $this->space->guid, 'title' => $this->space->name];
+        $this->assertSame([$space3], $builder->pathOf(null, $other->contentcontainer_id));
+        $this->assertSame([$space1], $builder->pathOf(null, $this->space->contentcontainer_id));
+        $this->assertSame(
+            [$space3, ['type' => 'folder', 'id' => $brand->id, 'title' => 'Brand'], ['type' => 'folder', 'id' => $logos->id, 'title' => 'Logos']],
+            $builder->pathOf($logos->id, $other->contentcontainer_id),
+        );
+        $this->assertSame(
+            [$space1, ['type' => 'folder', 'id' => $top->id, 'title' => 'Top']],
+            $builder->pathOf($top->id, $this->space->contentcontainer_id),
+        );
+    }
+
+    public function testWithoutThePrefixAPathHasNoSpace()
+    {
+        $other = Space::findOne(3);
+        $brand = $this->addFolder('Brand', null, $other);
+
+        $builder = $this->builderOver([$this->space, $other]);
+        $builder->scopeToSubtree();
+
+        $this->assertSame([], $builder->pathOf(null, $other->contentcontainer_id));
+        $this->assertSame(
+            [['type' => 'folder', 'id' => $brand->id, 'title' => 'Brand']],
+            $builder->pathOf($brand->id, $other->contentcontainer_id),
+        );
     }
 
     /**
@@ -491,9 +686,10 @@ class FolderListTest extends HumHubDbTestCase
      */
     public function testEachFilterOfTheBarSwitchesToResultsMode()
     {
-        $this->assertSame(['q', 'userId', 'type', 'modified'], FolderList::RESULT_FILTERS);
+        $this->assertSame(['q', 'userId', 'topicId', 'type', 'modified'], FolderList::RESULT_FILTERS);
 
-        foreach (['q' => 'x', 'userId' => '1', 'type' => 'image', 'modified' => '7d'] as $key => $value) {
+        $topic = $this->addTopic('Budget', $this->space);
+        foreach (['q' => 'x', 'userId' => '1', 'type' => 'image', 'modified' => '7d', 'topicId' => (string)$topic->id] as $key => $value) {
             $this->assertTrue($this->build([$key => $value])->resultsMode, $key);
         }
         $this->assertFalse($this->build(['sort' => 'name'])->resultsMode);
@@ -514,6 +710,11 @@ class FolderListTest extends HumHubDbTestCase
         return (new FolderList(['storedSort' => $storedSort]))->build($params, ListContext::forCurrentUser(null, $this->space));
     }
 
+    private function builderOver(array $containers): FolderListBuilder
+    {
+        return new FolderListBuilder($containers, ListContext::forCurrentUser());
+    }
+
     private function folderTitles(FolderListBuilder $builder): array
     {
         return array_column($builder->folderQuery()->all(), 'title');
@@ -524,21 +725,29 @@ class FolderListTest extends HumHubDbTestCase
         return array_map(static fn($file) => $file->baseFile->file_name, $builder->fileQuery()->all());
     }
 
-    private function addFolder(string $title, ?Folder $parent = null): Folder
+    private function addTopic(string $name, ?Space $space): Topic
     {
-        $folder = (new FolderContentService($this->space, $parent))->newFolder($title, '');
+        $topic = new Topic(['name' => $name, 'contentcontainer_id' => $space?->contentcontainer_id]);
+        $this->assertTrue($topic->save(), implode(' ', $topic->getFirstErrors()));
+
+        return $topic;
+    }
+
+    private function addFolder(string $title, ?Folder $parent = null, ?Space $space = null): Folder
+    {
+        $folder = (new FolderContentService($space ?? $this->space, $parent))->newFolder($title, '');
 
         $this->assertTrue($folder->save(), implode(' ', $folder->getFirstErrors()));
 
         return $folder;
     }
 
-    private function addFile(string $name, ?Folder $parent = null, string $content = 'test', string $description = ''): File
+    private function addFile(string $name, ?Folder $parent = null, string $content = 'test', string $description = '', ?Space $space = null): File
     {
         $path = Yii::getAlias('@runtime') . '/' . $name;
         file_put_contents($path, $content);
 
-        $service = new FolderContentService($this->space, $parent);
+        $service = new FolderContentService($space ?? $this->space, $parent);
         $file = $service->addFileFromPath($name, $path);
 
         $this->assertFalse($file->hasErrors(), implode(' ', $file->getFirstErrors()));

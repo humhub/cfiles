@@ -14,8 +14,10 @@ use humhub\modules\cfiles\components\FolderListBuilder;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use humhub\modules\cfiles\serializers\FolderSerializer;
+use humhub\modules\cfiles\serializers\ItemTopicSerializer;
 use humhub\modules\like\serializers\LikeSerializer;
 use Yii;
 use yii\data\Pagination;
@@ -103,6 +105,7 @@ class FolderListingService
             // The hits in the open folder and all its subfolders, not the level: every row
             // then says where it lies (`path`, relative to the open folder).
             'resultsMode' => $this->list->resultsMode,
+            'canWrite' => $this->canWrite(),
             // The one per-caller section of this payload. Kept out of the rows themselves,
             // which stay caller-neutral (see FileSerializer/FolderSerializer): who liked what
             // is about the reader, not about the file.
@@ -137,20 +140,35 @@ class FolderListingService
             ? $fileQuery->offset(max(0, $offset - $folderCount))->limit($remaining)->all()
             : [];
 
+        $this->attachContainers(array_merge($folders, $files));
         $itemCounts = $this->countChildren($folders);
         $this->collectLikeStates(array_merge($folders, $files));
+        // One query for the topics of the page, not one per row.
+        $topics = ItemTopicSerializer::forContents(array_map(
+            static fn(FileSystemItem $item) => (int)$item->content->id,
+            array_merge($folders, $files),
+        ));
 
         // Where each row lies, relative to the open folder: part of this listing, not of the
         // item, so it is added here rather than by the serializers.
-        $placed = fn(array $row) => $row + ['path' => $this->list->pathOf($row['parentFolderId'])];
+        $placed = fn(FileSystemItem $item, array $row) => $row + [
+            'path' => $this->list->pathOf($row['parentFolderId'], (int)$item->content->contentcontainer_id),
+        ];
 
-        return array_map($placed, array_merge(
+        return array_merge(
             array_map(
-                static fn(Folder $subFolder) => FolderSerializer::folder($subFolder, $itemCounts[$subFolder->id] ?? 0),
+                static fn(Folder $subFolder) => $placed($subFolder, FolderSerializer::folder(
+                    $subFolder,
+                    $itemCounts[$subFolder->id] ?? 0,
+                    $topics[(int)$subFolder->content->id] ?? [],
+                )),
                 $folders,
             ),
-            array_map(FileSerializer::file(...), $files),
-        ));
+            array_map(
+                static fn(File $file) => $placed($file, FileSerializer::file($file, $topics[(int)$file->content->id] ?? [])),
+                $files,
+            ),
+        );
     }
 
     /**
@@ -177,6 +195,42 @@ class FolderListingService
         }
 
         $this->likeStates = LikeSerializer::statesForRecords($records);
+    }
+
+    /**
+     * Hands every row the listed record of its container — the builder's containers are loaded
+     * already —, so a row naming its container (a file's download URL) looks up nothing: over
+     * the many spaces of the global files page, one lookup per row otherwise.
+     *
+     * @param FileSystemItem[] $items
+     */
+    private function attachContainers(array $items): void
+    {
+        $containers = [];
+        foreach ($this->list->containers as $container) {
+            $containers[(int)$container->contentcontainer_id] = $container;
+        }
+
+        foreach ($items as $item) {
+            $container = $containers[(int)$item->content->contentcontainer_id] ?? null;
+            if ($container !== null) {
+                $item->content->setContainer($container);
+            }
+        }
+    }
+
+    /**
+     * Whether the user may add to the level: write access in its container, as the file
+     * browser page checks it. A list over several containers (the global page's results) has
+     * no one container to write in. The browser takes it from every level it loads — on the
+     * global page and in a space's own browser, whose page hands it only the first value
+     * (`canWrite`, before any payload said). Sent with every page, not only the first: it is one
+     * cached permission check, and every payload has the same keys.
+     */
+    private function canWrite(): bool
+    {
+        return count($this->list->containers) === 1
+            && $this->list->container()->getPermissionManager($this->list->context->user)->can(WriteAccess::class);
     }
 
     private function likesEnabled(): bool

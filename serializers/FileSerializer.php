@@ -56,9 +56,11 @@ class FileSerializer
      *     createdAt: string|null,
      *     updatedAt: string|null,
      *     creator: array|null,
+     *     topics: array[],
      * }
+     * @param array[]|null $topics the file's ({@see ItemTopicSerializer}), null = looked up
      */
-    public static function file(File $file): array
+    public static function file(File $file, ?array $topics = null): array
     {
         $content = $file->content;
         $baseFile = $file->baseFile;
@@ -102,6 +104,8 @@ class FileSerializer
             'createdAt' => Format::dateTime($content->created_at),
             'updatedAt' => Format::dateTime($content->updated_at ?: $content->created_at),
             'creator' => UserSerializer::short($content->createdBy),
+            // See ItemTopicSerializer; a listing hands in those of its whole page.
+            'topics' => $topics ?? ItemTopicSerializer::forContent($content),
         ];
     }
 

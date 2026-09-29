@@ -38,10 +38,12 @@ class FolderSerializer
      *     createdAt: string|null,
      *     updatedAt: string|null,
      *     creator: array|null,
+     *     topics: array[],
      *     url: string,
      * }
+     * @param array[]|null $topics the folder's ({@see ItemTopicSerializer}), null = looked up
      */
-    public static function folder(Folder $folder, ?int $itemCount = null): array
+    public static function folder(Folder $folder, ?int $itemCount = null, ?array $topics = null): array
     {
         $content = $folder->content;
 
@@ -63,6 +65,8 @@ class FolderSerializer
             'createdAt' => Format::dateTime($content->created_at),
             'updatedAt' => Format::dateTime($content->updated_at ?: $content->created_at),
             'creator' => UserSerializer::short($content->createdBy),
+            // See ItemTopicSerializer; a listing hands in those of its whole page.
+            'topics' => $topics ?? ItemTopicSerializer::forContent($content),
             'url' => $folder->getUrl(true),
         ];
     }

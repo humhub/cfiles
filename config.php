@@ -6,6 +6,7 @@ use humhub\modules\file\controllers\FileController;
 use humhub\modules\file\models\File;
 use humhub\modules\space\widgets\Menu;
 use humhub\modules\user\widgets\ProfileMenu;
+use humhub\widgets\TopMenu;
 
 return [
     'id' => 'cfiles',
@@ -14,12 +15,17 @@ return [
     'urlManagerRules' => [
         // Pretty, cache-busting download URLs — see components\UrlRule.
         ['class' => UrlRule::class],
+        // The global files page, across the spaces of the user (off unless the admin enables it).
+        ['pattern' => 'files', 'route' => 'cfiles/global/index'],
         // The module's only JSON surface (see docs/develop/concept-api.md in core). The Vue
-        // file browser is built entirely on these eight endpoints.
+        // file browser is built entirely on these endpoints.
         //
         // Reading and adding are addressed as a container plus an optional `parent`
         // folder: the top level has no folder record, so a folder id alone cannot name
         // every level of a tree.
+        // The global files page's listing, across the spaces of the user; inside a space it
+        // lists with the container's endpoint below.
+        ['pattern' => 'api/v2/cfiles/items', 'route' => 'cfiles/api/global/items', 'verb' => ['GET', 'HEAD']],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/items', 'route' => 'cfiles/api/folder/items', 'verb' => ['GET', 'HEAD']],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/folders', 'route' => 'cfiles/api/folder/create', 'verb' => 'POST'],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/files', 'route' => 'cfiles/api/folder/upload', 'verb' => 'POST'],
@@ -34,6 +40,7 @@ return [
     'events' => [
         [Menu::class, Menu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onSpaceMenuInit']],
         [ProfileMenu::class, ProfileMenu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onProfileMenuInit']],
+        [TopMenu::class, TopMenu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onTopMenuInit']],
         [IntegrityController::class, IntegrityController::EVENT_ON_RUN, ['humhub\modules\cfiles\Events', 'onIntegrityCheck']],
         [FileController::class, FileController::EVENT_AFTER_ACTION, ['humhub\modules\cfiles\Events', 'onAfterFileAction']],
         [File::class, File::EVENT_AFTER_NEW_STORED_FILE, ['humhub\modules\cfiles\Events', 'onAfterNewStoredFile']],

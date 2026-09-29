@@ -11,6 +11,7 @@ namespace humhub\modules\cfiles\tests\codeception\unit;
 use humhub\modules\cfiles\controllers\BrowseController;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\space\models\Space;
+use humhub\modules\topic\models\Topic;
 use tests\codeception\_support\HumHubDbTestCase;
 use Yii;
 use yii\web\HttpException;
@@ -60,7 +61,7 @@ class BrowseControllerTest extends HumHubDbTestCase
         $this->assertTrue($props['listing']['resultsMode']);
         $this->assertSame('nameDesc', $props['listing']['sort']);
         $this->assertSame(['logo-b.png', 'logo-a.png'], array_column($props['listing']['results'], 'title'));
-        $this->assertSame(['q' => 'logo', 'userId' => '', 'type' => 'image', 'modified' => ''], $props['initialFilters']);
+        $this->assertSame(['q' => 'logo', 'userId' => '', 'topicId' => '', 'type' => 'image', 'modified' => ''], $props['initialFilters']);
     }
 
     public function testAValueTheListRefusesIsDropped()
@@ -72,7 +73,7 @@ class BrowseControllerTest extends HumHubDbTestCase
 
         $this->assertSame(['logo.png'], array_column($props['listing']['results'], 'title'));
         $this->assertSame('default', $props['listing']['sort']);
-        $this->assertSame(['q' => 'logo', 'userId' => '', 'type' => '', 'modified' => ''], $props['initialFilters']);
+        $this->assertSame(['q' => 'logo', 'userId' => '', 'topicId' => '', 'type' => '', 'modified' => ''], $props['initialFilters']);
     }
 
     public function testWithoutFiltersThePageIsTheLevel()
@@ -80,7 +81,7 @@ class BrowseControllerTest extends HumHubDbTestCase
         $props = $this->props([]);
 
         $this->assertFalse($props['listing']['resultsMode']);
-        $this->assertSame(['q' => '', 'userId' => '', 'type' => '', 'modified' => ''], $props['initialFilters']);
+        $this->assertSame(['q' => '', 'userId' => '', 'topicId' => '', 'type' => '', 'modified' => ''], $props['initialFilters']);
     }
 
     public function testTheAuthorOfTheUrlIsTaken()
@@ -105,6 +106,51 @@ class BrowseControllerTest extends HumHubDbTestCase
         $this->assertSame('', $props['initialFilters']['userId']);
         $this->assertSame('logo', $props['initialFilters']['q']);
         $this->assertNotContains('userId', array_column($props['filters'], 'key'));
+    }
+
+    /**
+     * Several topics come comma-separated (as the bar writes them) or repeated with brackets
+     * (`topicId[]=…`, an array, also with keys of its own): either way the page is built with
+     * them, and hands them on as the bar reads them.
+     */
+    public function testTheTopicsOfTheUrlAreTakenInEitherShape()
+    {
+        $budget = $this->addTopic('Budget');
+        $brand = $this->addTopic('Brand');
+        $expected = $budget->id . ',' . $brand->id;
+
+        foreach ([$expected, [(string)$budget->id, (string)$brand->id], [3 => (string)$budget->id, 7 => (string)$brand->id]] as $value) {
+            $props = $this->props(['topicId' => $value]);
+
+            $this->assertTrue($props['listing']['resultsMode']);
+            $this->assertSame($expected, $props['initialFilters']['topicId']);
+        }
+    }
+
+    public function testATopicOfAnotherSpaceIsDropped()
+    {
+        $foreign = new Topic(['name' => 'Elsewhere', 'contentcontainer_id' => Space::findOne(2)->contentcontainer_id]);
+        $this->assertTrue($foreign->save());
+
+        $props = $this->props(['topicId' => [(string)$foreign->id], 'q' => 'logo']);
+
+        $this->assertSame('', $props['initialFilters']['topicId']);
+        $this->assertSame('logo', $props['initialFilters']['q']);
+    }
+
+    public function testTheBarHasTheTopicsOfTheSpace()
+    {
+        $filters = array_column($this->props([])['filters'], null, 'key');
+
+        $this->assertSame((int)$this->space->contentcontainer_id, $filters['topicId']['props']['containerId']);
+    }
+
+    private function addTopic(string $name): Topic
+    {
+        $topic = new Topic(['name' => $name, 'contentcontainer_id' => $this->space->contentcontainer_id]);
+        $this->assertTrue($topic->save());
+
+        return $topic;
     }
 
     /**

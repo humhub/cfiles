@@ -33,6 +33,9 @@ Changelog
 - Removed: The `/api/v1` endpoints of this module, superseded by `/api/v2/cfiles`.
 - Removed: The Custom Pages template elements (File, Files, Folder, Folders).
 - Enh #288: Send a single notification to announce all files uploaded within a short period of time, rather than sending one notification per file (humhub/humhub#5334)
+- Enh: Topics in the file browser: a Topic filter (the topics of the space and the global ones), and a Topics field in the edit dialog of files and folders (`topics` of `PATCH /api/v2/cfiles/file|folder/<id>`). Rows name their topics (humhub/humhub#8530).
+- Fix: Saving a file (rename, visibility, move) no longer drops its topics.
+- Enh: Optional global files page (`/files`, admin setting "Add entry to main navigation", off by default): one folder per member space with the module enabled, opening into that space's browser (Files › Space › Folder). Filtered at the top level, it lists the hits across all those spaces with their location "in Space › Folder" (`GET /api/v2/cfiles/items`, filters Search, Space, Author, Topic, File Type, Modified; the core filter types `space` and `topic`, humhub/humhub#8530).
 
 0.18.3 - July 22, 2026
 ----------------------

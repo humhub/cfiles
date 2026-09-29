@@ -13,6 +13,8 @@ use humhub\assets\CoreVueAsset;
 use humhub\components\assets\AssetBundle;
 use humhub\modules\content\assets\ContentVueAsset;
 use humhub\modules\like\assets\LikeVueAsset;
+use humhub\modules\space\assets\SpaceVueAsset;
+use humhub\modules\topic\assets\TopicVueAsset;
 use humhub\modules\user\assets\UserVueAsset;
 
 /**
@@ -58,6 +60,11 @@ class CfilesVueAsset extends AssetBundle
         // <UserImage> — the creator avatar on every row —, and <UserFilterControl>, the filter
         // bar's `user` type (the Author filter).
         UserVueAsset::class,
+        // <SpaceImage> — a space tile's badge on the global files page —, and
+        // <SpaceFilterControl>, the filter bar's `space` type (its Space filter).
+        SpaceVueAsset::class,
+        // <TopicFilterControl>, the filter bar's `topic` type (the Topic filter).
+        TopicVueAsset::class,
         // <LikeButton> on every row — the platform's own island, rendered by this module
         // without a line of like logic of its own.
         LikeVueAsset::class,

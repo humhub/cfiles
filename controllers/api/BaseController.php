@@ -9,12 +9,16 @@
 namespace humhub\modules\cfiles\controllers\api;
 
 use humhub\components\api\BaseController as ApiBaseController;
+use humhub\components\listing\FilterValue;
+use humhub\components\listing\ListContext;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainer;
+use humhub\modules\topic\components\listing\TopicFilter;
+use Yii;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
@@ -161,5 +165,29 @@ abstract class BaseController extends ApiBaseController
         if (!$item->content->canEdit()) {
             throw new ForbiddenHttpException();
         }
+    }
+
+    /**
+     * The `topics` of an item write: the ids of topics the caller may give the item — those
+     * the topic list shows them for the item's container, which are that container's and the
+     * global ones, at most {@see TopicFilter::MAX_IDS} —, parsed by the core's topic filter, so
+     * a write accepts exactly what the Topic filter of the browser (and the picker) offers.
+     * Repeated (`topics[]=1&topics[]=2`, what a form-encoded list is) or comma-separated; `''`
+     * is none (an empty list is not sent form-encoded).
+     *
+     * @return FilterValue|null null when the request sends no `topics`; else invalid (its
+     *         errors under `topics`), absent (none: clears them) or the ids
+     */
+    protected function topicsParam(FileSystemItem $item): ?FilterValue
+    {
+        $raw = Yii::$app->request->getBodyParam('topics');
+        if ($raw === null) {
+            return null;
+        }
+
+        // The item's container: its topics and the global ones.
+        $context = ListContext::forCurrentUser(null, $item->content->container);
+
+        return (new TopicFilter('topics'))->parse(['topics' => $raw], $context);
     }
 }
