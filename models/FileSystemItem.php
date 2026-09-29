@@ -8,6 +8,7 @@ use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\content\models\Content;
+use humhub\modules\topic\models\Topic;
 use Yii;
 
 /**
@@ -44,6 +45,16 @@ abstract class FileSystemItem extends ContentActiveRecord
      * visibility.
      */
     public $visibility;
+
+    /**
+     * @var array|null the topics to give the item: topics or topic ids, `[]` for none, as
+     *      {@see Topic::attach()} takes them.
+     *
+     * Not a column: {@see self::afterSave()} sets the content's topics to them. A write leaves
+     * it null to keep the current ones — also the save of a parent folder every write inside
+     * it does. The API validates the ids first (`BaseController::topicsParam()`).
+     */
+    public $topics;
 
     /**
      * @inheritdoc
@@ -141,6 +152,12 @@ abstract class FileSystemItem extends ContentActiveRecord
         }
 
         parent::afterSave($insert, $changedAttributes);
+
+        // After the content record is saved: a new item's content exists only now.
+        if ($this->topics !== null) {
+            Topic::attach($this->content, $this->topics);
+            $this->topics = null;
+        }
     }
 
     /**

@@ -13,7 +13,6 @@ use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileUpload;
 use humhub\modules\post\models\Post;
-use humhub\modules\topic\models\Topic;
 use humhub\modules\user\models\User;
 use Yii;
 use yii\db\ActiveQuery;
@@ -41,11 +40,6 @@ class File extends FileSystemItem
      * @var File
      */
     protected $_setFileContent = null;
-
-    /**
-     * @var array Content topics/tags
-     */
-    public $topics = [];
 
     /**
      * @inheritdoc
@@ -103,7 +97,6 @@ class File extends FileSystemItem
             ['parent_folder_id', 'integer'],
             ['parent_folder_id', 'validateParentFolderId'],
             ['description', 'string', 'max' => 1000],
-            ['topics', 'safe'],
             ['hidden', 'boolean'],
         ];
 
@@ -172,15 +165,6 @@ class File extends FileSystemItem
         return $this->baseFile->validate();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function afterFind()
-    {
-        $this->topics = Topic::findByContent($this->content);
-        parent::afterFind();
-    }
-
     public function afterSave($insert, $changedAttributes)
     {
         // Temp Fix: https://github.com/yiisoft/yii2/issues/15875
@@ -200,9 +184,6 @@ class File extends FileSystemItem
         if ($isNewBaseFile || $fileTitleChanged || $newVersionUploaded) {
             $this->baseFile->save(false);
         }
-
-        // Save topics
-        Topic::attach($this->content, $this->topics);
 
         ItemVisibilityService::apply($this, $this->visibility === null ? null : (int)$this->visibility);
 
