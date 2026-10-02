@@ -81,12 +81,6 @@
     text-decoration: underline;
 }
 
-/* The kit's meta line is a flex item sized to its content (the tile centres its column), so a
-   long location would overflow the tile instead of being cut: held to the tile's width. */
-.cfiles-browser .c-tile-grid__meta {
-    max-width: 100%;
-}
-
 /* A tile's second meta line, cut like the first. The kit stretches the name link over the
    whole tile (its `::after`, z-index 1); this link sits above it, on the check's and the
    actions' layer, or it could not be clicked. */

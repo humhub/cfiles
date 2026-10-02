@@ -11,10 +11,8 @@ namespace humhub\modules\cfiles\components;
 use humhub\components\listing\FilterableList;
 use humhub\components\listing\ListBuilder;
 use humhub\components\listing\ListContext;
-use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\content\components\ContentContainerModuleManager;
-use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\space\components\listing\SpaceFilter;
 use humhub\modules\space\models\Membership;
 use humhub\modules\space\models\Space;
@@ -91,49 +89,26 @@ class GlobalFolderList extends FilterableList
      * - it is neither archived nor disabled;
      * - the module is enabled in it.
      *
-     * "Enabled" follows the space's module manager ({@see ContentContainerModuleManager::getEnabled()}),
-     * in SQL:
-     *
-     * - A state stored for the space (`contentcontainer_module`) wins. Enabled and always
-     *   enabled count.
-     * - Without a stored state, the module's default for spaces decides
-     *   (`moduleManager.defaultState.Space`, set by the admin). Enabled and always enabled by
-     *   default count.
-     * - A module not available for spaces (`STATE_NOT_AVAILABLE`) is enabled nowhere.
-     *
-     * {@see ContentContainerModuleManager::getContentContainerQueryByModule()} is not used: with
-     * a module enabled by default it takes every space, also those that switched it off.
+     * "Enabled" is {@see ContentContainerModuleManager::getContentContainerQueryByModule()}, as a
+     * subquery: a state stored for the space wins, else the module's default for spaces decides,
+     * and a module not available for spaces is enabled nowhere.
      */
     public static function scopeQuery(ListContext $context): ActiveQuery
     {
-        /** @var Module $module */
-        $module = Yii::$app->getModule('cfiles');
         $query = Space::find()->andWhere(['space.status' => Space::STATUS_ENABLED]);
 
-        $default = ContentContainerModuleManager::getDefaultState(Space::class, $module->id);
-        if ($context->user === null
-            || !$module->hasContentContainerType(Space::class)
-            || $default === ContentContainerModuleState::STATE_NOT_AVAILABLE) {
+        if ($context->user === null) {
             return $query->andWhere('0=1');
         }
 
-        $enabled = [ContentContainerModuleState::STATE_ENABLED, ContentContainerModuleState::STATE_FORCE_ENABLED];
-
-        $query
+        return $query
             ->innerJoin(
                 ['cfiles_membership' => Membership::tableName()],
                 'cfiles_membership.space_id = space.id AND cfiles_membership.user_id = :cfilesUserId AND cfiles_membership.status = :cfilesMember',
                 [':cfilesUserId' => $context->user->id, ':cfilesMember' => Membership::STATUS_MEMBER],
             )
-            ->leftJoin(
-                ['cfiles_state' => ContentContainerModuleState::tableName()],
-                'cfiles_state.contentcontainer_id = space.contentcontainer_id AND cfiles_state.module_id = :cfilesModuleId',
-                [':cfilesModuleId' => $module->id],
-            );
-
-        return in_array($default, $enabled, true)
-            ? $query->andWhere(['or', ['cfiles_state.module_state' => $enabled], ['cfiles_state.module_state' => null]])
-            : $query->andWhere(['cfiles_state.module_state' => $enabled]);
+            ->andWhere(['space.contentcontainer_id' => ContentContainerModuleManager::getContentContainerQueryByModule('cfiles')
+                ->select('contentcontainer.id')]);
     }
 
     /**
