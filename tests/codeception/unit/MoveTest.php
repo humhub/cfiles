@@ -48,12 +48,13 @@ class MoveTest extends HumHubDbTestCase
         $this->assertEquals(count($children), 1);
         $this->assertEquals($fileA->id, $children[0]->id);
         $this->assertEquals('fileA.txt', $children[0]->getTitle());
-        $this->assertEquals($root->id, $fileA->getParentFolder()->one()->id);
+        $this->assertNull($fileA->parent_folder_id, 'The top level has no folder record');
+        $this->assertNull($fileA->getParentFolder()->one());
 
         $folderA = (new FolderContentService($space1, $root))->newFolder('FolderA', 'FolderA description');
         $this->assertTrue($folderA->save());
 
-        $folders = $root->folders;
+        $folders = (new FolderContentService($space1, $root))->subFolders();
         $this->assertEquals(1, count($folders));
         $this->assertEquals('FolderA', $folders[0]->getTitle());
 

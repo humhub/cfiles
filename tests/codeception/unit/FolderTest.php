@@ -80,12 +80,26 @@ class FolderTest extends HumHubDbTestCase
         $this->assertArrayHasKey('parent_folder_id', $parent->getErrors());
     }
 
+    /**
+     * `delete()` of content is a soft delete: the records stay, marked deleted, until they are
+     * hard deleted (from the trash, or by the content cleanup job).
+     */
     public function testDeletingAFolderTakesItsSubfoldersWithIt()
     {
         $parent = $this->addFolder('Projects');
         $child = $this->addFolder('Drafts', $parent);
 
         $this->assertTrue((bool)$parent->delete());
+        $this->assertTrue(Folder::findOne(['id' => $child->id])->content->getStateService()->isDeleted());
+    }
+
+    public function testHardDeletingAFolderTakesItsSubfoldersWithIt()
+    {
+        $parent = $this->addFolder('Projects');
+        $child = $this->addFolder('Drafts', $parent);
+
+        $this->assertTrue($parent->hardDelete());
+        $this->assertNull(Folder::findOne(['id' => $parent->id]));
         $this->assertNull(Folder::findOne(['id' => $child->id]));
     }
 

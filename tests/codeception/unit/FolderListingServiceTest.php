@@ -35,14 +35,27 @@ class FolderListingServiceTest extends HumHubDbTestCase
 
     public function testEmptyFolderListsNothingButStillDescribesItself()
     {
-        $payload = $this->payload();
+        $folder = $this->addFolder('Empty');
+
+        $payload = $this->payload(['parent' => $folder->id]);
 
         $this->assertSame([], $payload['results']);
         $this->assertSame(0, $payload['total']);
         $this->assertSame('folder', $payload['folder']['type']);
-        $this->assertTrue($payload['folder']['isRoot']);
-        // The path always contains at least the folder itself.
-        $this->assertCount(1, $payload['path']);
+        $this->assertSame($folder->id, $payload['folder']['id']);
+        // The path of a folder always contains at least the folder itself.
+        $this->assertSame([$folder->id], array_column($payload['path'], 'id'));
+    }
+
+    public function testEmptyTopLevelListsNothingAndHasNoFolderRecord()
+    {
+        $payload = $this->payload();
+
+        $this->assertSame([], $payload['results']);
+        $this->assertSame(0, $payload['total']);
+        // There is no folder record standing in for the top level, so nothing to describe.
+        $this->assertNull($payload['folder']);
+        $this->assertSame([], $payload['path']);
     }
 
     public function testFoldersAreListedBeforeFiles()
