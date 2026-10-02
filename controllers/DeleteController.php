@@ -31,12 +31,16 @@ class DeleteController extends BrowseController
         if (is_array($selectedItems)) {
             foreach ($selectedItems as $itemId) {
                 $item = FileSystemItem::getItemById($itemId);
+                if (!$item) {
+                    // The item has been deleted meanwhile or is not readable by the current user
+                    continue;
+                }
 
                 if (!$item->content->canEdit()) {
                     throw new HttpException(403);
                 }
 
-                if ($item && $item->isDeletable() && $item->content->container->id === $this->contentContainer->id) {
+                if ($item->isDeletable() && $item->content->container->id === $this->contentContainer->id) {
                     $item->delete();
                 }
             }
