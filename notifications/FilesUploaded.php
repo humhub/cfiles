@@ -10,19 +10,24 @@ namespace humhub\modules\cfiles\notifications;
 
 use humhub\helpers\Html;
 use humhub\modules\cfiles\libs\FileUploadBatch;
-use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\models\File;
 use humhub\modules\content\notifications\ContentCreated;
 use Yii;
 
 /**
- * Announces all files a user uploaded into a folder as one notification.
+ * Announces all files a user uploaded into a folder, or into the top level of a container, as
+ * one notification.
+ *
+ * Its source is the folder, or at the top level, which has no folder record, the most recently
+ * uploaded file ({@see FileUploadBatch}). Either way the notification links to the level the
+ * files were uploaded into ({@see \humhub\modules\cfiles\models\File::getUrl()}).
  *
  * Replaces the per file content created notification, which is suppressed by
  * [[\humhub\modules\cfiles\models\File::$silentContentCreation]].
  *
  * Extending [[ContentCreated]] keeps the notification in the existing "New content" category,
  * so users and administrators do not have to configure a new notification type, and reuses its
- * `canView()` check for the announced folder.
+ * `canView()` check for the announced folder or file.
  *
  * @see FileUploadBatch
  * @since 0.19
@@ -65,13 +70,12 @@ class FilesUploaded extends ContentCreated
     }
 
     /**
-     * The folder title instead of `getContentInfo()`, since `Folder::getContentDescription()`
-     * returns the raw title, which is an untranslated placeholder for the root and the posted
-     * files folder.
+     * Whether the files were uploaded into the container's top level. It has no folder record,
+     * so the notification is about one of the files instead ({@see FileUploadBatch}).
      */
-    protected function getFolderTitle(): string
+    protected function isTopLevel(): bool
     {
-        return $this->source instanceof Folder ? $this->source->getTitle() : '';
+        return $this->source instanceof File;
     }
 
     /**
@@ -79,10 +83,30 @@ class FilesUploaded extends ContentCreated
      */
     public function html()
     {
-        return Yii::t('CfilesModule.base', '{displayName} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}".', [
-            'displayName' => Html::tag('strong', Html::encode($this->originator->displayName)),
-            'folderTitle' => Html::encode($this->getFolderTitle()),
-            'n' => $this->getFileCount(),
+        $displayName = Html::tag('strong', Html::encode($this->originator->displayName));
+        $n = $this->getFileCount();
+
+        if (!$this->isTopLevel()) {
+            return Yii::t('CfilesModule.base', '{displayName} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}".', [
+                'displayName' => $displayName,
+                'folderTitle' => Html::encode($this->source->getTitle()),
+                'n' => $n,
+            ]);
+        }
+
+        $space = $this->getSpace();
+
+        if ($space) {
+            return Yii::t('CfilesModule.base', '{displayName} added {n,plural,=1{a file} other{# files}} to the files of Space {space}.', [
+                'displayName' => $displayName,
+                'space' => Html::encode($space->displayName),
+                'n' => $n,
+            ]);
+        }
+
+        return Yii::t('CfilesModule.base', '{displayName} added {n,plural,=1{a file} other{# files}} to the files.', [
+            'displayName' => $displayName,
+            'n' => $n,
         ]);
     }
 
@@ -92,21 +116,26 @@ class FilesUploaded extends ContentCreated
     public function getMailSubject()
     {
         $space = $this->getSpace();
+        $params = [
+            'originator' => $this->originator->displayName,
+            'n' => $this->getFileCount(),
+        ];
 
         if ($space) {
-            return Yii::t('CfilesModule.base', '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}" in Space {space}', [
-                'originator' => $this->originator->displayName,
-                'folderTitle' => $this->getFolderTitle(),
-                'space' => $space->displayName,
-                'n' => $this->getFileCount(),
-            ]);
+            $params['space'] = $space->displayName;
         }
 
-        return Yii::t('CfilesModule.base', '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}"', [
-            'originator' => $this->originator->displayName,
-            'folderTitle' => $this->getFolderTitle(),
-            'n' => $this->getFileCount(),
-        ]);
+        if ($this->isTopLevel()) {
+            return $space
+                ? Yii::t('CfilesModule.base', '{originator} added {n,plural,=1{a file} other{# files}} to the files of Space {space}', $params)
+                : Yii::t('CfilesModule.base', '{originator} added {n,plural,=1{a file} other{# files}} to the files', $params);
+        }
+
+        $params['folderTitle'] = $this->source->getTitle();
+
+        return $space
+            ? Yii::t('CfilesModule.base', '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}" in Space {space}', $params)
+            : Yii::t('CfilesModule.base', '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}"', $params);
     }
 
     /**

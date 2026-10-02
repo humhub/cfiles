@@ -230,12 +230,16 @@ class File extends FileSystemItem
      */
     public function getUrl(bool $scheme = false)
     {
-        if ($this->parentFolder === null) {
-            Yii::warning('Could not get parent folder for file id: ' . $this->id, 'cfiles');
+        if ($this->parentFolder !== null) {
+            return $this->parentFolder->getUrl($scheme);
+        }
+
+        // The container's top level, which has no folder record of its own
+        if (empty($this->content->container)) {
             return '';
         }
 
-        return $this->parentFolder->getUrl($scheme);
+        return $this->content->container->createUrl('/cfiles/browse/index', [], $scheme);
     }
 
     public function getBaseFile()

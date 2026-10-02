@@ -13,17 +13,26 @@ use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\notifications\FilesUploaded;
+use humhub\modules\content\models\Content;
 use humhub\modules\user\models\User;
 use Yii;
 
 /**
- * Collects files a user uploaded into a folder but which have not been announced yet.
+ * Collects files a user uploaded into one level of a container's file tree (a folder, or the
+ * top level) but which have not been announced yet.
  *
  * Uploading a set of files used to create one content created notification (and one e-mail)
  * per file. [[File::$silentContentCreation]] suppresses those and every uploaded file is
- * counted here instead. Once the user stopped uploading into the same folder for
+ * counted here instead. Once the user stopped uploading into the same level for
  * [[Module::$uploadNotificationDelay]] minutes, a single [[FilesUploaded]] notification
  * announces the whole batch.
+ *
+ * The top level has no folder record (`parent_folder_id IS NULL`), so a batch is keyed by the
+ * container as well, and a top-level batch is announced about one of its files.
+ *
+ * Files can be deleted or moved away before the batch is announced, so the batch keeps the ids
+ * of its files and only announces those that are still published at the level they were
+ * uploaded into.
  *
  * The batch is kept in `Yii::$app->cache`, which the web request and the queue worker share.
  * A batch lost through a cache flush simply means that upload is not announced.
@@ -38,6 +47,12 @@ final class FileUploadBatch
      *      import) from deferring the notification indefinitely.
      */
     public const MAX_POSTPONE_FACTOR = 6;
+
+    /**
+     * @var int how many file ids a batch keeps, the most recent ones. Files beyond that are
+     *      still counted, they are just assumed to be still there when the batch is announced.
+     */
+    public const MAX_TRACKED_FILES = 100;
 
     private const CACHE_KEY_PREFIX = 'cfiles.fileUploadBatch.';
 
@@ -56,14 +71,24 @@ final class FileUploadBatch
      */
     public int $lastAt = 0;
 
+    /**
+     * @var int[] ids of the files of this batch, the most recent [[MAX_TRACKED_FILES]] ones
+     */
+    public array $fileIds = [];
+
+    /**
+     * @param int $containerId the `contentcontainer_id` uploaded into
+     * @param int|null $folderId the folder uploaded into, null = the container's top level
+     */
     public function __construct(
-        public readonly int $folderId,
+        public readonly int $containerId,
+        public readonly ?int $folderId,
         public readonly int $userId,
     ) {
     }
 
     /**
-     * Counts the given file into the open batch of its folder and uploader.
+     * Counts the given file into the open batch of its level and uploader.
      *
      * The first file of a batch also schedules the delayed notification job. Every following
      * file only bumps the counter and restarts the quiet period, so a single job (which
@@ -78,19 +103,22 @@ final class FileUploadBatch
             return;
         }
 
-        $folderId = (int)$file->parent_folder_id;
+        $containerId = (int)$content->contentcontainer_id;
+        $folderId = $file->parent_folder_id === null ? null : (int)$file->parent_folder_id;
         $userId = (int)$content->created_by;
 
-        if ($folderId === 0 || $userId === 0) {
+        if ($containerId === 0 || $userId === 0) {
             return;
         }
 
-        $batch = static::load($folderId, $userId);
+        $batch = static::load($containerId, $folderId, $userId);
         $isFirstFile = $batch->isEmpty();
         $now = time();
 
         $batch->count++;
         $batch->lastAt = $now;
+        $batch->fileIds[] = (int)$file->id;
+        $batch->fileIds = array_slice($batch->fileIds, -self::MAX_TRACKED_FILES);
 
         if ($isFirstFile) {
             $batch->firstAt = $now;
@@ -100,6 +128,7 @@ final class FileUploadBatch
 
         if ($isFirstFile) {
             Yii::$app->queue->delay(static::getDelay())->push(new SendFileUploadNotification([
+                'containerId' => $containerId,
                 'folderId' => $folderId,
                 'userId' => $userId,
             ]));
@@ -107,17 +136,20 @@ final class FileUploadBatch
     }
 
     /**
-     * Returns the open batch of the given folder and uploader, or an empty one.
+     * Returns the open batch of the given level and uploader, or an empty one.
+     *
+     * @param int|null $folderId null = the container's top level
      */
-    public static function load(int $folderId, int $userId): self
+    public static function load(int $containerId, ?int $folderId, int $userId): self
     {
-        $batch = new self($folderId, $userId);
+        $batch = new self($containerId, $folderId, $userId);
         $cached = Yii::$app->cache->get($batch->getCacheKey());
 
         if (is_array($cached)) {
             $batch->count = (int)($cached['count'] ?? 0);
             $batch->firstAt = (int)($cached['firstAt'] ?? 0);
             $batch->lastAt = (int)($cached['lastAt'] ?? 0);
+            $batch->fileIds = array_map('intval', (array)($cached['fileIds'] ?? []));
         }
 
         return $batch;
@@ -137,6 +169,7 @@ final class FileUploadBatch
             'count' => $this->count,
             'firstAt' => $this->firstAt,
             'lastAt' => $this->lastAt,
+            'fileIds' => $this->fileIds,
         ], $duration);
     }
 
@@ -166,36 +199,87 @@ final class FileUploadBatch
      * Announces this batch with a single notification and closes it.
      *
      * The batch is always dropped, even when nothing could be sent, so a broken batch cannot
-     * block notifications for later uploads into the same folder.
+     * block notifications for later uploads into the same level.
      */
     public function notify(): void
     {
-        $fileCount = $this->count;
-
         $this->forget();
 
-        if ($fileCount < 1) {
+        if ($this->isEmpty()) {
             return;
         }
 
-        $folder = Folder::findOne(['id' => $this->folderId]);
+        $files = $this->findRemainingFiles();
+        // Files beyond the tracked ones cannot be checked and are assumed to be still there
+        $fileCount = $this->count - (count($this->fileIds) - count($files));
+
+        if ($files === [] || $fileCount < 1) {
+            return;
+        }
+
+        $source = $this->folderId === null ? $this->pickFile($files) : Folder::findOne(['id' => $this->folderId]);
         $user = User::findOne(['id' => $this->userId]);
 
-        if ($folder === null || $user === null) {
+        if ($source === null || $user === null) {
             return;
         }
 
-        $content = $folder->content;
+        $content = $source->content;
 
-        if ($content === null || !$content->getStateService()->isPublished()) {
+        if ($content === null
+            || (int)$content->contentcontainer_id !== $this->containerId
+            || !$content->getStateService()->isPublished()) {
             return;
         }
 
         FilesUploaded::instance()
             ->from($user)
-            ->about($folder)
+            ->about($source)
             ->fileCount($fileCount)
             ->sendBulk(Yii::$app->notification->getFollowers($content));
+    }
+
+    /**
+     * The tracked files of this batch that are still published at the level and in the
+     * container they were uploaded into — not deleted, and not moved away since.
+     *
+     * @return File[] newest first
+     */
+    private function findRemainingFiles(): array
+    {
+        if ($this->fileIds === []) {
+            return [];
+        }
+
+        return File::find()
+            ->innerJoinWith('content')
+            ->where([
+                'cfiles_file.id' => $this->fileIds,
+                // null matches IS NULL, the top level
+                'cfiles_file.parent_folder_id' => $this->folderId,
+                'content.contentcontainer_id' => $this->containerId,
+                'content.state' => Content::STATE_PUBLISHED,
+            ])
+            ->orderBy(['cfiles_file.id' => SORT_DESC])
+            ->all();
+    }
+
+    /**
+     * What a top-level batch, which has no folder record, is announced about: its newest
+     * public file, so that followers who are not members hear of the upload too, otherwise its
+     * newest file.
+     *
+     * @param File[] $files newest first
+     */
+    private function pickFile(array $files): File
+    {
+        foreach ($files as $file) {
+            if ($file->content->isPublic()) {
+                return $file;
+            }
+        }
+
+        return $files[0];
     }
 
     /**
@@ -211,6 +295,6 @@ final class FileUploadBatch
 
     private function getCacheKey(): string
     {
-        return self::CACHE_KEY_PREFIX . $this->folderId . '.' . $this->userId;
+        return self::CACHE_KEY_PREFIX . $this->containerId . '.' . ($this->folderId ?? 0) . '.' . $this->userId;
     }
 }

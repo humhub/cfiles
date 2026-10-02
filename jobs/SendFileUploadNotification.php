@@ -31,7 +31,12 @@ class SendFileUploadNotification extends ActiveJob
     public const MAX_ATTEMPTS = 10;
 
     /**
-     * @var int
+     * @var int the `contentcontainer_id` uploaded into
+     */
+    public $containerId;
+
+    /**
+     * @var int|null the folder uploaded into, null = the container's top level
      */
     public $folderId;
 
@@ -50,7 +55,17 @@ class SendFileUploadNotification extends ActiveJob
      */
     public function run()
     {
-        $batch = FileUploadBatch::load((int)$this->folderId, (int)$this->userId);
+        if (empty($this->containerId)) {
+            // Queued before 1.0, keyed by folder alone. Its batch is not found under the
+            // current key anymore, so there is nothing to announce.
+            return;
+        }
+
+        $batch = FileUploadBatch::load(
+            (int)$this->containerId,
+            $this->folderId === null ? null : (int)$this->folderId,
+            (int)$this->userId,
+        );
 
         if ($batch->isEmpty()) {
             // Already announced, or the batch was lost through a cache flush
@@ -62,6 +77,7 @@ class SendFileUploadNotification extends ActiveJob
         if ($remainingDelay > 0 && $this->attempt < self::MAX_ATTEMPTS) {
             // Uploads continued after this job was queued, wait for them to settle
             Yii::$app->queue->delay($remainingDelay)->push(new self([
+                'containerId' => $this->containerId,
                 'folderId' => $this->folderId,
                 'userId' => $this->userId,
                 'attempt' => $this->attempt + 1,
