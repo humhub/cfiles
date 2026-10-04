@@ -115,4 +115,7 @@ return [
   'You cannot move the folder "{name}"!' => 'Du kannst den Ordner "{name} nicht verschieben"!',
   'ZIP selected' => 'Ausgewählte komprimieren (ZIP)',
   'ZIP support is not enabled.' => 'ZIP-Unterstützung ist nicht aktiviert.',
+  '{displayName} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}".' => '{displayName} hat {n,plural,=1{eine Datei} other{# Dateien}} zum Ordner "{folderTitle}" hinzugefügt.',
+  '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}"' => '{originator} hat {n,plural,=1{eine Datei} other{# Dateien}} zum Ordner "{folderTitle}" hinzugefügt.',
+  '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}" in Space {space}' => '{originator} hat {n,plural,=1{eine Datei} other{# Dateien}} zum Ordner "{folderTitle}" im Space {space} hinzugefügt.',
 ];

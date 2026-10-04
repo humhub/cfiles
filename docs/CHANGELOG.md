@@ -1,6 +1,32 @@
 Changelog
 =========
 
+0.19.1 - Unreleased
+-------------------
+- Fix #269: Use getAttribute() in getter methods to avoid recursion when the attribute is missing
+- Fix #292: Delete and Make private/public failed with an error when the selection contained an already deleted or unreadable item
+- Fix: Refined folder handling
+
+0.19.0 - September 8, 2026
+--------------------------
+- Enh #288: Send a single notification to announce all files uploaded within a short period of time, rather than sending one notification per file (humhub/humhub#5334)
+
+0.18.3 - July 22, 2026
+----------------------
+- Fix #287: Fix PHP error from deprecated search event/constant removed in HumHub 1.19
+
+0.18.2 - July 20, 2026
+----------------------
+- Fix #272: Fix Content linking with Comment
+
+0.18.1 - July 8, 2026
+---------------------
+- Enh #286: Add aria-label attribute for icon-only buttons
+
+0.18.0 - June 5, 2026
+---------------------
+- Enh #272: Update for HumHub 1.19
+
 0.17.5 (Unreleased)
 -------------------
 - Enh: Automated code refactoring for HumHub 1.18.1 using Rector

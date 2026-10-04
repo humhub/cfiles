@@ -116,4 +116,7 @@ return [
     'You cannot move the folder "{name}"!' => 'Você não pode mover a pasta "{name}"!',
     'ZIP selected' => 'ZIP selecionado',
     'ZIP support is not enabled.' => 'Suporte para arquivos ZIP não habilitado.',
+    '{displayName} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}".' => '',
+    '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}"' => '',
+    '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}" in Space {space}' => '',
 ];

@@ -116,4 +116,7 @@ return [
     'Files (Module)' => '',
     'Folder content ID' => '',
     'Folders' => '',
+    '{displayName} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}".' => '',
+    '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}"' => '',
+    '{originator} added {n,plural,=1{a file} other{# files}} to the folder "{folderTitle}" in Space {space}' => '',
 ];

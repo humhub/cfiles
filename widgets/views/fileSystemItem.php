@@ -10,6 +10,7 @@ use humhub\modules\file\libs\FileHelper;
 use humhub\modules\stream\assets\StreamAsset;
 use humhub\modules\user\widgets\Image;
 use humhub\widgets\bootstrap\Button;
+use humhub\widgets\bootstrap\Link;
 use humhub\widgets\TimeAgo;
 
 /* @var $folder Folder */
@@ -34,13 +35,13 @@ StreamAsset::register($this);
                 <div class="title">
                     <i class="fa <?= $row->getIconClass(); ?>"></i>&nbsp;
                     <?php if ($row->getType() === "image") : ?>
-                        <?= Button::asLink($row->getTitle(), $row->getUrl())
+                        <?= Link::to($row->getTitle(), $row->getUrl())
                             ->options(['data-ui-gallery' => 'FilesModule-Gallery-' . $row->getParentFolderId()])
                             ->tooltip($row->getDescription()) ?>
                     <?php elseif ($row->getBaseFile() !== null) : ?>
                         <?= FileHelper::createLink($row->getBaseFile(), [], ['class' => 'tt', 'title' => Html::encode($row->getDescription())]) ?>
                     <?php else: ?>
-                        <?= Button::asLink($row->getTitle(), $row->getLinkUrl())
+                        <?= Link::to($row->getTitle(), $row->getLinkUrl())
                             ->tooltip($row->getDescription()) ?>
                     <?php endif; ?>
                 </div>
@@ -114,7 +115,10 @@ StreamAsset::register($this);
         <td class="file-actions">
             <?= Button::light()
                 ->icon('list')
-                ->options(['data-contextmenu-toggler' => '#bs-table tr'])
+                ->options([
+                    'aria-label' => Yii::t('base', 'Actions'),
+                    'data-contextmenu-toggler' => '#bs-table tr',
+                ])
                 ->cssClass('context-icon')
                 ->sm()
                 ->loader(false); ?>

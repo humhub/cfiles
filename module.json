@@ -9,10 +9,9 @@
         "organisation",
         "sharing"
     ],
-    "version": "0.17.5",
+    "version": "0.19.1",
     "humhub": {
-        "minVersion": "1.18.1",
-        "maxVersion": "1.18"
+        "minVersion": "1.19"
     },
     "homepage": "https://github.com/humhub/cfiles",
     "authors": [
@@ -25,6 +24,7 @@
         {
             "name": "Julian Harrer"
         }
+
     ],
     "screenshots": [
         "resources/screenshot1.png",
