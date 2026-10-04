@@ -247,7 +247,8 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
      */
     public function validateParentFolderId($attribute = 'parent_folder_id')
     {
-        if ($this->parent_folder_id != 0 && !($this->parentFolder instanceof Folder)) {
+        if ($this->parent_folder_id != 0 && (!($this->parentFolder instanceof Folder)
+            || $this->parentFolder->content->contentcontainer_id != $this->content->contentcontainer_id)) {
             $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->title]));
         }
     }
