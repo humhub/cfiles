@@ -130,12 +130,16 @@ class EditController extends BrowseController
     {
         foreach ($model->selection as $itemId) {
             $item = FileSystemItem::getItemById($itemId);
+            if (!$item) {
+                // The item has been deleted meanwhile or is not readable by the current user
+                continue;
+            }
 
             if (!$item->content->canEdit()) {
                 throw new HttpException(403);
             }
 
-            if ($item && $item->content->container->id === $this->contentContainer->id) {
+            if ($item->content->container->id === $this->contentContainer->id) {
                 $item->updateVisibility($visibility);
                 $item->content->save();
             }
