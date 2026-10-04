@@ -54,7 +54,7 @@ class FolderController extends BaseContentController
                 return $this->returnError(400, 'Target folder id is required!');
             }
         } else {
-            $targetDir = Folder::findOne(['id' => $params['target_id']]);
+            $targetDir = Folder::find()->contentContainer($container)->andWhere(['cfiles_folder.id' => $params['target_id']])->one();
         }
 
         if (empty($targetDir)) {

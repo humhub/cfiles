@@ -85,7 +85,12 @@ class EditController extends BrowseController
             throw new HttpException(403);
         }
 
-        if ($file->baseFile->load(Yii::$app->request->post()) && $file->baseFile->validate()) {
+        // Only the file name of the base file can be edited here
+        $baseFileFormName = $file->baseFile->formName();
+        $baseFileData = Yii::$app->request->post($baseFileFormName);
+        if (is_array($baseFileData)
+            && $file->baseFile->load([$baseFileFormName => array_intersect_key($baseFileData, ['file_name' => true])])
+            && $file->baseFile->validate()) {
             $duplicate = File::getFileByName($file->baseFile->file_name, $file->parent_folder_id, $this->contentContainer);
             if ($duplicate && !$duplicate->is($file)) {
                 $file->baseFile->addErrors(['file_name' => Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.')]);
