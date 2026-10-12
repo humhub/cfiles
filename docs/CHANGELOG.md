@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.17.5 (Unreleased)
--------------------
+0.17.5 - October 12, 2026
+-------------------------
 - Enh: Automated code refactoring for HumHub 1.18.1 using Rector
 - Fix #269: Use getAttribute() in getter methods to avoid recursion when the attribute is missing
 - Fix #292: Delete and Make private/public failed with an error when the selection contained an already deleted or unreadable item
