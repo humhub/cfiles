@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.19.1 - Unreleased
--------------------
+0.19.1 - October 13, 2026
+--------------------------
 - Fix #269: Use getAttribute() in getter methods to avoid recursion when the attribute is missing
 - Fix #292: Delete and Make private/public failed with an error when the selection contained an already deleted or unreadable item
 - Fix: Refined folder handling
