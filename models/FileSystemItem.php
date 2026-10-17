@@ -200,7 +200,7 @@ abstract class FileSystemItem extends ContentActiveRecord
      */
     public function getParentFolder()
     {
-        $query = $this->hasOne(Folder::className(), [
+        $query = $this->hasOne(Folder::class, [
             'id' => 'parent_folder_id',
         ]);
         return $query;

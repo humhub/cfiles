@@ -13,8 +13,6 @@ use humhub\libs\MimeHelper;
 use humhub\models\RecordMap;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\file\converter\PreviewImage;
-use humhub\modules\file\handler\DownloadFileHandler;
-use humhub\modules\file\handler\FileHandlerCollection;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\widgets\FileDownload;
 use humhub\modules\user\serializers\UserSerializer;
@@ -45,12 +43,12 @@ class FileSerializer
      *     description: string,
      *     visibility: int,
      *     mimeType: string|null,
-     *     mimeIcon: string|null,
      *     icon: string,
      *     size: int,
      *     url: string|null,
      *     downloadUrl: string|null,
      *     previewUrl: string|null,
+     *     link: array{url: string|null, attributes: array},
      *     downloadCount: int,
      *     parentFolderId: int|null,
      *     createdAt: string|null,
@@ -79,9 +77,6 @@ class FileSerializer
             'description' => (string)$file->description,
             'visibility' => (int)$content->visibility,
             'mimeType' => $baseFile?->mime_type,
-            'mimeIcon' => $baseFile
-                ? MimeHelper::getMimeIconClassByExtension(FileHelper::getExtension($baseFile->file_name))
-                : null,
             // The Tabler name of the file type's glyph, for the Vue browser's
             // `<i class="ti ti-<icon>">` — see MimeHelper::getIconNameByExtension().
             'icon' => $baseFile
@@ -113,15 +108,11 @@ class FileSerializer
      * Where the file's name links, and the attributes that link needs.
      *
      * A file is not always just a download: modules contribute handlers that view or edit one
-     * (an office suite, a diagram editor), and the platform decides between two link shapes
-     * accordingly — `FileHelper::createLink()` is the server-rendered original this mirrors.
-     * With nothing but the download handler registered it is a plain link carrying the
-     * `data-file-*` attributes the platform's download JS reads; with anything else it opens
-     * the file dialog in the global modal, which offers the handlers.
-     *
-     * The client cannot make this call — the handler collection lives here — so the decision
-     * ships with the payload as a url plus attributes, the same shape a described menu entry
-     * uses.
+     * (an office suite, a diagram editor). With nothing but the download handler registered it
+     * is a plain link carrying the `data-file-*` attributes the platform's download JS reads;
+     * with anything else it opens the file dialog in the global modal, which offers the
+     * handlers — {@see FileHelper::getViewUrl()} makes that call, as for the server-rendered
+     * {@see FileHelper::createLink()}.
      *
      * Handler registration CAN depend on the caller (a module may only offer its editor to
      * someone who may edit), which makes this the one part of the payload that is not
@@ -139,16 +130,9 @@ class FileSerializer
             return ['url' => null, 'attributes' => []];
         }
 
-        $handlers = FileHandlerCollection::getByType([
-            FileHandlerCollection::TYPE_VIEW,
-            FileHandlerCollection::TYPE_EXPORT,
-            FileHandlerCollection::TYPE_EDIT,
-            FileHandlerCollection::TYPE_IMPORT,
-        ], $baseFile);
+        $viewUrl = FileHelper::getViewUrl($baseFile);
 
-        $downloadOnly = count($handlers) === 1 && $handlers[0] instanceof DownloadFileHandler;
-
-        if ($downloadOnly) {
+        if ($viewUrl === null) {
             return [
                 'url' => $baseFile->getUrl([], true),
                 'attributes' => array_merge(
@@ -159,7 +143,7 @@ class FileSerializer
         }
 
         return [
-            'url' => Url::to(['/file/view', 'guid' => $baseFile->guid], true),
+            'url' => Url::to($viewUrl, true),
             'attributes' => ['data-bs-target' => '#globalModal'],
         ];
     }

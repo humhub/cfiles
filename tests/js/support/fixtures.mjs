@@ -47,7 +47,6 @@ export const fileRow = (over = {}) => ({
     description: '',
     visibility: 1,
     mimeType: 'application/pdf',
-    mimeIcon: 'mime-pdf',
     icon: 'file-type-pdf',
     size: 1258291,
     url: '/file/f-21',
