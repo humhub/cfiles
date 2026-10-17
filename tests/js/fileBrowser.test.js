@@ -669,6 +669,73 @@ describe('CfilesFileBrowser', () => {
         });
     });
 
+    describe('file handlers', () => {
+        const handlersHtml = '<li><a href="#" class="dropdown-item" data-action-click="test.create">New document</a></li>';
+        const chooseHandler = (wrapper) => wrapper.find('[data-action-click="test.create"]').trigger('click');
+        const created = (...files) => globalThis.humhubStubs.event.trigger('humhub:file:created', [files]);
+
+        it('files what a handler of the add menu created into the level it was chosen on', async () => {
+            const wrapper = browser(insideFolder([]), { createHandlersHtml: handlersHtml });
+
+            await chooseHandler(wrapper);
+            created({ guid: 'guid-1' }, { guid: 'guid-2' });
+            await flushPromises();
+
+            const [url, cfg] = globalThis.humhubStubs.client.post.mock.calls[0];
+            expect(url).toContain('cfiles/5/files');
+            expect(cfg.data).toEqual({ guids: ['guid-1', 'guid-2'], parent: 9 });
+        });
+
+        it('sends no parent at the top level', async () => {
+            const wrapper = browser(topLevel(), { createHandlersHtml: handlersHtml });
+
+            await chooseHandler(wrapper);
+            created({ guid: 'guid-1' });
+            await flushPromises();
+
+            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data).toEqual({ guids: ['guid-1'] });
+        });
+
+        it('reloads the level once the file is filed', async () => {
+            const wrapper = browser(topLevel(), { createHandlersHtml: handlersHtml });
+
+            await chooseHandler(wrapper);
+            created({ guid: 'guid-1' });
+            await flushPromises();
+
+            expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
+        });
+
+        it('leaves files alone that no handler of the menu created', async () => {
+            browser(topLevel(), { createHandlersHtml: handlersHtml });
+
+            created({ guid: 'guid-1' });
+            await flushPromises();
+
+            expect(globalThis.humhubStubs.client.post).not.toHaveBeenCalled();
+        });
+
+        it('files a choice only once', async () => {
+            const wrapper = browser(topLevel(), { createHandlersHtml: handlersHtml });
+
+            await chooseHandler(wrapper);
+            created({ guid: 'guid-1' });
+            created({ guid: 'guid-2' });
+            await flushPromises();
+
+            expect(globalThis.humhubStubs.client.post).toHaveBeenCalledTimes(1);
+        });
+
+        it('reloads when a handler modified a file', async () => {
+            browser(topLevel());
+
+            globalThis.humhubStubs.event.trigger('humhub:file:modified', [[{ guid: 'guid-1' }]]);
+            await flushPromises();
+
+            expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
+        });
+    });
+
     describe('display', () => {
         it('takes the display from the embedded payload', () => {
             const list = browser(topLevel());

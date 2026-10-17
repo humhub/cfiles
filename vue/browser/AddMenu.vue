@@ -21,7 +21,7 @@
                 </a>
             </li>
             <li v-if="handlersHtml"><hr class="dropdown-divider" /></li>
-            <li v-if="handlersHtml"><ul class="list-unstyled m-0" v-additions v-html="handlersHtml"></ul></li>
+            <li v-if="handlersHtml"><ul class="list-unstyled m-0" v-additions v-html="handlersHtml" @click="$emit('handler')"></ul></li>
         </ul>
     </div>
 </template>
@@ -45,6 +45,10 @@
  * — humhub.action.js delegates that on `document`, so it already works unassisted — but for the
  * rest of the additions pass any server-rendered fragment gets (`data-ui-init` widgets, `.po`
  * popovers, nested Vue mount points, …).
+ *
+ * A click on a handler is reported (`handler`): what a handler creates is announced on the
+ * global `humhub:file:created` event without saying where it was asked for, so the browser has
+ * to remember which level the menu was opened on.
  */
 import { i18n } from '@humhub/vue';
 
@@ -53,7 +57,7 @@ export default {
         /** Server-rendered `<li>` markup for the file handlers a module contributed. */
         handlersHtml: { type: String, default: '' },
     },
-    emits: ['upload', 'create-folder'],
+    emits: ['upload', 'create-folder', 'handler'],
     computed: {
         addLabel() {
             return i18n.t('CfilesModule.base', 'Add');

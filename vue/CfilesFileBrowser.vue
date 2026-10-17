@@ -18,6 +18,7 @@
                     :handlers-html="global ? '' : createHandlersHtml"
                     @upload="pickFiles"
                     @create-folder="showCreate = true"
+                    @handler="onHandlerChosen"
                 />
             </template>
             <FilterBar
@@ -208,13 +209,13 @@
  * uploading: true, progress }`) after the items; one into a folder shown here marks that
  * folder as uploading instead. Both go once the batch is in and the level reloads.
  */
-import { i18n, log, modal, status } from '@humhub/vue';
+import { events, i18n, log, modal, status } from '@humhub/vue';
 import AddMenu from './browser/AddMenu.vue';
 import FileTiles from './browser/FileTiles.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
 import {
-    deleteItems, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
+    attachFiles, deleteItems, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
 } from './browser/api';
 import {
     SPACE_CRUMB, TOPIC_KEY, appendFilters, containerOf, idsOf, isPageLocation, isPageUrl, isSet, levelFilters, levelKey, levelUrl,
@@ -295,6 +296,9 @@ export default {
     },
     data() {
         return {
+            // The level a file handler of the add menu was chosen on: what it creates is filed
+            // there (see onFileCreated()).
+            handlerLevel: null,
             folder: this.listing.folder,
             path: this.listing.path,
             items: this.listing.results,
@@ -562,6 +566,8 @@ export default {
     mounted() {
         window.addEventListener('popstate', this.onPopState);
         document.addEventListener('keydown', this.onKeydown);
+        events.on('humhub:file:created', this.onFileCreated);
+        events.on('humhub:file:modified', this.onFileModified);
 
         this.openRequestedEdit();
 
@@ -588,6 +594,8 @@ export default {
     beforeUnmount() {
         window.removeEventListener('popstate', this.onPopState);
         document.removeEventListener('keydown', this.onKeydown);
+        events.off('humhub:file:created', this.onFileCreated);
+        events.off('humhub:file:modified', this.onFileModified);
     },
     methods: {
         keyOf,
@@ -1258,6 +1266,44 @@ export default {
 
                 log.error(response, true);
             });
+        },
+        onHandlerChosen() {
+            this.handlerLevel = { container: this.container, parentId: this.folderId };
+        },
+        /**
+         * Files what a file handler of the add menu created ("New spreadsheet") into the level
+         * it was chosen on. The handler announces the new platform file(s) on the global
+         * `humhub:file:created` event and leaves it to whoever asked to attach them - the
+         * browser did, so it does. An event no handler of this menu caused is not ours.
+         */
+        onFileCreated(event, ...files) {
+            const level = this.handlerLevel;
+            const guids = files.flat().map((file) => file && file.guid).filter(Boolean);
+
+            if (!level || !guids.length) {
+                return;
+            }
+
+            this.handlerLevel = null;
+
+            attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
+                this.reportUploadErrors(response.errors);
+
+                if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
+                    this.reload();
+                }
+            }).catch((response) => {
+                if (response && response.status === 422 && Array.isArray(response.errors)) {
+                    this.reportUploadErrors(response.errors);
+                    return;
+                }
+
+                log.error(response, true);
+            });
+        },
+        /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
+        onFileModified() {
+            this.reload();
         },
         reportUploadErrors(errors) {
             (errors || []).forEach((error) => {

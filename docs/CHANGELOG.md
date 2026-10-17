@@ -10,7 +10,7 @@ Changelog
 - Enh: The whole row opens the item it shows, and a right-click anywhere on a row or a tile raises that item's context menu where the cursor is. Ctrl+right-click still gets the browser's own menu.
 - Enh: The create and rename dialogs put the cursor in the title field as they open.
 - Enh: Every row in the list view carries the platform's own like link (`LikeButton`), with the state for a whole page fetched in two grouped queries rather than one request per row. The module adds no like logic of its own.
-- Enh: The "add" menu carries the file handlers a module contributed again ("new spreadsheet", "import from …"), after uploading files and creating a folder.
+- Enh: The "add" menu carries the file handlers a module contributed again ("new spreadsheet", "import from …"), after uploading files and creating a folder. A document such a handler creates is filed into the folder the menu was opened on (`POST /api/v2/cfiles/<containerId>/files` with `guids`).
 - Fix: Clicking a file reaches the handler a module contributed for it again — a viewer or an editor opens in the file dialog, and a file that only has the download handler stays a direct link. The list rendered a plain link to the file in every case.
 - Fix: Uploading did not work at all. The request was built with a hand-rolled XMLHttpRequest reading a CSRF token from a meta tag that HumHub does not render, so every upload was rejected. It goes through the platform client now, which is what attaches the token.
 - Fix: A tile's context menu was clipped by the tile's own overflow.

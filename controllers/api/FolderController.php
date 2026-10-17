@@ -16,6 +16,7 @@ use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\serializers\FolderSerializer;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\services\FolderListingService;
+use humhub\modules\file\models\File as BaseFile;
 use Yii;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
@@ -154,7 +155,8 @@ class FolderController extends BaseController
     }
 
     /**
-     * Uploads one or more files to the addressed level.
+     * Uploads one or more files to the addressed level - or, with `guids`, files platform files
+     * that already exist there (what a file handler such as "New spreadsheet" created).
      *
      * Answers per file rather than failing the whole request on one bad upload: a batch in
      * which a single file is rejected should still land the others, and the client has to be
@@ -166,6 +168,11 @@ class FolderController extends BaseController
         $this->assertCanWrite($container);
 
         $parent = $this->findParent($container, Yii::$app->request->post('parent'));
+
+        $guids = Yii::$app->request->post('guids');
+        if (!empty($guids)) {
+            return $this->attach(new FolderContentService($container, $parent), (array)$guids);
+        }
 
         $uploads = UploadedFile::getInstancesByName('files');
 
@@ -194,6 +201,45 @@ class FolderController extends BaseController
             }
 
             // A new file has no topics yet: nothing to look up.
+            $created[] = FileSerializer::file($file, []);
+        }
+
+        Yii::$app->response->statusCode = $created === [] ? 422 : 201;
+
+        return ['results' => $created, 'errors' => $errors];
+    }
+
+    /**
+     * Files the platform files of the given guids into a level, see {@see FolderContentService::addExistingFile()}.
+     */
+    private function attach(FolderContentService $content, array $guids): array
+    {
+        $created = [];
+        $errors = [];
+
+        foreach ($guids as $guid) {
+            $baseFile = BaseFile::findOne(['guid' => (string)$guid]);
+            $file = $baseFile === null ? null : $content->addExistingFile($baseFile);
+
+            if ($file === null) {
+                $errors[] = [
+                    'fileName' => $baseFile?->file_name ?? (string)$guid,
+                    'messages' => [Yii::t('CfilesModule.base', 'The file could not be added.')],
+                ];
+                continue;
+            }
+
+            if ($file->hasErrors() || $file->baseFile->hasErrors()) {
+                $errors[] = [
+                    'fileName' => $file->baseFile->file_name,
+                    'messages' => array_merge(
+                        array_values($file->getFirstErrors()),
+                        array_values($file->baseFile->getFirstErrors()),
+                    ),
+                ];
+                continue;
+            }
+
             $created[] = FileSerializer::file($file, []);
         }
 

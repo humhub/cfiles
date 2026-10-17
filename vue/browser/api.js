@@ -128,6 +128,14 @@ export const uploadFiles = (containerId, parent, files, onProgress) => {
     });
 };
 
+/**
+ * Files platform files that already exist into a level - what a file handler ("New
+ * spreadsheet") created and announced with `humhub:file:created`. Answers like an upload.
+ */
+export const attachFiles = (containerId, parent, guids) => client.post(apiUrl('cfiles/' + containerId + '/files'), {
+    data: parent ? { guids, parent } : { guids },
+});
+
 const descriptor = (item) => ({ type: item.type, id: item.id });
 
 

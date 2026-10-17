@@ -14,7 +14,9 @@ use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\file\libs\FileHelper;
+use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileContent;
+use Yii;
 use yii\db\ActiveQuery;
 use yii\imagine\Image;
 use yii\web\UploadedFile;
@@ -130,6 +132,35 @@ class FolderContentService
         $file = $this->fileInstance($uploadedFile);
 
         if ($file->setUploadedFile($uploadedFile)) {
+            $file->save();
+        }
+
+        return $file;
+    }
+
+    /**
+     * Files a platform file that already exists into this level - e.g. a document a file handler
+     * ("New spreadsheet") has just created for the current user.
+     *
+     * Only a file of the current user that belongs to nothing yet can be filed: anything else
+     * would let a known guid pull another record's attachment into a folder.
+     *
+     * @return File|null null when the file may not be filed here
+     */
+    public function addExistingFile(BaseFile $baseFile): ?File
+    {
+        if ($baseFile->isAssigned() || $baseFile->standalone || (int)$baseFile->created_by !== (int)Yii::$app->user->id) {
+            return null;
+        }
+
+        $baseFile->show_in_stream = false;
+        $baseFile->file_name = $this->uniqueFileName($baseFile->file_name);
+
+        $file = new File($this->container, $this->newItemVisibility(), [
+            'parent_folder_id' => $this->parentId(),
+        ]);
+
+        if ($file->setFileContent($baseFile)) {
             $file->save();
         }
 

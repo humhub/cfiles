@@ -17,7 +17,7 @@
       /** Server-rendered `<li>` markup for the file handlers a module contributed. */
       handlersHtml: { type: String, default: "" }
     },
-    emits: ["upload", "create-folder"],
+    emits: ["upload", "create-folder", "handler"],
     computed: {
       addLabel() {
         return vue.i18n.t("CfilesModule.base", "Add");
@@ -47,7 +47,7 @@
         "aria-expanded": "false",
         "aria-label": $options.addLabel,
         title: $options.addLabel
-      }, [..._cache[2] || (_cache[2] = [
+      }, [..._cache[3] || (_cache[3] = [
         vue$1.createElementVNode("i", {
           class: "ti ti-plus",
           "aria-hidden": "true"
@@ -60,7 +60,7 @@
             class: "dropdown-item d-flex align-items-center gap-2 cfiles-add-menu__entry",
             onClick: _cache[0] || (_cache[0] = vue$1.withModifiers(($event) => _ctx.$emit("upload"), ["prevent"]))
           }, [
-            _cache[3] || (_cache[3] = vue$1.createElementVNode("i", {
+            _cache[4] || (_cache[4] = vue$1.createElementVNode("i", {
               class: "ti ti-upload",
               "aria-hidden": "true"
             }, null, -1)),
@@ -73,20 +73,21 @@
             class: "dropdown-item d-flex align-items-center gap-2 cfiles-add-menu__entry",
             onClick: _cache[1] || (_cache[1] = vue$1.withModifiers(($event) => _ctx.$emit("create-folder"), ["prevent"]))
           }, [
-            _cache[4] || (_cache[4] = vue$1.createElementVNode("i", {
+            _cache[5] || (_cache[5] = vue$1.createElementVNode("i", {
               class: "ti ti-folder-plus",
               "aria-hidden": "true"
             }, null, -1)),
             vue$1.createTextVNode(vue$1.toDisplayString($options.folderLabel), 1)
           ])
         ]),
-        $props.handlersHtml ? (vue$1.openBlock(), vue$1.createElementBlock("li", _hoisted_4$6, [..._cache[5] || (_cache[5] = [
+        $props.handlersHtml ? (vue$1.openBlock(), vue$1.createElementBlock("li", _hoisted_4$6, [..._cache[6] || (_cache[6] = [
           vue$1.createElementVNode("hr", { class: "dropdown-divider" }, null, -1)
         ])])) : vue$1.createCommentVNode("", true),
         $props.handlersHtml ? (vue$1.openBlock(), vue$1.createElementBlock("li", _hoisted_5$5, [
           vue$1.withDirectives(vue$1.createElementVNode("ul", {
             class: "list-unstyled m-0",
-            innerHTML: $props.handlersHtml
+            innerHTML: $props.handlersHtml,
+            onClick: _cache[2] || (_cache[2] = ($event) => _ctx.$emit("handler"))
           }, null, 8, _hoisted_6$5), [
             [_directive_additions]
           ])
@@ -881,6 +882,9 @@
       }
     });
   };
+  const attachFiles = (containerId, parent, guids) => vue.client.post(vue.apiUrl("cfiles/" + containerId + "/files"), {
+    data: parent ? { guids, parent } : { guids }
+  });
   const descriptor = (item) => ({ type: item.type, id: item.id });
   const keyOf = (item) => item.type + ":" + item.id;
   const _sfc_main$4 = {
@@ -1301,6 +1305,9 @@
     },
     data() {
       return {
+        // The level a file handler of the add menu was chosen on: what it creates is filed
+        // there (see onFileCreated()).
+        handlerLevel: null,
         folder: this.listing.folder,
         path: this.listing.path,
         items: this.listing.results,
@@ -1530,6 +1537,8 @@
       var _a, _b;
       window.addEventListener("popstate", this.onPopState);
       document.addEventListener("keydown", this.onKeydown);
+      vue.events.on("humhub:file:created", this.onFileCreated);
+      vue.events.on("humhub:file:modified", this.onFileModified);
       this.openRequestedEdit();
       const urlFolderId = this.folderIdFromUrl();
       if (this.global) {
@@ -1549,6 +1558,8 @@
     beforeUnmount() {
       window.removeEventListener("popstate", this.onPopState);
       document.removeEventListener("keydown", this.onKeydown);
+      vue.events.off("humhub:file:created", this.onFileCreated);
+      vue.events.off("humhub:file:modified", this.onFileModified);
     },
     methods: {
       keyOf,
@@ -2148,6 +2159,39 @@
           vue.log.error(response, true);
         });
       },
+      onHandlerChosen() {
+        this.handlerLevel = { container: this.container, parentId: this.folderId };
+      },
+      /**
+       * Files what a file handler of the add menu created ("New spreadsheet") into the level
+       * it was chosen on. The handler announces the new platform file(s) on the global
+       * `humhub:file:created` event and leaves it to whoever asked to attach them - the
+       * browser did, so it does. An event no handler of this menu caused is not ours.
+       */
+      onFileCreated(event, ...files) {
+        const level = this.handlerLevel;
+        const guids = files.flat().map((file) => file && file.guid).filter(Boolean);
+        if (!level || !guids.length) {
+          return;
+        }
+        this.handlerLevel = null;
+        attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
+          this.reportUploadErrors(response.errors);
+          if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
+            this.reload();
+          }
+        }).catch((response) => {
+          if (response && response.status === 422 && Array.isArray(response.errors)) {
+            this.reportUploadErrors(response.errors);
+            return;
+          }
+          vue.log.error(response, true);
+        });
+      },
+      /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
+      onFileModified() {
+        this.reload();
+      },
       reportUploadErrors(errors) {
         (errors || []).forEach((error) => {
           vue.status("error", error.fileName + ": " + (error.messages || []).join(" "));
@@ -2258,8 +2302,9 @@
             key: 1,
             "handlers-html": $props.global ? "" : $props.createHandlersHtml,
             onUpload: $options.pickFiles,
-            onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true)
-          }, null, 8, ["handlers-html", "onUpload"])) : vue$1.createCommentVNode("", true)
+            onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true),
+            onHandler: $options.onHandlerChosen
+          }, null, 8, ["handlers-html", "onUpload", "onHandler"])) : vue$1.createCommentVNode("", true)
         ]),
         default: vue$1.withCtx(() => [
           $options.activeFilters.length ? (vue$1.openBlock(), vue$1.createBlock(_component_FilterBar, {
