@@ -1,0 +1,52 @@
+name: JS Tests
+
+on:
+  push:
+    paths:
+      - 'vue/**'
+      - 'tests/js/**'
+      - 'resources/js/**'
+      - 'package.json'
+      - 'vitest.config.mjs'
+      - '.github/workflows/js-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  vitest:
+    runs-on: ubuntu-latest
+    steps:
+      # The module's Vue sources are tested against the core they run in, so both are needed.
+      # The layout mirrors an installation: the module lives under protected/modules/<id>.
+      - name: Checkout HumHub
+        uses: actions/checkout@v4
+        with:
+          repository: humhub/humhub
+          ref: develop
+
+      - name: Checkout module
+        uses: actions/checkout@v4
+        with:
+          path: protected/modules/cfiles
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install core dependencies
+        run: npm ci
+
+      - name: Install module dependencies
+        working-directory: protected/modules/cfiles
+        run: npm ci
+
+      - name: Run the module's JS tests
+        working-directory: protected/modules/cfiles
+        run: npm test
+
+      # The compiled artifact is committed (see docs/develop/ui-js-vuejs.md in core), so a
+      # change to vue/ without a rebuild would ship stale JS. Rebuild and check nothing moved.
+      - name: Check the committed artifact is up to date
+        run: |
+          node vue.build.mjs --module protected/modules/cfiles
+          git -C protected/modules/cfiles diff --exit-code -- resources/js \
+            || { echo "::error::resources/js is stale - run the Vue build and commit the result"; exit 1; }

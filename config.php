@@ -2,31 +2,47 @@
 
 use humhub\commands\IntegrityController;
 use humhub\modules\cfiles\components\UrlRule;
-use humhub\modules\content\components\ContentContainerActiveRecord;
-use humhub\modules\content\models\ContentContainerModuleState;
 use humhub\modules\file\controllers\FileController;
 use humhub\modules\file\models\File;
 use humhub\modules\space\widgets\Menu;
-use humhub\modules\space\models\Space;
 use humhub\modules\user\widgets\ProfileMenu;
+use humhub\widgets\TopMenu;
 
 return [
     'id' => 'cfiles',
     'class' => 'humhub\modules\cfiles\Module',
     'namespace' => 'humhub\modules\cfiles',
     'urlManagerRules' => [
+        // Pretty, cache-busting download URLs — see components\UrlRule.
         ['class' => UrlRule::class],
+        // The global files page, across the spaces of the user (off unless the admin enables it).
+        ['pattern' => 'files', 'route' => 'cfiles/global/index'],
+        // The module's only JSON surface (see docs/develop/concept-api.md in core). The Vue
+        // file browser is built entirely on these endpoints.
+        //
+        // Reading and adding are addressed as a container plus an optional `parent`
+        // folder: the top level has no folder record, so a folder id alone cannot name
+        // every level of a tree.
+        // The global files page's listing, across the spaces of the user; inside a space it
+        // lists with the container's endpoint below.
+        ['pattern' => 'api/v2/cfiles/items', 'route' => 'cfiles/api/global/items', 'verb' => ['GET', 'HEAD']],
+        ['pattern' => 'api/v2/cfiles/<containerId:\d+>/items', 'route' => 'cfiles/api/folder/items', 'verb' => ['GET', 'HEAD']],
+        ['pattern' => 'api/v2/cfiles/<containerId:\d+>/folders', 'route' => 'cfiles/api/folder/create', 'verb' => 'POST'],
+        ['pattern' => 'api/v2/cfiles/<containerId:\d+>/files', 'route' => 'cfiles/api/folder/upload', 'verb' => 'POST'],
+        // Changing something that exists addresses it by its own id.
+        ['pattern' => 'api/v2/cfiles/folder/<id:\d+>', 'route' => 'cfiles/api/folder/update', 'verb' => 'PATCH'],
+        ['pattern' => 'api/v2/cfiles/file/<id:\d+>', 'route' => 'cfiles/api/file/update', 'verb' => 'PATCH'],
+        ['pattern' => 'api/v2/cfiles/items/move', 'route' => 'cfiles/api/item/move', 'verb' => 'POST'],
+        ['pattern' => 'api/v2/cfiles/items/delete', 'route' => 'cfiles/api/item/delete', 'verb' => 'POST'],
+        // The caller's own browser preferences (the view), not tied to a container.
+        ['pattern' => 'api/v2/cfiles/preferences', 'route' => 'cfiles/api/preferences/update', 'verb' => 'PATCH'],
     ],
     'events' => [
         [Menu::class, Menu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onSpaceMenuInit']],
         [ProfileMenu::class, ProfileMenu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onProfileMenuInit']],
+        [TopMenu::class, TopMenu::EVENT_INIT, ['humhub\modules\cfiles\Events', 'onTopMenuInit']],
         [IntegrityController::class, IntegrityController::EVENT_ON_RUN, ['humhub\modules\cfiles\Events', 'onIntegrityCheck']],
         [FileController::class, FileController::EVENT_AFTER_ACTION, ['humhub\modules\cfiles\Events', 'onAfterFileAction']],
         [File::class, File::EVENT_AFTER_NEW_STORED_FILE, ['humhub\modules\cfiles\Events', 'onAfterNewStoredFile']],
-        [ContentContainerActiveRecord::class, ContentContainerActiveRecord::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerActiveRecordInsert']],
-        [ContentContainerModuleState::class, ContentContainerModuleState::EVENT_AFTER_INSERT, ['humhub\modules\cfiles\Events', 'onContentContainerModuleStateInsert']],
-        [Space::class, Space::EVENT_AFTER_UPDATE, ['humhub\modules\cfiles\Events', 'onSpaceAfterUpdate']],
-        ['humhub\modules\rest\Module', 'restApiAddRules', ['humhub\modules\cfiles\Events', 'onRestApiAddRules']],
-        ['humhub\modules\custom_pages\modules\template\services\ElementTypeService', 'init', ['humhub\modules\cfiles\Events', 'onCustomPagesTemplateElementTypeServiceInit']],
     ],
 ];

@@ -1,189 +1,343 @@
-#cfiles-folderView a:not(:hover) {
+/*
+ * The file browser, after the design system v2. The page toolbar, filter bar, view switch, path
+ * bar, tile grid, selection menu and drop zone come from the core's item browser kit
+ * (`_page-toolbar.scss`, `_item-browser.scss`); this is only what is cfiles' own: the lower
+ * card, what goes into a tile, the list view's rows and the move dialog's tree.
+ *
+ * Every colour is a theme variable (the folder yellow aside, which is the design's own and
+ * reads on both), so a dark theme needs nothing but the card's shadow.
+ */
+
+.cfiles-browser {
+    --cfiles-folder-color: #ffcc00;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+}
+
+/* The lower card - path and items - looks like the page toolbar card above it. The kit declares
+   its tokens on its own roots, not on `:root`, and this card is none of them (it is the drop
+   zone's root), so it declares the page toolbar's shadow token itself - with the same values,
+   for both colour modes. */
+.cfiles-browser__card {
+    --hh-surface-shadow: 0 0 4px 1px rgba(150, 150, 150, 0.16);
+
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--hh-background-color-main);
+    box-shadow: var(--hh-surface-shadow);
+}
+
+[data-bs-theme="dark"] .cfiles-browser__card {
+    --hh-surface-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.48);
+}
+
+/* --- result lists --------------------------------------------------------------- */
+
+/* How many hits there are and where: a quiet line under the path bar, in its inset. */
+.cfiles-results {
+    margin: 0;
+    padding: 4px 8px 0;
+    font-size: 12px;
+}
+
+/* Where a hit lies ("in Brand › Logos"): a link in the meta line's own colour, accented on
+   hover like the names. */
+.cfiles-location {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.cfiles-location:hover,
+.cfiles-location:focus-visible {
+    color: var(--bs-accent);
+    text-decoration: underline;
+}
+
+/* Over several spaces (the global files page) the line links its space and its folders on
+   their own ("in Marketing › Brand › Logos"): each part is a link like the one above. */
+.cfiles-location--split:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cfiles-location__space,
+.cfiles-location__folder {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.cfiles-location__space:hover,
+.cfiles-location__space:focus-visible,
+.cfiles-location__folder:hover,
+.cfiles-location__folder:focus-visible {
+    color: var(--bs-accent);
+    text-decoration: underline;
+}
+
+/* A tile's second meta line, cut like the first. The kit stretches the name link over the
+   whole tile (its `::after`, z-index 1); this link sits above it, on the check's and the
+   actions' layer, or it could not be clicked. */
+.cfiles-tile__location {
+    position: relative;
+    z-index: 2;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- tiles: what goes into the kit's 100px thumb ---------------------------- */
+
+.cfiles-tile__folder {
+    display: block;
+    color: var(--cfiles-folder-color);
+    font-size: 100px;
+    line-height: 1;
+}
+
+/* A space of the global files page: the folder glyph with the space's image as a badge at its
+   bottom right, ringed in the card's colour so it stands off the yellow in either mode. */
+.cfiles-tile__space {
+    position: relative;
+    display: block;
+    line-height: 1;
+}
+
+.cfiles-tile__badge {
+    position: absolute;
+    right: 8px;
+    bottom: 16px;
+    display: block;
+    line-height: 0;
+}
+
+.cfiles-tile__badge > .space-acronym,
+.cfiles-tile__badge > img {
+    box-shadow: 0 0 0 2px var(--hh-background-color-main);
+    font-size: 10px;
+    line-height: 1;
+}
+
+.cfiles-tile__doc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 96px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    background: var(--hh-background-color-main);
+    color: var(--hh-text-color-secondary);
+    font-size: 36px;
+}
+
+.cfiles-tile__image {
+    display: block;
+    width: 100%;
+    max-width: 136px;
+    height: 100%;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+/* --- list rows ---------------------------------------------------------------- */
+
+/* The rows keep `.hh-list` for its `h4`/`h5` typography, but take the tile grid's look
+   instead of the stream list's: no dividers and no accent border, a rounded row that tints on
+   hover, selection and as a drop target - the same tokens `_item-browser.scss` gives a tile.
+   `.hh-list.cfiles-list` outweighs `.hh-list > div:not(.stream-end)`. The inset matches the
+   tile grid's, so the rows line up under the path bar as the tiles do. */
+.hh-list.cfiles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+}
+
+.hh-list.cfiles-list > .cfiles-row {
+    padding: 8px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s, opacity 0.3s;
+}
+
+.hh-list.cfiles-list > .cfiles-row:hover {
+    border: 0;
+    background: var(--bs-secondary-bg);
+}
+
+.hh-list.cfiles-list > .cfiles-row.is-selected {
+    background: rgba(var(--bs-accent-rgb), 0.1);
+}
+
+.hh-list.cfiles-list > .cfiles-row.is-drop-target {
+    background: rgba(var(--bs-accent-rgb), 0.1);
+    box-shadow: inset 0 0 0 1px var(--bs-accent);
+}
+
+.hh-list.cfiles-list > .cfiles-row.is-uploading {
+    cursor: default;
+    opacity: 0.6;
+}
+
+/* The title reads like a tile's name: strong, and accented while the row is hovered. */
+.hh-list.cfiles-list > .cfiles-row h4 > a {
     color: var(--hh-text-color-highlight);
+    text-decoration: none;
+    transition: color 0.3s;
 }
 
-.overflow-ellipsis {
-  position: relative;
-  overflow: hidden;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cfiles-content .breadcrumb {
-  border-radius: 0;
-  margin: 0;
+.hh-list.cfiles-list > .cfiles-row:hover h4 > a {
+    color: var(--bs-accent);
 }
 
-.cfiles-content .file-controls {
-  font-size: 11px;
-  color: var(--hh-text-color-soft2);
-  margin-top: 10px;
-  margin-bottom: 0;
-}
-.cfiles-content .file-controls a {
-  font-size: 11px;
-  color: var(--hh-text-color-soft2);
-  margin-top: 10px;
-  margin-bottom: 0;
-}
-.fileinput-button input {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 0;
-  opacity: 0;
-  -ms-filter: 'alpha(opacity=0)';
-  font-size: 200px;
-  direction: ltr;
-  cursor: pointer;
+.hh-list.cfiles-list > .cfiles-row .cfiles-row-meta {
+    margin: 2px 0 0;
+    min-height: 0;
+    color: var(--hh-text-color-secondary);
+    font-size: 12px;
+    font-weight: 400;
 }
 
-.panel .panel-body .files-action-menu .btn {
-  font-size: 1em !important;
-  font-weight: normal !important;
-}
-.panel .panel-body .files-action-menu .btn-group .split-toggle {
-  width: auto !important;
-  float: right !important;
-  border-radius: 0px 3px 3px 0px;
-}
-.panel .panel-body .files-action-menu .btn-group .split-toggle:not(:first-child):not(:last-child):not(.dropdown-toggle) {
-  border-radius: 0px 3px 3px 0px;
-}
-.panel .panel-body .files-action-menu .btn-group > .split-button {
-  width: auto !important;
-  overflow: hidden;
-  display: block;
-  float: none !important;
-  border-radius: 3px 0px 0px 3px;
+/* A topic of the item, after the meta line: its colour dot and name, as the Topic filter's chips. */
+.cfiles-row-topic {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    white-space: nowrap;
 }
 
-.filedelete-button {
-  cursor: pointer;
-}
-.filemove-button {
-  cursor: pointer;
-}
-.downloadzipped-button {
-  cursor: pointer;
-}
-.table-responsive td .title,
-.table-responsive td .timestamp,
-.table-responsive td .creator,
-.table-responsive td .size {
-  overflow: hidden;
-  -ms-text-overflow: ellipsis;
-  -o-text-overflow: ellipsis;
-  text-overflow: ellipsis;
-  display: block;
-  white-space: nowrap;
-}
-.table-responsive > table > tbody > tr > td {
-  vertical-align: middle;
-}
-.table-responsive .table .file-controls {
-  font-size: 11px;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.table-responsive .table .file-controls a {
-  font-size: 11px;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.table-responsive .table .file-controls hr {
-  margin-top: 2px;
-  margin-bottom: 2px;
+.cfiles-row-topic__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--hh-text-color-secondary);
 }
 
-#fileList .table-responsive {
-  overflow: initial;
-  border: none;
+/* An upload has no checkbox yet; where the other rows have one, it keeps their icon column. */
+.hh-list.cfiles-list:has(.cfiles-row-select) > .cfiles-row.is-uploading {
+    padding-left: calc(8px + 18px + 0.5rem); /* padding, the themed 18px box, `gap-2` */
 }
 
-#bs-table.table .file-actions {
-  padding-left: 0;
-  padding-right: 2px;
-  width: 0;
+/* In the accent, on the accent's own track - the colours the tile's progress frame uses. */
+.cfiles-row__progress {
+    --bs-progress-bg: rgba(var(--bs-accent-rgb), 0.2);
+    --bs-progress-bar-bg: var(--bs-accent);
+
+    height: 4px;
+    margin-top: 6px;
 }
 
-@media (min-width: 418px) {
-  #bs-table.table tr .context-icon {
-    display: none;
-  }
-  #bs-table.table tr:hover .context-icon {
-    display: inline-block;
-  }
+.cfiles-row-select,
+.cfiles-row-creator,
+.cfiles-row-controls {
+    flex: 0 0 auto;
 }
 
-#bs-table.table>thead>tr>th,
-#bs-table.table>tbody>tr>th,
-#bs-table.table>tfoot>tr>th,
-#bs-table.table>thead>tr>td,
-#bs-table.table>tbody>tr>td,
-#bs-table.table>tfoot>tr>td {
-  padding: 10px 5px 5px 5px;
-  height: 45px;
+.cfiles-row-select > .form-check-input {
+    margin: 0;
 }
 
-#bs-table.table>thead>tr>th label,
-#bs-table.table>tbody>tr>th label,
-#bs-table.table>tfoot>tr>th label,
-#bs-table.table>thead>tr>td label,
-#bs-table.table>tbody>tr>td label,
-#bs-table.table>tfoot>tr>td label {
-  margin-bottom: 0px;
+.cfiles-row-icon {
+    display: flex;
+    flex: 0 0 32px;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
 }
 
-#bs-table.table ul.contextMenu li a {
-  font-size: 14px;
-  font-weight: normal;
+.cfiles-icon-folder {
+    color: var(--cfiles-folder-color);
 }
 
-#bs-table.table tr.ui-draggable-dragging {
-  z-index: 10000;
+.cfiles-icon-file {
+    color: var(--hh-text-color-secondary);
 }
 
-#fileList [data-ui-sort] {
-  font-weight:bold;
-  cursor: pointer;
+.cfiles-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    object-fit: cover;
 }
 
-#fileList [data-ui-order="ASC"]:after {
-  content: "\25bc";
+/* Bootstrap has no `min-width: 0` utility, and without it a flex child's text refuses to
+   truncate - the row would grow instead of ellipsizing. */
+.min-width-0 {
+    min-width: 0;
 }
 
-#fileList [data-ui-order="DESC"]:after {
-  content: "\25b2";
+/* The platform's own like link, at the size the stream gives its own entry controls
+   (`_stream.scss`: 11px, `--hh-text-color-soft`) - a file row is not the place where it
+   should shout. */
+.cfiles-row-social {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 11px;
 }
 
+.cfiles-row-social a {
+    color: var(--hh-text-color-soft);
+    transition: color 0.3s;
+}
 
-.table-responsive td .title {
-  position: absolute;
-  width: 100%;
-  top: -10px;
+/* A narrow screen has no room for it next to the name, which is what a file browser is
+   actually for. */
+@media (max-width: 767px) {
+    .cfiles-row-social {
+        display: none;
+    }
 }
-@media (min-width: 420px) {
-  .table-responsive td:nth-child(2) {
-    width: 25%;
-    max-width: 25%;
-  }
+
+/* The row menu is the platform's standard content-controls menu, so it keeps `DropdownMenu`'s
+   default `.nav-pills.preferences` root and looks like every other one. `_nav.scss` pins that
+   root `absolute` to a stream entry's corner, though; a row wants it in the flex flow. */
+.cfiles-row-controls .nav-pills.preferences {
+    position: static;
+    margin: 0;
 }
+
+/* The meatball appears on hover on the desktop and stays put on touch, where there is no
+   hover to reveal it. `:not(.show)` keeps an OPEN menu's toggle visible once the pointer
+   leaves the row - the same guard _comment.scss uses for the comment entry. */
 @media (min-width: 768px) {
-  .table-responsive td:nth-child(2) {
-    width: 30%;
-    max-width: 30%;
-  }
+    .cfiles-row .cfiles-row-toggle:not(.show) {
+        visibility: hidden;
+    }
+
+    .cfiles-row:hover .cfiles-row-toggle,
+    .cfiles-row:focus-within .cfiles-row-toggle {
+        visibility: visible;
+    }
 }
-@media (min-width: 992px) {
-  .table-responsive td:nth-child(2) {
-    width: 35%;
-    max-width: 35%;
-  }
+
+@media (prefers-reduced-motion: reduce) {
+    .hh-list.cfiles-list > .cfiles-row,
+    .hh-list.cfiles-list > .cfiles-row h4 > a {
+        transition: none;
+    }
 }
-@media (min-width: 1200px) {
-  .table-responsive td:nth-child(2) {
-    width: 40%;
-    max-width: 40%;
-  }
+
+/* --- move dialog tree ------------------------------------------------------------ */
+
+.cfiles-move-tree {
+    max-height: 40vh;
+    overflow-y: auto;
+    border: 1px solid var(--hh-background-color-page);
+    border-radius: 4px;
+}
+
+.cfiles-move-tree > div {
+    cursor: pointer;
 }

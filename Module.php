@@ -3,11 +3,11 @@
 namespace humhub\modules\cfiles;
 
 use humhub\modules\cfiles\models\ConfigureContainerForm;
-use humhub\modules\cfiles\models\rows\FileSystemItemRow;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentContainerModule;
 use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\File;
 use Yii;
@@ -16,28 +16,29 @@ use yii\helpers\Url;
 class Module extends ContentContainerModule
 {
     /**
-     * @var int Files uploaded into the same folder by the same user are announced by a single
-     *      notification, once no further file was uploaded for this many minutes.
-     *      0 announces every upload request on its own.
-     *
-     * @see \humhub\modules\cfiles\libs\FileUploadBatch
-     * @since 0.19
+     * @var int no effect: the core groups the new-content notifications of several uploaded files
+     *      into one entry now. Kept so that a module configuration setting it does not fail with an
+     *      unknown property.
+     * @deprecated since 1.0.0 the core groups the upload notifications, the setting has no effect
      */
     public int $uploadNotificationDelay = 10;
 
     /**
-     * @var string sort name as 'name', 'size', 'updated_at'
-     * @see FileSystemItemRow::ORDER_MAPPING
+     * @var string the column a folder listing is ordered by without a chosen sort (`default`),
+     *      one of the keys of {@see \humhub\modules\cfiles\components\FolderList::SORT_COLUMNS}.
      */
-    public $defaultSort = FileSystemItemRow::ORDER_TYPE_NAME;
+    public $defaultSort = 'name';
+
+    /**
+     * @var int SORT_ASC or SORT_DESC
+     */
     public $defaultOrder = SORT_ASC;
 
     /**
-     * @var string sort name as 'name', 'size', 'updated_at'
-     * @see FileSystemItemRow::ORDER_MAPPING
+     * @var string how a folder listing is displayed, one of
+     *      {@see \humhub\modules\cfiles\services\FolderListingService::VIEWS}.
      */
-    public $defaultPostedFilesSort = FileSystemItemRow::ORDER_TYPE_UPDATED_AT;
-    public $defaultPostedFilesOrder = SORT_ASC;
+    public $defaultView = 'list';
 
     /**
      * @inheritdoc
@@ -78,13 +79,9 @@ class Module extends ContentContainerModule
      */
     public function disable()
     {
-        foreach (Folder::find()->all() as $folder) {
-            $folder->hardDelete();
-        }
-        foreach (File::find()->all() as $file) {
-            $file->hardDelete();
-        }
-        parent::disable();
+        $this->deleteAll(Folder::find()->all(), File::find()->all());
+
+        return parent::disable();
     }
 
     /**
@@ -92,13 +89,31 @@ class Module extends ContentContainerModule
      */
     public function disableContentContainer(ContentContainerActiveRecord $container)
     {
-        foreach (Folder::find()->contentContainer($container)->all() as $folder) {
-            $folder->hardDelete();
-        }
-        foreach (File::find()->contentContainer($container)->all() as $file) {
-            $file->hardDelete();
-        }
+        $this->deleteAll(
+            Folder::find()->contentContainer($container)->all(),
+            File::find()->contentContainer($container)->all(),
+        );
+
         parent::disableContentContainer($container);
+    }
+
+    /**
+     * Removes the given trees for good.
+     *
+     * Folders first: deleting one cascades into its children, so most files are gone before
+     * the file pass runs, and the pass only has to catch what a broken parent chain left
+     * behind.
+     *
+     * @param FileSystemItem[] $folders
+     * @param FileSystemItem[] $files
+     */
+    private function deleteAll(array $folders, array $files): void
+    {
+        foreach (array_merge($folders, $files) as $item) {
+            if ($item->getIsNewRecord() === false) {
+                $item->hardDelete();
+            }
+        }
     }
 
     /**
@@ -116,9 +131,9 @@ class Module extends ContentContainerModule
     {
         if ($container instanceof Space) {
             return Yii::t('CfilesModule.base', 'Adds files module to this space.');
-        } elseif ($container instanceof User) {
-            return Yii::t('CfilesModule.base', 'Adds files module to your profile.');
         }
+
+        return Yii::t('CfilesModule.base', 'Adds files module to your profile.');
     }
 
     public function getContentContainerConfigUrl(ContentContainerActiveRecord $container)
@@ -135,16 +150,6 @@ class Module extends ContentContainerModule
     }
 
     /**
-     * Determines ZIP Support is enabled or not
-     *
-     * @return bool is ZIP support enabled
-     */
-    public function isZipSupportEnabled(): bool
-    {
-        return !$this->settings->get('disableZipSupport', false);
-    }
-
-    /**
      * Determines a download count column is visible or not
      *
      * @return bool
@@ -152,6 +157,14 @@ class Module extends ContentContainerModule
     public function getDisplayDownloadCount(): bool
     {
         return $this->settings->get('displayDownloadCount', false);
+    }
+
+    /**
+     * Whether the global files page `/files` and its main navigation entry are available.
+     */
+    public function getShowGlobalMenuItem(): bool
+    {
+        return $this->settings->get('showGlobalMenuItem', false);
     }
 
     public function getContentHiddenGlobalDefault(): bool

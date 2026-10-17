@@ -1,41 +1,37 @@
 <?php
 
-use humhub\modules\cfiles\widgets\FolderView;
-use yii\helpers\Html;
+use humhub\modules\cfiles\assets\CfilesVueAsset;
+use humhub\widgets\VueComponent;
 
+/* @var $this humhub\components\View */
+/* @var $contentContainer humhub\modules\content\components\ContentContainerActiveRecord */
 /* @var $folder humhub\modules\cfiles\models\Folder */
-/* @var $contentContainer humhub\components\View */
-/* @var $canWrite boolean */
+/* @var $listing array the first page, embedded so the island paints without a request */
+/* @var $canWrite bool */
+/* @var $editItem string|null */
+/* @var $createHandlersHtml string */
+/* @var $filters array the `FilterBar` definitions ({@see \humhub\modules\cfiles\components\FolderList::definitions()}) */
+/* @var $initialFilters array<string, string> the filter values the first page was built with, from the page URL */
+/* @var $settingsUrl string|null the container's cfiles settings page, or null for those who may not change them */
 
-$bundle = \humhub\modules\cfiles\assets\Assets::register($this);
-
-$this->registerJsConfig('cfiles', [
-    'text' => [
-        'confirm.delete' => Yii::t('CfilesModule.base', 'Do you really want to delete this {number} item(s) with all subcontent?'),
-        'confirm.delete.header' => Yii::t('CfilesModule.base', '<strong>Confirm</strong> delete file'),
-        'confirm.delete.confirmText' => Yii::t('CfilesModule.base', 'Delete')
-    ],
-    'showUrlModal' => [
-        'head' => Yii::t('CfilesModule.base', '<strong>File</strong> url'),
-        'headFile' => Yii::t('CfilesModule.base', '<strong>File</strong> download url'),
-        'headFolder' => Yii::t('CfilesModule.base', '<strong>Folder</strong> url'),
-        'info' => Yii::t('base', 'Copy to clipboard'),
-        'buttonClose' => Yii::t('base', 'Close'),
-    ],
-    'reloadEntryUrl' => $contentContainer->createUrl('/cfiles/browse/load-entry'),
-]);
 ?>
-
-<?= Html::beginForm(null, 'post', ['data-bs-target' => '#globalModal', 'id' => 'cfiles-form']); ?>
-    <div id="cfiles-container" class="panel panel-default cfiles-content">
-
-        <div class="panel-body">
-
-            <?=  FolderView::widget([
-                'contentContainer' => $contentContainer,
-                'folder' => $folder
-            ])?>
-
-        </div>
-    </div>
-<?= Html::endForm(); ?>
+<?= VueComponent::widget([
+    'name' => 'CfilesFileBrowser',
+    'assetBundle' => CfilesVueAsset::class,
+    'options' => [
+        'id' => 'cfiles-container',
+        // A custom element is inline by default.
+        'class' => 'cfiles-content d-block',
+    ],
+    'props' => [
+        'listing' => $listing,
+        'canWrite' => $canWrite,
+        'browseUrl' => $contentContainer->createUrl('/cfiles/browse/index'),
+        'contentContainerId' => $contentContainer->contentcontainer_id,
+        'editKey' => $editItem,
+        'createHandlersHtml' => $createHandlersHtml,
+        'filters' => $filters,
+        'initialFilters' => $initialFilters,
+        'settingsUrl' => $settingsUrl,
+    ],
+]) ?>

@@ -13,19 +13,20 @@ use humhub\modules\cfiles\Module;
  */
 class ConfigureForm extends \yii\base\Model
 {
-    public $disableZipSupport;
     public $displayDownloadCount;
 
     public $contentHiddenDefault;
+
+    public $showGlobalMenuItem;
 
     public function init()
     {
         parent::init();
 
         $module = $this->getModule();
-        $this->disableZipSupport = !$module->isZipSupportEnabled();
         $this->displayDownloadCount = $module->getDisplayDownloadCount();
         $this->contentHiddenDefault = $module->getContentHiddenGlobalDefault();
+        $this->showGlobalMenuItem = $module->getShowGlobalMenuItem();
     }
 
     /**
@@ -42,7 +43,7 @@ class ConfigureForm extends \yii\base\Model
     public function rules()
     {
         return [
-            [['disableZipSupport', 'displayDownloadCount', 'contentHiddenDefault'], 'boolean'],
+            [['displayDownloadCount', 'contentHiddenDefault', 'showGlobalMenuItem'], 'boolean'],
         ];
     }
 
@@ -52,8 +53,8 @@ class ConfigureForm extends \yii\base\Model
     public function attributeLabels()
     {
         return [
-            'disableZipSupport' => Yii::t('CfilesModule.base', 'Disable archive (ZIP) support'),
             'displayDownloadCount' => Yii::t('CfilesModule.base', 'Display a download count column'),
+            'showGlobalMenuItem' => Yii::t('CfilesModule.base', 'Add entry to main navigation'),
         ];
     }
 
@@ -64,9 +65,9 @@ class ConfigureForm extends \yii\base\Model
         }
 
         $module = $this->getModule();
-        $module->settings->set('disableZipSupport', $this->disableZipSupport);
         $module->settings->set('displayDownloadCount', $this->displayDownloadCount);
         $module->settings->set('contentHiddenGlobalDefault', $this->contentHiddenDefault);
+        $module->settings->set('showGlobalMenuItem', $this->showGlobalMenuItem);
 
         return true;
     }

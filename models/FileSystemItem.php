@@ -8,28 +8,53 @@ use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\content\models\Content;
+use humhub\modules\topic\models\Topic;
 use Yii;
 
 /**
- * This is the model class for table "cfiles_file".
+ * What a cfiles file and a cfiles folder have in common: a row with a parent, wrapped in a
+ * HumHub content record.
+ *
+ * Deliberately thin. Everything that is BEHAVIOUR around the tree — creating items, moving
+ * them, resolving name collisions, propagating visibility, managing the root — lives in
+ * `services\`, so what remains here is persistence and the content integration the platform
+ * requires.
  *
  * @property int $id
  * @property int $parent_folder_id
- * @property string description
+ * @property string $description
  *
  * @property-read Folder|null $parentFolder
  */
-abstract class FileSystemItem extends ContentActiveRecord implements ItemInterface
+abstract class FileSystemItem extends ContentActiveRecord
 {
     /**
-     * @var int used for edit form
+     * @var ?int whether the item is hidden from the stream.
+     *
+     * Not a column either: synced from the content record in {@see self::afterFind()},
+     * defaulted from the module setting on insert in {@see self::beforeSave()}, and written
+     * back in {@see self::afterSave()}.
+     */
+    public $hidden = null;
+
+    /**
+     * @var int|null the requested content visibility.
+     *
+     * Not a column: {@see Folder::beforeSave()} and {@see File::afterSave()} apply it to the
+     * content record, recursively for a folder. A write leaves it null to keep the current
+     * visibility.
      */
     public $visibility;
 
     /**
-     * @var ?int used for edit form
+     * @var array|null the topics to give the item: topics or topic ids, `[]` for none, as
+     *      {@see Topic::attach()} takes them.
+     *
+     * Not a column: {@see self::afterSave()} sets the content's topics to them. A write leaves
+     * it null to keep the current ones — also the save of a parent folder every write inside
+     * it does. The API validates the ids first (`BaseController::topicsParam()`).
      */
-    public $hidden = null;
+    public $topics;
 
     /**
      * @inheritdoc
@@ -57,34 +82,17 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         ];
     }
 
-    abstract public function updateVisibility($visibility);
-
     abstract public function getSize();
 
-    abstract public function getItemType();
-
-    abstract public function getDescription();
-
-    abstract public function getDownloadCount();
-
-    abstract public function getVisibilityTitle();
+    /**
+     * @return string the item's display name — a folder's title, a file's file name.
+     */
+    abstract public function getTitle();
 
     /**
-     * @return string
+     * @return string the item's own URL, or the folder URL a file lives in
      */
-    abstract public function getVersionsUrl(int $versionId = 0): ?string;
-
-    /**
-     * @return string
-     */
-    abstract public function getDeleteVersionUrl(int $versionId): ?string;
-
-    /**
-     * Rename a conflicted Item with same name
-     *
-     * @return bool
-     */
-    abstract public function renameConflicted(): bool;
+    abstract public function getUrl(bool $scheme = false);
 
     /**
      * @inheritdoc
@@ -94,7 +102,6 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         return [
             'visibility' => Yii::t('CfilesModule.base', 'Is Public'),
             'hidden' => Yii::t('CfilesModule.base', 'Hide in Stream'),
-            'download_count' => Yii::t('CfilesModule.base', 'Downloads'),
         ];
     }
 
@@ -145,6 +152,12 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
         }
 
         parent::afterSave($insert, $changedAttributes);
+
+        // After the content record is saved: a new item's content exists only now.
+        if ($this->topics !== null) {
+            Topic::attach($this->content, $this->topics);
+            $this->topics = null;
+        }
     }
 
     /**
@@ -169,44 +182,17 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     public function afterMove(?ContentContainerActiveRecord $container = null)
     {
         parent::afterMove($container);
-        $this->updateParentFolder();
-    }
 
-    /**
-     * Update parent Folder if it is from different Content Container(Space/User)
-     * This File/Folder will be moved into the root Folder of the current Content Container
-     *
-     * @param ContentContainerActiveRecord $container
-     * @return bool True on success moving or if parent Folder is already in the same Content Container
-     */
-    public function updateParentFolder(): bool
-    {
         $parentFolder = Folder::findOne(['id' => $this->parent_folder_id]);
-        if ($parentFolder && $parentFolder->content->contentcontainer_id == $this->content->contentcontainer_id) {
-            return true;
+
+        if ($parentFolder && $parentFolder->content->contentcontainer_id === $this->content->contentcontainer_id) {
+            return;
         }
 
-        if (!($root = Folder::getOrInitRoot($this->content->getContainer()))) {
-            return false;
-        }
-
-        $this->parent_folder_id = $root->id;
-        return $this->save();
-    }
-
-    public function hasAttributeChanged($attributeName)
-    {
-        return $this->hasAttribute($attributeName) && ($this->isNewRecord || $this->getOldAttribute($attributeName) != $this->$attributeName);
-    }
-
-    public function is(FileSystemItem $item)
-    {
-        return $this->getItemId() === $item->getItemId();
-    }
-
-    public function hasParent(FileSystemItem $folder)
-    {
-        return $folder instanceof Folder && $folder->id === $this->parent_folder_id;
+        // The parent stayed behind in the old container, so this lands at the top level of the
+        // new one — which is simply a null parent.
+        $this->parent_folder_id = null;
+        $this->save();
     }
 
     /**
@@ -221,100 +207,17 @@ abstract class FileSystemItem extends ContentActiveRecord implements ItemInterfa
     }
 
     /**
-     * @inheritdoc
-     */
-    public function getWallUrl()
-    {
-        return $this->getUrl();
-    }
-
-    /**
-     * Returns the base content
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getBaseContent()
-    {
-        $query = $this->hasOne(\humhub\modules\content\models\Content::className(), ['object_id' => 'id']);
-        $query->andWhere(['file.object_model' => self::className()]);
-        return $query;
-    }
-
-    /**
      * Check if a parent folder is valid or lies in itsself, etc.
      *
      * @param string $attribute the parent folder attribute to validate
      */
     public function validateParentFolderId($attribute = 'parent_folder_id')
     {
-        if ($this->parent_folder_id != 0 && (!($this->parentFolder instanceof Folder)
+        // A null parent is the container's top level, and valid. A parent folder must be in the item's own container.
+        if ($this->parent_folder_id !== null && (!($this->parentFolder instanceof Folder)
             || $this->parentFolder->content->contentcontainer_id != $this->content->contentcontainer_id)) {
-            $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->title]));
+            $this->addError($attribute, Yii::t('CfilesModule.base', 'Please select a valid destination folder for %title%.', ['%title%' => $this->getTitle()]));
         }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getCreator()
-    {
-        return $this->content->createdBy;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getEditor()
-    {
-        return $this->content->updatedBy;
-    }
-
-    /**
-     * Determines this item is an editable folder.
-     *
-     * @param \humhub\modules\cfiles\models\FileSystemItem $item
-     * @return bool
-     */
-    public function isEditableFolder()
-    {
-        // TODO: not that clean...
-        return ($this instanceof Folder) && !($this->isRoot() || $this->isAllPostedFiles());
-    }
-
-    /**
-     * Determines if this item is deletable. The root folder and posted files folder is not deletable.
-     * @return bool
-     */
-    public function isDeletable()
-    {
-        if ($this instanceof Folder) {
-            return !($this->isRoot() || $this->isAllPostedFiles());
-        }
-        return true;
-    }
-
-    /**
-     * Returns a FileSystemItem instance by the given item id of form {type}_{id}
-     *
-     * @param string $itemId item id of form {type}_{id}
-     * @return FileSystemItem
-     */
-    public static function getItemById($itemId)
-    {
-        $params = empty($itemId) ? [] : explode('_', $itemId);
-
-        if (count($params) < 2) {
-            return null;
-        }
-
-        [$type, $id] = $params;
-        if ($type == 'file') {
-            return File::find()->andWhere(['cfiles_file.id' => $id])->readable()->one();
-        } elseif ($type == 'folder') {
-            return Folder::find()->andWhere(['cfiles_folder.id' => $id])->readable()->one();
-        }
-
-        return null;
     }
 
     public function canManage(): bool

@@ -15,9 +15,10 @@ use humhub\widgets\form\ContentHiddenCheckbox;
     <div class="panel-body">
         <?php $form = ActiveForm::begin(['id' => 'configure-form']); ?>
 
-        <?= $form->field($model, 'disableZipSupport')->checkbox(); ?>
 
         <?= $form->field($model, 'displayDownloadCount')->checkbox(); ?>
+
+        <?= $form->field($model, 'showGlobalMenuItem')->checkbox(); ?>
 
         <?= $form->field($model, 'contentHiddenDefault')->widget(ContentHiddenCheckbox::class, [
             'type' => ContentHiddenCheckbox::TYPE_GLOBAL,

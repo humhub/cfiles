@@ -10,3 +10,7 @@ nbproject
 
 **/tests/codeception/_support/_generated/**
 **/tests/codeception/_output/**
+/.superpowers/
+/.php-cs-fixer.cache
+/node_modules/
+/docs/superpowers/
