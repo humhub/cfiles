@@ -2,7 +2,7 @@
     <div class="dropdown cfiles-add-menu">
         <button
             type="button"
-            class="btn btn-accent c-icon-button"
+            class="btn btn-accent btn-icon-only"
             data-bs-toggle="dropdown"
             aria-haspopup="true"
             aria-expanded="false"

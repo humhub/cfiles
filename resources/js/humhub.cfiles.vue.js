@@ -41,7 +41,7 @@
     return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$8, [
       vue$1.createElementVNode("button", {
         type: "button",
-        class: "btn btn-accent c-icon-button",
+        class: "btn btn-accent btn-icon-only",
         "data-bs-toggle": "dropdown",
         "aria-haspopup": "true",
         "aria-expanded": "false",
@@ -427,7 +427,7 @@
           suppress: $data.SUPPRESSED_CORE_ENTRIES,
           context: { item },
           "root-class": "nav",
-          "toggle-class": "btn c-icon-button c-icon-button--ghost cfiles-tile__toggle",
+          "toggle-class": "btn btn-ghost btn-icon-only cfiles-tile__toggle",
           "toggle-aria-label": $options.actionsLabel
         }, {
           toggle: vue$1.withCtx(() => [..._cache[8] || (_cache[8] = [
@@ -2271,14 +2271,14 @@
     const _component_ViewSwitch = vue$1.resolveComponent("ViewSwitch");
     const _component_AddMenu = vue$1.resolveComponent("AddMenu");
     const _component_FilterBar = vue$1.resolveComponent("FilterBar");
-    const _component_PageToolbar = vue$1.resolveComponent("PageToolbar");
+    const _component_PageHeader = vue$1.resolveComponent("PageHeader");
     const _component_SelectionMenu = vue$1.resolveComponent("SelectionMenu");
     const _component_PathBar = vue$1.resolveComponent("PathBar");
     const _component_CfilesItemForm = vue$1.resolveComponent("CfilesItemForm");
     const _component_UiModal = vue$1.resolveComponent("UiModal");
     const _component_MoveDialog = vue$1.resolveComponent("MoveDialog");
     return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$2, [
-      vue$1.createVNode(_component_PageToolbar, { title: $options.titleLabel }, {
+      vue$1.createVNode(_component_PageHeader, { title: $options.titleLabel }, {
         actions: vue$1.withCtx(() => [
           vue$1.createVNode(_component_ViewSwitch, {
             "model-value": $data.view,
@@ -2289,7 +2289,7 @@
           $props.settingsUrl ? (vue$1.openBlock(), vue$1.createElementBlock("a", {
             key: 0,
             href: $props.settingsUrl,
-            class: "btn btn-light c-icon-button",
+            class: "btn btn-light btn-icon-only",
             "aria-label": $options.settingsLabel,
             title: $options.settingsLabel
           }, [..._cache[15] || (_cache[15] = [
@@ -2317,7 +2317,7 @@
         ]),
         _: 1
       }, 8, ["title"]),
-      (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "cfiles-browser__card" }, $options.cardProps, vue$1.toHandlers($options.cardListeners)), {
+      (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "cfiles-browser__card card content-card" }, $options.cardProps, vue$1.toHandlers($options.cardListeners)), {
         default: vue$1.withCtx(() => [
           !$options.isGlobalTop ? (vue$1.openBlock(), vue$1.createBlock(_component_PathBar, {
             key: 0,

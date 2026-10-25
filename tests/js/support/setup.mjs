@@ -22,7 +22,7 @@ import DropdownMenu from '@core/vue/DropdownMenu.vue';
 import DropZone from '@core/vue/DropZone.vue';
 import FilterBar from '@core/vue/FilterBar.vue';
 import HumHubForm from '@core/vue/HumHubForm.vue';
-import PageToolbar from '@core/vue/PageToolbar.vue';
+import PageHeader from '@core/vue/PageHeader.vue';
 import PathBar from '@core/vue/PathBar.vue';
 import PickerFilterControl from '@core/vue/PickerFilterControl.vue';
 import ProgressFrame from '@core/vue/ProgressFrame.vue';
@@ -100,7 +100,7 @@ config.global.components = {
     // the core's Vue component registry, like the components above.
     DropZone,
     FilterBar,
-    PageToolbar,
+    PageHeader,
     PathBar,
     ProgressFrame,
     SelectionMenu,

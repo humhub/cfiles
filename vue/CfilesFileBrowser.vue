@@ -1,12 +1,12 @@
 <template>
     <div class="cfiles-browser">
-        <PageToolbar :title="titleLabel">
+        <PageHeader :title="titleLabel">
             <template #actions>
                 <ViewSwitch :model-value="view" :options="viewOptions" :label="viewLabel" @update:model-value="setView" />
                 <a
                     v-if="settingsUrl"
                     :href="settingsUrl"
-                    class="btn btn-light c-icon-button"
+                    class="btn btn-light btn-icon-only"
                     :aria-label="settingsLabel"
                     :title="settingsLabel"
                 ><i class="ti ti-settings" aria-hidden="true"></i></a>
@@ -28,12 +28,12 @@
                 id-prefix="cfiles-filter"
                 @update:model-value="onFilters"
             />
-        </PageToolbar>
+        </PageHeader>
 
         <!-- The global top level holds spaces, not files: nothing to upload into. -->
         <component
             :is="isGlobalTop ? 'div' : 'DropZone'"
-            class="cfiles-browser__card"
+            class="cfiles-browser__card card content-card"
             v-bind="cardProps"
             v-on="cardListeners"
         >
@@ -191,7 +191,7 @@
  *
  * ## Layout
  *
- * Built on the core's item-browser kit: a `PageToolbar` (title, `ViewSwitch`, the settings link,
+ * Built on the core's item-browser kit: a `PageHeader` (title, `ViewSwitch`, the settings link,
  * the `AddMenu`) with a `FilterBar` (the filters and the sort), and below it a `DropZone` card
  * holding the `PathBar` (with the `SelectionMenu` at its end) and the open level as `FileTiles`
  * or as an `ItemList`. Both views speak the same event vocabulary, so selection (Shift ranges

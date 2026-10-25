@@ -1,8 +1,9 @@
 /*
- * The file browser, after the design system v2. The page toolbar, filter bar, view switch, path
+ * The file browser, after the design system v2. The page header, filter bar, view switch, path
  * bar, tile grid, selection menu and drop zone come from the core's item browser kit
- * (`_page-toolbar.scss`, `_item-browser.scss`); this is only what is cfiles' own: the lower
- * card, what goes into a tile, the list view's rows and the move dialog's tree.
+ * (`_page-header.scss`, `_filter-bar.scss`, `_item-browser.scss`); this is only what is
+ * cfiles' own: the lower card, what goes into a tile, the list view's rows and the move dialog's
+ * tree.
  *
  * Every colour is a theme variable (the folder yellow aside, which is the design's own and
  * reads on both), so a dark theme needs nothing but the card's shadow.
@@ -19,21 +20,10 @@
     margin-inline: auto;
 }
 
-/* The lower card - path and items - looks like the page toolbar card above it. The kit declares
-   its tokens on its own roots, not on `:root`, and this card is none of them (it is the drop
-   zone's root), so it declares the page toolbar's shadow token itself - with the same values,
-   for both colour modes. */
+/* The lower card - path and items - is a core content card (`.card.content-card`, styled by
+   the core); it only keeps the narrower inset of the item browser. */
 .cfiles-browser__card {
-    --hh-surface-shadow: 0 0 4px 1px rgba(150, 150, 150, 0.16);
-
     padding: 8px;
-    border-radius: 8px;
-    background: var(--hh-background-color-main);
-    box-shadow: var(--hh-surface-shadow);
-}
-
-[data-bs-theme="dark"] .cfiles-browser__card {
-    --hh-surface-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.48);
 }
 
 /* --- result lists --------------------------------------------------------------- */
