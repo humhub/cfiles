@@ -3,7 +3,7 @@ Changelog
 
 0.19.2 (Unreleased)
 -------------------
-- Fix #295: Uploaded files created no activity since 0.19.0 and were missing from e-mail summaries
+- Fix #296: Uploaded files created no activity since 0.19.0 and were missing from e-mail summaries
 
 0.19.1 - October 13, 2026
 -------------------------
