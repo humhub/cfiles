@@ -46,7 +46,7 @@ class UploadAndMoveCest
         $I->click('.filemove-button', '.files-action-menu');
 
         $I->waitForText('Move files', 10, '#globalModal');
-        $I->click('[data-id="3"]');
+        $I->selectMoveTarget(3);
         $I->click('Save', '#globalModal');
         $I->seeError('Some files could not be moved: Folder NewFolder can\'t be moved to itself!');
 
