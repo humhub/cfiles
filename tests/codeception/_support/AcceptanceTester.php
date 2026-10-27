@@ -98,13 +98,14 @@ class AcceptanceTester extends \AcceptanceTester
     /**
      * Selects the target folder in the open "Move files" dialog.
      *
-     * The dialog preselects the current folder only after it has been shown. A click before that is
-     * overwritten, so the move ends with "Moving to the same folder is not valid".
+     * The dialog preselects the current folder, which can overwrite an early click, and slides in
+     * while the browser clicks at coordinates that are still moving. Both end with "Moving to the
+     * same folder is not valid", so the folder is clicked by JS once the preselection is in place.
      */
     public function selectMoveTarget(int $folderId)
     {
         $this->waitForJS("return $('#input-hidden-selectedFolder').val() !== '';", 10);
-        $this->click('[data-id="' . $folderId . '"]', '#globalModal');
+        $this->jsClick('#globalModal [data-id="' . $folderId . '"]');
         $this->waitForJS("return $('#input-hidden-selectedFolder').val() == " . $folderId . ";", 10);
     }
 
