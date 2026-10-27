@@ -8,12 +8,14 @@
 
 namespace humhub\modules\cfiles\tests\codeception\unit;
 
+use humhub\modules\activity\models\Activity;
 use humhub\modules\cfiles\jobs\SendFileUploadNotification;
 use humhub\modules\cfiles\libs\FileUploadBatch;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\notifications\FilesUploaded;
+use humhub\modules\content\activities\ContentCreatedActivity;
 use humhub\modules\content\notifications\ContentCreated;
 use humhub\modules\notification\models\Notification;
 use humhub\modules\queue\driver\Instant;
@@ -153,6 +155,19 @@ class FileUploadBatchTest extends HumHubDbTestCase
         }
 
         $this->assertSame(0, $this->countNotifications(), 'Nothing may be announced before the quiet period expired');
+    }
+
+    public function testEveryUploadedFileCreatesAContentCreatedActivity()
+    {
+        // Several files, each checked on its own: a single file would not reveal an activity
+        // created only for the first (or last) file of a batch
+        foreach ($this->upload(3) as $file) {
+            $count = Activity::find()
+                ->where(['class' => ContentCreatedActivity::class, 'content_id' => $file->content->id])
+                ->count();
+
+            $this->assertSame(1, (int)$count, 'The silent notification must not suppress the activity');
+        }
     }
 
     public function testUploadsAreCollectedInASingleBatch()
