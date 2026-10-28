@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.19.2 (Unreleased)
--------------------
+0.19.2 - October 28, 2026
+-------------------------
 - Fix #296: Uploaded files created no activity since 0.19.0 and were missing from e-mail summaries
 
 0.19.1 - October 13, 2026
