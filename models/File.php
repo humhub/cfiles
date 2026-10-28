@@ -2,10 +2,12 @@
 
 namespace humhub\modules\cfiles\models;
 
+use humhub\modules\activity\services\ActivityManager;
 use humhub\modules\cfiles\libs\FileUploadBatch;
 use humhub\modules\cfiles\libs\FileUtils;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\modules\content\activities\ContentCreatedActivity;
 use humhub\modules\content\models\Content;
 use humhub\modules\content\widgets\richtext\RichText;
 use humhub\modules\file\libs\FileHelper;
@@ -56,6 +58,9 @@ class File extends FileSystemItem
      *
      * Uploading a set of files would otherwise create one notification and one e-mail per
      * file. The whole upload is announced by a single FilesUploaded notification instead.
+     *
+     * Core mutes the ContentCreatedActivity together with the notification, so the activity
+     * is dispatched explicitly in [[afterSave()]].
      *
      * @see FileUploadBatch
      */
@@ -209,8 +214,24 @@ class File extends FileSystemItem
         RichText::postProcess($this->description, $this);
 
         if ($insert) {
+            $this->dispatchContentCreatedActivity();
             FileUploadBatch::add($this);
         }
+    }
+
+    /**
+     * Creates the activity (e-mail summaries, activity stream) which core skips for content with
+     * [[$silentContentCreation]]. Not published content gets its activity from core once published.
+     */
+    private function dispatchContentCreatedActivity(): void
+    {
+        $content = $this->content;
+
+        if ($content === null || !$content->container || !$content->getStateService()->isPublished()) {
+            return;
+        }
+
+        ActivityManager::dispatch(ContentCreatedActivity::class, $this, $content->createdBy);
     }
 
     public function updateVisibility($visibility)
