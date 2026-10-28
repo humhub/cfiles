@@ -36,7 +36,7 @@ class FileContextCest
         $I->amInRoot();
         $I->clickFileContext(1, 'Move');
         $I->waitForText('Move files', 10, '#globalModal');
-        $I->click('[data-id="3"]');
+        $I->selectMoveTarget(3);
         $I->click('Save', '#globalModal');
         $I->seeInCrumb('move');
         $I->seeInFileList('newFile.txt');

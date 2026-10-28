@@ -49,7 +49,7 @@ class FolderContextCest
         $I->clickFolderContext(3, 'Move');
 
         $I->waitForText('Move files', 10, '#globalModal');
-        $I->click('[data-id="4"]');
+        $I->selectMoveTarget(4);
         $I->click('Save', '#globalModal');
 
         $I->seeInCrumb('context1');

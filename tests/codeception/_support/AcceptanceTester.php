@@ -95,6 +95,20 @@ class AcceptanceTester extends \AcceptanceTester
         $this->click($menuItem, '[data-cfiles-item="folder_' . $id . '"] .contextMenu');
     }
 
+    /**
+     * Selects the target folder in the open "Move files" dialog.
+     *
+     * The dialog preselects the current folder, which can overwrite an early click, and slides in
+     * while the browser clicks at coordinates that are still moving. Both end with "Moving to the
+     * same folder is not valid", so the folder is clicked by JS once the preselection is in place.
+     */
+    public function selectMoveTarget(int $folderId)
+    {
+        $this->waitForJS("return $('#input-hidden-selectedFolder').val() !== '';", 10);
+        $this->jsClick('#globalModal [data-id="' . $folderId . '"]');
+        $this->waitForJS("return $('#input-hidden-selectedFolder').val() == " . $folderId . ";", 10);
+    }
+
     public function importZip($file = "test.zip")
     {
         $this->attachFile('#cfilesUploadZipFile', $file);
