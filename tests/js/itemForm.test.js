@@ -26,7 +26,7 @@ describe('CfilesItemForm topics', () => {
 
         expect(topics(wrapper).props('modelValue')).toEqual(['4']);
         expect(topics(wrapper).props('filter').props.containerId).toBe(CONTAINER_ID);
-        expect(wrapper.find('.c-picker__chip').text()).toContain('Budget');
+        expect(wrapper.find('.picker-chip').text()).toContain('Budget');
     });
 
     it('sends the topics chosen with the other attributes', async () => {

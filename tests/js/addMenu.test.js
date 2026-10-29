@@ -13,7 +13,7 @@ describe('AddMenu', () => {
     it('is an accent icon button labelled for what it adds', () => {
         const toggle = menu().find('[data-bs-toggle="dropdown"]');
 
-        expect(toggle.classes()).toEqual(expect.arrayContaining(['btn', 'btn-accent', 'c-icon-button']));
+        expect(toggle.classes()).toEqual(expect.arrayContaining(['btn', 'btn-accent', 'btn-icon-only']));
         expect(toggle.classes()).not.toContain('dropdown-toggle');
         expect(toggle.attributes('aria-label')).toBe('Add');
         expect(toggle.find('i.ti.ti-plus').exists()).toBe(true);

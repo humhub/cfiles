@@ -21,7 +21,7 @@ const itemDrag = () => ({
     dataTransfer: { types: ['text/plain'], files: [], dropEffect: 'none', effectAllowed: 'all', setData: vi.fn() },
 });
 
-const tile = (wrapper, key) => wrapper.find(`.c-tile-grid__tile[data-key="${key}"]`);
+const tile = (wrapper, key) => wrapper.find(`.tile[data-key="${key}"]`);
 const pending = () => new Promise(() => {});
 
 /** A promise the test settles when it wants to, for requests that overlap. */
@@ -69,20 +69,20 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(topLevel());
 
             expect(wrapper.vm.folderId).toBeNull();
-            expect(wrapper.find('a.c-path-bar__root').attributes('aria-label')).toBe('Files');
-            expect(wrapper.findAll('a.c-path-bar__link')).toHaveLength(0);
-            expect(wrapper.find('.c-path-bar__current').exists()).toBe(false);
+            expect(wrapper.find('a.path-bar-root').attributes('aria-label')).toBe('Files');
+            expect(wrapper.findAll('.breadcrumb-item + .breadcrumb-item > a')).toHaveLength(0);
+            expect(wrapper.find('.breadcrumb-item.active > span').exists()).toBe(false);
         });
 
         it('reports the open folder when there is one', () => {
             const wrapper = browser(insideFolder([fileRow()]));
 
             expect(wrapper.vm.folderId).toBe(9);
-            expect(wrapper.find('a.c-path-bar__root').attributes('aria-label')).toBe('Files');
-            expect(wrapper.findAll('a.c-path-bar__link').map((c) => c.text())).toEqual(['test123']);
-            expect(wrapper.find('.c-path-bar__current').text()).toBe('sgadgasdg');
+            expect(wrapper.find('a.path-bar-root').attributes('aria-label')).toBe('Files');
+            expect(wrapper.findAll('.breadcrumb-item + .breadcrumb-item > a').map((c) => c.text())).toEqual(['test123']);
+            expect(wrapper.find('.breadcrumb-item.active > span').text()).toBe('sgadgasdg');
             // The crumbs link where the browser would: `?fid=`, not the payload's own URL.
-            expect(wrapper.find('a.c-path-bar__link').attributes('href')).toBe('/s/x/cfiles/browse/index?fid=7');
+            expect(wrapper.find('.breadcrumb-item + .breadcrumb-item > a').attributes('href')).toBe('/s/x/cfiles/browse/index?fid=7');
         });
 
         it('renders the empty state instead of a list when the folder is empty', () => {
@@ -125,7 +125,7 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(insideFolder([]));
             globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(topLevel()));
 
-            await wrapper.find('a.c-path-bar__root').trigger('click');
+            await wrapper.find('a.path-bar-root').trigger('click');
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).not.toContain('parent=');
@@ -606,7 +606,7 @@ describe('CfilesFileBrowser', () => {
             globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({ results: [{ id: 1 }, { id: 2 }], errors: [] }));
             const wrapper = browser(insideFolder([]));
 
-            await wrapper.findAll('li.c-path-bar__crumb')[1].trigger('drop', fileDrag([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]));
+            await wrapper.findAll('li.breadcrumb-item')[1].trigger('drop', fileDrag([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]));
             await flushPromises();
 
             expect(reported.at(-1).level).toBe('success');
@@ -740,10 +740,10 @@ describe('CfilesFileBrowser', () => {
         it('takes the display from the embedded payload', () => {
             const list = browser(topLevel());
             expect(list.findAll('.cfiles-row')).toHaveLength(2);
-            expect(list.find('.c-tile-grid').exists()).toBe(false);
+            expect(list.find('.tile-grid').exists()).toBe(false);
 
             const tiles = browser(topLevel([fileRow()], { view: 'tiles' }));
-            expect(tiles.findAll('.c-tile-grid__tile')).toHaveLength(1);
+            expect(tiles.findAll('.tile')).toHaveLength(1);
             expect(tiles.find('.cfiles-row').exists()).toBe(false);
         });
 
@@ -751,13 +751,13 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(topLevel());
             globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(topLevel(undefined, { view: 'tiles' })));
 
-            await wrapper.find('.c-view-switch button[aria-label="Tiles"]').trigger('click');
+            await wrapper.find('.view-switch input[value="tiles"]').setValue(true);
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('pageSize=96');
-            expect(wrapper.findAll('.c-tile-grid__tile')).toHaveLength(2);
+            expect(wrapper.findAll('.tile')).toHaveLength(2);
             expect(wrapper.find('.cfiles-row').exists()).toBe(false);
-            expect(wrapper.find('.c-view-switch button[aria-label="Tiles"]').attributes('aria-pressed')).toBe('true');
+            expect(wrapper.find('.view-switch input[value="tiles"]').element.checked).toBe(true);
         });
 
         // A tile grid asks for a bigger page than a row list; the view itself is not a
@@ -836,17 +836,17 @@ describe('CfilesFileBrowser', () => {
     });
 
     describe('select all', () => {
-        const menuEntry = (wrapper, label) => wrapper.findAll('.c-selection-menu .dropdown-item')
+        const menuEntry = (wrapper, label) => wrapper.findAll('.selection-menu .dropdown-item')
             .find((entry) => entry.text() === label);
 
         it('offers the selection menu only while something is selected', async () => {
             const wrapper = browser(topLevel());
 
-            expect(wrapper.find('.c-selection-menu').exists()).toBe(false);
+            expect(wrapper.find('.selection-menu').exists()).toBe(false);
 
             await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
 
-            expect(wrapper.findAll('.c-selection-menu .dropdown-item').map((e) => e.text()))
+            expect(wrapper.findAll('.selection-menu .dropdown-item').map((e) => e.text()))
                 .toEqual(['Select all', 'Move', 'Delete', 'Clear selection']);
         });
 
@@ -866,7 +866,7 @@ describe('CfilesFileBrowser', () => {
             await menuEntry(wrapper, 'Clear selection').trigger('click');
 
             expect(wrapper.vm.selection).toEqual([]);
-            expect(wrapper.find('.c-selection-menu').exists()).toBe(false);
+            expect(wrapper.find('.selection-menu').exists()).toBe(false);
         });
 
         it('moves and deletes the selection from the selection menu', async () => {
@@ -946,7 +946,7 @@ describe('CfilesFileBrowser', () => {
 
         it('ranges the same way in the tiles', async () => {
             const wrapper = browser(topLevel(three(), { view: 'tiles' }));
-            const checks = wrapper.findAll('.c-tile-grid__check-input');
+            const checks = wrapper.findAll('.tile-check');
 
             await checks[0].trigger('click');
             await checks[2].trigger('click', { shiftKey: true });
@@ -978,7 +978,7 @@ describe('CfilesFileBrowser', () => {
 
             expect(tile(wrapper, 'folder:11').classes()).toContain('is-uploading');
             // Into another folder: no placeholder among this level's tiles.
-            expect(wrapper.findAll('.c-tile-grid__tile')).toHaveLength(2);
+            expect(wrapper.findAll('.tile')).toHaveLength(2);
         });
 
         it('reloads after an upload into a folder shown here, and names it', async () => {
@@ -1030,11 +1030,11 @@ describe('CfilesFileBrowser', () => {
             globalThis.humhubStubs.client.post = vi.fn(pending);
             const wrapper = browser(insideFolder([fileRow()], { view: 'tiles' }));
 
-            await wrapper.find('.c-drop-zone').trigger('drop', fileDrag());
+            await wrapper.find('.drop-zone').trigger('drop', fileDrag());
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parent')).toBe('9');
-            const placeholder = wrapper.find('.c-tile-grid__tile.is-uploading');
+            const placeholder = wrapper.find('.tile.is-uploading');
             expect(placeholder.exists()).toBe(true);
             expect(placeholder.text()).toContain('a.txt');
         });
@@ -1042,7 +1042,7 @@ describe('CfilesFileBrowser', () => {
         it('moves the whole selection when a selected item is dragged onto a folder', async () => {
             globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(topLevel(three(), { view: 'tiles' })));
             const wrapper = browser(topLevel(three(), { view: 'tiles' }));
-            const checks = wrapper.findAll('.c-tile-grid__check-input');
+            const checks = wrapper.findAll('.tile-check');
             await checks[1].trigger('click');
             await checks[2].trigger('click');
 
@@ -1082,7 +1082,7 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(insideFolder([fileRow({ parentFolderId: 9 })]));
 
             await wrapper.find('.cfiles-row').trigger('dragstart', itemDrag());
-            const root = wrapper.findAll('li.c-path-bar__crumb')[0];
+            const root = wrapper.findAll('li.breadcrumb-item')[0];
             await root.trigger('dragover', itemDrag());
             expect(root.classes()).toContain('is-drop-target');
             await root.trigger('drop', itemDrag());
@@ -1092,13 +1092,13 @@ describe('CfilesFileBrowser', () => {
             expect(url).toContain('cfiles/items/move');
             expect(cfg.data.targetFolderId).toBeNull();
             expect(cfg.data.items).toEqual([{ type: 'file', id: 21 }]);
-            expect(wrapper.findAll('li.c-path-bar__crumb')[0].classes()).not.toContain('is-drop-target');
+            expect(wrapper.findAll('li.breadcrumb-item')[0].classes()).not.toContain('is-drop-target');
         });
 
         it('uploads files dropped on an ancestor crumb into that folder', async () => {
             const wrapper = browser(insideFolder([]));
 
-            await wrapper.findAll('li.c-path-bar__crumb')[1].trigger('drop', fileDrag());
+            await wrapper.findAll('li.breadcrumb-item')[1].trigger('drop', fileDrag());
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parent')).toBe('7');
@@ -1140,31 +1140,31 @@ describe('CfilesFileBrowser', () => {
 
             expect(wrapper.vm.canDropOnItem(folderRow(), fileDrag())).toBe(false);
             await tile(wrapper, 'folder:11').trigger('drop', fileDrag());
-            await wrapper.find('.c-drop-zone').trigger('drop', fileDrag());
+            await wrapper.find('.drop-zone').trigger('drop', fileDrag());
             await flushPromises();
             expect(globalThis.humhubStubs.client.post).not.toHaveBeenCalled();
 
-            await wrapper.find('.c-drop-zone').trigger('dragenter', fileDrag());
-            expect(wrapper.find('.c-drop-zone__overlay.is-refused').exists()).toBe(true);
+            await wrapper.find('.drop-zone').trigger('dragenter', fileDrag());
+            expect(wrapper.find('.drop-zone-overlay.is-refused').exists()).toBe(true);
         });
     });
 
     describe('toolbar', () => {
         it('offers the settings only when the page hands a link', () => {
             const withLink = browser(topLevel(), { settingsUrl: '/s/x/cfiles/config-container' });
-            expect(withLink.find('.c-page-toolbar a[href="/s/x/cfiles/config-container"] .ti-settings').exists()).toBe(true);
+            expect(withLink.find('.page-header a[href="/s/x/cfiles/config-container"] .ti-settings').exists()).toBe(true);
 
-            expect(browser(topLevel()).find('.c-page-toolbar .ti-settings').exists()).toBe(false);
+            expect(browser(topLevel()).find('.page-header .ti-settings').exists()).toBe(false);
         });
 
         it('titles the page', () => {
-            expect(browser(topLevel()).find('.c-page-toolbar__title').text()).toBe('Files');
+            expect(browser(topLevel()).find('.page-header-title').text()).toBe('Files');
         });
     });
 
     describe('sort', () => {
         const choose = async (wrapper, label) => {
-            await wrapper.find('.form-search-filter-sort .c-select__button').trigger('click');
+            await wrapper.find('.form-search-filter-sort .select-menu-button').trigger('click');
             await wrapper.findAll('[role="option"]').find((o) => o.text() === label).trigger('click');
             await flushPromises();
         };
@@ -1182,15 +1182,15 @@ describe('CfilesFileBrowser', () => {
         it('shows the stored sort as the chosen option', () => {
             const wrapper = browser(topLevel(undefined, { sort: 'newest' }));
 
-            expect(wrapper.find('.form-search-filter-sort .c-select__value').text()).toBe('Newest first');
+            expect(wrapper.find('.form-search-filter-sort .select-menu-value').text()).toBe('Newest first');
         });
 
         it('shows the default order as the select\'s label', () => {
             const wrapper = browser(topLevel(undefined, { sort: 'default' }));
 
             expect(wrapper.vm.filterValues.sort).toBe('');
-            expect(wrapper.find('.form-search-filter-sort .c-select').classes()).not.toContain('has-selection');
-            expect(wrapper.find('.form-search-filter-sort .c-select__value').text()).toBe('Sort by');
+            expect(wrapper.find('.form-search-filter-sort .select-menu').classes()).not.toContain('has-selection');
+            expect(wrapper.find('.form-search-filter-sort .select-menu-value').text()).toBe('Sort by');
         });
 
         // Without a sort the server would re-apply the stored one, and clearing the select
@@ -1198,7 +1198,7 @@ describe('CfilesFileBrowser', () => {
         it('asks for the default order explicitly when the select is cleared', async () => {
             const wrapper = browser(topLevel(undefined, { sort: 'newest' }));
 
-            await wrapper.find('.form-search-filter-sort .c-select__clear').trigger('click');
+            await wrapper.find('.form-search-filter-sort .select-menu-clear').trigger('click');
             await flushPromises();
 
             const url = globalThis.humhubStubs.client.get.mock.calls[0][0];
@@ -1335,7 +1335,7 @@ describe('CfilesFileBrowser', () => {
                 initialFilters: { q: 'logo', userId: '', topicId: '', type: '', modified: '' },
             });
 
-            await wrapper.find('a.c-path-bar__root').trigger('click');
+            await wrapper.find('a.path-bar-root').trigger('click');
             await flushPromises();
 
             expect(lastUrl()).not.toContain('parent=');

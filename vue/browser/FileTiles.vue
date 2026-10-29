@@ -64,7 +64,7 @@
                 :suppress="SUPPRESSED_CORE_ENTRIES"
                 :context="{ item }"
                 root-class="nav"
-                toggle-class="btn c-icon-button c-icon-button--ghost cfiles-tile__toggle"
+                toggle-class="btn btn-ghost btn-icon-only cfiles-tile__toggle"
                 :toggle-aria-label="actionsLabel"
             >
                 <!-- A toggle class of its own drops the platform's `dropdown-toggle` glyph. -->
