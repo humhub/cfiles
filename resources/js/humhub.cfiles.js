@@ -545,7 +545,7 @@ humhub.module('cfiles', function (module, require, $) {
     DirectoryList.prototype.openDirectory = function ($id) {
         // optinal $id, set to 0 if undefined
         $id = $id || 0;
-        var folder = $('#' + $id).parent();
+        var folder = this.$.find('[data-id="' + $id + '"]').parent();
         do {
             folder.addClass('expand');
             folder.find('>ul').removeClass('d-none');
@@ -556,7 +556,7 @@ humhub.module('cfiles', function (module, require, $) {
     DirectoryList.prototype.selectDirectory = function ($id) {
         // optinal $id, set to 0 if undefined
         $id = $id || 0;
-        var item = $('#' + $id);
+        var item = this.$.find('[data-id="' + $id + '"]');
         item.addClass('selectedFolder');
         $('#input-hidden-selectedFolder').val($id);
     };

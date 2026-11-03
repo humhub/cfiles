@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.19.3 (Unreleased)
+-------------------
+- Fix #298: Folder titles are now HTML-encoded in the "Move files" dialog; The current folder is now selected and expanded when the dialog opens; Selected folder highlight no longer hides tree connectors; Removed a missing icon reference
+
 0.19.2 - October 28, 2026
 -------------------------
 - Fix #296: Uploaded files created no activity since 0.19.0 and were missing from e-mail summaries
