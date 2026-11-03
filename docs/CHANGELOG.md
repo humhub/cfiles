@@ -1,9 +1,9 @@
 Changelog
 =========
 
-0.19.3 (Unreleased)
--------------------
-- Fix #298: Folder titles are now HTML-encoded in the "Move files" dialog; The current folder is now selected and expanded when the dialog opens; Selected folder highlight no longer hides tree connectors; Removed a missing icon reference
+0.19.3 - November 3, 2026
+-------------------------
+- Fix #298: Folder titles are now HTML-encoded in the "Move files" dialog (GHSA-j5vj-jfm4-2x2g); the current folder is now selected and expanded when the dialog opens; selected folder highlight no longer hides tree connectors; removed a missing icon reference
 
 0.19.2 - October 28, 2026
 -------------------------
