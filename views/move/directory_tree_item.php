@@ -1,6 +1,5 @@
 <?php
 
-use humhub\modules\cfiles\models\Folder;
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2017 HumHub GmbH & Co. KG
@@ -8,12 +7,15 @@ use humhub\modules\cfiles\models\Folder;
  *
  */
 
-/* @var $this \humhub\components\View */
-/* @var $folder [] */
+use humhub\components\View;
+use humhub\helpers\Html;
+
+/* @var $this View */
+/* @var $folder array */
 ?>
 
 <li>
-    <span class='selectable' data-id="<?= $folder['folder']->id ?>"><?= $folder['folder']->title ?></span>
+    <span class='selectable' data-id="<?= $folder['folder']->id ?>"><?= Html::encode($folder['folder']->title) ?></span>
     <?php if (!empty($folder['subfolders'])) : ?>
         <ul>
             <?php foreach ($folder['subfolders'] as $subfolder) : ?>

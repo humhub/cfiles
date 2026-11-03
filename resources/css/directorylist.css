@@ -22,10 +22,6 @@
     list-style: none;
 }
 
-.directory-list ul {
-    background: url(../directorylist/directory_last.png) no-repeat 0 -8px;
-}
-
 .directory-list ul ul {
     padding-left: 16px;
     background: url(../directorylist/directory.png) repeat-y 0 0;
@@ -115,6 +111,14 @@
 
 .directory-list li>span,.directory-list>div {
     cursor: pointer;
+}
+
+/* Keep the tree connectors (drawn on the li background) visible next to the label/highlight */
+.directory-list li>span {
+    margin-left: 16px;
+    padding-left: 20px;
+    border-left: 3px solid transparent;
+    background-position: 0 0;
 }
 
 .directory-list .selectable.selectedFolder {
