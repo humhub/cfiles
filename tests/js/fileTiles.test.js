@@ -21,20 +21,20 @@ describe('FileTiles', () => {
     it('draws a folder as the filled folder glyph with its item count', () => {
         const folder = tiles().findAll('.tile')[0];
 
-        expect(folder.find('.tile-thumb i.ti.ti-folder-filled.cfiles-tile__folder').exists()).toBe(true);
+        expect(folder.find('.tile-thumb i.ti.ti-folder-filled.cfiles-tile-folder').exists()).toBe(true);
         expect(folder.find('.tile-meta').text()).toBe('4 items');
     });
 
     it('draws a file as a document card with its type icon and size', () => {
         const file = tiles().findAll('.tile')[1];
 
-        expect(file.find('.cfiles-tile__doc i.ti.ti-file-type-pdf').exists()).toBe(true);
+        expect(file.find('.cfiles-tile-doc i.ti.ti-file-type-pdf').exists()).toBe(true);
         expect(file.find('.tile-meta').text()).toBe('1.2 MB');
     });
 
     it('shows a preview image when the file has one, not draggable on its own', () => {
         const file = tiles({ items: [fileRow({ previewUrl: '/p.jpg' })] }).find('.tile');
-        const img = file.find('img.cfiles-tile__image');
+        const img = file.find('img.cfiles-tile-image');
 
         expect(img.attributes('src')).toBe('/p.jpg');
         expect(img.attributes('draggable')).toBe('false');
@@ -82,7 +82,7 @@ describe('FileTiles', () => {
         const tile = tiles({ items: [upload] }).find('.tile');
 
         expect(tile.classes()).toContain('is-uploading');
-        expect(tile.find('.cfiles-tile__doc i.ti.ti-file').exists()).toBe(true);
+        expect(tile.find('.cfiles-tile-doc i.ti.ti-file').exists()).toBe(true);
         expect(tile.find('.tile-meta').text()).toBe('30%');
         expect(tile.find('.tile-name a').exists()).toBe(false);
     });
@@ -129,7 +129,7 @@ describe('FileTiles', () => {
 
         expect(root.classes()).toContain('nav');
         expect(root.classes()).not.toContain('preferences');
-        expect(actions.find('.cfiles-tile__toggle i.ti.ti-dots-vertical').exists()).toBe(true);
+        expect(actions.find('.cfiles-tile-toggle i.ti.ti-dots-vertical').exists()).toBe(true);
     });
 
     it('names the lock of a private item as an image', () => {

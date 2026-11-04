@@ -1,36 +1,49 @@
 <template>
-    <div class="dropdown cfiles-add-menu">
+    <div class="cfiles-add-menu">
         <button
             type="button"
-            class="btn btn-accent btn-icon-only"
-            data-bs-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-            :aria-label="addLabel"
-            :title="addLabel"
-        ><i class="ti ti-plus" aria-hidden="true"></i></button>
-        <ul class="dropdown-menu dropdown-menu-end">
-            <li>
-                <a href="#" class="dropdown-item d-flex align-items-center gap-2 cfiles-add-menu__entry" @click.prevent="$emit('upload')">
-                    <i class="ti ti-upload" aria-hidden="true"></i>{{ uploadLabel }}
-                </a>
-            </li>
-            <li>
-                <a href="#" class="dropdown-item d-flex align-items-center gap-2 cfiles-add-menu__entry" @click.prevent="$emit('create-folder')">
-                    <i class="ti ti-folder-plus" aria-hidden="true"></i>{{ folderLabel }}
-                </a>
-            </li>
-            <li v-if="handlersHtml"><hr class="dropdown-divider" /></li>
-            <li v-if="handlersHtml"><ul class="list-unstyled m-0" v-additions v-html="handlersHtml" @click="$emit('handler')"></ul></li>
-        </ul>
+            class="btn btn-light btn-icon-only cfiles-add-folder"
+            :aria-label="folderLabel"
+            :title="folderLabel"
+            @click="$emit('create-folder')"
+        ><i class="ti ti-folder-plus" aria-hidden="true"></i></button>
+        <button
+            v-if="!handlersHtml"
+            type="button"
+            class="btn btn-accent btn-icon-only cfiles-add-upload"
+            :aria-label="uploadLabel"
+            :title="uploadLabel"
+            @click="$emit('upload')"
+        ><i class="ti ti-upload" aria-hidden="true"></i></button>
+        <div v-else class="dropdown">
+            <button
+                type="button"
+                class="btn btn-accent btn-icon-only"
+                data-bs-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+                :aria-label="addLabel"
+                :title="addLabel"
+            ><i class="ti ti-plus" aria-hidden="true"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a href="#" class="dropdown-item cfiles-add-menu-entry" @click.prevent="$emit('upload')">
+                        <i class="ti ti-upload dropdown-item-icon" aria-hidden="true"></i>{{ uploadLabel }}
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><ul class="list-unstyled m-0" v-additions v-html="handlersHtml" @click="$emit('handler')"></ul></li>
+            </ul>
+        </div>
     </div>
 </template>
 
 <script>
 /**
- * The browser's "add" menu, the "+" in the page toolbar: upload files, create a folder and —
- * after a divider — whatever file handlers a module contributed ("New spreadsheet", "Import
- * from …").
+ * The browser's "add" buttons in the page header: a new folder, and upload files — a plain
+ * button that opens the file picker. Where a module contributed file handlers ("New
+ * spreadsheet", "Import from …") the upload button becomes a "+" menu instead: upload files,
+ * then — after a divider — the handlers.
  *
  * The toggle skips the `dropdown-toggle` class: Bootstrap's dropdown JS is wired purely off
  * `data-bs-toggle="dropdown"` (see `DropdownMenu`'s own doc comment), and the class itself

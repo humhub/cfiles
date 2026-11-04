@@ -2,12 +2,13 @@
     <UiModal :show="show" :title="title" @update:show="$emit('close')">
         <p class="text-muted">{{ intro }}</p>
 
-        <div class="hh-list cfiles-move-tree">
+        <div class="list-group cfiles-move-tree">
             <div
                 v-for="node in flatTree"
                 :key="node.id"
-                :class="{ selected: node.id === selectedId && selectedId !== undefined }"
-                :style="{ paddingLeft: (10 + node.depth * 18) + 'px' }"
+                class="list-group-item list-group-item-action"
+                :class="{ active: node.id === selectedId && selectedId !== undefined }"
+                :style="{ '--hh-cfiles-depth': node.depth }"
                 role="button"
                 tabindex="0"
                 @click="select(node)"

@@ -508,19 +508,19 @@ describe('CfilesFileBrowser', () => {
             expect(globalThis.humhubStubs.client.post).not.toHaveBeenCalled();
         });
 
-        it('picks files through the add menu', async () => {
+        it('picks files through the upload button', async () => {
             const wrapper = browser(topLevel());
             const click = vi.spyOn(wrapper.vm.$refs.fileInput, 'click').mockImplementation(() => {});
 
-            await wrapper.findAll('.cfiles-add-menu__entry')[0].trigger('click');
+            await wrapper.find('.cfiles-add-upload').trigger('click');
 
             expect(click).toHaveBeenCalledTimes(1);
         });
 
-        it('opens the folder dialog through the add menu', async () => {
+        it('opens the folder dialog through the new folder button', async () => {
             const wrapper = browser(topLevel());
 
-            await wrapper.findAll('.cfiles-add-menu__entry')[1].trigger('click');
+            await wrapper.find('.cfiles-add-folder').trigger('click');
 
             expect(wrapper.vm.showCreate).toBe(true);
         });
@@ -537,7 +537,7 @@ describe('CfilesFileBrowser', () => {
             await flushPromises();
 
             const rows = wrapper.findAll('.cfiles-row.is-uploading');
-            expect(rows.map((r) => r.find('h4').text())).toEqual(['a.txt', 'b.txt']);
+            expect(rows.map((r) => r.find('.cfiles-row-name').text())).toEqual(['a.txt', 'b.txt']);
             expect(rows[0].find('.progress-bar').attributes('aria-valuenow')).toBe('0');
         });
 
@@ -751,7 +751,9 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(topLevel());
             globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(topLevel(undefined, { view: 'tiles' })));
 
-            await wrapper.find('.view-switch input[value="tiles"]').setValue(true);
+            // In the content card, at the end of the path bar - not in the page header.
+            expect(wrapper.find('.page-header .view-switch').exists()).toBe(false);
+            await wrapper.find('.path-bar .view-switch input[value="tiles"]').setValue(true);
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('pageSize=96');
@@ -1321,7 +1323,7 @@ describe('CfilesFileBrowser', () => {
                 initialFilters: { q: '', userId: '', topicId: '', type: 'image', modified: '' },
             });
 
-            await wrapper.find('.cfiles-row h4 a').trigger('click');
+            await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
 
             expect(lastUrl()).toContain('parent=11');
@@ -1625,20 +1627,20 @@ describe('CfilesFileBrowser', () => {
             }));
         });
 
-        it('offers Open for a folder and Download for a file before anything is loaded', () => {
+        it('offers Details, and Open for a folder or Download for a file, before anything is loaded', () => {
             const wrapper = browser(topLevel([folderRow(), fileRow()]));
             const labels = wrapper.findAll('.cfiles-row').map(
                 (r) => r.findAll('.dropdown-item').map((i) => i.text()),
             );
 
-            expect(labels).toEqual([['Open'], ['Download']]);
+            expect(labels).toEqual([['Details', 'Open'], ['Details', 'Download']]);
         });
 
         it('adds the editing actions once the permissions are in', async () => {
             const wrapper = browser(topLevel([fileRow()]));
             await openMenu(wrapper);
 
-            expect(rowMenu(wrapper)).toEqual(['Download', 'Edit', 'Move', 'Delete']);
+            expect(rowMenu(wrapper)).toEqual(['Details', 'Download', 'Edit', 'Move', 'Delete']);
         });
 
         it('leaves out what the caller may not do', async () => {
@@ -1649,7 +1651,7 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(topLevel([fileRow()]));
             await openMenu(wrapper);
 
-            expect(rowMenu(wrapper)).toEqual(['Download']);
+            expect(rowMenu(wrapper)).toEqual(['Details', 'Download']);
         });
 
         it('appends what the server contributed', async () => {
@@ -1666,8 +1668,49 @@ describe('CfilesFileBrowser', () => {
         it('downloads through the cache-busting URL rather than the file URL', () => {
             const wrapper = browser(topLevel([fileRow()]));
 
-            expect(wrapper.find('.cfiles-row-controls .dropdown-item').attributes('href'))
+            expect(wrapper.findAll('.cfiles-row-controls .dropdown-item')[1].attributes('href'))
                 .toBe('/s/x/cfiles/download/f-21');
+        });
+    });
+
+    describe('details panel', () => {
+        const detailsEntry = (wrapper) => wrapper.findAll('.cfiles-row-controls .dropdown-item')
+            .find((i) => i.text() === 'Details');
+
+        it('opens for the item from its menu and mirrors it into the URL', async () => {
+            const wrapper = browser(topLevel([folderRow(), fileRow()]));
+            expect(wrapper.find('.cfiles-details').exists()).toBe(false);
+
+            await wrapper.findAll('.cfiles-row')[1].findAll('.dropdown-item')
+                .find((i) => i.text() === 'Details').trigger('click');
+
+            expect(wrapper.find('.cfiles-details').text()).toContain('Angebot.pdf');
+            expect(wrapper.find('.cfiles-details a.btn-primary').attributes('href')).toBe('/s/x/cfiles/download/f-21');
+            expect(new URLSearchParams(window.location.search).get('details')).toBe('file:21');
+        });
+
+        it('opens on mount for the item the URL names', () => {
+            window.history.replaceState({}, '', '/s/x/cfiles/browse/index?details=folder:11');
+            const wrapper = browser(topLevel([folderRow(), fileRow()]));
+
+            expect(wrapper.find('.cfiles-details').exists()).toBe(true);
+            expect(wrapper.find('.cfiles-details a.btn-primary').exists()).toBe(false);
+        });
+
+        it('closes and drops the URL parameter', async () => {
+            const wrapper = browser(topLevel([fileRow()]));
+            await detailsEntry(wrapper).trigger('click');
+            await wrapper.find('.cfiles-details button[aria-label="Close details"]').trigger('click');
+
+            expect(wrapper.find('.cfiles-details').exists()).toBe(false);
+            expect(new URLSearchParams(window.location.search).has('details')).toBe(false);
+        });
+
+        it('shows nothing for an item that is not on the page', () => {
+            window.history.replaceState({}, '', '/s/x/cfiles/browse/index?details=file:999');
+            const wrapper = browser(topLevel([fileRow()]));
+
+            expect(wrapper.find('.cfiles-details').exists()).toBe(false);
         });
     });
 

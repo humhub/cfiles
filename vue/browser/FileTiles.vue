@@ -23,13 +23,13 @@
         @load-more="$emit('load-more')"
     >
         <template #thumb="{ item }">
-            <span v-if="item.type === 'space'" class="cfiles-tile__space">
-                <i class="ti ti-folder-filled cfiles-tile__folder"></i>
-                <SpaceImage class="cfiles-tile__badge" v-bind="spaceImage(item)" :width="20" aria-hidden="true" />
+            <span v-if="item.type === 'space'" class="cfiles-tile-space">
+                <i class="ti ti-folder-filled cfiles-tile-folder"></i>
+                <SpaceImage class="cfiles-tile-badge" v-bind="spaceImage(item)" :width="20" aria-hidden="true" />
             </span>
-            <i v-else-if="item.type === 'folder'" class="ti ti-folder-filled cfiles-tile__folder"></i>
-            <img v-else-if="item.previewUrl" :src="item.previewUrl" alt="" draggable="false" class="cfiles-tile__image" />
-            <span v-else class="cfiles-tile__doc"><i :class="'ti ' + fileIcon(item)"></i></span>
+            <i v-else-if="item.type === 'folder'" class="ti ti-folder-filled cfiles-tile-folder"></i>
+            <img v-else-if="item.previewUrl" :src="item.previewUrl" alt="" draggable="false" class="cfiles-tile-image" />
+            <span v-else class="cfiles-tile-doc"><i :class="'ti ' + fileIcon(item)"></i></span>
         </template>
         <template #name="{ item }">
             <span v-if="item.type === 'upload'">{{ item.title }}</span>
@@ -49,7 +49,7 @@
         </template>
         <template #meta="{ item }">{{ item.type === 'upload' ? (item.progress || 0) + '%' : tileMeta(item) }}<ItemLocation
             v-if="item.type !== 'upload' && itemLocation(item)"
-            class="cfiles-tile__location"
+            class="cfiles-tile-location"
             :location="itemLocation(item)"
             :folder-url="folderUrl"
             @open="(target) => $emit('open', target)"
@@ -64,7 +64,7 @@
                 :suppress="SUPPRESSED_CORE_ENTRIES"
                 :context="{ item }"
                 root-class="nav"
-                toggle-class="btn btn-ghost btn-icon-only cfiles-tile__toggle"
+                toggle-class="btn btn-ghost btn-icon-only cfiles-tile-toggle"
                 :toggle-aria-label="actionsLabel"
             >
                 <!-- A toggle class of its own drops the platform's `dropdown-toggle` glyph. -->

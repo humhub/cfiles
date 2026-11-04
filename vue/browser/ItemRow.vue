@@ -1,6 +1,6 @@
 <template>
     <div
-        class="cfiles-row d-flex align-items-center gap-2"
+        class="list-group-item list-group-item-action cfiles-row"
         :class="{ 'is-drop-target': dropTarget, 'is-selected': selected, 'is-uploading': item.uploading }"
         :draggable="draggable && !item.uploading && item.type !== 'space'"
         @click="onRowClick"
@@ -16,9 +16,9 @@
                 <i :class="iconClass" aria-hidden="true"></i>
             </div>
 
-            <div class="flex-grow-1 min-width-0">
-                <h4 class="mb-0 text-truncate">{{ displayTitle }}</h4>
-                <div class="progress cfiles-row__progress">
+            <div class="cfiles-row-body">
+                <div class="cfiles-row-name text-truncate">{{ displayTitle }}</div>
+                <div class="progress cfiles-row-progress">
                     <div
                         class="progress-bar"
                         role="progressbar"
@@ -33,12 +33,13 @@
         </template>
 
         <template v-else-if="isSpace">
-            <div class="cfiles-row-icon">
-                <SpaceImage v-bind="spaceImageProps" :width="32" aria-hidden="true" />
+            <div class="cfiles-row-icon cfiles-row-space">
+                <i class="ti ti-folder-filled cfiles-icon-folder"></i>
+                <SpaceImage class="cfiles-row-badge" v-bind="spaceImageProps" :width="16" aria-hidden="true" />
             </div>
 
-            <div class="flex-grow-1 min-width-0">
-                <h4 class="mb-0 d-flex align-items-center gap-1">
+            <div class="cfiles-row-body">
+                <div class="cfiles-row-name">
                     <a
                         ref="titleLink"
                         :href="linkUrl"
@@ -46,8 +47,8 @@
                         class="text-truncate"
                         @click="onOpen"
                     >{{ displayTitle }}</a>
-                </h4>
-                <h5 class="mb-0 text-truncate cfiles-row-meta">{{ meta }}</h5>
+                </div>
+                <div class="cfiles-row-meta text-truncate">{{ meta }}</div>
             </div>
         </template>
 
@@ -67,8 +68,8 @@
                 <i v-else :class="iconClass" aria-hidden="true"></i>
             </div>
 
-            <div class="flex-grow-1 min-width-0">
-                <h4 class="mb-0 d-flex align-items-center gap-1">
+            <div class="cfiles-row-body">
+                <div class="cfiles-row-name">
                     <a
                         ref="titleLink"
                         :href="linkUrl"
@@ -77,14 +78,16 @@
                         class="text-truncate"
                         @click="onOpen"
                     >{{ displayTitle }}</a>
-                    <i
-                        v-if="isPrivate"
-                        class="ti ti-lock text-muted flex-shrink-0"
-                        :title="privateLabel"
-                        :aria-label="privateLabel"
-                    ></i>
-                </h4>
-                <h5 class="mb-0 text-truncate cfiles-row-meta">{{ meta }}<template v-if="location"> · <ItemLocation
+                </div>
+                <div class="cfiles-row-meta text-truncate">{{ meta }}<template v-if="item.creator"> · <a
+                    class="cfiles-row-author"
+                    :href="item.creator.url"
+                    draggable="false"
+                >{{ item.creator.displayName }}</a></template><template v-if="isPrivate"> · <i
+                    class="ti ti-lock cfiles-row-private"
+                    :title="privateLabel"
+                    :aria-label="privateLabel"
+                ></i></template><template v-if="item.description && !location"> · {{ item.description }}</template><template v-if="location"> · <ItemLocation
                     :location="location"
                     :folder-url="folderUrl"
                     @open="(target) => $emit('open', target)"
@@ -94,23 +97,8 @@
                 > {{ topicsLabel }}</span><span
                     v-for="topic in item.topics || []"
                     :key="topic.id"
-                    class="cfiles-row-topic"
-                ><span class="cfiles-row-topic__dot" :style="topic.color ? { backgroundColor: topic.color } : null" aria-hidden="true"></span>{{ topic.name }}</span></h5>
-            </div>
-
-            <!-- The avatar and the like link are links (and an image) that would start a native
-                 drag of their own; in Chrome an image drag carries `Files` and would read as an
-                 upload onto a folder. -->
-            <div v-if="likeState" class="cfiles-row-social" @dragstart.prevent.stop>
-                <LikeButton
-                    :record-id="item.recordId"
-                    :like-count="likeState.total"
-                    :current-user-liked="likeState.liked"
-                />
-            </div>
-
-            <div class="cfiles-row-creator" @dragstart.prevent.stop>
-                <UserImage v-if="item.creator" v-bind="item.creator" :size="21" />
+                    class="badge cfiles-topic"
+                ><span class="cfiles-topic-dot" :style="topic.color ? { backgroundColor: topic.color } : null" aria-hidden="true"></span>{{ topic.name }}</span></div>
             </div>
 
             <div class="cfiles-row-controls">
@@ -121,9 +109,13 @@
                     :entries="entries"
                     :suppress="SUPPRESSED_CORE_ENTRIES"
                     :context="{ item }"
-                    toggle-class="nav-link dropdown-toggle cfiles-row-toggle"
+                    root-class="nav"
+                    toggle-class="btn btn-ghost btn-icon-only cfiles-row-toggle"
                     :toggle-aria-label="actionsLabel"
-                />
+                >
+                    <!-- A toggle class of its own drops the platform's `dropdown-toggle` glyph. -->
+                    <template #toggle><i class="ti ti-dots-vertical" aria-hidden="true"></i></template>
+                </ContentControls>
             </div>
         </template>
     </div>
@@ -131,9 +123,8 @@
 
 <script>
 /**
- * One row of the file browser: a folder or a file, in the platform's own `.hh-list` row
- * shape (`h4` title, `h5` meta line) so it inherits theme colours, hover and the accent
- * border without a stylesheet of its own.
+ * One row of the file browser: a folder or a file, as a `.list-group-item` of the list's
+ * `.list-group` (the design system's file row, see the core's docs/ui/file-upload.md).
  *
  * Both kinds share this component on purpose — they differ in the icon, what the title links
  * to and which context-menu entries apply, and in nothing else. An upload in progress
@@ -165,11 +156,6 @@ export default {
         canDrop: { type: Function, default: () => false },
         entries: { type: Array, default: () => [] },
         folderUrl: { type: Function, required: true },
-        /**
-         * `recordId => {total, liked, canLike}` for the whole page, as the listing payload
-         * carries it. Empty where the like module is off, which is what hides the button.
-         */
-        likeStates: { type: Object, default: () => ({}) },
     },
     emits: ['open', 'toggle-select', 'drag-start', 'drag-end', 'drag-over', 'drag-leave', 'drop-on'],
     data() {
@@ -224,18 +210,13 @@ export default {
                 : 'ti ' + fileIcon(this.item) + ' cfiles-icon-file';
         },
         meta() {
-            // The line is cut at its end: where a hit lies takes the description's place.
-            return itemMeta(this.item, { description: !this.location });
+            // Size and date; the author follows as a link, then the description — or, for a hit,
+            // where it lies, which takes the description's place.
+            return itemMeta(this.item, { description: false });
         },
         /** Where a hit of a result list lies — null for an item directly in the open folder. */
         location() {
             return itemLocation(this.item);
-        },
-        /** This row's like state, or null when there is nothing to render a button from. */
-        likeState() {
-            const state = this.likeStates[this.item.recordId];
-
-            return state && (state.canLike || state.total > 0) ? state : null;
         },
         privateLabel() {
             return i18n.t('CfilesModule.base', 'Private');

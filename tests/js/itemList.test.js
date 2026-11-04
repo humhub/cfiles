@@ -21,7 +21,7 @@ describe('ItemList', () => {
         it('renders rows in the platform list container', () => {
             const wrapper = list();
 
-            expect(wrapper.find('.hh-list.cfiles-list').exists()).toBe(true);
+            expect(wrapper.find('.list-group.cfiles-list').exists()).toBe(true);
             expect(wrapper.findAll('.cfiles-row')).toHaveLength(2);
         });
 
@@ -58,14 +58,6 @@ describe('ItemList', () => {
 
             expect(wrapper.find('.cfiles-list-header').exists()).toBe(false);
             expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(2);
-        });
-    });
-
-    describe('the like link', () => {
-        it('gives the rows what they need', () => {
-            const props = { likeStates: { 1201: { total: 1, liked: false, canLike: true } } };
-
-            expect(list(props).find('.likeLinkContainer').exists()).toBe(true);
         });
     });
 
@@ -162,7 +154,7 @@ describe('ItemList', () => {
                 folder.element.dispatchEvent(event);
             };
 
-            leave(folder.find('h4 a').element);
+            leave(folder.find('.cfiles-row-name a').element);
             expect(wrapper.emitted('drag-leave')).toBeFalsy();
 
             leave(document.body);

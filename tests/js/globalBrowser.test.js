@@ -59,9 +59,9 @@ describe('CfilesFileBrowser on the global files page', () => {
             const marketing = wrapper.find('.tile[data-key="space:3"]');
             const sales = wrapper.find('.tile[data-key="space:4"]');
 
-            expect(marketing.find('.cfiles-tile__folder').exists()).toBe(true);
-            expect(marketing.find('.cfiles-tile__badge .space-acronym').text()).toBe('M');
-            expect(sales.find('.cfiles-tile__badge img').attributes('src')).toBe('/uploads/sales.jpg');
+            expect(marketing.find('.cfiles-tile-folder').exists()).toBe(true);
+            expect(marketing.find('.cfiles-tile-badge .space-acronym').text()).toBe('M');
+            expect(sales.find('.cfiles-tile-badge img').attributes('src')).toBe('/uploads/sales.jpg');
             expect(marketing.find('.tile-name').text()).toBe('Marketing');
             expect(marketing.find('.tile-meta').text()).toBe('4 items');
             expect(sales.find('.tile-meta').text()).toBe('1 item');
@@ -73,8 +73,8 @@ describe('CfilesFileBrowser on the global files page', () => {
 
             expect(rows).toHaveLength(2);
             expect(rows[0].find('.cfiles-row-icon .space-acronym').exists()).toBe(true);
-            expect(rows[0].find('h4 a').text()).toBe('Marketing');
-            expect(rows[0].find('h4 a').attributes('href')).toBe('/files?space=3');
+            expect(rows[0].find('.cfiles-row-name a').text()).toBe('Marketing');
+            expect(rows[0].find('.cfiles-row-name a').attributes('href')).toBe('/files?space=3');
             expect(rows[0].find('.cfiles-row-meta').text()).toBe('4 items');
         });
 
@@ -83,7 +83,7 @@ describe('CfilesFileBrowser on the global files page', () => {
 
             expect(wrapper.find('.cfiles-add-menu').exists()).toBe(false);
             expect(wrapper.find('.drop-zone').exists()).toBe(false);
-            expect(wrapper.find('.cfiles-browser__card').exists()).toBe(true);
+            expect(wrapper.find('.cfiles-browser-card').exists()).toBe(true);
         });
 
         it('offers no selection and no menu on a space', () => {
@@ -91,7 +91,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             const rows = browser(globalTop());
 
             expect(tiles.find('.tile-check').exists()).toBe(false);
-            expect(tiles.find('.cfiles-tile__toggle').exists()).toBe(false);
+            expect(tiles.find('.cfiles-tile-toggle').exists()).toBe(false);
             expect(tiles.find('.tile[draggable="true"]').exists()).toBe(false);
             expect(rows.find('.cfiles-row-select').exists()).toBe(false);
             expect(rows.find('.cfiles-row-controls').exists()).toBe(false);
@@ -101,7 +101,7 @@ describe('CfilesFileBrowser on the global files page', () => {
         it('opens a space through its own endpoint and mirrors it into the URL', async () => {
             const wrapper = browser(globalTop());
 
-            await wrapper.find('.cfiles-row h4 a').trigger('click');
+            await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
 
             expect(itemCalls()).toHaveLength(1);
@@ -141,7 +141,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             expect(isGlobal(itemCalls()[0])).toBe(true);
             expect(wrapper.vm.container).toBeNull();
             expect(window.location.search).toBe('');
-            expect(wrapper.find('.cfiles-row h4 a').text()).toBe('Marketing');
+            expect(wrapper.find('.cfiles-row .cfiles-row-name a').text()).toBe('Marketing');
         });
 
         it('goes to the space\'s top level from the space crumb', async () => {
@@ -168,7 +168,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             const wrapper = withSpaceFilter();
             expect(control(wrapper).exists()).toBe(true);
 
-            await wrapper.find('.cfiles-row h4 a').trigger('click');
+            await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
             expect(control(wrapper).exists()).toBe(false);
 
@@ -184,7 +184,7 @@ describe('CfilesFileBrowser on the global files page', () => {
         it('is never sent to a space\'s endpoint', async () => {
             const wrapper = withSpaceFilter();
 
-            await wrapper.find('.cfiles-row h4 a').trigger('click');
+            await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
             wrapper.vm.reload();
             await flushPromises();
@@ -224,7 +224,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             // The page's definitions of a space are of no space in particular: no props at all.
             expect(wrapper.props('containerFilters').find((filter) => filter.key === 'topicId').props).toBeUndefined();
 
-            await wrapper.find('.cfiles-row h4 a').trigger('click');
+            await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
             // The island scopes it to the space open.
             expect(topicControl(wrapper).props('filter').props.containerId).toBe(7);
@@ -277,7 +277,7 @@ describe('CfilesFileBrowser on the global files page', () => {
                 });
             };
             const enterSpace = async (wrapper) => {
-                await wrapper.find('.cfiles-location__space').trigger('click');
+                await wrapper.find('.cfiles-location-space').trigger('click');
                 await flushPromises();
             };
 
@@ -357,14 +357,14 @@ describe('CfilesFileBrowser on the global files page', () => {
             const location = found().find('.cfiles-location');
 
             expect(location.text()).toBe('in Marketing › Brand › Logos');
-            expect(location.find('.cfiles-location__space').attributes('href')).toBe('/files?space=3&q=logo');
-            expect(location.find('.cfiles-location__folder').attributes('href')).toBe('/files?space=3&fid=8&q=logo');
+            expect(location.find('.cfiles-location-space').attributes('href')).toBe('/files?space=3&q=logo');
+            expect(location.find('.cfiles-location-folder').attributes('href')).toBe('/files?space=3&fid=8&q=logo');
         });
 
         it('opens the space of a hit from its space part', async () => {
             const wrapper = found();
 
-            await wrapper.find('.cfiles-location__space').trigger('click');
+            await wrapper.find('.cfiles-location-space').trigger('click');
             await flushPromises();
 
             expect(itemCalls()[0]).toContain('cfiles/7/items');
@@ -378,7 +378,7 @@ describe('CfilesFileBrowser on the global files page', () => {
         it('opens the folder of a hit in its space from its folder part', async () => {
             const wrapper = found();
 
-            await wrapper.find('.cfiles-location__folder').trigger('click');
+            await wrapper.find('.cfiles-location-folder').trigger('click');
             await flushPromises();
 
             expect(itemCalls()[0]).toContain('cfiles/7/items');
@@ -406,7 +406,7 @@ describe('CfilesFileBrowser on the global files page', () => {
         const queue = [first, second];
         answer(() => queue.shift().promise);
 
-        const rows = wrapper.findAll('.cfiles-row h4 a');
+        const rows = wrapper.findAll('.cfiles-row .cfiles-row-name a');
         await rows[0].trigger('click');
         await rows[1].trigger('click');
         second.resolve(spaceLevel([fileRow({ title: 'Sales.pdf' })]));
@@ -416,7 +416,7 @@ describe('CfilesFileBrowser on the global files page', () => {
 
         expect(wrapper.vm.container.contentContainerId).toBe(8);
         expect(wrapper.find('.breadcrumb-item.active > span').text()).toBe('Sales');
-        expect(wrapper.find('.cfiles-row h4 a').text()).toBe('Sales.pdf');
+        expect(wrapper.find('.cfiles-row .cfiles-row-name a').text()).toBe('Sales.pdf');
         expect(new URLSearchParams(window.location.search).get('space')).toBe('4');
     });
 
@@ -431,13 +431,13 @@ describe('CfilesFileBrowser on the global files page', () => {
 
         expect(isGlobal(itemCalls()[0])).toBe(true);
         expect(wrapper.vm.container).toBeNull();
-        expect(wrapper.find('.cfiles-row h4 a').text()).toBe('Marketing');
+        expect(wrapper.find('.cfiles-row .cfiles-row-name a').text()).toBe('Marketing');
     });
 
     it('goes forward into a space again on popstate', async () => {
         const wrapper = browser(globalTop());
 
-        await wrapper.find('.cfiles-row h4 a').trigger('click');
+        await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
         await flushPromises();
         const state = window.history.state;
 
@@ -548,7 +548,7 @@ describe('CfilesFileBrowser on the global files page', () => {
     // going back on this page.
     describe('the entry the page was opened with', () => {
         const backToFirst = async (href, wrapper) => {
-            await wrapper.find('.cfiles-row h4 a').trigger('click');
+            await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
             globalThis.humhubStubs.client.get.mockClear();
             window.history.replaceState(window.history.state, '', href);
@@ -634,9 +634,11 @@ describe('CfilesFileBrowser on the global files page', () => {
             expect(wrapper.find('.cfiles-empty').text()).toContain('No results in your spaces.');
         });
 
-        // Nothing hangs off it there: no crumb below the root, no selection.
-        it('shows no path bar at the top level', () => {
-            expect(browser(globalTop()).find('.path-bar').exists()).toBe(false);
+        // Nothing hangs off it there but the view switch: no crumb below the root, no selection.
+        it('shows the path bar at the top level as the root alone, with the view switch', () => {
+            const bar = browser(globalTop()).find('.path-bar');
+            expect(bar.findAll('.breadcrumb-item')).toHaveLength(1);
+            expect(bar.find('.view-switch').exists()).toBe(true);
         });
 
         it('shows the path bar inside a space', () => {
@@ -648,7 +650,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             const tiles = browser(globalTop(undefined, { view: 'tiles' }));
             const rows = browser(globalTop());
 
-            expect(tiles.find('.cfiles-tile__badge').attributes('aria-hidden')).toBe('true');
+            expect(tiles.find('.cfiles-tile-badge').attributes('aria-hidden')).toBe('true');
             expect(rows.find('.cfiles-row-icon > span').attributes('aria-hidden')).toBe('true');
         });
 
@@ -658,8 +660,8 @@ describe('CfilesFileBrowser on the global files page', () => {
                 initialFilters: { q: 'logo', spaceId: '', userId: '', topicId: '', type: '', modified: '' },
             }).find('.cfiles-location');
 
-            expect(location.find('.cfiles-location__space').attributes('aria-label')).toBe('Open Marketing');
-            expect(location.find('.cfiles-location__folder').attributes('aria-label')).toBe('Open Logos');
+            expect(location.find('.cfiles-location-space').attributes('aria-label')).toBe('Open Marketing');
+            expect(location.find('.cfiles-location-folder').attributes('aria-label')).toBe('Open Logos');
         });
     });
 
@@ -683,7 +685,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             const wrapper = browser(globalTop());
             answer(() => Promise.resolve(spaceLevel([], { canWrite: true })));
 
-            await wrapper.find('.cfiles-row h4 a').trigger('click');
+            await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
 
             expect(wrapper.find('.cfiles-add-menu').exists()).toBe(true);
@@ -728,7 +730,7 @@ describe('CfilesFileBrowser on the global files page', () => {
     it('uses the sales space\'s own endpoint once opened', async () => {
         const wrapper = browser(globalTop([salesTile()]));
 
-        await wrapper.find('.cfiles-row h4 a').trigger('click');
+        await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
         await flushPromises();
 
         expect(itemCalls()[0]).toContain('cfiles/8/items');

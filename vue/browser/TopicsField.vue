@@ -1,5 +1,5 @@
 <template>
-    <div class="mb-3 cfiles-item-form__topics" :class="{ 'has-error': hasError }">
+    <div class="mb-3 cfiles-item-form-topics" :class="{ 'has-error': hasError }">
         <label class="form-label" :for="inputId">{{ label }}</label>
         <TopicFilterControl :model-value="modelValue" :filter="filter" :input-id="inputId" @update:model-value="onInput" />
         <div v-if="hasError" :id="errorId" class="invalid-feedback d-block">

@@ -1,80 +1,205 @@
 /*
- * The file browser, after the design system v2. The page header, filter bar, view switch, path
- * bar, tile grid, selection menu and drop zone come from the core's item browser kit
- * (`_page-header.scss`, `_filter-bar.scss`, `_item-browser.scss`); this is only what is
- * cfiles' own: the lower card, what goes into a tile, the list view's rows and the move dialog's
- * tree.
+ * The file browser, after the design system v2, built on Bootstrap 5 as the core's
+ * docs/ui/bootstrap.md asks: the page header, filter bar, view switch, path bar, tile grid,
+ * selection menu and drop zone come from the core's item browser kit; the cards are
+ * `.card.content-card` (`.card-header`, `.card-body`, `.card-footer`), the list view a
+ * `.list-group`, topics `.badge`s, the details' facts a `dl.row`. This file only holds what
+ * those don't: what goes into a tile, the parts of a row, the details' side card and its fold.
  *
- * Every colour is a theme variable (the folder yellow aside, which is the design's own and
- * reads on both), so a dark theme needs nothing but the card's shadow.
+ * A module ships plain CSS, so it has no Sass variables to take its values from. Instead the
+ * browser's root declares them as `--hh-cfiles-*` (rule 4 of the core's styling guide), derived
+ * from Bootstrap's and the theme's CSS variables, and the rules below only use those. The
+ * dialogs are rendered outside the root (`UiModal` teleports to `body`), so the move tree
+ * styles itself from Bootstrap's variables alone.
  */
 
 .cfiles-browser {
-    --cfiles-folder-color: #ffcc00;
+    /* The design's folder yellow - reads on light and dark alike. */
+    --hh-cfiles-folder-color: #ffcc00;
+    --hh-cfiles-gap: 1rem;
+    --hh-cfiles-muted: var(--hh-text-color-secondary);
+    --hh-cfiles-strong: var(--hh-text-color-highlight);
+    /* A row's hover as a data table row's (`$data-table-hover-bg`, `-border-color`), its
+       selection the core tile's fill (`$item-browser-selected-bg`). */
+    --hh-cfiles-hover-bg: var(--bs-accent-bg-subtle);
+    --hh-cfiles-hover-border-color: var(--bs-accent);
+    --hh-cfiles-selected-bg: rgba(var(--bs-accent-rgb), .1);
+    --hh-cfiles-meta-font-size: .875em;
+    --hh-cfiles-name-font-weight: 600;
+    /* A tile's glyph fills the core tile's thumb (`$tile-thumb-height`). */
+    --hh-cfiles-tile-glyph-size: 100px;
+    /* As a data table's main image (`$data-table-main-image-size`). */
+    --hh-cfiles-row-icon-size: 2.5rem;
+    /* The design's side card (docs/ui/item-browser.md, "Details"). */
+    --hh-cfiles-details-width: 400px;
 
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--hh-cfiles-gap);
     width: 100%;
     max-width: 1440px;
     margin-inline: auto;
+    /* The details fold by the browser's own width, not the viewport's (see below). */
+    container-type: inline-size;
 }
 
-/* The lower card - path and items - is a core content card (`.card.content-card`, styled by
-   the core); it only keeps the narrower inset of the item browser. */
-.cfiles-browser__card {
-    padding: 8px;
+/* --- details: a side card next to the browser's card -------------------------------- */
+
+/* The add buttons, spaced as the page header's other actions. */
+.cfiles-add-menu {
+    display: flex;
+    gap: inherit;
 }
 
-/* --- result lists --------------------------------------------------------------- */
+.cfiles-browser-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--hh-cfiles-gap);
+    align-items: start;
+}
+
+/* Folded (one column) the details come first: they were just asked for, and the list may be
+   long. */
+.cfiles-details {
+    order: -1;
+}
+
+/* Side by side once both fit - the master/detail fold width (docs/ui/master-detail.md): two
+   400px panes and the gap. A container query can't read a custom property, hence the value. */
+@container (min-width: 816px) {
+    .cfiles-browser-body.is-details-open {
+        grid-template-columns: minmax(0, 1fr) var(--hh-cfiles-details-width);
+    }
+
+    /* One screen tall at most, beside the list: header, tabs and the footer's actions stay put,
+       the body scrolls between them. */
+    .cfiles-details {
+        order: 0;
+        position: sticky;
+        top: calc(var(--hh-fixed-header-height, 0px) + var(--hh-cfiles-gap));
+        max-height: calc(100vh - var(--hh-fixed-header-height, 0px) - 2 * var(--hh-cfiles-gap));
+    }
+
+    .cfiles-details > .card-body {
+        min-height: 0;
+        overflow-y: auto;
+    }
+}
+
+/* Info's action (Download) stays in reach: folded, the footer sticks to the bottom of the
+   window while the details scroll by under it; beside the list, it is the card's last row. */
+.cfiles-details > .card-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background-color: var(--bs-card-bg);
+}
+
+/* The heading takes the focus when the details open, for keyboard and screen reader users; a
+   ring around a heading would only look like a mistake. */
+.cfiles-details .card-title:focus {
+    outline: none;
+}
+
+/* The item itself: its glyph or preview, its name and size, on the path bar's grey. */
+.cfiles-details-item {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--hh-cfiles-gap) * .5);
+    margin-bottom: var(--hh-cfiles-gap);
+    padding: calc(var(--hh-cfiles-gap) * .5);
+    border-radius: var(--bs-border-radius);
+    background: var(--bs-secondary-bg);
+}
+
+.cfiles-details-facts {
+    /* No gutter: a `.row`'s negative margins would reach past the scrolling body and give it a
+       horizontal scrollbar. The label keeps its distance by its own padding. */
+    --bs-gutter-x: 0;
+
+    margin-bottom: 0;
+    font-size: var(--hh-cfiles-meta-font-size);
+}
+
+.cfiles-details-facts > dt {
+    padding-inline-end: calc(var(--hh-cfiles-gap) * .5);
+    color: var(--hh-cfiles-muted);
+    font-weight: normal;
+}
+
+.cfiles-details-facts > dd {
+    overflow-wrap: anywhere;
+}
+
+.cfiles-details-facts > dd:last-child {
+    margin-bottom: 0;
+}
+
+/* The Discussion tab's description, as it was written: its line breaks kept. */
+.cfiles-details-description {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+/* --- topics ------------------------------------------------------------------------- */
+
+/* A neutral `.badge` (the design system's tag) led by the topic's colour dot. */
+.badge.cfiles-topic {
+    display: inline-flex;
+    align-items: center;
+    gap: .25em;
+}
+
+.cfiles-topic-dot {
+    width: .6em;
+    height: .6em;
+    border-radius: 50%;
+    background-color: var(--hh-cfiles-muted);
+}
+
+/* --- result lists ------------------------------------------------------------------- */
 
 /* How many hits there are and where: a quiet line under the path bar, in its inset. */
 .cfiles-results {
     margin: 0;
-    padding: 4px 8px 0;
-    font-size: 12px;
+    padding: calc(var(--hh-cfiles-gap) * .25) calc(var(--hh-cfiles-gap) * .5) 0;
+    font-size: var(--hh-cfiles-meta-font-size);
 }
 
-/* Where a hit lies ("in Brand › Logos"): a link in the meta line's own colour, accented on
-   hover like the names. */
-.cfiles-location {
+/* The links of a meta line - a row's author, and where a hit lies ("in Brand › Logos") - in
+   the line's own colour, accented on hover like the names. Over several spaces (the global files
+   page) the location links its space and its folders on their own ("in Marketing › Brand ›
+   Logos"). */
+.cfiles-row-author,
+.cfiles-location,
+.cfiles-location-space,
+.cfiles-location-folder {
     color: inherit;
     text-decoration: none;
-    transition: color 0.3s;
+    transition: color .3s;
 }
 
+.cfiles-row-author:hover,
+.cfiles-row-author:focus-visible,
 .cfiles-location:hover,
-.cfiles-location:focus-visible {
+.cfiles-location:focus-visible,
+.cfiles-location-space:hover,
+.cfiles-location-space:focus-visible,
+.cfiles-location-folder:hover,
+.cfiles-location-folder:focus-visible {
     color: var(--bs-accent);
     text-decoration: underline;
 }
 
-/* Over several spaces (the global files page) the line links its space and its folders on
-   their own ("in Marketing › Brand › Logos"): each part is a link like the one above. */
-.cfiles-location--split:hover {
+.cfiles-location-split:hover {
     color: inherit;
     text-decoration: none;
-}
-
-.cfiles-location__space,
-.cfiles-location__folder {
-    color: inherit;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.cfiles-location__space:hover,
-.cfiles-location__space:focus-visible,
-.cfiles-location__folder:hover,
-.cfiles-location__folder:focus-visible {
-    color: var(--bs-accent);
-    text-decoration: underline;
 }
 
 /* A tile's second meta line, cut like the first. The kit stretches the name link over the
    whole tile (its `::after`, z-index 1); this link sits above it, on the check's and the
    actions' layer, or it could not be clicked. */
-.cfiles-tile__location {
+.cfiles-tile-location {
     position: relative;
     z-index: 2;
     display: block;
@@ -83,152 +208,159 @@
     white-space: nowrap;
 }
 
-/* --- tiles: what goes into the kit's 100px thumb ---------------------------- */
+/* --- tiles: what goes into the kit's thumb ------------------------------------------ */
 
-.cfiles-tile__folder {
+.cfiles-tile-folder {
     display: block;
-    color: var(--cfiles-folder-color);
-    font-size: 100px;
+    color: var(--hh-cfiles-folder-color);
+    font-size: var(--hh-cfiles-tile-glyph-size);
     line-height: 1;
 }
 
 /* A space of the global files page: the folder glyph with the space's image as a badge at its
    bottom right, ringed in the card's colour so it stands off the yellow in either mode. */
-.cfiles-tile__space {
+.cfiles-tile-space {
     position: relative;
     display: block;
     line-height: 1;
 }
 
-.cfiles-tile__badge {
+.cfiles-tile-badge {
     position: absolute;
-    right: 8px;
-    bottom: 16px;
+    right: calc(var(--hh-cfiles-tile-glyph-size) * .08);
+    bottom: calc(var(--hh-cfiles-tile-glyph-size) * .16);
     display: block;
     line-height: 0;
 }
 
-.cfiles-tile__badge > .space-acronym,
-.cfiles-tile__badge > img {
+.cfiles-tile-badge > .space-acronym,
+.cfiles-tile-badge > img {
     box-shadow: 0 0 0 2px var(--hh-background-color-main);
-    font-size: 10px;
+    font-size: .7rem;
     line-height: 1;
 }
 
-.cfiles-tile__doc {
+/* A file without a preview: its type's glyph on a sheet of paper. */
+.cfiles-tile-doc {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 76px;
-    height: 96px;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 6px;
+    width: calc(var(--hh-cfiles-tile-glyph-size) * .76);
+    height: calc(var(--hh-cfiles-tile-glyph-size) * .96);
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
     background: var(--hh-background-color-main);
-    color: var(--hh-text-color-secondary);
-    font-size: 36px;
+    color: var(--hh-cfiles-muted);
+    font-size: calc(var(--hh-cfiles-tile-glyph-size) * .36);
 }
 
-.cfiles-tile__image {
+.cfiles-tile-image {
     display: block;
     width: 100%;
-    max-width: 136px;
+    max-width: calc(var(--hh-cfiles-tile-glyph-size) * 1.36);
     height: 100%;
-    border-radius: 6px;
+    border-radius: var(--bs-border-radius);
     object-fit: cover;
 }
 
-/* --- list rows ---------------------------------------------------------------- */
+/* --- list rows ---------------------------------------------------------------------- */
 
-/* The rows keep `.hh-list` for its `h4`/`h5` typography, but take the tile grid's look
-   instead of the stream list's: no dividers and no accent border, a rounded row that tints on
-   hover, selection and as a drop target - the same tokens `_item-browser.scss` gives a tile.
-   `.hh-list.cfiles-list` outweighs `.hh-list > div:not(.stream-end)`. The inset matches the
-   tile grid's, so the rows line up under the path bar as the tiles do. */
-.hh-list.cfiles-list {
+/* Bootstrap's list group, set through its own variables to the core tile's look: no borders,
+   rounded rows that tint on hover, selection and as a drop target. */
+.list-group.cfiles-list {
+    --bs-list-group-bg: transparent;
+    --bs-list-group-border-width: 0;
+    --bs-list-group-item-padding-x: calc(var(--hh-cfiles-gap) * .5);
+    --bs-list-group-item-padding-y: calc(var(--hh-cfiles-gap) * .5);
+    --bs-list-group-action-hover-bg: var(--hh-cfiles-hover-bg);
+    --bs-list-group-action-active-bg: var(--hh-cfiles-hover-bg);
+
+    gap: .125rem;
+    padding: calc(var(--hh-cfiles-gap) * .5);
+}
+
+.cfiles-row {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px;
-}
-
-.hh-list.cfiles-list > .cfiles-row {
-    padding: 8px;
-    border: 0;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s, box-shadow 0.3s, opacity 0.3s;
-}
-
-.hh-list.cfiles-list > .cfiles-row:hover {
-    border: 0;
-    background: var(--bs-secondary-bg);
-}
-
-.hh-list.cfiles-list > .cfiles-row.is-selected {
-    background: rgba(var(--bs-accent-rgb), 0.1);
-}
-
-.hh-list.cfiles-list > .cfiles-row.is-drop-target {
-    background: rgba(var(--bs-accent-rgb), 0.1);
-    box-shadow: inset 0 0 0 1px var(--bs-accent);
-}
-
-.hh-list.cfiles-list > .cfiles-row.is-uploading {
-    cursor: default;
-    opacity: 0.6;
-}
-
-/* The title reads like a tile's name: strong, and accented while the row is hovered. */
-.hh-list.cfiles-list > .cfiles-row h4 > a {
-    color: var(--hh-text-color-highlight);
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.hh-list.cfiles-list > .cfiles-row:hover h4 > a {
-    color: var(--bs-accent);
-}
-
-.hh-list.cfiles-list > .cfiles-row .cfiles-row-meta {
-    margin: 2px 0 0;
-    min-height: 0;
-    color: var(--hh-text-color-secondary);
-    font-size: 12px;
-    font-weight: 400;
-}
-
-/* A topic of the item, after the meta line: its colour dot and name, as the Topic filter's chips. */
-.cfiles-row-topic {
-    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    margin-left: 8px;
-    white-space: nowrap;
+    gap: calc(var(--hh-cfiles-gap) * .5);
+    border-radius: var(--bs-border-radius);
+    cursor: pointer;
+    transition: background-color .15s ease-in-out, box-shadow .15s ease-in-out, opacity .3s;
 }
 
-.cfiles-row-topic__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--hh-text-color-secondary);
+/* Hovered as a data table's row: the light accent fill with an accent outline. */
+.cfiles-row.list-group-item-action:not(.is-uploading):hover {
+    box-shadow: inset 0 0 0 var(--bs-border-width) var(--hh-cfiles-hover-border-color);
+}
+
+.cfiles-row.is-selected {
+    background-color: var(--hh-cfiles-selected-bg);
+}
+
+.cfiles-row.is-drop-target {
+    background-color: var(--hh-cfiles-selected-bg);
+    box-shadow: inset 0 0 0 var(--bs-border-width) var(--bs-accent);
+}
+
+.cfiles-row.is-uploading {
+    cursor: default;
+    opacity: .6;
 }
 
 /* An upload has no checkbox yet; where the other rows have one, it keeps their icon column. */
-.hh-list.cfiles-list:has(.cfiles-row-select) > .cfiles-row.is-uploading {
-    padding-left: calc(8px + 18px + 0.5rem); /* padding, the themed 18px box, `gap-2` */
+.cfiles-list:has(.cfiles-row-select) > .cfiles-row.is-uploading {
+    padding-left: calc(var(--bs-list-group-item-padding-x) + 18px + var(--hh-cfiles-gap) * .5); /* the themed 18px box */
+}
+
+/* Name and meta line, taking the row's free width; `min-width: 0` lets their text truncate
+   instead of widening the row. */
+.cfiles-row-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* The name reads like a tile's: strong, and accented while the row is hovered. */
+.cfiles-row-name {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    color: var(--hh-cfiles-strong);
+    font-weight: var(--hh-cfiles-name-font-weight);
+}
+
+.cfiles-row-name > a {
+    color: inherit;
+    text-decoration: none;
+    transition: color .3s;
+}
+
+.cfiles-row:hover .cfiles-row-name > a {
+    color: var(--bs-accent);
+}
+
+.cfiles-row-meta {
+    color: var(--hh-cfiles-muted);
+    font-size: var(--hh-cfiles-meta-font-size);
+}
+
+.cfiles-row-private {
+    vertical-align: -.125em;
+}
+
+.cfiles-row-meta > .cfiles-topic {
+    margin-inline-start: .5em;
 }
 
 /* In the accent, on the accent's own track - the colours the tile's progress frame uses. */
-.cfiles-row__progress {
-    --bs-progress-bg: rgba(var(--bs-accent-rgb), 0.2);
+.progress.cfiles-row-progress {
+    --bs-progress-height: .25rem;
+    --bs-progress-bg: rgba(var(--bs-accent-rgb), .2);
     --bs-progress-bar-bg: var(--bs-accent);
 
-    height: 4px;
-    margin-top: 6px;
+    margin-top: .375rem;
 }
 
 .cfiles-row-select,
-.cfiles-row-creator,
 .cfiles-row-controls {
     flex: 0 0 auto;
 }
@@ -237,71 +369,56 @@
     margin: 0;
 }
 
+/* The glyph or preview column, shared with the details' item. */
 .cfiles-row-icon {
     display: flex;
-    flex: 0 0 32px;
+    flex: 0 0 var(--hh-cfiles-row-icon-size);
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: var(--hh-cfiles-row-icon-size);
+    line-height: 1;
 }
 
 .cfiles-icon-folder {
-    color: var(--cfiles-folder-color);
+    color: var(--hh-cfiles-folder-color);
+}
+
+/* A space of the global files page: the folder glyph with the space's image as a badge, as
+   its tile (`.cfiles-tile-badge`). */
+.cfiles-row-space {
+    position: relative;
+}
+
+.cfiles-row-badge {
+    position: absolute;
+    right: 0;
+    bottom: calc(var(--hh-cfiles-row-icon-size) * .12);
+    display: block;
+    line-height: 0;
+}
+
+.cfiles-row-badge > .space-acronym,
+.cfiles-row-badge > img {
+    box-shadow: 0 0 0 2px var(--hh-background-color-main);
+    font-size: .5rem;
+    line-height: 1;
 }
 
 .cfiles-icon-file {
-    color: var(--hh-text-color-secondary);
+    color: var(--hh-cfiles-muted);
 }
 
 .cfiles-thumb {
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
+    width: var(--hh-cfiles-row-icon-size);
+    height: var(--hh-cfiles-row-icon-size);
+    border-radius: var(--bs-border-radius-sm);
     object-fit: cover;
 }
 
-/* Bootstrap has no `min-width: 0` utility, and without it a flex child's text refuses to
-   truncate - the row would grow instead of ellipsizing. */
-.min-width-0 {
-    min-width: 0;
-}
-
-/* The platform's own like link, at the size the stream gives its own entry controls
-   (`_stream.scss`: 11px, `--hh-text-color-soft`) - a file row is not the place where it
-   should shout. */
-.cfiles-row-social {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    font-size: 11px;
-}
-
-.cfiles-row-social a {
-    color: var(--hh-text-color-soft);
-    transition: color 0.3s;
-}
-
-/* A narrow screen has no room for it next to the name, which is what a file browser is
-   actually for. */
-@media (max-width: 767px) {
-    .cfiles-row-social {
-        display: none;
-    }
-}
-
-/* The row menu is the platform's standard content-controls menu, so it keeps `DropdownMenu`'s
-   default `.nav-pills.preferences` root and looks like every other one. `_nav.scss` pins that
-   root `absolute` to a stream entry's corner, though; a row wants it in the flex flow. */
-.cfiles-row-controls .nav-pills.preferences {
-    position: static;
-    margin: 0;
-}
-
-/* The meatball appears on hover on the desktop and stays put on touch, where there is no
-   hover to reveal it. `:not(.show)` keeps an OPEN menu's toggle visible once the pointer
-   leaves the row - the same guard _comment.scss uses for the comment entry. */
-@media (min-width: 768px) {
+/* The ⋮ appears on hover or focus where there is a pointer to hover with, and stays put on
+   touch - as the core tile's actions do. `:not(.show)` keeps an OPEN menu's toggle visible
+   once the pointer leaves the row. */
+@media (hover: hover) {
     .cfiles-row .cfiles-row-toggle:not(.show) {
         visibility: hidden;
     }
@@ -313,21 +430,26 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hh-list.cfiles-list > .cfiles-row,
-    .hh-list.cfiles-list > .cfiles-row h4 > a {
+    .cfiles-row-author,
+    .cfiles-location,
+    .cfiles-location-space,
+    .cfiles-location-folder,
+    .cfiles-row,
+    .cfiles-row-name > a {
         transition: none;
     }
 }
 
-/* --- move dialog tree ------------------------------------------------------------ */
+/* --- move dialog tree --------------------------------------------------------------- */
 
+/* A list group of folders, indented by depth (`--hh-cfiles-depth`, set per row); the chosen
+   one is the group's `.active`. */
 .cfiles-move-tree {
     max-height: 40vh;
     overflow-y: auto;
-    border: 1px solid var(--hh-background-color-page);
-    border-radius: 4px;
 }
 
-.cfiles-move-tree > div {
+.cfiles-move-tree > .list-group-item {
+    padding-left: calc(var(--bs-list-group-item-padding-x) + var(--hh-cfiles-depth, 0) * 1.25rem);
     cursor: pointer;
 }

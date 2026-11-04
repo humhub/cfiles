@@ -38,6 +38,7 @@ class FileSerializer
      *     id: int,
      *     contentId: int,
      *     recordId: int,
+     *     fileId: int|null,
      *     guid: string|null,
      *     title: string,
      *     description: string,
@@ -70,6 +71,9 @@ class FileSerializer
             'contentId' => (int)$content->id,
             // See FolderSerializer.
             'recordId' => RecordMap::getId($file),
+            // The platform file holding the bytes, by which the core addresses its versions
+            // (`GET api/v2/file/<id>/versions`).
+            'fileId' => $baseFile ? (int)$baseFile->id : null,
             'guid' => $baseFile?->guid,
             // The file name IS the title of a cfiles file - renaming one renames the stored
             // file (see File::setTitle()).

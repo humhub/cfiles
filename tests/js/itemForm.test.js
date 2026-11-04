@@ -63,17 +63,17 @@ describe('CfilesItemForm topics', () => {
         await wrapper.find('form').trigger('submit');
         await flushPromises();
 
-        const feedback = wrapper.find('.cfiles-item-form__topics .invalid-feedback.d-block');
+        const feedback = wrapper.find('.cfiles-item-form-topics .invalid-feedback.d-block');
         expect(feedback.text()).toBe('Topic not found.');
         expect(wrapper.text().split('Topic not found.')).toHaveLength(2);
-        const input = wrapper.find('.cfiles-item-form__topics input[role="combobox"]');
+        const input = wrapper.find('.cfiles-item-form-topics input[role="combobox"]');
         expect(input.attributes('aria-invalid')).toBe('true');
         expect(input.attributes('aria-describedby')).toBe(feedback.attributes('id'));
 
         // Changing the topics clears it.
         topics(wrapper).vm.$emit('update:modelValue', ['4']);
         await flushPromises();
-        expect(wrapper.find('.cfiles-item-form__topics .invalid-feedback').exists()).toBe(false);
+        expect(wrapper.find('.cfiles-item-form-topics .invalid-feedback').exists()).toBe(false);
         expect(input.attributes('aria-invalid')).toBeUndefined();
     });
 

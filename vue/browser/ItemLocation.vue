@@ -8,14 +8,14 @@
         draggable="false"
         @click="follow(location.folder, $event)"
     >{{ location.label }}</a>
-    <span v-else class="cfiles-location cfiles-location--split" :title="location.label">{{ location.before }}<a
-        class="cfiles-location__space"
+    <span v-else class="cfiles-location cfiles-location-split" :title="location.label">{{ location.before }}<a
+        class="cfiles-location-space"
         :href="folderUrl(null, location.space)"
         :aria-label="openLabel(location.space.title)"
         draggable="false"
         @click="follow(location.space, $event)"
     >{{ location.space.title }}</a><template v-if="location.folder"> › <a
-        class="cfiles-location__folder"
+        class="cfiles-location-folder"
         :href="folderUrl(location.folder.id, location.space)"
         :aria-label="openLabel(location.folder.title)"
         draggable="false"
