@@ -9,6 +9,7 @@
 namespace humhub\modules\cfiles\components;
 
 use humhub\components\listing\FilterDefinition;
+use humhub\components\listing\filters\HasSuggestions;
 use humhub\components\listing\FilterValue;
 use humhub\components\listing\ListBuilder;
 use humhub\components\listing\ListContext;
@@ -22,7 +23,7 @@ use humhub\components\listing\ListFilter;
  *
  * @since 1.0
  */
-final class GlobalItemsFilter extends ListFilter
+final class GlobalItemsFilter extends ListFilter implements HasSuggestions
 {
     public function __construct(public readonly ListFilter $filter)
     {
@@ -59,5 +60,15 @@ final class GlobalItemsFilter extends ListFilter
     public function definition(ListContext $context): ?FilterDefinition
     {
         return $this->filter->definition($context);
+    }
+
+    public function hasSuggestions(): bool
+    {
+        return $this->filter instanceof HasSuggestions && $this->filter->hasSuggestions();
+    }
+
+    public function suggestions(ListContext $context): array
+    {
+        return $this->filter instanceof HasSuggestions ? $this->filter->suggestions($context) : [];
     }
 }

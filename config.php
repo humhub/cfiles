@@ -26,7 +26,9 @@ return [
         // The global files page's listing, across the spaces of the user; inside a space it
         // lists with the container's endpoint below.
         ['pattern' => 'api/v2/cfiles/items', 'route' => 'cfiles/api/global/items', 'verb' => ['GET', 'HEAD']],
+        ['pattern' => 'api/v2/cfiles/suggestions', 'route' => 'cfiles/api/global/suggestions', 'verb' => ['GET', 'HEAD']],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/items', 'route' => 'cfiles/api/folder/items', 'verb' => ['GET', 'HEAD']],
+        ['pattern' => 'api/v2/cfiles/<containerId:\d+>/suggestions', 'route' => 'cfiles/api/folder/suggestions', 'verb' => ['GET', 'HEAD']],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/folders', 'route' => 'cfiles/api/folder/create', 'verb' => 'POST'],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/files', 'route' => 'cfiles/api/folder/upload', 'verb' => 'POST'],
         // Changing something that exists addresses it by its own id.

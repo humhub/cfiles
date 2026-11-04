@@ -20,6 +20,7 @@ use humhub\modules\topic\components\listing\TopicFilter;
 use humhub\modules\user\components\listing\UserFilter;
 use Yii;
 use yii\base\InvalidConfigException;
+use yii\helpers\Url;
 
 /**
  * One level of a container's file tree, as the file browser lists it:
@@ -233,6 +234,7 @@ class FolderList extends FilterableList
                     'label' => Yii::t('CfilesModule.base', 'Author'),
                     'sortOrder' => 120,
                 ],
+                suggest: FilterSuggestions::authors(...),
             ),
             'type' => new EnumFilter(
                 'type',
@@ -306,7 +308,21 @@ class FolderList extends FilterableList
                 'label' => Yii::t('CfilesModule.base', 'Topic'),
                 'sortOrder' => 125,
             ],
+            suggest: FilterSuggestions::topics(...),
         );
+    }
+
+    /**
+     * The suggestions of the author and topic filters load from the file browser's endpoint
+     * (`GET /api/v2/cfiles/<containerId>/suggestions?filter=<key>`) — those of the space browsed.
+     * Without a container (the space level of the global files page, where it is not known yet
+     * which space opens) from the global page's, those of all its spaces.
+     */
+    protected function suggestionsUrl(string $key, ListContext $context): ?string
+    {
+        return $context->container !== null
+            ? Url::to(['/cfiles/api/folder/suggestions', 'containerId' => $context->container->contentcontainer_id, 'filter' => $key])
+            : Url::to(['/cfiles/api/global/suggestions', 'filter' => $key]);
     }
 
     /**
