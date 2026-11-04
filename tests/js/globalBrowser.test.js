@@ -691,15 +691,17 @@ describe('CfilesFileBrowser on the global files page', () => {
             expect(wrapper.find('.cfiles-add-menu').exists()).toBe(true);
         });
 
-        // The file handlers' markup is rendered for the page's own request — on the global
-        // page that names no space, so a handler would create its document nowhere.
-        it('leaves out the server-rendered file handlers', () => {
+        // The page's file handlers are built for its own request — on the global page that
+        // names no space, so a handler would create its document nowhere.
+        it('leaves out the file handlers', () => {
             window.history.replaceState({}, '', '/files?space=3');
-            const wrapper = browser(spaceLevel([], { canWrite: true }), {
-                space: openSpace(), contentContainerId: 7, createHandlersHtml: '<li class="handler">New sheet</li>',
-            });
-
-            expect(wrapper.find('.handler').exists()).toBe(false);
+            globalThis.humhub.config.module('file').handlers = [{ label: 'New sheet', icon: null, attributes: { 'data-action-click': 'sheet.create' } }];
+            try {
+                const wrapper = browser(spaceLevel([], { canWrite: true }), { space: openSpace(), contentContainerId: 7 });
+                expect(wrapper.find('[data-action-click="sheet.create"]').exists()).toBe(false);
+            } finally {
+                delete globalThis.humhub.config.module('file').handlers;
+            }
         });
 
         it('uploads into the open space', async () => {

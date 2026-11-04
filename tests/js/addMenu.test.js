@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { enableAutoUnmount, mount } from '@vue/test-utils';
-import { nextTick } from 'vue';
 import AddMenu from '../../vue/browser/AddMenu.vue';
 
 enableAutoUnmount(afterEach);
 
 const menu = (props = {}) => mount(AddMenu, { props, attachTo: document.body });
 
-const handlersHtml = '<li><a class="dropdown-item" href="#" data-action-click="x">New spreadsheet</a></li>';
+const handlers = [{ label: 'New spreadsheet', icon: 'table', attributes: { 'data-action-click': 'x' } }];
+const imageHandler = { label: 'Attach an image', icon: 'camera', attributes: { 'data-action-click': 'file.uploadByType', 'data-action-params': '{"type":"image/*"}' } };
 
 describe('AddMenu', () => {
     it('offers a new folder and an upload as icon buttons of their own', async () => {
@@ -30,7 +30,7 @@ describe('AddMenu', () => {
     });
 
     it('makes the upload an "add" menu where a module contributed handlers', () => {
-        const wrapper = menu({ handlersHtml });
+        const wrapper = menu({ handlers });
         const toggle = wrapper.find('[data-bs-toggle="dropdown"]');
 
         expect(wrapper.find('.cfiles-add-upload').exists()).toBe(false);
@@ -42,7 +42,7 @@ describe('AddMenu', () => {
     });
 
     it('lists the upload, a divider, then the handlers, all selectable as Bootstrap dropdown items', async () => {
-        const wrapper = menu({ handlersHtml });
+        const wrapper = menu({ handlers });
         const list = wrapper.find('.dropdown-menu');
 
         expect(list.find('hr.dropdown-divider').exists()).toBe(true);
@@ -52,16 +52,30 @@ describe('AddMenu', () => {
         expect(wrapper.emitted('upload')).toHaveLength(1);
     });
 
-    it('runs the legacy ui additions over the handler markup, same as the old toolbar did', async () => {
-        let enhanced = 0;
-        globalThis.humhubStubs.additions.register('test-add-menu-handler', '[data-action-click="add-menu-enhance"]', () => {
-            enhanced++;
-        });
-        expect(enhanced).toBe(0);
+    it('renders a handler as a link carrying its attributes, and reports a module\'s choice', async () => {
+        const wrapper = menu({ handlers });
+        const link = wrapper.find('[data-action-click="x"]');
 
-        menu({ handlersHtml: '<li><a class="dropdown-item" href="#" data-action-click="add-menu-enhance">New spreadsheet</a></li>' });
-        await nextTick();
+        expect(link.attributes('data-action-process')).toBe('file-handler');
+        expect(link.find('i.dropdown-item-icon.ti.ti-table').exists()).toBe(true);
 
-        expect(enhanced).toBe(1);
+        await link.trigger('click');
+        expect(wrapper.emitted('handler')).toHaveLength(1);
+    });
+
+    // The legacy `file.uploadByType` action looks for an upload button this page has not got
+    it('asks for the picker with its type for the platform\'s "upload this type" entries', async () => {
+        const delegate = (event) => { event.legacyReached = true; };
+        document.addEventListener('click', delegate);
+        const wrapper = menu({ handlers: [imageHandler] });
+
+        const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+        wrapper.find('[data-action-click="file.uploadByType"]').element.dispatchEvent(click);
+        document.removeEventListener('click', delegate);
+
+        expect(wrapper.emitted('upload')).toEqual([['image/*']]);
+        expect(wrapper.emitted('handler')).toBeUndefined();
+        expect(click.legacyReached).toBeUndefined();
+        expect(click.defaultPrevented).toBe(true);
     });
 });

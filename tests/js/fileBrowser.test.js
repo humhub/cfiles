@@ -517,6 +517,18 @@ describe('CfilesFileBrowser', () => {
             expect(click).toHaveBeenCalledTimes(1);
         });
 
+        it('opens the picker for one type when a handler asks for it', () => {
+            const wrapper = browser(topLevel());
+            const input = wrapper.vm.$refs.fileInput;
+            vi.spyOn(input, 'click').mockImplementation(() => {});
+
+            wrapper.vm.pickFiles('image/*');
+            expect(input.getAttribute('accept')).toBe('image/*');
+
+            wrapper.vm.pickFiles();
+            expect(input.hasAttribute('accept')).toBe(false);
+        });
+
         it('opens the folder dialog through the new folder button', async () => {
             const wrapper = browser(topLevel());
 
@@ -670,12 +682,18 @@ describe('CfilesFileBrowser', () => {
     });
 
     describe('file handlers', () => {
-        const handlersHtml = '<li><a href="#" class="dropdown-item" data-action-click="test.create">New document</a></li>';
+        // The page's handlers, from the core JS config (`file.handlers`)
+        beforeEach(() => {
+            globalThis.humhub.config.module('file').handlers = [{ label: 'New document', icon: null, attributes: { 'data-action-click': 'test.create' } }];
+        });
+        afterEach(() => {
+            delete globalThis.humhub.config.module('file').handlers;
+        });
         const chooseHandler = (wrapper) => wrapper.find('[data-action-click="test.create"]').trigger('click');
         const created = (...files) => globalThis.humhubStubs.event.trigger('humhub:file:created', [files]);
 
         it('files what a handler of the add menu created into the level it was chosen on', async () => {
-            const wrapper = browser(insideFolder([]), { createHandlersHtml: handlersHtml });
+            const wrapper = browser(insideFolder([]));
 
             await chooseHandler(wrapper);
             created({ guid: 'guid-1' }, { guid: 'guid-2' });
@@ -687,7 +705,7 @@ describe('CfilesFileBrowser', () => {
         });
 
         it('sends no parent at the top level', async () => {
-            const wrapper = browser(topLevel(), { createHandlersHtml: handlersHtml });
+            const wrapper = browser(topLevel());
 
             await chooseHandler(wrapper);
             created({ guid: 'guid-1' });
@@ -697,7 +715,7 @@ describe('CfilesFileBrowser', () => {
         });
 
         it('reloads the level once the file is filed', async () => {
-            const wrapper = browser(topLevel(), { createHandlersHtml: handlersHtml });
+            const wrapper = browser(topLevel());
 
             await chooseHandler(wrapper);
             created({ guid: 'guid-1' });
@@ -707,7 +725,7 @@ describe('CfilesFileBrowser', () => {
         });
 
         it('leaves files alone that no handler of the menu created', async () => {
-            browser(topLevel(), { createHandlersHtml: handlersHtml });
+            browser(topLevel());
 
             created({ guid: 'guid-1' });
             await flushPromises();
@@ -716,7 +734,7 @@ describe('CfilesFileBrowser', () => {
         });
 
         it('files a choice only once', async () => {
-            const wrapper = browser(topLevel(), { createHandlersHtml: handlersHtml });
+            const wrapper = browser(topLevel());
 
             await chooseHandler(wrapper);
             created({ guid: 'guid-1' });

@@ -12,12 +12,31 @@
     }
     return target;
   };
+  const UPLOAD_BY_TYPE_ACTION = "file.uploadByType";
   const _sfc_main$9 = {
     props: {
-      /** Server-rendered `<li>` markup for the file handlers a module contributed. */
-      handlersHtml: { type: String, default: "" }
+      /** The file handlers (`{label, icon, attributes}`, see the class docblock). */
+      handlers: { type: Array, default: () => [] }
     },
     emits: ["upload", "create-folder", "handler"],
+    methods: {
+      onHandler(handler, event) {
+        const attributes = handler.attributes || {};
+        if (attributes["data-action-click"] !== UPLOAD_BY_TYPE_ACTION) {
+          this.$emit("handler");
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        let accept = null;
+        try {
+          accept = JSON.parse(attributes["data-action-params"] || "{}").type || null;
+        } catch (error) {
+          accept = null;
+        }
+        this.$emit("upload", accept);
+      }
+    },
     computed: {
       addLabel() {
         return vue.i18n.t("CfilesModule.base", "Add");
@@ -39,9 +58,8 @@
   };
   const _hoisted_5$6 = ["aria-label", "title"];
   const _hoisted_6$6 = { class: "dropdown-menu dropdown-menu-end" };
-  const _hoisted_7$3 = ["innerHTML"];
+  const _hoisted_7$3 = ["onClick"];
   function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
-    const _directive_additions = vue$1.resolveDirective("additions");
     return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$9, [
       vue$1.createElementVNode("button", {
         type: "button",
@@ -49,20 +67,20 @@
         "aria-label": $options.folderLabel,
         title: $options.folderLabel,
         onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("create-folder"))
-      }, [..._cache[4] || (_cache[4] = [
+      }, [..._cache[3] || (_cache[3] = [
         vue$1.createElementVNode("i", {
           class: "ti ti-folder-plus",
           "aria-hidden": "true"
         }, null, -1)
       ])], 8, _hoisted_2$8),
-      !$props.handlersHtml ? (vue$1.openBlock(), vue$1.createElementBlock("button", {
+      !$props.handlers.length ? (vue$1.openBlock(), vue$1.createElementBlock("button", {
         key: 0,
         type: "button",
         class: "btn btn-accent btn-icon-only cfiles-add-upload",
         "aria-label": $options.uploadLabel,
         title: $options.uploadLabel,
         onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("upload"))
-      }, [..._cache[5] || (_cache[5] = [
+      }, [..._cache[4] || (_cache[4] = [
         vue$1.createElementVNode("i", {
           class: "ti ti-upload",
           "aria-hidden": "true"
@@ -76,7 +94,7 @@
           "aria-expanded": "false",
           "aria-label": $options.addLabel,
           title: $options.addLabel
-        }, [..._cache[6] || (_cache[6] = [
+        }, [..._cache[5] || (_cache[5] = [
           vue$1.createElementVNode("i", {
             class: "ti ti-plus",
             "aria-hidden": "true"
@@ -89,25 +107,34 @@
               class: "dropdown-item cfiles-add-menu-entry",
               onClick: _cache[2] || (_cache[2] = vue$1.withModifiers(($event) => _ctx.$emit("upload"), ["prevent"]))
             }, [
-              _cache[7] || (_cache[7] = vue$1.createElementVNode("i", {
+              _cache[6] || (_cache[6] = vue$1.createElementVNode("i", {
                 class: "ti ti-upload dropdown-item-icon",
                 "aria-hidden": "true"
               }, null, -1)),
               vue$1.createTextVNode(vue$1.toDisplayString($options.uploadLabel), 1)
             ])
           ]),
-          _cache[8] || (_cache[8] = vue$1.createElementVNode("li", null, [
+          _cache[7] || (_cache[7] = vue$1.createElementVNode("li", null, [
             vue$1.createElementVNode("hr", { class: "dropdown-divider" })
           ], -1)),
-          vue$1.createElementVNode("li", null, [
-            vue$1.withDirectives(vue$1.createElementVNode("ul", {
-              class: "list-unstyled m-0",
-              innerHTML: $props.handlersHtml,
-              onClick: _cache[3] || (_cache[3] = ($event) => _ctx.$emit("handler"))
-            }, null, 8, _hoisted_7$3), [
-              [_directive_additions]
-            ])
-          ])
+          (vue$1.openBlock(true), vue$1.createElementBlock(vue$1.Fragment, null, vue$1.renderList($props.handlers, (handler, index) => {
+            return vue$1.openBlock(), vue$1.createElementBlock("li", { key: index }, [
+              vue$1.createElementVNode("a", vue$1.mergeProps({
+                class: "dropdown-item",
+                href: "#"
+              }, { ref_for: true }, handler.attributes, {
+                "data-action-process": "file-handler",
+                onClick: ($event) => $options.onHandler(handler, $event)
+              }), [
+                handler.icon ? (vue$1.openBlock(), vue$1.createElementBlock("i", {
+                  key: 0,
+                  class: vue$1.normalizeClass("dropdown-item-icon ti ti-" + handler.icon),
+                  "aria-hidden": "true"
+                }, null, 2)) : vue$1.createCommentVNode("", true),
+                vue$1.createTextVNode(vue$1.toDisplayString(handler.label), 1)
+              ], 16, _hoisted_7$3)
+            ]);
+          }), 128))
         ])
       ]))
     ]);
@@ -1656,11 +1683,6 @@
        * form of its own — this browser owns that dialog, and one form beats two.
        */
       editKey: { type: String, default: null },
-      /**
-       * Server-rendered `<li>` markup of the file handlers modules contributed ("New
-       * spreadsheet", "Import from …"), appended to the `AddMenu`.
-       */
-      createHandlersHtml: { type: String, default: "" },
       /** The FilterBar definitions (`FolderList::definitions()`): the filters and the sort. */
       filters: { type: Array, default: () => [] },
       /**
@@ -1735,6 +1757,14 @@
       };
     },
     computed: {
+      /**
+       * The file handlers modules contribute ("New spreadsheet", "Import from …") and the
+       * platform's "upload this type" entries, for the `AddMenu` - the page's, from the core
+       * JS config (`file.handlers`).
+       */
+      fileHandlers() {
+        return (vue.getConfig("file") || {}).handlers || [];
+      },
       /** The id of the level currently open — null at the top. */
       folderId() {
         return this.folder ? this.folder.id : null;
@@ -2511,8 +2541,15 @@
         });
       },
       // --- upload -----------------------------------------------------------------
-      pickFiles() {
-        this.$refs.fileInput.click();
+      /** Opens the picker, for one type (`image/*`) when a handler asks for one. */
+      pickFiles(accept = null) {
+        const input = this.$refs.fileInput;
+        if (accept) {
+          input.setAttribute("accept", accept);
+        } else {
+          input.removeAttribute("accept");
+        }
+        input.click();
       },
       onFilesPicked(event) {
         this.upload(event.target.files);
@@ -2731,11 +2768,11 @@
           ])], 8, _hoisted_2$1)) : vue$1.createCommentVNode("", true),
           $options.writable ? (vue$1.openBlock(), vue$1.createBlock(_component_AddMenu, {
             key: 1,
-            "handlers-html": $props.global ? "" : $props.createHandlersHtml,
+            handlers: $props.global ? [] : $options.fileHandlers,
             onUpload: $options.pickFiles,
             onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true),
             onHandler: $options.onHandlerChosen
-          }, null, 8, ["handlers-html", "onUpload", "onHandler"])) : vue$1.createCommentVNode("", true)
+          }, null, 8, ["handlers", "onUpload", "onHandler"])) : vue$1.createCommentVNode("", true)
         ]),
         default: vue$1.withCtx(() => [
           $options.activeFilters.length ? (vue$1.openBlock(), vue$1.createBlock(_component_FilterBar, {

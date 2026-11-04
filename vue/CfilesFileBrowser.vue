@@ -9,12 +9,12 @@
                     :aria-label="settingsLabel"
                     :title="settingsLabel"
                 ><i class="ti ti-settings" aria-hidden="true"></i></a>
-                <!-- The handlers' markup is rendered for the page's own request, whose URL names
-                     the space and folder they create in: the global page's names neither, and a
-                     handler would create its document in the wrong place, so it has none. -->
+                <!-- The handlers are the page's (core JS config), built for its request, whose URL
+                     names the space they create in: the global page's names none, and a handler
+                     would create its document in the wrong place, so it offers none. -->
                 <AddMenu
                     v-if="writable"
-                    :handlers-html="global ? '' : createHandlersHtml"
+                    :handlers="global ? [] : fileHandlers"
                     @upload="pickFiles"
                     @create-folder="showCreate = true"
                     @handler="onHandlerChosen"
@@ -222,7 +222,7 @@
  * uploading: true, progress }`) after the items; one into a folder shown here marks that
  * folder as uploading instead. Both go once the batch is in and the level reloads.
  */
-import { events, i18n, log, modal, status } from '@humhub/vue';
+import { events, getConfig, i18n, log, modal, status } from '@humhub/vue';
 import AddMenu from './browser/AddMenu.vue';
 import DetailsPanel from './browser/DetailsPanel.vue';
 import FileTiles from './browser/FileTiles.vue';
@@ -293,11 +293,6 @@ export default {
          * form of its own — this browser owns that dialog, and one form beats two.
          */
         editKey: { type: String, default: null },
-        /**
-         * Server-rendered `<li>` markup of the file handlers modules contributed ("New
-         * spreadsheet", "Import from …"), appended to the `AddMenu`.
-         */
-        createHandlersHtml: { type: String, default: '' },
         /** The FilterBar definitions (`FolderList::definitions()`): the filters and the sort. */
         filters: { type: Array, default: () => [] },
         /**
@@ -382,6 +377,14 @@ export default {
         };
     },
     computed: {
+        /**
+         * The file handlers modules contribute ("New spreadsheet", "Import from …") and the
+         * platform's "upload this type" entries, for the `AddMenu` - the page's, from the core
+         * JS config (`file.handlers`).
+         */
+        fileHandlers() {
+            return (getConfig('file') || {}).handlers || [];
+        },
         /** The id of the level currently open — null at the top. */
         folderId() {
             return this.folder ? this.folder.id : null;
@@ -1259,8 +1262,15 @@ export default {
         },
 
         // --- upload -----------------------------------------------------------------
-        pickFiles() {
-            this.$refs.fileInput.click();
+        /** Opens the picker, for one type (`image/*`) when a handler asks for one. */
+        pickFiles(accept = null) {
+            const input = this.$refs.fileInput;
+            if (accept) {
+                input.setAttribute('accept', accept);
+            } else {
+                input.removeAttribute('accept');
+            }
+            input.click();
         },
         onFilesPicked(event) {
             this.upload(event.target.files);

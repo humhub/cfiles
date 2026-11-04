@@ -8,7 +8,7 @@
             @click="$emit('create-folder')"
         ><i class="ti ti-folder-plus" aria-hidden="true"></i></button>
         <button
-            v-if="!handlersHtml"
+            v-if="!handlers.length"
             type="button"
             class="btn btn-accent btn-icon-only cfiles-add-upload"
             :aria-label="uploadLabel"
@@ -32,7 +32,15 @@
                     </a>
                 </li>
                 <li><hr class="dropdown-divider" /></li>
-                <li><ul class="list-unstyled m-0" v-additions v-html="handlersHtml" @click="$emit('handler')"></ul></li>
+                <li v-for="(handler, index) in handlers" :key="index">
+                    <a
+                        class="dropdown-item"
+                        href="#"
+                        v-bind="handler.attributes"
+                        data-action-process="file-handler"
+                        @click="onHandler(handler, $event)"
+                    ><i v-if="handler.icon" :class="'dropdown-item-icon ti ti-' + handler.icon" aria-hidden="true"></i>{{ handler.label }}</a>
+                </li>
             </ul>
         </div>
     </div>
@@ -49,15 +57,12 @@
  * `data-bs-toggle="dropdown"` (see `DropdownMenu`'s own doc comment), and the class itself
  * contributes nothing but the `::after` caret — so this plain icon button needs no override CSS.
  *
- * The handlers stay server-rendered `<li>` markup that has to land in the SAME menu, after the
- * divider — `DropdownMenu` can't do that, it wraps every `html` entry in an `<li>` of its own.
- * It gets a nested `<ul v-additions v-html>` instead, inside its own `<li>`: valid HTML, reactive
- * for free (unlike a one-off DOM splice), and Bootstrap's dropdown keyboard nav selects
- * `.dropdown-item` as a descendant of `.dropdown-menu` regardless of nesting depth. Same escape
- * hatch the old toolbar and the core's `UploadField` use. It isn't there for `data-action-click`
- * — humhub.action.js delegates that on `document`, so it already works unassisted — but for the
- * rest of the additions pass any server-rendered fragment gets (`data-ui-init` widgets, `.po`
- * popovers, nested Vue mount points, …).
+ * The handlers are the page's (the core JS config's `file.handlers`: `{label, icon,
+ * attributes}`), rendered as links carrying their attributes, so a module's action
+ * (`data-action-click`) runs through humhub.action.js's document-level delegate. The
+ * platform's own "upload this type" entries (`file.uploadByType`) are taken over: they ask
+ * for the browser's own picker with that type (`upload(accept)`) - the legacy action looks for
+ * an upload button this page does not have.
  *
  * A click on a handler is reported (`handler`): what a handler creates is announced on the
  * global `humhub:file:created` event without saying where it was asked for, so the browser has
@@ -65,12 +70,37 @@
  */
 import { i18n } from '@humhub/vue';
 
+/** The action of the platform's "upload this type" handlers (`humhub.file.js`). */
+const UPLOAD_BY_TYPE_ACTION = 'file.uploadByType';
+
 export default {
     props: {
-        /** Server-rendered `<li>` markup for the file handlers a module contributed. */
-        handlersHtml: { type: String, default: '' },
+        /** The file handlers (`{label, icon, attributes}`, see the class docblock). */
+        handlers: { type: Array, default: () => [] },
     },
     emits: ['upload', 'create-folder', 'handler'],
+    methods: {
+        onHandler(handler, event) {
+            const attributes = handler.attributes || {};
+
+            if (attributes['data-action-click'] !== UPLOAD_BY_TYPE_ACTION) {
+                this.$emit('handler');
+                return;
+            }
+
+            // Not the legacy action as well (see the class docblock)
+            event.preventDefault();
+            event.stopPropagation();
+
+            let accept = null;
+            try {
+                accept = JSON.parse(attributes['data-action-params'] || '{}').type || null;
+            } catch (error) {
+                accept = null;
+            }
+            this.$emit('upload', accept);
+        },
+    },
     computed: {
         addLabel() {
             return i18n.t('CfilesModule.base', 'Add');

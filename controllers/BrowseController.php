@@ -17,8 +17,6 @@ use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\services\FirstListing;
 use humhub\modules\cfiles\services\FolderListingService;
 use humhub\modules\content\components\ContentContainerController;
-use humhub\modules\file\handler\FileHandlerCollection;
-use humhub\modules\file\widgets\FileHandlerButtonDropdown;
 use humhub\modules\space\models\Space;
 use humhub\modules\user\models\User;
 use Yii;
@@ -65,17 +63,6 @@ class BrowseController extends ContentContainerController
             // Passed through untouched: the island looks it up among the rows it received and
             // ignores it when there is no match, so a stale link just opens the folder.
             'editItem' => is_string($edit) && preg_match('/^(file|folder):\d+$/', $edit) ? $edit : null,
-            // File handlers stay server-rendered, the way the core's own upload field does it:
-            // they are menu entries a module contributed, carrying legacy `data-action-click`
-            // attributes, and they build their URLs from this request — which still carries the
-            // `fid` of the open folder, so a handler creates its document in the right place.
-            'createHandlersHtml' => FileHandlerButtonDropdown::widget([
-                'handlers' => FileHandlerCollection::getByType([
-                    FileHandlerCollection::TYPE_CREATE,
-                    FileHandlerCollection::TYPE_IMPORT,
-                ]),
-                'itemsOnly' => true,
-            ]),
             // The container's module settings, for those who may change them — the same
             // group the settings controller admits (see ConfigContainerController).
             'settingsUrl' => $this->canConfigure()
