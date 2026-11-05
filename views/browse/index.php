@@ -9,7 +9,6 @@ use humhub\widgets\VueComponent;
 /* @var $listing array the first page, embedded so the island paints without a request */
 /* @var $canWrite bool */
 /* @var $editItem string|null */
-/* @var $createHandlersHtml string */
 /* @var $filters array the `FilterBar` definitions ({@see \humhub\modules\cfiles\components\FolderList::definitions()}) */
 /* @var $initialFilters array<string, string> the filter values the first page was built with, from the page URL */
 /* @var $settingsUrl string|null the container's cfiles settings page, or null for those who may not change them */
@@ -29,7 +28,6 @@ use humhub\widgets\VueComponent;
         'browseUrl' => $contentContainer->createUrl('/cfiles/browse/index'),
         'contentContainerId' => $contentContainer->contentcontainer_id,
         'editKey' => $editItem,
-        'createHandlersHtml' => $createHandlersHtml,
         'filters' => $filters,
         'initialFilters' => $initialFilters,
         'settingsUrl' => $settingsUrl,

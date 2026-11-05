@@ -2,7 +2,6 @@
     <div class="cfiles-browser">
         <PageHeader :title="titleLabel">
             <template #actions>
-                <ViewSwitch :model-value="view" :options="viewOptions" :label="viewLabel" @update:model-value="setView" />
                 <a
                     v-if="settingsUrl"
                     :href="settingsUrl"
@@ -10,12 +9,12 @@
                     :aria-label="settingsLabel"
                     :title="settingsLabel"
                 ><i class="ti ti-settings" aria-hidden="true"></i></a>
-                <!-- The handlers' markup is rendered for the page's own request, whose URL names
-                     the space and folder they create in: the global page's names neither, and a
-                     handler would create its document in the wrong place, so it has none. -->
+                <!-- The handlers are the page's (core JS config), built for its request, whose URL
+                     names the space they create in: the global page's names none, and a handler
+                     would create its document in the wrong place, so it offers none. -->
                 <AddMenu
                     v-if="writable"
-                    :handlers-html="global ? '' : createHandlersHtml"
+                    :handlers="global ? [] : fileHandlers"
                     @upload="pickFiles"
                     @create-folder="showCreate = true"
                     @handler="onHandlerChosen"
@@ -30,63 +29,77 @@
             />
         </PageHeader>
 
-        <!-- The global top level holds spaces, not files: nothing to upload into. -->
-        <component
-            :is="isGlobalTop ? 'div' : 'DropZone'"
-            class="cfiles-browser__card card content-card"
-            v-bind="cardProps"
-            v-on="cardListeners"
-        >
-            <!-- Nothing hangs off it at the global top level: no crumb below the root, no
-                 selection, no drop target (the top level holds spaces). -->
-            <PathBar
-                v-if="!isGlobalTop"
-                :path="crumbs"
-                :root-label="rootLabel"
-                :root-url="rootUrl"
-                :can-drop="canDropOnCrumb"
-                :drop-target-id="crumbDropTargetId"
-                @navigate="onNavigate"
-                @drag-over="(id) => { crumbDropTargetId = id; }"
-                @drag-leave="(id) => { if (crumbDropTargetId === id) crumbDropTargetId = undefined; }"
-                @drop-on="onDropOnCrumb"
-            >
-                <template #end>
-                    <SelectionMenu
-                        :count="selection.length"
-                        menu-id="cfiles.selection"
-                        :entries="selectionEntries"
-                        :context="{ items: selectedItems }"
-                    />
-                </template>
-            </PathBar>
-
-            <p v-if="resultsMode" class="cfiles-results text-muted" role="status">{{ resultsLabel }}</p>
-
+        <div class="cfiles-browser-body" :class="{ 'is-details-open': detailsItem }">
+            <!-- The global top level holds spaces, not files: nothing to upload into. -->
             <component
-                :is="view === 'tiles' ? 'FileTiles' : 'ItemList'"
-                v-bind="viewProps"
-                @open="onOpen"
-                @toggle-select="toggleSelect"
-                @drag-start="onDragStart"
-                @drag-end="onDragEnd"
-                @drag-over="(item) => { itemDropTargetKey = keyOf(item); }"
-                @drag-leave="(item) => { if (itemDropTargetKey === keyOf(item)) itemDropTargetKey = null; }"
-                @drop-on="onDropOnItem"
-                @load-more="loadMore"
+                :is="isGlobalTop ? 'div' : 'DropZone'"
+                class="card content-card p-2 cfiles-browser-card"
+                v-bind="cardProps"
+                v-on="cardListeners"
             >
-                <template #empty>
-                    <template v-if="resultsMode">
-                        <p class="mb-2"><strong>{{ noResultsTitle }}</strong></p>
-                        <button type="button" class="btn btn-light btn-sm" @click="resetFilters">{{ resetFiltersLabel }}</button>
+                <!-- At the global top level it is the root alone: no crumb below it, no
+                     selection, no drop target (the top level holds spaces). -->
+                <PathBar
+                    :path="crumbs"
+                    :root-label="rootLabel"
+                    :root-url="rootUrl"
+                    :can-drop="canDropOnCrumb"
+                    :drop-target-id="crumbDropTargetId"
+                    @navigate="onNavigate"
+                    @drag-over="(id) => { crumbDropTargetId = id; }"
+                    @drag-leave="(id) => { if (crumbDropTargetId === id) crumbDropTargetId = undefined; }"
+                    @drop-on="onDropOnCrumb"
+                >
+                    <template #end>
+                        <SelectionMenu
+                            :count="selection.length"
+                            menu-id="cfiles.selection"
+                            :entries="selectionEntries"
+                            :context="{ items: selectedItems }"
+                        />
+                        <ViewSwitch :model-value="view" :options="viewOptions" :label="viewLabel" @update:model-value="setView" />
                     </template>
-                    <template v-else>
-                        <p class="mb-0"><strong>{{ emptyTitle }}</strong></p>
-                        <p class="mb-0">{{ emptyHint }}</p>
+                </PathBar>
+
+                <p v-if="resultsMode" class="cfiles-results text-muted" role="status">{{ resultsLabel }}</p>
+
+                <component
+                    :is="view === 'tiles' ? 'FileTiles' : 'ItemList'"
+                    v-bind="viewProps"
+                    @open="onOpen"
+                    @toggle-select="toggleSelect"
+                    @drag-start="onDragStart"
+                    @drag-end="onDragEnd"
+                    @drag-over="(item) => { itemDropTargetKey = keyOf(item); }"
+                    @drag-leave="(item) => { if (itemDropTargetKey === keyOf(item)) itemDropTargetKey = null; }"
+                    @drop-on="onDropOnItem"
+                    @load-more="loadMore"
+                >
+                    <template #empty>
+                        <template v-if="resultsMode">
+                            <p class="mb-2"><strong>{{ noResultsTitle }}</strong></p>
+                            <button type="button" class="btn btn-light btn-sm" @click="resetFilters">{{ resetFiltersLabel }}</button>
+                        </template>
+                        <template v-else>
+                            <p class="mb-0"><strong>{{ emptyTitle }}</strong></p>
+                            <p class="mb-0">{{ emptyHint }}</p>
+                        </template>
                     </template>
-                </template>
+                </component>
             </component>
-        </component>
+
+            <DetailsPanel
+                v-if="detailsItem"
+                ref="details"
+                :key="keyOf(detailsItem)"
+                :item="detailsItem"
+                :location="detailsLocation"
+                :like-state="detailsLikeState"
+                :initial-tab="detailsTab"
+                @tab="(tab) => { detailsTab = tab; }"
+                @close="closeDetails"
+            />
+        </div>
 
         <input
             ref="fileInput"
@@ -191,10 +204,10 @@
  *
  * ## Layout
  *
- * Built on the core's item-browser kit: a `PageHeader` (title, `ViewSwitch`, the settings link,
- * the `AddMenu`) with a `FilterBar` (the filters and the sort), and below it a `DropZone` card
- * holding the `PathBar` (with the `SelectionMenu` at its end) and the open level as `FileTiles`
- * or as an `ItemList`. Both views speak the same event vocabulary, so selection (Shift ranges
+ * Built on the core's item-browser kit: a `PageHeader` (title, the settings link, the
+ * `AddMenu`) with a `FilterBar` (the filters and the sort), and below it a `DropZone` card
+ * holding the `PathBar` (with the `SelectionMenu` and the `ViewSwitch` at its end) and the open
+ * level as `FileTiles` or as an `ItemList`. Both views speak the same event vocabulary, so selection (Shift ranges
  * included), drop targets and uploads are resolved here, once, for either.
  *
  * ## Drag & drop
@@ -209,8 +222,9 @@
  * uploading: true, progress }`) after the items; one into a folder shown here marks that
  * folder as uploading instead. Both go once the batch is in and the level reloads.
  */
-import { events, i18n, log, modal, status } from '@humhub/vue';
+import { events, getConfig, i18n, log, modal, status } from '@humhub/vue';
 import AddMenu from './browser/AddMenu.vue';
+import DetailsPanel from './browser/DetailsPanel.vue';
 import FileTiles from './browser/FileTiles.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
@@ -236,9 +250,9 @@ export const PAGE_SIZES = { list: 50, tiles: 96 };
 const SORT_DEFAULT = 'default';
 
 export default {
-    components: { AddMenu, FileTiles, ItemList, MoveDialog },
+    components: { AddMenu, DetailsPanel, FileTiles, ItemList, MoveDialog },
     // A top-level island declares what its whole subtree needs, not only its own messages.
-    i18nCategories: ['CfilesModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
+    i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {
         /** The first page, embedded by the page controller so the first paint needs no request. */
         listing: { type: Object, required: true },
@@ -279,11 +293,6 @@ export default {
          * form of its own — this browser owns that dialog, and one form beats two.
          */
         editKey: { type: String, default: null },
-        /**
-         * Server-rendered `<li>` markup of the file handlers modules contributed ("New
-         * spreadsheet", "Import from …"), appended to the `AddMenu`.
-         */
-        createHandlersHtml: { type: String, default: '' },
         /** The FilterBar definitions (`FolderList::definitions()`): the filters and the sort. */
         filters: { type: Array, default: () => [] },
         /**
@@ -333,6 +342,12 @@ export default {
             showEdit: false,
             editItem: null,
 
+            // The item the details panel shows (`file:<id>`/`folder:<id>`), mirrored into the
+            // URL as `details` — see `detailsItem`.
+            detailsKey: new URLSearchParams(window.location.search).get('details') || null,
+            // The panel's tab, kept when another item's details are opened.
+            detailsTab: 'info',
+
             showMove: false,
             moveItemsList: [],
             moveBusy: false,
@@ -362,6 +377,14 @@ export default {
         };
     },
     computed: {
+        /**
+         * The file handlers modules contribute ("New spreadsheet", "Import from …") and the
+         * platform's "upload this type" entries, for the `AddMenu` - the page's, from the core
+         * JS config (`file.handlers`).
+         */
+        fileHandlers() {
+            return (getConfig('file') || {}).handlers || [];
+        },
         /** The id of the level currently open — null at the top. */
         folderId() {
             return this.folder ? this.folder.id : null;
@@ -425,6 +448,32 @@ export default {
                 && upload.containerId === this.container?.contentContainerId);
             return items.concat(uploads.map((upload) => ({ ...upload, key: keyOf(upload) })));
         },
+        /**
+         * The item the details panel shows: looked up among the rows loaded, so it follows a
+         * reload (an edit) and is gone with the item (a delete) or the level (navigating).
+         */
+        detailsItem() {
+            if (!this.detailsKey) {
+                return null;
+            }
+            return this.items.find((item) => (item.type === 'file' || item.type === 'folder') && keyOf(item) === this.detailsKey) || null;
+        },
+        /** Where the item of the details panel lies: a hit's own path, else the level open. */
+        detailsLocation() {
+            const location = this.detailsItem ? itemLocation(this.detailsItem) : null;
+            if (location) {
+                return location.label;
+            }
+            return [this.container?.space?.name, ...(this.path || []).map((crumb) => crumb.title)].filter(Boolean).join(' › ');
+        },
+        /**
+         * The like state the details' Discussion tab shows: none where the like module is off,
+         * or where nobody liked the item and the caller may not.
+         */
+        detailsLikeState() {
+            const state = this.detailsItem ? this.likeStates[this.detailsItem.recordId] : null;
+            return state && (state.canLike || state.total > 0) ? state : null;
+        },
         /** What both views take; each view only what it declares. */
         viewProps() {
             const common = {
@@ -442,7 +491,7 @@ export default {
             };
             return this.view === 'tiles'
                 ? { ...common, level: this.level, direction: this.direction }
-                : { ...common, canWrite: this.writable, likeStates: this.likeStates };
+                : { ...common, canWrite: this.writable };
         },
         /**
          * The path bar's levels. On the global page the root is its top level and the space
@@ -891,6 +940,8 @@ export default {
             // The filters and the sort of the entry gone back to; the bar takes them as its new
             // values. An entry without a sort (or with one the select does not offer) keeps the
             // current one: the bar only writes a chosen sort.
+            this.detailsKey = new URLSearchParams(window.location.search).get('details') || null;
+
             const query = this.queryFromUrl();
             const filtersChanged = JSON.stringify(query) !== JSON.stringify(this.query);
             const urlSort = new URLSearchParams(window.location.search).get('sort');
@@ -1056,6 +1107,13 @@ export default {
 
             return [
                 {
+                    id: 'cfiles-details',
+                    sortOrder: 5,
+                    label: i18n.t('CfilesModule.base', 'Details'),
+                    icon: 'info-circle',
+                    onClick: () => this.showDetails(item),
+                },
+                {
                     id: 'cfiles-open',
                     sortOrder: 10,
                     label: isFolder
@@ -1092,6 +1150,35 @@ export default {
                     onClick: () => this.confirmDelete([item]),
                 },
             ];
+        },
+
+        // --- details -----------------------------------------------------------------
+        showDetails(item) {
+            this.detailsKey = keyOf(item);
+            this.mirrorDetails();
+            this.$nextTick(() => this.$refs.details?.focus());
+        },
+        closeDetails() {
+            this.detailsKey = null;
+            this.mirrorDetails();
+        },
+        /** Writes `details` into the current history entry, so a reload or a copied link keeps it. */
+        mirrorDetails() {
+            const url = new URL(window.location.href);
+            if (this.detailsKey) {
+                url.searchParams.set('details', this.detailsKey);
+            } else {
+                url.searchParams.delete('details');
+            }
+            if (url.href === window.location.href) {
+                return;
+            }
+            const state = window.history.state;
+            // PJAX compares its own `state.url` on popstate (see `alignUrl`); kept current.
+            const next = state && typeof state === 'object' && typeof state.url === 'string'
+                ? { ...state, url: url.href }
+                : state;
+            window.history.replaceState(next, '', url.pathname + url.search + url.hash);
         },
 
         // --- mutations ---------------------------------------------------------------
@@ -1175,8 +1262,15 @@ export default {
         },
 
         // --- upload -----------------------------------------------------------------
-        pickFiles() {
-            this.$refs.fileInput.click();
+        /** Opens the picker, for one type (`image/*`) when a handler asks for one. */
+        pickFiles(accept = null) {
+            const input = this.$refs.fileInput;
+            if (accept) {
+                input.setAttribute('accept', accept);
+            } else {
+                input.removeAttribute('accept');
+            }
+            input.click();
         },
         onFilesPicked(event) {
             this.upload(event.target.files);

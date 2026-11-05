@@ -42,6 +42,7 @@ export const fileRow = (over = {}) => ({
     id: 21,
     contentId: 201,
     recordId: 1201,
+    fileId: 501,
     guid: 'f-21',
     title: 'Angebot.pdf',
     description: '',

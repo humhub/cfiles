@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="items.length" class="hh-list cfiles-list">
+        <div v-if="items.length" class="list-group cfiles-list">
             <ItemRow
                 v-for="item in items"
                 :key="keyOf(item)"
@@ -12,7 +12,6 @@
                 :drop-target="dropTargetKey !== null && dropTargetKey === keyOf(item)"
                 :entries="entriesFor(item)"
                 :folder-url="folderUrl"
-                :like-states="likeStates"
                 @open="(item) => $emit('open', item)"
                 @toggle-select="(item, flags) => $emit('toggle-select', item, flags)"
                 @drag-start="(item, event) => $emit('drag-start', item, event)"
@@ -40,7 +39,7 @@
 
 <script>
 /**
- * The open level as rows (`ItemRow` in the platform's `.hh-list`), plus the empty state
+ * The open level as rows (`ItemRow`s in a `.list-group`), plus the empty state
  * (slot `empty`, the folder-is-empty text by default) and the "show more" step.
  *
  * Speaks the same event vocabulary as `FileTiles` (the core `TileGrid`), so the browser
@@ -68,8 +67,6 @@ export default {
         canWrite: { type: Boolean, default: false },
         entriesFor: { type: Function, required: true },
         folderUrl: { type: Function, required: true },
-        /** `recordId => {total, liked, canLike}`, handed straight to `ItemRow`. */
-        likeStates: { type: Object, default: () => ({}) },
     },
     emits: ['open', 'toggle-select', 'drag-start', 'drag-end', 'drag-over', 'drag-leave', 'drop-on', 'load-more'],
     computed: {

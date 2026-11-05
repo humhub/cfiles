@@ -9,7 +9,10 @@
 namespace humhub\modules\cfiles\assets;
 
 use humhub\components\assets\VueAssetBundle;
+use humhub\modules\activity\assets\ActivityVueAsset;
+use humhub\modules\comment\assets\CommentVueAsset;
 use humhub\modules\content\assets\ContentVueAsset;
+use humhub\modules\file\assets\FileVueAsset;
 use humhub\modules\like\assets\LikeVueAsset;
 use humhub\modules\space\assets\SpaceVueAsset;
 use humhub\modules\topic\assets\TopicVueAsset;
@@ -38,16 +41,21 @@ class CfilesVueAsset extends VueAssetBundle
     public $depends = [
         // <ContentControls> — the row context menu.
         ContentVueAsset::class,
-        // <UserImage> — the creator avatar on every row —, and <UserFilterControl>, the filter
-        // bar's `user` type (the Author filter).
+        // <UserImage> — the creator in the details —, and <UserFilterControl>, the filter bar's
+        // `user` type (the Author filter).
         UserVueAsset::class,
         // <SpaceImage> — a space tile's badge on the global files page —, and
         // <SpaceFilterControl>, the filter bar's `space` type (its Space filter).
         SpaceVueAsset::class,
         // <TopicFilterControl>, the filter bar's `topic` type (the Topic filter).
         TopicVueAsset::class,
-        // <LikeButton> on every row — the platform's own island, rendered by this module
-        // without a line of like logic of its own.
+        // <LikeButton> on the details' Discussion tab — the platform's own island, rendered by
+        // this module without a line of like logic of its own.
         LikeVueAsset::class,
+        // <CommentSection>, <ContentActivity> and <FileVersions> — the details' Discussion and
+        // Activity tabs.
+        CommentVueAsset::class,
+        ActivityVueAsset::class,
+        FileVueAsset::class,
     ];
 }

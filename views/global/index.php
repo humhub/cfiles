@@ -7,12 +7,14 @@
  */
 
 use humhub\components\View;
+use humhub\helpers\ThemeHelper;
 use humhub\modules\cfiles\assets\CfilesVueAsset;
 use humhub\widgets\VueComponent;
 
 /* @var $this View */
 /* @var $props array the island's props ({@see \humhub\modules\cfiles\controllers\GlobalController::pageProps()}) */
 ?>
+<div class="<?= ThemeHelper::isFluid() ? 'container-fluid' : 'container' ?>">
 <?= VueComponent::widget([
     'name' => 'CfilesFileBrowser',
     'assetBundle' => CfilesVueAsset::class,
@@ -23,3 +25,4 @@ use humhub\widgets\VueComponent;
     ],
     'props' => $props,
 ]) ?>
+</div>

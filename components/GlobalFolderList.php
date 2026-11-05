@@ -18,6 +18,7 @@ use humhub\modules\space\models\Membership;
 use humhub\modules\space\models\Space;
 use Yii;
 use yii\db\ActiveQuery;
+use yii\helpers\Url;
 
 /**
  * The list of the global files page `/files`, across the spaces of the user.
@@ -133,12 +134,22 @@ class GlobalFolderList extends FilterableList
                     'props' => ['scope' => 'member'],
                     'sortOrder' => 110,
                 ],
+                suggest: FilterSuggestions::spaces(...),
             ),
             new GlobalItemsFilter($content['userId']),
             new GlobalItemsFilter(FolderList::topicFilter()),
             new GlobalItemsFilter($content['type']),
             new GlobalItemsFilter($content['modified']),
         ];
+    }
+
+    /**
+     * The suggestions of the space, author and topic filters load from the page's endpoint
+     * (`GET /api/v2/cfiles/suggestions?filter=<key>`).
+     */
+    protected function suggestionsUrl(string $key, ListContext $context): ?string
+    {
+        return Url::to(['/cfiles/api/global/suggestions', 'filter' => $key]);
     }
 
     /**

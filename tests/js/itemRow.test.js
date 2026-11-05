@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import ItemRow from '../../vue/browser/ItemRow.vue';
 import ContentControls from '@core/modules/content/vue/ContentControls.vue';
-import { fileRow, folderRow } from './support/fixtures.mjs';
+import { creator, fileRow, folderRow } from './support/fixtures.mjs';
+
+const CREATOR = creator();
 import { CONTROLS_VIEW_CONTEXT } from '../../vue/browser/itemPresentation';
 
 const row = (item, over = {}) => mount(ItemRow, {
@@ -43,15 +45,15 @@ describe('ItemRow', () => {
 
     describe('presentation', () => {
         it('links a folder to its own page and a file to the file itself', () => {
-            expect(row(folderRow()).find('h4 a').attributes('href')).toBe('/b?fid=11');
-            expect(row(fileRow()).find('h4 a').attributes('href')).toBe('/file/f-21');
+            expect(row(folderRow()).find('.cfiles-row-name a').attributes('href')).toBe('/b?fid=11');
+            expect(row(fileRow()).find('.cfiles-row-name a').attributes('href')).toBe('/file/f-21');
         });
 
         // A file is not always just a download: a module may have contributed a viewer or an
         // editor, and the server says which of the two link shapes applies.
         describe('what the name links to', () => {
             it('carries the download hooks when only the download handler applies', () => {
-                const link = row(fileRow()).find('h4 a');
+                const link = row(fileRow()).find('.cfiles-row-name a');
 
                 expect(link.attributes('href')).toBe('/file/f-21');
                 expect(link.attributes('target')).toBe('_blank');
@@ -61,7 +63,7 @@ describe('ItemRow', () => {
             it('opens the file dialog when a module contributed a handler', () => {
                 const link = row(fileRow({
                     link: { url: '/file/view?guid=f-21', attributes: { 'data-bs-target': '#globalModal' } },
-                })).find('h4 a');
+                })).find('.cfiles-row-name a');
 
                 expect(link.attributes('href')).toBe('/file/view?guid=f-21');
                 expect(link.attributes('data-bs-target')).toBe('#globalModal');
@@ -69,13 +71,13 @@ describe('ItemRow', () => {
             });
 
             it('falls back to the plain file url when the payload carries no decision', () => {
-                const link = row(fileRow({ link: undefined })).find('h4 a');
+                const link = row(fileRow({ link: undefined })).find('.cfiles-row-name a');
 
                 expect(link.attributes('href')).toBe('/file/f-21');
             });
 
             it('never applies any of it to a folder', () => {
-                const link = row(folderRow()).find('h4 a');
+                const link = row(folderRow()).find('.cfiles-row-name a');
 
                 expect(link.attributes('href')).toBe('/b?fid=11');
                 expect(link.attributes('data-bs-target')).toBeUndefined();
@@ -94,8 +96,8 @@ describe('ItemRow', () => {
             expect(wrapper.find('.cfiles-icon-file').exists()).toBe(false);
         });
 
-        it('marks a private item and leaves a public one unmarked', () => {
-            expect(row(fileRow({ visibility: 0 })).find('.ti-lock').exists()).toBe(true);
+        it('marks a private item in its meta line and leaves a public one unmarked', () => {
+            expect(row(fileRow({ visibility: 0 })).find('.cfiles-row-meta .ti-lock').exists()).toBe(true);
             expect(row(fileRow({ visibility: 1 })).find('.ti-lock').exists()).toBe(false);
         });
 
@@ -108,11 +110,11 @@ describe('ItemRow', () => {
 
         it('names the topics of the item, each with its colour', () => {
             const topics = row(fileRow({ topics: [{ id: 4, name: 'Budget', color: '#ff0000' }, { id: 6, name: 'Brand', color: null }] }))
-                .findAll('.cfiles-row-meta .cfiles-row-topic');
+                .findAll('.cfiles-row-meta .cfiles-topic');
 
             expect(topics.map((topic) => topic.text())).toEqual(['Budget', 'Brand']);
-            expect(topics[0].find('.cfiles-row-topic__dot').attributes('style')).toContain('background-color');
-            expect(row(fileRow()).find('.cfiles-row-topic').exists()).toBe(false);
+            expect(topics[0].find('.cfiles-topic-dot').attributes('style')).toContain('background-color');
+            expect(row(fileRow()).find('.cfiles-topic').exists()).toBe(false);
         });
 
         // Read out as "Topics: Budget Brand", not as two stray words after the date.
@@ -289,7 +291,7 @@ describe('ItemRow', () => {
             const wrapper = row(fileRow({
                 link: { url: '/file/view?guid=f-21', attributes: { 'data-bs-target': '#globalModal' } },
             }));
-            const link = wrapper.find('h4 a').element;
+            const link = wrapper.find('.cfiles-row-name a').element;
             const clicks = vi.fn((event) => event.preventDefault());
             link.addEventListener('click', clicks);
 
@@ -324,7 +326,7 @@ describe('ItemRow', () => {
             const wrapper = row(folderRow());
             vi.spyOn(window, 'getSelection').mockReturnValue({
                 isCollapsed: false,
-                anchorNode: wrapper.find('h5').element,
+                anchorNode: wrapper.find('.cfiles-row-meta').element,
             });
 
             await wrapper.trigger('click');
@@ -335,48 +337,37 @@ describe('ItemRow', () => {
     });
 
     /**
-     * The like link IS core's `LikeButton` island — this module renders it and nothing else,
-     * with the state the listing already brought.
+     * No like link, no avatar: the author is part of the meta line, after the date, as a link
+     * to the profile — what the details' Discussion and Info tabs show in full.
      */
-    describe('likes', () => {
-        const states = (over = {}) => ({ 1201: { total: 3, liked: true, canLike: true }, ...over });
+    describe('author', () => {
+        it('names the author after the date, linked to the profile', () => {
+            const meta = row(fileRow({ description: 'Erste Fassung' })).find('.cfiles-row-meta');
+            const author = meta.find('a.cfiles-row-author');
 
-        it('renders the platform like link with the state the listing brought', () => {
-            const wrapper = row(fileRow(), { likeStates: states() });
-
-            const like = wrapper.find('.likeLinkContainer');
-            expect(like.exists()).toBe(true);
-            // Liked already, so it offers the way back — and says how many.
-            expect(like.find('a.unlike').exists()).toBe(true);
-            expect(like.find('.likeCount').text()).toBe('(3)');
+            expect(author.text()).toBe(CREATOR.displayName);
+            expect(author.attributes('href')).toBe(CREATOR.url);
+            // Size · date · author · description
+            expect(meta.text().indexOf(CREATOR.displayName)).toBeLessThan(meta.text().indexOf('Erste Fassung'));
+            expect(meta.text().indexOf('1.2 MB')).toBeLessThan(meta.text().indexOf(CREATOR.displayName));
         });
 
-        it('renders no like link where there is no state for the row', () => {
-            // What a listing looks like with the like module switched off.
-            expect(row(fileRow()).find('.likeLinkContainer').exists()).toBe(false);
+        it('names nobody without a creator', () => {
+            expect(row(fileRow({ creator: null })).find('.cfiles-row-author').exists()).toBe(false);
         });
 
-        it('renders no like link for a reader who may not like and nothing to count', () => {
-            const wrapper = row(fileRow(), {
-                likeStates: states({ 1201: { total: 0, liked: false, canLike: false } }),
-            });
+        it('renders neither a like link nor an avatar', () => {
+            const wrapper = row(fileRow());
 
             expect(wrapper.find('.likeLinkContainer').exists()).toBe(false);
+            expect(wrapper.find('img').exists()).toBe(false);
         });
 
-        it('still shows an existing like count to a reader who may not like', () => {
-            const wrapper = row(fileRow(), {
-                likeStates: states({ 1201: { total: 2, liked: false, canLike: false } }),
-            });
+        // The row is one big click target; the author link must not trigger it.
+        it('does not open the item when the author is clicked', async () => {
+            const wrapper = row(folderRow());
 
-            expect(wrapper.find('.likeCount').text()).toBe('(2)');
-        });
-
-        // The row is one big click target; the like link must not trigger it.
-        it('does not open the item when the like link is clicked', async () => {
-            const wrapper = row(folderRow(), { likeStates: { 1101: { total: 1, liked: false, canLike: true } } });
-
-            await wrapper.find('.likeLinkContainer a').trigger('click');
+            await wrapper.find('.cfiles-row-author').trigger('click');
 
             expect(wrapper.emitted('open')).toBeFalsy();
         });
@@ -397,7 +388,7 @@ describe('ItemRow', () => {
         it('is draggable only when asked to, and never through its title link', () => {
             expect(row(fileRow(), { draggable: true }).attributes('draggable')).toBe('true');
             expect(row(fileRow()).attributes('draggable')).toBe('false');
-            expect(row(fileRow(), { draggable: true }).find('h4 a').attributes('draggable')).toBe('false');
+            expect(row(fileRow(), { draggable: true }).find('.cfiles-row-name a').attributes('draggable')).toBe('false');
         });
 
         it('starts a drag with the item and the event, carrying its key', () => {
@@ -475,21 +466,10 @@ describe('ItemRow', () => {
             expect(wrapper.emitted('drop-on')[0][1].dataTransfer.files).toBe(files);
         });
 
-        // In Chrome an <img> drag carries 'Files' and would read as an upload onto a folder.
-        it.each([
-            ['the creator', '.cfiles-row-creator'],
-            ['the like link', '.cfiles-row-social'],
-        ])('starts no drag of its own from inside %s', (name, selector) => {
-            const wrapper = row(fileRow(), {
-                draggable: true,
-                likeStates: { 1201: { total: 1, liked: false, canLike: true } },
-            });
-            const inner = wrapper.find(selector).element.querySelector('a, img') || wrapper.find(selector).element;
+        it('starts no drag of its own from the author link', () => {
+            const wrapper = row(fileRow(), { draggable: true });
 
-            const event = dispatch(wrapper, 'dragstart', { dataTransfer: dataTransfer() }, inner);
-
-            expect(event.defaultPrevented).toBe(true);
-            expect(wrapper.emitted('drag-start')).toBeFalsy();
+            expect(wrapper.find('.cfiles-row-author').attributes('draggable')).toBe('false');
         });
 
         it('accepts no drop without a canDrop', () => {
@@ -503,7 +483,7 @@ describe('ItemRow', () => {
         it('reports leaving the row as drag-leave, not as the end of the drag', () => {
             const wrapper = row(folderRow(), { canDrop: () => true });
 
-            dispatch(wrapper, 'dragleave', { relatedTarget: wrapper.find('h5').element });
+            dispatch(wrapper, 'dragleave', { relatedTarget: wrapper.find('.cfiles-row-meta').element });
             expect(wrapper.emitted('drag-leave')).toBeFalsy();
 
             dispatch(wrapper, 'dragleave', { relatedTarget: document.body });
@@ -561,7 +541,7 @@ describe('ItemRow', () => {
         it('opens the folder on a plain click, not the item', async () => {
             const wrapper = row(hit());
             const click = vi.fn();
-            wrapper.find('h4 a').element.addEventListener('click', click);
+            wrapper.find('.cfiles-row-name a').element.addEventListener('click', click);
 
             await wrapper.find('.cfiles-location').trigger('click');
 

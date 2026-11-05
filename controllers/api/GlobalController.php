@@ -43,6 +43,7 @@ class GlobalController extends BaseController
                 'class' => VerbFilter::class,
                 'actions' => [
                     'items' => ['GET', 'HEAD'],
+                    'suggestions' => ['GET', 'HEAD'],
                 ],
             ],
         ]);
@@ -91,5 +92,24 @@ class GlobalController extends BaseController
             (int)$request->get('page', 1),
             $request->get('pageSize') === null ? null : (int)$request->get('pageSize'),
         );
+    }
+
+    /**
+     * What a picker filter of the global files page suggests before anything is typed
+     * (`filter`: `spaceId`, `userId` or `topicId`): `{results: [...]}`, at most 6 items in the
+     * shape of the filter's picker search — of the latest files the user may read in the page's
+     * spaces ({@see \humhub\modules\cfiles\components\FilterSuggestions}). `422` for a key that
+     * names no such filter. Requested by the filter's control when it first opens.
+     */
+    public function actionSuggestions()
+    {
+        $filter = (string)Yii::$app->request->get('filter', '');
+
+        $suggestions = (new GlobalFolderList())->suggestions($filter, ListContext::forCurrentUser());
+        if ($suggestions === null) {
+            return $this->validationErrors(['filter' => [Yii::t('CfilesModule.base', 'Unknown filter.')]]);
+        }
+
+        return ['results' => $suggestions];
     }
 }

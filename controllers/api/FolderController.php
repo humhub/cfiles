@@ -53,6 +53,7 @@ class FolderController extends BaseController
                 'class' => VerbFilter::class,
                 'actions' => [
                     'items' => ['GET', 'HEAD'],
+                    'suggestions' => ['GET', 'HEAD'],
                     'update' => ['PATCH'],
                     'create' => ['POST'],
                     'upload' => ['POST'],
@@ -103,6 +104,26 @@ class FolderController extends BaseController
             (int)$request->get('page', 1),
             $request->get('pageSize') === null ? null : (int)$request->get('pageSize'),
         );
+    }
+
+    /**
+     * What a picker filter of the file browser suggests before anything is typed
+     * (`filter`: the key of the space's author or topic filter): `{results: [...]}`, at most 6
+     * items in the shape of the filter's picker search — those of the space's latest files the
+     * user may read ({@see \humhub\modules\cfiles\components\FilterSuggestions}). `422` for a key
+     * that names no such filter. Requested by the filter's control when it first opens.
+     */
+    public function actionSuggestions($containerId)
+    {
+        $container = $this->findContainer((int)$containerId);
+        $filter = (string)Yii::$app->request->get('filter', '');
+
+        $suggestions = (new FolderList())->suggestions($filter, ListContext::forCurrentUser(null, $container));
+        if ($suggestions === null) {
+            return $this->validationErrors(['filter' => [Yii::t('CfilesModule.base', 'Unknown filter.')]]);
+        }
+
+        return ['results' => $suggestions];
     }
 
     /**
