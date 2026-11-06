@@ -17,8 +17,8 @@
     /* The design's folder yellow - reads on light and dark alike. */
     --hh-cfiles-folder-color: #ffcc00;
     --hh-cfiles-gap: 1rem;
-    --hh-cfiles-muted: var(--hh-text-color-secondary);
-    --hh-cfiles-strong: var(--hh-text-color-highlight);
+    --hh-cfiles-muted: var(--bs-secondary-color);
+    --hh-cfiles-strong: var(--bs-emphasis-color);
     /* A row's hover as a data table row's (`$data-table-hover-bg`, `-border-color`), its
        selection the core tile's fill (`$item-browser-selected-bg`). */
     --hh-cfiles-hover-bg: var(--bs-accent-bg-subtle);
@@ -235,7 +235,7 @@
 
 .cfiles-tile-badge > .space-acronym,
 .cfiles-tile-badge > img {
-    box-shadow: 0 0 0 2px var(--hh-background-color-main);
+    box-shadow: 0 0 0 2px var(--bs-body-bg);
     font-size: .7rem;
     line-height: 1;
 }
@@ -249,7 +249,7 @@
     height: calc(var(--hh-cfiles-tile-glyph-size) * .96);
     border: var(--bs-border-width) solid var(--bs-border-color);
     border-radius: var(--bs-border-radius);
-    background: var(--hh-background-color-main);
+    background: var(--bs-body-bg);
     color: var(--hh-cfiles-muted);
     font-size: calc(var(--hh-cfiles-tile-glyph-size) * .36);
 }
@@ -399,7 +399,7 @@
 
 .cfiles-row-badge > .space-acronym,
 .cfiles-row-badge > img {
-    box-shadow: 0 0 0 2px var(--hh-background-color-main);
+    box-shadow: 0 0 0 2px var(--bs-body-bg);
     font-size: .5rem;
     line-height: 1;
 }

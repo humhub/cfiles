@@ -3,6 +3,7 @@ Changelog
 
 1.0.0 - Unreleased
 ------------------
+- Enh: Colour tokens of the core 1.20 instead of the deprecated ones (humhub/humhub#8707)
 - Enh: Rebuilt the file browser as a Vue.js island on the new core HTTP API (`/api/v2/cfiles`). The module no longer renders any of the browser server-side; folder navigation happens without a page load, and the URL (`?fid=`) is unchanged, so existing links keep working.
 - Enh: The browser follows the design system v2 and is built on the core's item browser kit (humhub/humhub#8521): a page header with the settings link (for those who may change them), a "new folder" and an "upload" button (a "+" menu where modules add file handlers), a filter bar with the sort order, and a card with the path bar, the view switch at its end, and the items — tiles with a folder glyph, a document card per file type or a preview image, or a list. Uploads appear as tiles or rows with their progress.
 - Enh: Added a tile display next to the list, remembered per user (`PATCH /api/v2/cfiles/preferences`). A tile grid asks the server for a bigger page than a row list.
