@@ -2367,6 +2367,7 @@
           this.applyPayload(payload, target);
           this.loading = false;
           if (push && !this.urlNames(target, folderId)) {
+            this.detailsKey = null;
             window.history.pushState({ cfiles: this.historyState(target, folderId) }, "", this.folderUrl(folderId));
           }
           return true;
@@ -2695,6 +2696,9 @@
           }
           deleteItems(items).then((response) => {
             this.reportErrors(response.errors);
+            if ((response.results || []).some((deleted) => keyOf(deleted) === this.detailsKey)) {
+              this.closeDetails();
+            }
             this.reload();
           }).catch((response) => {
             if (Array.isArray(response == null ? void 0 : response.errors)) {

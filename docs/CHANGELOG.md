@@ -52,6 +52,7 @@ Changelog
 - Fix: A document created by a file handler of another field (the comment form of the details panel) was also filed into the folder, when a handler of the add menu had been chosen and abandoned before.
 - Fix: A failed move showed nothing in the move dialog when the server gave no reason; a failed delete showed a generic error instead of the messages per item, and did not refresh the list.
 - Enh: Uploading a file whose name is taken in the folder asks first: replace it — a new version, the previous content is kept as an older version —, keep both (an indexed name, `report(1).pdf`) or skip it. Asked before the upload, so nothing is sent twice (`GET /api/v2/cfiles/<containerId>/conflicts?parent=&names[]=`); the upload replaces only the files named in `replace[]`, and never a file the user may not change or a folder.
+- Fix: The details panel stayed open for an item of a level the user had left — and opened again when the path bar led back there —, and for an item that was deleted.
 
 0.19.3 - November 3, 2026
 -------------------------

@@ -914,6 +914,9 @@ export default {
                 // Not for the level the URL already names (a reload). Without `fid` it names
                 // none: the page may have been opened from a link without one.
                 if (push && !this.urlNames(target, folderId)) {
+                    // The details were of an item of the level left. Its history entry keeps
+                    // `details`, so going Back brings them back with it.
+                    this.detailsKey = null;
                     // No `container` key: pjax's own popstate handler skips this state and
                     // leaves it to ours (see the class docblock). The global page keeps the
                     // space with it, for going back to it.
@@ -1287,6 +1290,9 @@ export default {
 
                 deleteItems(items).then((response) => {
                     this.reportErrors(response.errors);
+                    if ((response.results || []).some((deleted) => keyOf(deleted) === this.detailsKey)) {
+                        this.closeDetails();
+                    }
                     this.reload();
                 }).catch((response) => {
                     if (Array.isArray(response?.errors)) {

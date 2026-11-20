@@ -1975,6 +1975,35 @@ describe('CfilesFileBrowser', () => {
             expect(wrapper.find('.cfiles-details').exists()).toBe(false);
         });
 
+        // The details are of an item of the level shown: another level opened, they close —
+        // and do not come back when the path bar leads back to the item's level.
+        it('closes when another level is opened, and stays closed on the way back', async () => {
+            const wrapper = browser(topLevel([folderRow(), fileRow()]));
+            await wrapper.findAll('.cfiles-row')[1].findAll('.dropdown-item')
+                .find((i) => i.text() === 'Details').trigger('click');
+
+            globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(insideFolder([])));
+            await wrapper.vm.open(9);
+            globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(topLevel([folderRow(), fileRow()])));
+            await wrapper.vm.open(null);
+            await flushPromises();
+
+            expect(wrapper.find('.cfiles-details').exists()).toBe(false);
+            expect(new URLSearchParams(window.location.search).has('details')).toBe(false);
+        });
+
+        it('closes when its item is deleted', async () => {
+            globalThis.humhubStubs.modal.confirm = vi.fn(() => Promise.resolve(true));
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({ results: [{ type: 'file', id: 21 }], errors: [] }));
+            const wrapper = browser(topLevel([fileRow()]));
+            await detailsEntry(wrapper).trigger('click');
+
+            wrapper.vm.confirmDelete([fileRow()]);
+            await flushPromises();
+
+            expect(wrapper.vm.detailsKey).toBeNull();
+            expect(new URLSearchParams(window.location.search).has('details')).toBe(false);
+        });
     });
 
     describe('write permission', () => {
