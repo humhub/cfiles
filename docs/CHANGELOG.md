@@ -40,6 +40,12 @@ Changelog
 - Enh: Topics in the file browser: a Topic filter (the topics of the space and the global ones), and a Topics field in the edit dialog of files and folders (`topics` of `PATCH /api/v2/cfiles/file|folder/<id>`). Rows name their topics (humhub/humhub#8530).
 - Fix: Saving a file (rename, visibility, move) no longer drops its topics.
 - Enh: Optional global files page (`/files`, admin setting "Add entry to main navigation", off by default): one folder per member space with the module enabled, opening into that space's browser (Files › Space › Folder). Filtered at the top level, it lists the hits across all those spaces with their location "in Space › Folder" (`GET /api/v2/cfiles/items`, filters Search, Space, Author, Topic, File Type, Modified; the core filter types `space` and `topic`, humhub/humhub#8530).
+- Fix: Uploading a file under the name of an existing one stored a new version of it even when the uploader may not change that file. The upload is stored under an indexed name (`report(1).pdf`) then; a file the uploader may change still gets a new version.
+- Fix: Making a folder inside a private folder public made everything in it public, while the folder itself stayed private.
+- Fix: Items in the trash held on to their names: a folder moved next to a trashed one of the same name was merged into it, and its content vanished from the browser; creating or renaming an item to such a name was refused. An item that comes back from the trash gets an indexed name if its name was taken in the meantime.
+- Chng: A file and a folder of the same level cannot share a name anymore. A file is indexed (`Reports(1)`), creating or renaming a folder to the name of a file is refused.
+- Fix: Moving or deleting a selection failed as a whole when one item was already gone (regression of #292), and deleting stopped halfway at the first item the user may not delete. Such items are reported, the others are carried out. A request with more than 200 items is refused instead of silently cut off; the browser sends a larger selection in batches.
+- Fix: New content stored to the platform file of another record (e.g. a post attachment edited in an office module) marked the cfiles file with the same id as changed.
 
 0.19.3 - November 3, 2026
 -------------------------

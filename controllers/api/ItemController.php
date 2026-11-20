@@ -14,7 +14,7 @@ use humhub\modules\cfiles\services\ItemMoveService;
 use Yii;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
-use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
 
 /**
  * Operations over a SET of files and folders — moving and deleting.
@@ -64,10 +64,20 @@ class ItemController extends BaseController
         // Null target = the container's top level, which has no folder record to name.
         $target = $this->findParent($container, $request->getBodyParam('targetFolderId'));
 
+        $requested = $this->requestedItems();
+        if ($requested === null) {
+            return $this->tooManyItems();
+        }
+
         $moved = [];
         $errors = [];
 
-        foreach ($this->requestedItems() as $item) {
+        foreach ($requested as [$descriptor, $item]) {
+            if ($item === null) {
+                $errors[] = $this->missingError($descriptor);
+                continue;
+            }
+
             // Cross-container moves are a different feature (content move) with its own
             // permission rules; this endpoint only rearranges one container's own tree.
             if ($item->content->container->contentcontainer_id !== $container->contentcontainer_id) {
@@ -94,12 +104,23 @@ class ItemController extends BaseController
      */
     public function actionDelete()
     {
+        $requested = $this->requestedItems();
+        if ($requested === null) {
+            return $this->tooManyItems();
+        }
+
         $deleted = [];
         $errors = [];
 
-        foreach ($this->requestedItems() as $item) {
+        foreach ($requested as [$descriptor, $item]) {
+            if ($item === null) {
+                $errors[] = $this->missingError($descriptor);
+                continue;
+            }
+
             if (!$item->content->canEdit()) {
-                throw new ForbiddenHttpException();
+                $errors[] = $this->itemError($item, Yii::t('CfilesModule.base', 'Could not delete the item!'));
+                continue;
             }
 
             $descriptor = $this->descriptor($item);
@@ -116,11 +137,14 @@ class ItemController extends BaseController
     }
 
     /**
-     * The `items` of the request, resolved to models the caller may see.
+     * The `items` of the request, each as `[descriptor, model]` — the model null for an item
+     * that does not exist or that the caller may not see, so that one stale entry in a
+     * selection does not fail the others. Null when there are more than one request may carry:
+     * that is refused as a whole rather than carried out in part.
      *
-     * @return FileSystemItem[]
+     * @return array{0: array, 1: FileSystemItem|null}[]|null
      */
-    private function requestedItems(): array
+    private function requestedItems(): ?array
     {
         $items = Yii::$app->request->getBodyParam('items');
 
@@ -128,10 +152,37 @@ class ItemController extends BaseController
             return [];
         }
 
-        return array_map(
-            fn($item) => $this->findItem(is_array($item) ? $item : []),
-            array_slice($items, 0, self::MAX_ITEMS),
-        );
+        if (count($items) > self::MAX_ITEMS) {
+            return null;
+        }
+
+        return array_map(function ($item) {
+            $item = is_array($item) ? $item : [];
+
+            try {
+                return [$item, $this->findItem($item)];
+            } catch (NotFoundHttpException) {
+                return [$item, null];
+            }
+        }, array_values($items));
+    }
+
+    private function tooManyItems(): array
+    {
+        Yii::$app->response->statusCode = 422;
+
+        return ['errors' => ['items' => [
+            Yii::t('CfilesModule.base', 'At most {count} items can be moved or deleted at once.', ['count' => self::MAX_ITEMS]),
+        ]]];
+    }
+
+    private function missingError(array $descriptor): array
+    {
+        return [
+            'type' => (string)($descriptor['type'] ?? ''),
+            'id' => (int)($descriptor['id'] ?? 0),
+            'message' => Yii::t('CfilesModule.base', 'The item could not be found.'),
+        ];
     }
 
     /**

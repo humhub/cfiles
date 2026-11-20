@@ -12,7 +12,9 @@ use humhub\modules\file\libs\ImageHelper;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\content\components\ActiveQueryContent;
 use humhub\modules\content\components\ContentContainerActiveRecord;
+use humhub\modules\content\models\Content;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\file\models\FileContent;
@@ -121,9 +123,9 @@ class FolderContentService
     /**
      * Stores an uploaded file in this folder.
      *
-     * Uploading over an existing name is an UPDATE, not a duplicate: the platform's file
-     * versioning keeps the previous content. The exception is an unpublished record with that
-     * name (a draft, an aborted import), which is renamed out of the way instead.
+     * Uploading over the name of a file the uploader may change is an UPDATE, not a duplicate:
+     * the platform's file versioning keeps the previous content. Over any other name taken at
+     * this level the upload is stored under an indexed one (`report(1).pdf`).
      *
      * The caller checks `$file->hasErrors()` and `$file->baseFile->hasErrors()`.
      */
@@ -210,75 +212,126 @@ class FolderContentService
     }
 
     // --- names -----------------------------------------------------------------------
+    //
+    // A name is taken by a PUBLISHED file or folder of the level — one name, one item, whether
+    // file or folder, the way a file system (and a WebDAV client) sees a directory. Items in
+    // the trash or not yet published hold no name: they get a free one when they come back
+    // (see claimFreeName()).
 
     public function findFile(string $name): ?File
     {
-        return File::find()
-            ->contentContainer($this->container)
-            ->joinWith('baseFile')
-            ->andWhere(['file_name' => $name])
-            ->andWhere(['cfiles_file.parent_folder_id' => $this->parentId()])
+        return $this->published(File::find()->joinWith('baseFile'))
+            ->andWhere(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->parentId()])
             ->one();
     }
 
     public function findFolder(string $name): ?Folder
     {
-        return Folder::find()
-            ->contentContainer($this->container)
+        return $this->published(Folder::find())
             ->andWhere(['title' => $name, 'parent_folder_id' => $this->parentId()])
             ->one();
     }
 
-    public function fileExists(string $name): bool
+    public function fileExists(string $name, ?FileSystemItem $except = null): bool
     {
-        return File::find()
-            ->contentContainer($this->container)
-            ->joinWith('baseFile')
-            ->where(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->parentId()])
+        return $this->published(File::find()->joinWith('baseFile'))
+            ->andWhere(['file_name' => $name, 'cfiles_file.parent_folder_id' => $this->parentId()])
+            ->andFilterWhere(['!=', 'cfiles_file.id', $except instanceof File ? $except->id : null])
             ->exists();
     }
 
-    public function folderExists(string $name): bool
+    public function folderExists(string $name, ?FileSystemItem $except = null): bool
     {
-        return Folder::find()
-            ->contentContainer($this->container)
-            ->where(['title' => $name, 'parent_folder_id' => $this->parentId()])
+        return $this->published(Folder::find())
+            ->andWhere(['title' => $name, 'parent_folder_id' => $this->parentId()])
+            ->andFilterWhere(['!=', 'cfiles_folder.id', $except instanceof Folder ? $except->id : null])
             ->exists();
+    }
+
+    /**
+     * Whether a file or a folder of this level is called `$name` — other than `$except`.
+     */
+    public function nameTaken(string $name, ?FileSystemItem $except = null): bool
+    {
+        return $this->fileExists($name, $except) || $this->folderExists($name, $except);
     }
 
     /**
      * The given name, or the first indexed variant of it that is free — `report.pdf`,
      * `report(1).pdf`, `report(2).pdf`.
      */
-    public function uniqueFileName(string $fileName): string
+    public function uniqueFileName(string $fileName, ?FileSystemItem $except = null): string
     {
         $parts = preg_split('~\.(?=[^\.]*$)~', $fileName);
         $stem = $parts[0];
         $extension = count($parts) === 2 ? '.' . $parts[1] : '';
 
-        for ($counter = 0; $this->fileExists($fileName); $fileName = $stem . '(' . ++$counter . ')' . $extension) {
+        for ($counter = 0; $this->nameTaken($fileName, $except); $fileName = $stem . '(' . ++$counter . ')' . $extension) {
         }
 
         return $fileName;
     }
 
     /**
-     * The record an upload of this name should write to.
+     * The given title, or the first indexed variant of it that is free — `Reports`,
+     * `Reports(1)`, `Reports(2)`.
+     */
+    public function uniqueFolderName(string $title, ?FileSystemItem $except = null): string
+    {
+        for ($counter = 0, $name = $title; $this->nameTaken($name, $except); $name = $title . '(' . ++$counter . ')') {
+        }
+
+        return $name;
+    }
+
+    /**
+     * Gives an item that appears at this level again — restored from the trash, a draft
+     * published — a free name, when another item took its name in the meantime.
+     */
+    public function claimFreeName(FileSystemItem $item): void
+    {
+        if ($item instanceof File) {
+            $name = $this->uniqueFileName($item->getTitle(), $item);
+
+            if ($name !== $item->getTitle()) {
+                $item->baseFile->file_name = $name;
+                $item->baseFile->save();
+            }
+        } elseif ($item instanceof Folder) {
+            $name = $this->uniqueFolderName($item->title, $item);
+
+            if ($name !== $item->title) {
+                $item->title = $name;
+                $item->save();
+            }
+        }
+    }
+
+    /**
+     * The record an upload of this name should write to: the file of that name, as its new
+     * version — when the uploader may change it. Anyone else's upload lands next to it.
      */
     private function fileInstance(UploadedFile $uploadedFile): File
     {
         $existing = $this->findFile($uploadedFile->name);
 
-        if ($existing !== null) {
-            if ($existing->content->getStateService()->isPublished()) {
-                return $existing;
-            }
-
-            ItemMoveService::renameConflicted($existing);
+        if ($existing !== null && $existing->content->canEdit()) {
+            return $existing;
         }
+
+        $uploadedFile->name = $this->uniqueFileName($uploadedFile->name);
 
         return new File($this->container, $this->newItemVisibility(), [
             'parent_folder_id' => $this->parentId(),
         ]);
+    }
+
+    /**
+     * The items of this container's query that are published.
+     */
+    private function published(ActiveQueryContent $query): ActiveQueryContent
+    {
+        return $query->contentContainer($this->container)
+            ->andWhere(['content.state' => Content::STATE_PUBLISHED]);
     }
 }

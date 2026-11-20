@@ -102,11 +102,14 @@ class FileController extends BaseController
             return $file->baseFile->getFirstError('file_name');
         }
 
-        $duplicate = (new FolderContentService($file->content->container, $file->parentFolder))
-            ->findFile($file->baseFile->file_name);
+        $level = new FolderContentService($file->content->container, $file->parentFolder);
 
-        if ($duplicate && (int)$duplicate->id !== (int)$file->id) {
+        if ($level->fileExists($file->baseFile->file_name, $file)) {
             return Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.');
+        }
+
+        if ($level->folderExists($file->baseFile->file_name)) {
+            return Yii::t('CfilesModule.base', 'A folder with this name already exists.');
         }
 
         return null;

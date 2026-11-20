@@ -1250,10 +1250,42 @@
     data: { ...attributes, parent }
   });
   const updateItem = (item, attributes) => vue.client.patch(vue.apiUrl("cfiles/" + item.type + "/" + item.id), { data: attributes });
-  const moveItems = (containerId, items, targetFolderId) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
-    data: { containerId, items: items.map(descriptor), targetFolderId }
-  });
-  const deleteItems = (items) => vue.client.post(vue.apiUrl("cfiles/items/delete"), { data: { items: items.map(descriptor) } });
+  const MAX_ITEMS = 200;
+  const inBatches = (items, send) => {
+    const batches = [];
+    for (let start = 0; start < items.length; start += MAX_ITEMS) {
+      batches.push(items.slice(start, start + MAX_ITEMS));
+    }
+    const results = [];
+    const errors = [];
+    let refused = null;
+    let broken = null;
+    const sendOne = (batch) => send(batch).then((response) => {
+      results.push(...response.results || []);
+      errors.push(...response.errors || []);
+    }, (response) => {
+      if (Array.isArray(response == null ? void 0 : response.errors)) {
+        refused = refused || response;
+        errors.push(...response.errors);
+      } else {
+        broken = broken || response;
+      }
+    });
+    return batches.reduce((chain, batch) => chain.then(() => sendOne(batch)), Promise.resolve()).then(() => {
+      if (broken) {
+        throw broken;
+      }
+      if (refused && results.length === 0) {
+        refused.errors = errors;
+        throw refused;
+      }
+      return { results, errors };
+    });
+  };
+  const moveItems = (containerId, items, targetFolderId) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
+    data: { containerId, items: batch.map(descriptor), targetFolderId }
+  }));
+  const deleteItems = (items) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/delete"), { data: { items: batch.map(descriptor) } }));
   const uploadFiles = (containerId, parent, files, onProgress) => {
     const form = new FormData();
     Array.prototype.forEach.call(files, (file) => form.append("files[]", file));

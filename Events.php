@@ -103,7 +103,8 @@ class Events
     public static function onAfterNewStoredFile($event)
     {
         $baseFile = $event->sender;
-        if (!($baseFile instanceof BaseFile)) {
+        // Only a platform file held by a cfiles file: `object_id` alone is the id of any record.
+        if (!($baseFile instanceof BaseFile) || $baseFile->object_model !== File::class) {
             return;
         }
 

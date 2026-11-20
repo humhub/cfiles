@@ -31,7 +31,11 @@ class ItemVisibilityService
      */
     public static function apply(FileSystemItem $item, ?int $visibility): void
     {
-        if ($visibility === null) {
+        // Nothing is more visible than the folder holding it: going private is always allowed,
+        // going public only inside a public folder (or at the top level). Checked here, for
+        // the item asked about — inside the cascade the parent is the folder being changed.
+        if ($visibility === null
+            || ($visibility !== Content::VISIBILITY_PRIVATE && $item->parentFolder?->content->isPrivate())) {
             return;
         }
 
@@ -64,12 +68,6 @@ class ItemVisibilityService
 
     private static function applyToFile(File $file, int $visibility): void
     {
-        // A file cannot be more visible than the folder holding it. Going private is always
-        // allowed; going public only inside a public folder.
-        if ($file->parentFolder === null
-            || !$file->parentFolder->content->isPrivate()
-            || $visibility === Content::VISIBILITY_PRIVATE) {
-            $file->content->visibility = $visibility;
-        }
+        $file->content->visibility = $visibility;
     }
 }

@@ -100,8 +100,10 @@ class Folder extends FileSystemItem
 
         $content = new FolderContentService($this->content->container, $this->parentFolder);
 
-        if ($content->folderExists($this->title)) {
+        if ($content->folderExists($this->title, $this)) {
             $this->addError('title', \Yii::t('CfilesModule.base', 'A folder with this name already exists.'));
+        } elseif ($content->fileExists($this->title)) {
+            $this->addError('title', \Yii::t('CfilesModule.base', 'A file with that name already exists in this folder.'));
         }
     }
 

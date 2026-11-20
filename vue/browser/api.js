@@ -75,13 +75,57 @@ export const createFolder = (containerId, parent, attributes) =>
 export const updateItem = (item, attributes) =>
     client.patch(apiUrl('cfiles/' + item.type + '/' + item.id), { data: attributes });
 
-export const moveItems = (containerId, items, targetFolderId) =>
-    client.post(apiUrl('cfiles/items/move'), {
-        data: { containerId, items: items.map(descriptor), targetFolderId },
+/** How many items one move or delete request may carry (`ItemController::MAX_ITEMS`). */
+const MAX_ITEMS = 200;
+
+/**
+ * Sends `items` in requests of at most `MAX_ITEMS`, one after the other, and answers like a
+ * single request: the `results` and `errors` of all of them. Rejected like a single request
+ * when no batch carried anything out, or when one failed without naming its items (a server
+ * error) — whatever the others did, that batch's items are in an unknown state.
+ */
+const inBatches = (items, send) => {
+    const batches = [];
+    for (let start = 0; start < items.length; start += MAX_ITEMS) {
+        batches.push(items.slice(start, start + MAX_ITEMS));
+    }
+
+    const results = [];
+    const errors = [];
+    let refused = null;
+    let broken = null;
+
+    const sendOne = (batch) => send(batch).then((response) => {
+        results.push(...(response.results || []));
+        errors.push(...(response.errors || []));
+    }, (response) => {
+        if (Array.isArray(response?.errors)) {
+            refused = refused || response;
+            errors.push(...response.errors);
+        } else {
+            broken = broken || response;
+        }
     });
 
-export const deleteItems = (items) =>
-    client.post(apiUrl('cfiles/items/delete'), { data: { items: items.map(descriptor) } });
+    return batches.reduce((chain, batch) => chain.then(() => sendOne(batch)), Promise.resolve()).then(() => {
+        if (broken) {
+            throw broken;
+        }
+        if (refused && results.length === 0) {
+            refused.errors = errors;
+            throw refused;
+        }
+        return { results, errors };
+    });
+};
+
+export const moveItems = (containerId, items, targetFolderId) => inBatches(items, (batch) =>
+    client.post(apiUrl('cfiles/items/move'), {
+        data: { containerId, items: batch.map(descriptor), targetFolderId },
+    }));
+
+export const deleteItems = (items) => inBatches(items, (batch) =>
+    client.post(apiUrl('cfiles/items/delete'), { data: { items: batch.map(descriptor) } }));
 
 /**
  * Uploads a batch of files to one level of the tree.

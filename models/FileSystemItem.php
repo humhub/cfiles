@@ -5,6 +5,7 @@ namespace humhub\modules\cfiles\models;
 use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\permissions\WriteAccess;
+use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\content\models\Content;
@@ -171,6 +172,11 @@ abstract class FileSystemItem extends ContentActiveRecord
             if ($parentFolder instanceof Folder) {
                 $parentFolder->content->getStateService()->publish();
             }
+        }
+
+        // Back at its level (restored, a draft published): its name may have been taken since.
+        if ($previousState !== null && $previousState !== Content::STATE_PUBLISHED && $newState === Content::STATE_PUBLISHED) {
+            (new FolderContentService($this->content->container, $this->parentFolder))->claimFreeName($this);
         }
 
         parent::afterStateChange($newState, $previousState);

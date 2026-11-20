@@ -73,30 +73,6 @@ class ItemMoveService
     }
 
     /**
-     * Renames an item out of the way of a name it is blocking.
-     */
-    public static function renameConflicted(FileSystemItem $item): bool
-    {
-        if ($item->isNewRecord) {
-            return false;
-        }
-
-        if ($item instanceof File) {
-            $item->baseFile->file_name = 'conflict' . $item->baseFile->id . '-' . $item->baseFile->file_name;
-
-            return $item->baseFile->save();
-        }
-
-        if (!$item instanceof Folder) {
-            return false;
-        }
-
-        $item->title = 'conflict' . $item->id . '-' . $item->title;
-
-        return $item->save();
-    }
-
-    /**
      * Follows a folder into another content container, taking its whole subtree with it.
      *
      * Content is moved between containers one record at a time by the platform, and a folder
@@ -137,7 +113,7 @@ class ItemMoveService
 
         if ($item instanceof File) {
             // A duplicate file name is indexed rather than refused.
-            $item->setTitle($content->uniqueFileName($item->getTitle()));
+            $item->setTitle($content->uniqueFileName($item->getTitle(), $item));
 
             return $item;
         }
@@ -149,6 +125,9 @@ class ItemMoveService
         $existing = $content->findFolder($item->title);
 
         if ($existing === null || (int)$existing->id === (int)$item->id) {
+            // A file of that name is no folder to merge into: indexed, like a file.
+            $item->title = $content->uniqueFolderName($item->title, $item);
+
             return $item;
         }
 
