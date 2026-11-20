@@ -41,6 +41,14 @@ Changelog
 - Fix: Saving a file (rename, visibility, move) no longer drops its topics.
 - Enh: Optional global files page (`/files`, admin setting "Add entry to main navigation", off by default): one folder per member space with the module enabled, opening into that space's browser (Files › Space › Folder). Filtered at the top level, it lists the hits across all those spaces with their location "in Space › Folder" (`GET /api/v2/cfiles/items`, filters Search, Space, Author, Topic, File Type, Modified; the core filter types `space` and `topic`, humhub/humhub#8530).
 
+0.19.3 - November 3, 2026
+-------------------------
+- Fix #298: Folder titles are now HTML-encoded in the "Move files" dialog (GHSA-j5vj-jfm4-2x2g); the current folder is now selected and expanded when the dialog opens; selected folder highlight no longer hides tree connectors; removed a missing icon reference
+
+0.19.2 - October 28, 2026
+-------------------------
+- Fix #296: Uploaded files created no activity since 0.19.0 and were missing from e-mail summaries
+
 0.19.1 - October 13, 2026
 -------------------------
 - Fix #269: Use getAttribute() in getter methods to avoid recursion when the attribute is missing
