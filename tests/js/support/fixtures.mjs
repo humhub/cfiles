@@ -132,6 +132,7 @@ export const insideFolder = (results = [], over = {}) => ({
 export const browserProps = (listing, over = {}) => ({
     listing,
     canWrite: true,
+    canManage: true,
     browseUrl: '/s/x/cfiles/browse/index',
     contentContainerId: CONTAINER_ID,
     // What FolderList::definitions() renders (FilterDefinition::toArray()).
@@ -232,7 +233,7 @@ export const globalTop = (results = [spaceTile(), salesTile()], over = {}) => ({
 export const globalResults = (results, over = {}) => globalTop(results, { resultsMode: true, ...over });
 
 /** A level of a space, from the container endpoint (FolderListingService::payload()). */
-export const spaceLevel = (results = [folderRow(), fileRow()], over = {}) => topLevel(results, { canWrite: true, ...over });
+export const spaceLevel = (results = [folderRow(), fileRow()], over = {}) => topLevel(results, { canWrite: true, canManage: true, ...over });
 
 /** What GlobalFolderList::definitions() renders: the container's filters plus Space and Topic. */
 export const globalFilters = () => {

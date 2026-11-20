@@ -351,6 +351,24 @@ describe('CfilesFileBrowser', () => {
         });
     });
 
+    describe('leaving the page', () => {
+        // PJAX swaps the page while a folder is still loading: what answers then is no longer
+        // this page's, and must not write to the history of the page that replaced it.
+        it('pushes no entry for a load that answers after the browser is gone', async () => {
+            const load = deferred();
+            queuedGets(load);
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.open(7);
+            wrapper.unmount();
+            window.history.pushState({}, '', '/dashboard');
+            load.resolve(insideFolder([]));
+            await flushPromises();
+
+            expect(window.location.pathname + window.location.search).toBe('/dashboard');
+        });
+    });
+
     describe('selection and bulk actions', () => {
         it('collects the selected rows and moves them to the top level', async () => {
             const wrapper = browser(insideFolder([fileRow({ parentFolderId: 9 })]));
@@ -390,6 +408,48 @@ describe('CfilesFileBrowser', () => {
             const [url, cfg] = globalThis.humhubStubs.client.post.mock.calls[0];
             expect(url).toContain('cfiles/items/delete');
             expect(cfg.data).toEqual({ items: [{ type: 'file', id: 21 }] });
+        });
+
+        it('says why nothing was deleted, and shows the level as it is now', async () => {
+            globalThis.humhubStubs.modal.confirm = vi.fn(() => Promise.resolve(true));
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject({
+                status: 422,
+                errors: [{ type: 'file', id: 21, title: 'Plan.pdf', message: 'Could not delete the item!' }],
+            }));
+            const reported = statusMessages();
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.confirmDelete([fileRow()]);
+            await flushPromises();
+
+            expect(reported.at(-1).message).toBe('Could not delete the item!');
+            expect(globalThis.humhubStubs.logCalls.error).toHaveLength(0);
+            expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
+        });
+
+        // The server may have deleted part of the selection before it failed.
+        it('shows the level as it is now after a delete failed', async () => {
+            globalThis.humhubStubs.modal.confirm = vi.fn(() => Promise.resolve(true));
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject({ status: 500 }));
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.confirmDelete([fileRow()]);
+            await flushPromises();
+
+            expect(globalThis.humhubStubs.logCalls.error).toHaveLength(1);
+            expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
+        });
+
+        it('says in the move dialog that the move failed, also when the server gave no reason', async () => {
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject({ status: 500 }));
+            const wrapper = browser(insideFolder([fileRow({ parentFolderId: 9 })]));
+
+            wrapper.vm.openMove(wrapper.vm.items);
+            wrapper.vm.moveTo(null, wrapper.vm.items);
+            await flushPromises();
+
+            expect(wrapper.vm.showMove).toBe(true);
+            expect(wrapper.vm.moveError).toBeTruthy();
         });
 
         it('deletes nothing when the confirmation is declined', async () => {
@@ -744,6 +804,49 @@ describe('CfilesFileBrowser', () => {
             expect(globalThis.humhubStubs.client.post).toHaveBeenCalledTimes(1);
         });
 
+        // Another field's handler entry - the comment form's in the details panel - takes what
+        // its handler creates. A choice made in the add menu and abandoned must not take it.
+        describe('next to other fields with handlers', () => {
+            const elsewhere = () => {
+                const link = document.createElement('a');
+                link.setAttribute('data-action-process', 'file-handler');
+                document.body.appendChild(link);
+                return link;
+            };
+            const attached = (listing) => mount(CfilesFileBrowser, { props: browserProps(listing), attachTo: document.body });
+
+            afterEach(() => {
+                document.body.replaceChildren();
+            });
+
+            it('forgets its choice once a handler of another field is chosen', async () => {
+                const other = elsewhere();
+                const wrapper = attached(topLevel());
+
+                await chooseHandler(wrapper);
+                other.click();
+                created({ guid: 'guid-1' });
+                await flushPromises();
+
+                expect(globalThis.humhubStubs.client.post).not.toHaveBeenCalled();
+            });
+
+            it('keeps a choice of its own menu that carries the platform handler marker', async () => {
+                globalThis.humhub.config.module('file').handlers = [{
+                    label: 'New document',
+                    icon: null,
+                    attributes: { 'data-action-click': 'test.create', 'data-action-process': 'file-handler' },
+                }];
+                const wrapper = attached(topLevel());
+
+                wrapper.find('[data-action-click="test.create"]').element.click();
+                created({ guid: 'guid-1' });
+                await flushPromises();
+
+                expect(globalThis.humhubStubs.client.post).toHaveBeenCalledTimes(1);
+            });
+        });
+
         it('reloads when a handler modified a file', async () => {
             browser(topLevel());
 
@@ -868,6 +971,16 @@ describe('CfilesFileBrowser', () => {
 
             expect(wrapper.findAll('.selection-menu .dropdown-item').map((e) => e.text()))
                 .toEqual(['Select all', 'Move', 'Delete', 'Clear selection']);
+        });
+
+        it('offers no Move for the selection of a user who may not manage the files', async () => {
+            const wrapper = browser(topLevel(undefined, { canManage: false }));
+
+            await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
+
+            expect(wrapper.findAll('.selection-menu .dropdown-item').map((e) => e.text()))
+                .toEqual(['Select all', 'Delete', 'Clear selection']);
+            expect(wrapper.find('.cfiles-row').attributes('draggable')).toBe('false');
         });
 
         it('selects every loaded item from the selection menu', async () => {
@@ -1670,6 +1783,15 @@ describe('CfilesFileBrowser', () => {
             await openMenu(wrapper);
 
             expect(rowMenu(wrapper)).toEqual(['Details', 'Download']);
+        });
+
+        // Moving needs the right to manage the files (the server's rule), editing one's own
+        // file does not.
+        it('offers no Move to a user who may not manage the files', async () => {
+            const wrapper = browser(topLevel([fileRow()], { canManage: false }));
+            await openMenu(wrapper);
+
+            expect(rowMenu(wrapper)).toEqual(['Details', 'Download', 'Edit', 'Delete']);
         });
 
         it('appends what the server contributed', async () => {

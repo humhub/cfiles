@@ -83,22 +83,22 @@ class ItemMoveService
     {
         $container = $container ?? $folder->content->getContainer();
 
-        /** @var FileSystemItem[] $subFolders */
-        $subFolders = Folder::find()->andWhere(['parent_folder_id' => $folder->id])->all();
-
-        /** @var FileSystemItem[] $subFiles */
-        $subFiles = File::find()
-            ->joinWith('baseFile')
-            ->andWhere(['cfiles_file.parent_folder_id' => $folder->id])
-            ->all();
-
-        foreach ($subFolders as $subFolder) {
-            $subFolder->move($container);
+        foreach (self::subItems($folder) as $item) {
+            $item->move($container);
         }
+    }
 
-        foreach ($subFiles as $subFile) {
-            $subFile->move($container);
-        }
+    /**
+     * Everything directly inside a folder, whatever its state — what moves along with it.
+     *
+     * @return FileSystemItem[] the subfolders, then the files
+     */
+    public static function subItems(Folder $folder): array
+    {
+        return array_merge(
+            Folder::find()->andWhere(['parent_folder_id' => $folder->id])->all(),
+            File::find()->joinWith('baseFile')->andWhere(['cfiles_file.parent_folder_id' => $folder->id])->all(),
+        );
     }
 
     /**

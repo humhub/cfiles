@@ -14,6 +14,7 @@ use humhub\modules\cfiles\components\FolderListBuilder;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use humhub\modules\cfiles\serializers\FolderSerializer;
@@ -106,6 +107,7 @@ class FolderListingService
             // then says where it lies (`path`, relative to the open folder).
             'resultsMode' => $this->list->resultsMode,
             'canWrite' => $this->canWrite(),
+            'canManage' => $this->canManage(),
             // The one per-caller section of this payload. Kept out of the rows themselves,
             // which stay caller-neutral (see FileSerializer/FolderSerializer): who liked what
             // is about the reader, not about the file.
@@ -231,6 +233,16 @@ class FolderListingService
     {
         return count($this->list->containers) === 1
             && $this->list->container()->getPermissionManager($this->list->context->user)->can(WriteAccess::class);
+    }
+
+    /**
+     * Whether the user may manage the level's files — move them, change those of others —,
+     * checked like `canWrite`. The browser offers moving only then: the server's rule for it.
+     */
+    private function canManage(): bool
+    {
+        return count($this->list->containers) === 1
+            && $this->list->container()->getPermissionManager($this->list->context->user)->can(ManageFiles::class);
     }
 
     private function likesEnabled(): bool

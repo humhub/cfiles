@@ -214,13 +214,30 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->assertFalse($this->payload()['canWrite']);
     }
 
+    /**
+     * Moving needs the right to manage the files; the browser offers it only then.
+     */
+    public function testALevelSaysWhetherTheUserMayManageItsFiles()
+    {
+        $this->assertTrue($this->payload()['canManage']);
+
+        // User2 is a member of space 1: they may add files, not manage those of others.
+        $this->becomeUser('User2');
+        $this->space = Space::findOne(1);
+        $payload = $this->payload();
+        $this->assertTrue($payload['canWrite']);
+        $this->assertFalse($payload['canManage']);
+    }
+
     public function testAListOverSeveralContainersHasNoRightToWrite()
     {
         $builder = new FolderListBuilder([$this->space, Space::findOne(3)], ListContext::forCurrentUser());
         $builder->prefixContainer = true;
         $builder->scopeToSubtree();
 
-        $this->assertFalse((new FolderListingService($builder))->payload()['canWrite']);
+        $payload = (new FolderListingService($builder))->payload();
+        $this->assertFalse($payload['canWrite']);
+        $this->assertFalse($payload['canManage']);
     }
 
     /**

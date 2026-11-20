@@ -159,6 +159,36 @@ class Folder extends FileSystemItem
     }
 
     /**
+     * A folder moves to another container with everything inside it (see afterMove()) — or not
+     * at all: when one item may not follow (its author may not post there, say), the folder is
+     * refused rather than leaving that item behind in a folder of another container, where
+     * neither container's browser reaches it. Recursive: a subfolder asks the same of its items.
+     *
+     * @inheritdoc
+     */
+    public function canMove(?ContentContainerActiveRecord $container = null)
+    {
+        $canMove = parent::canMove($container);
+
+        if ($canMove !== true || $container === null) {
+            return $canMove;
+        }
+
+        foreach (ItemMoveService::subItems($this) as $item) {
+            $itemCanMove = $item->content->canMove($container);
+
+            if ($itemCanMove !== true) {
+                return Yii::t('CfilesModule.base', '"{name}" cannot be moved along: {reason}', [
+                    'name' => $item->getTitle(),
+                    'reason' => $itemCanMove,
+                ]);
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @inheritdoc
      */
     public function afterMove(?ContentContainerActiveRecord $container = null)

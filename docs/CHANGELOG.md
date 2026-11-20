@@ -46,6 +46,11 @@ Changelog
 - Chng: A file and a folder of the same level cannot share a name anymore. A file is indexed (`Reports(1)`), creating or renaming a folder to the name of a file is refused.
 - Fix: Moving or deleting a selection failed as a whole when one item was already gone (regression of #292), and deleting stopped halfway at the first item the user may not delete. Such items are reported, the others are carried out. A request with more than 200 items is refused instead of silently cut off; the browser sends a larger selection in batches.
 - Fix: New content stored to the platform file of another record (e.g. a post attachment edited in an office module) marked the cfiles file with the same id as changed.
+- Fix: Moving a folder to another space ("Move content") left the items behind that may not follow (e.g. whose author is no member of the target space) — in a folder of the other space, out of reach of both browsers. The folder is not moved then, and the message names the item.
+- Fix: The browser offered "Move" (menu, selection, dragging items) to users who may not manage the files, and the server refused it. The level's payload carries `canManage` now.
+- Fix: A folder still loading when the user left the page wrote its URL into the history of the page navigated to.
+- Fix: A document created by a file handler of another field (the comment form of the details panel) was also filed into the folder, when a handler of the add menu had been chosen and abandoned before.
+- Fix: A failed move showed nothing in the move dialog when the server gave no reason; a failed delete showed a generic error instead of the messages per item, and did not refresh the list.
 
 0.19.3 - November 3, 2026
 -------------------------

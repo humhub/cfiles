@@ -85,6 +85,7 @@ class GlobalListingService
             'resultsMode' => $this->list->resultsMode,
             // Nothing to add to: the top level holds the spaces.
             'canWrite' => false,
+            'canManage' => false,
             'likeStates' => [],
             'total' => (int)$pagination->totalCount,
             'page' => $pagination->getPage() + 1,

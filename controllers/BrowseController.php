@@ -12,6 +12,7 @@ use humhub\components\listing\ListContext;
 use humhub\modules\cfiles\components\FolderList;
 use humhub\modules\cfiles\components\FolderParentFilter;
 use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\services\FirstListing;
@@ -60,6 +61,7 @@ class BrowseController extends ContentContainerController
             'folder' => $folder,
             // Container-wide, not per folder, so the island can keep it across navigation.
             'canWrite' => $this->contentContainer->permissionManager->can(WriteAccess::class),
+            'canManage' => $this->contentContainer->permissionManager->can(ManageFiles::class),
             // Passed through untouched: the island looks it up among the rows it received and
             // ignores it when there is no match, so a stale link just opens the folder.
             'editItem' => is_string($edit) && preg_match('/^(file|folder):\d+$/', $edit) ? $edit : null,

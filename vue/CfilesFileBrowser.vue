@@ -258,6 +258,11 @@ export default {
         listing: { type: Object, required: true },
         /** Whether the user may write in the container — the space browser's; see `writable`. */
         canWrite: { type: Boolean, default: false },
+        /**
+         * Whether the user may manage the container's files - move them, and change those of
+         * others. The space browser's, like `canWrite`; see `movable`.
+         */
+        canManage: { type: Boolean, default: false },
         /** Base URL of the browser page — `?fid=` is appended to it. The space browser's. */
         browseUrl: { type: String, default: '' },
         /**
@@ -326,6 +331,8 @@ export default {
             // Whether the user may write in the level shown: its payload's (see `writable`), the
             // page's `canWrite` until a payload says.
             levelCanWrite: typeof this.listing.canWrite === 'boolean' ? this.listing.canWrite : this.canWrite,
+            // Whether the user may manage the files of the level shown, the same way.
+            levelCanManage: typeof this.listing.canManage === 'boolean' ? this.listing.canManage : this.canManage,
             // Whether the items are the filters' hits in the folder and its subfolders.
             resultsMode: this.listing.resultsMode === true,
             // The payload's `view` is the stored preference; from here on the island owns it.
@@ -400,6 +407,13 @@ export default {
          */
         writable() {
             return this.container !== null && this.levelCanWrite;
+        },
+        /**
+         * Whether the user may move the items of the level shown: the right to manage its
+         * files (`canManage` of the level's payload) — the server's rule for a move.
+         */
+        movable() {
+            return this.writable && this.levelCanManage;
         },
         /**
          * The container of the item being edited: the one open, or — a hit of the global page's
@@ -480,7 +494,7 @@ export default {
                 items: this.displayItems,
                 selection: this.selection,
                 selectable: this.writable,
-                draggable: this.writable,
+                draggable: this.movable,
                 canDrop: this.canDropOnItem,
                 dropTargetKey: this.itemDropTargetKey,
                 hasMore: this.page < this.pages,
@@ -516,7 +530,7 @@ export default {
         selectionEntries() {
             return [
                 { id: 'select-all', sortOrder: 10, icon: 'checks', label: i18n.t('CfilesModule.base', 'Select all'), onClick: () => this.selectAll() },
-                { id: 'move', sortOrder: 20, icon: 'arrows-left-right', label: i18n.t('CfilesModule.base', 'Move'), onClick: () => this.openMove(this.selectedItems) },
+                ...(this.movable ? [{ id: 'move', sortOrder: 20, icon: 'arrows-left-right', label: i18n.t('CfilesModule.base', 'Move'), onClick: () => this.openMove(this.selectedItems) }] : []),
                 { id: 'delete', sortOrder: 30, icon: 'trash', label: i18n.t('CfilesModule.base', 'Delete'), onClick: () => this.confirmDelete(this.selectedItems) },
                 { id: 'divider', sortOrder: 90, divider: true },
                 { id: 'clear', sortOrder: 100, icon: 'x', label: i18n.t('CfilesModule.base', 'Clear selection'), onClick: () => this.clearSelection() },
@@ -615,6 +629,7 @@ export default {
     mounted() {
         window.addEventListener('popstate', this.onPopState);
         document.addEventListener('keydown', this.onKeydown);
+        document.addEventListener('click', this.onAnyClick, true);
         events.on('humhub:file:created', this.onFileCreated);
         events.on('humhub:file:modified', this.onFileModified);
 
@@ -641,8 +656,12 @@ export default {
         }
     },
     beforeUnmount() {
+        // A load still on its way answers into a page PJAX has replaced: dropped like one
+        // overtaken by a later load, so it pushes and stamps nothing there (see `open()`).
+        this.loadSeq++;
         window.removeEventListener('popstate', this.onPopState);
         document.removeEventListener('keydown', this.onKeydown);
+        document.removeEventListener('click', this.onAnyClick, true);
         events.off('humhub:file:created', this.onFileCreated);
         events.off('humhub:file:modified', this.onFileModified);
     },
@@ -837,6 +856,9 @@ export default {
             // An endpoint that does not say (none of this module's) leaves it as it was.
             if (typeof payload.canWrite === 'boolean') {
                 this.levelCanWrite = payload.canWrite;
+            }
+            if (typeof payload.canManage === 'boolean') {
+                this.levelCanManage = payload.canManage;
             }
             this.level = levelKey(this.global, container, payload.folder);
             this.folder = payload.folder;
@@ -1142,7 +1164,7 @@ export default {
                     icon: 'arrows-left-right',
                     // Not at the global page's top level: its hits lie in spaces of their own, and
                     // the move dialog and endpoint work in one container.
-                    condition: (context) => this.writable && context.capabilities.canEdit === true,
+                    condition: (context) => this.movable && context.capabilities.canEdit === true,
                     onClick: () => this.openMove([item]),
                 },
                 {
@@ -1225,8 +1247,8 @@ export default {
                 this.reload();
             }).catch((response) => {
                 this.moveBusy = false;
-                const first = response && response.errors && response.errors[0];
-                this.moveError = first ? first.message : null;
+                const first = Array.isArray(response?.errors) ? response.errors[0] : null;
+                this.moveError = first ? first.message : i18n.t('CfilesModule.base', 'Could not move the item!');
                 if (!this.showMove) {
                     // A dragged move has no dialog to show the error in; the reload puts back
                     // whatever did not move after all.
@@ -1255,7 +1277,13 @@ export default {
                     this.reportErrors(response.errors);
                     this.reload();
                 }).catch((response) => {
-                    log.error(response, true);
+                    if (Array.isArray(response?.errors)) {
+                        this.reportErrors(response.errors);
+                    } else {
+                        log.error(response, true);
+                    }
+                    // Part of the selection may be gone even so.
+                    this.reload();
                 });
             });
         },
@@ -1367,6 +1395,18 @@ export default {
         },
         onHandlerChosen() {
             this.handlerLevel = { container: this.container, parentId: this.folderId };
+        },
+        /**
+         * Any file handler entry chosen on the page - the add menu's, or another field's (the
+         * comment form of the details panel) - ends an earlier choice of the add menu: what
+         * that handler creates is the other field's. Listened to in the capture phase, so the
+         * add menu's own entry claims the choice again afterwards (`onHandlerChosen`). The core's
+         * `UploadField` keeps its choice the same way.
+         */
+        onAnyClick(event) {
+            if (event.target instanceof Element && event.target.closest('a[data-action-process="file-handler"]')) {
+                this.handlerLevel = null;
+            }
         },
         /**
          * Files what a file handler of the add menu created ("New spreadsheet") into the level
