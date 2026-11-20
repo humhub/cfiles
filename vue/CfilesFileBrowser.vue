@@ -141,6 +141,13 @@
             @close="showMove = false"
             @confirm="(id) => moveTo(id, moveItemsList)"
         />
+
+        <ConflictDialog
+            :show="conflicts.length > 0"
+            :conflicts="conflicts"
+            @resolve="settleConflicts"
+            @cancel="settleConflicts('cancel')"
+        />
     </div>
 </template>
 
@@ -224,12 +231,13 @@
  */
 import { events, getConfig, i18n, log, modal, status } from '@humhub/vue';
 import AddMenu from './browser/AddMenu.vue';
+import ConflictDialog from './browser/ConflictDialog.vue';
 import DetailsPanel from './browser/DetailsPanel.vue';
 import FileTiles from './browser/FileTiles.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
 import {
-    attachFiles, deleteItems, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
+    attachFiles, deleteItems, findConflicts, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
 } from './browser/api';
 import {
     SPACE_CRUMB, TOPIC_KEY, appendFilters, containerOf, idsOf, isPageLocation, isPageUrl, isSet, levelFilters, levelKey, levelUrl,
@@ -250,7 +258,7 @@ export const PAGE_SIZES = { list: 50, tiles: 96 };
 const SORT_DEFAULT = 'default';
 
 export default {
-    components: { AddMenu, DetailsPanel, FileTiles, ItemList, MoveDialog },
+    components: { AddMenu, ConflictDialog, DetailsPanel, FileTiles, ItemList, MoveDialog },
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {
@@ -259,7 +267,7 @@ export default {
         /** Whether the user may write in the container — the space browser's; see `writable`. */
         canWrite: { type: Boolean, default: false },
         /**
-         * Whether the user may manage the container's files - move them, and change those of
+         * Whether the user may manage the container's files — move them, and change those of
          * others. The space browser's, like `canWrite`; see `movable`.
          */
         canManage: { type: Boolean, default: false },
@@ -359,6 +367,8 @@ export default {
             moveItemsList: [],
             moveBusy: false,
             moveError: null,
+            // The names an upload found taken, while the user is asked about them (ConflictDialog).
+            conflicts: [],
 
             // What an item drag in flight carries: the selection, or the one item dragged.
             dragged: [],
@@ -605,6 +615,8 @@ export default {
         // Not reactive, nothing renders from them. The latest `open()` wins: a response to an
         // earlier one is dropped, and so is a further page asked for before it.
         this.loadSeq = 0;
+        // Settles the open conflict question (see `askConflicts()`).
+        this.conflictAnswer = null;
         // What the latest `open()` asked for — the level a reload or a popstate compares
         // against while it is still on its way.
         this.requested = { folderId: this.folderId, push: false, container: this.container };
@@ -1310,7 +1322,66 @@ export default {
             event.target.value = '';
         },
         /**
-         * Uploads a batch into `parentId` (the open level by default).
+         * Uploads a batch into `parentId` (the open level by default) — after asking about the
+         * names that are taken there: the user decides whether those are replaced (a new
+         * version), kept both (an indexed name) or skipped (see ConflictDialog).
+         */
+        upload(files, parentId = this.folderId, options = {}) {
+            if (!files || !files.length || !this.writable) {
+                return Promise.resolve();
+            }
+
+            const list = Array.from(files);
+            // Where it goes, captured now: by the time the user answered (and the upload is in)
+            // another level, on the global page another space, may be open.
+            const container = this.container;
+            const intoLevel = parentId === this.folderId;
+            options = { ...options, intoLevel, title: options.title ?? (intoLevel ? this.folder?.title : null) };
+
+            return findConflicts(container.contentContainerId, parentId, list.map((file) => file.name)).then((conflicts) => {
+                if (!conflicts.length) {
+                    return this.sendUpload(list, parentId, options, container);
+                }
+
+                return this.askConflicts(conflicts).then((choice) => {
+                    if (choice === 'replace' || choice === 'keep') {
+                        const replace = choice === 'replace'
+                            ? conflicts.filter((conflict) => conflict.canReplace).map((conflict) => conflict.name)
+                            : [];
+                        return this.sendUpload(list, parentId, options, container, replace);
+                    }
+
+                    const taken = new Set(conflicts.map((conflict) => conflict.name));
+                    const rest = choice === 'skip' ? list.filter((file) => !taken.has(file.name)) : [];
+                    return rest.length ? this.sendUpload(rest, parentId, options, container) : undefined;
+                });
+            }).catch((response) => {
+                log.error(response, true);
+            });
+        },
+        /**
+         * Asks the user about the names an upload found taken; settles with their choice —
+         * `replace`, `keep`, `skip` or `cancel`. A question still open is given up (`cancel`).
+         */
+        askConflicts(conflicts) {
+            this.settleConflicts('cancel');
+
+            return new Promise((resolve) => {
+                this.conflictAnswer = resolve;
+                this.conflicts = conflicts;
+            });
+        },
+        settleConflicts(choice) {
+            const answer = this.conflictAnswer;
+            this.conflictAnswer = null;
+            this.conflicts = [];
+
+            if (answer) {
+                answer(choice);
+            }
+        },
+        /**
+         * Sends an upload `upload()` settled; where it goes was captured there.
          *
          * Into the open level each file gets a placeholder after the items (kept with that
          * level: `parent`); into a folder shown here (`targetKey`) that folder shows the
@@ -1318,17 +1389,9 @@ export default {
          * it is in. The level reloads only when the upload shows on it, and the placeholders
          * stay until the reloaded rows are there.
          */
-        upload(files, parentId = this.folderId, { targetKey = null, title = null } = {}) {
-            if (!files || !files.length || !this.writable) {
-                return;
-            }
-
+        sendUpload(files, parentId, { targetKey = null, title = null, intoLevel = false }, container, replace = []) {
             const batch = ++uploadSeq;
-            // Where it goes: on the global page another space may be open by the time it is in.
-            const container = this.container;
-            const intoLevel = parentId === this.folderId;
-            // Where it goes, named now: by the time it is in, another level may be open.
-            const folderTitle = title ?? (intoLevel ? this.folder?.title : null);
+            const folderTitle = title;
             const placeholders = intoLevel
                 ? Array.from(files).map((file) => ({
                     type: 'upload', id: ++uploadSeq, parent: parentId, containerId: container.contentContainerId, title: file.name, uploading: true, progress: 0, icon: 'file',
@@ -1359,7 +1422,7 @@ export default {
             this.uploads = this.uploads.concat(placeholders);
             progress(0);
 
-            uploadFiles(container.contentContainerId, parentId, files, progress).then((response) => {
+            return uploadFiles(container.contentContainerId, parentId, files, progress, replace).then((response) => {
                 this.reportUploadErrors(response.errors);
 
                 const here = sameContainer(container, this.targetContainer());

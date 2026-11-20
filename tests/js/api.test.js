@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { deleteItems, moveItems } from '../../vue/browser/api';
+import { deleteItems, findConflicts, moveItems } from '../../vue/browser/api';
 
 const items = (count) => Array.from({ length: count }, (_, index) => ({ type: 'file', id: index + 1 }));
 
@@ -57,5 +57,24 @@ describe('moving and deleting many items', () => {
             : Promise.reject(broken)));
 
         await expect(deleteItems(items(201))).rejects.toBe(broken);
+    });
+});
+
+describe('the taken names of a level', () => {
+    it('asks in batches small enough for a URL and answers all conflicts', async () => {
+        const get = vi.fn((url) => Promise.resolve({ conflicts: [{ name: new URL(url, 'http://x').searchParams.getAll('names[]')[0] }] }));
+        globalThis.humhubStubs.client.get = get;
+        const names = Array.from({ length: 120 }, (_, index) => 'file-' + index + '.txt');
+
+        const conflicts = await findConflicts(5, 9, names);
+
+        expect(get).toHaveBeenCalledTimes(3);
+        expect(conflicts.map((conflict) => conflict.name)).toEqual(['file-0.txt', 'file-50.txt', 'file-100.txt']);
+    });
+
+    it('takes an answer without conflicts as none', async () => {
+        globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve({}));
+
+        expect(await findConflicts(5, null, ['a.txt'])).toEqual([]);
     });
 });

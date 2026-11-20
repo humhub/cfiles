@@ -31,6 +31,7 @@ return [
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/suggestions', 'route' => 'cfiles/api/folder/suggestions', 'verb' => ['GET', 'HEAD']],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/folders', 'route' => 'cfiles/api/folder/create', 'verb' => 'POST'],
         ['pattern' => 'api/v2/cfiles/<containerId:\d+>/files', 'route' => 'cfiles/api/folder/upload', 'verb' => 'POST'],
+        ['pattern' => 'api/v2/cfiles/<containerId:\d+>/conflicts', 'route' => 'cfiles/api/folder/conflicts', 'verb' => ['GET', 'HEAD']],
         // Changing something that exists addresses it by its own id.
         ['pattern' => 'api/v2/cfiles/folder/<id:\d+>', 'route' => 'cfiles/api/folder/update', 'verb' => 'PATCH'],
         ['pattern' => 'api/v2/cfiles/file/<id:\d+>', 'route' => 'cfiles/api/file/update', 'verb' => 'PATCH'],

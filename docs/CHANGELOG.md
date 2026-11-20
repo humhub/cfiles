@@ -40,7 +40,7 @@ Changelog
 - Enh: Topics in the file browser: a Topic filter (the topics of the space and the global ones), and a Topics field in the edit dialog of files and folders (`topics` of `PATCH /api/v2/cfiles/file|folder/<id>`). Rows name their topics (humhub/humhub#8530).
 - Fix: Saving a file (rename, visibility, move) no longer drops its topics.
 - Enh: Optional global files page (`/files`, admin setting "Add entry to main navigation", off by default): one folder per member space with the module enabled, opening into that space's browser (Files › Space › Folder). Filtered at the top level, it lists the hits across all those spaces with their location "in Space › Folder" (`GET /api/v2/cfiles/items`, filters Search, Space, Author, Topic, File Type, Modified; the core filter types `space` and `topic`, humhub/humhub#8530).
-- Fix: Uploading a file under the name of an existing one stored a new version of it even when the uploader may not change that file. The upload is stored under an indexed name (`report(1).pdf`) then; a file the uploader may change still gets a new version.
+- Fix: Uploading a file under the name of an existing one stored a new version of it even when the uploader may not change that file. Such an upload is stored under an indexed name (`report(1).pdf`) now.
 - Fix: Making a folder inside a private folder public made everything in it public, while the folder itself stayed private.
 - Fix: Items in the trash held on to their names: a folder moved next to a trashed one of the same name was merged into it, and its content vanished from the browser; creating or renaming an item to such a name was refused. An item that comes back from the trash gets an indexed name if its name was taken in the meantime.
 - Chng: A file and a folder of the same level cannot share a name anymore. A file is indexed (`Reports(1)`), creating or renaming a folder to the name of a file is refused.
@@ -51,6 +51,7 @@ Changelog
 - Fix: A folder still loading when the user left the page wrote its URL into the history of the page navigated to.
 - Fix: A document created by a file handler of another field (the comment form of the details panel) was also filed into the folder, when a handler of the add menu had been chosen and abandoned before.
 - Fix: A failed move showed nothing in the move dialog when the server gave no reason; a failed delete showed a generic error instead of the messages per item, and did not refresh the list.
+- Enh: Uploading a file whose name is taken in the folder asks first: replace it — a new version, the previous content is kept as an older version —, keep both (an indexed name, `report(1).pdf`) or skip it. Asked before the upload, so nothing is sent twice (`GET /api/v2/cfiles/<containerId>/conflicts?parent=&names[]=`); the upload replaces only the files named in `replace[]`, and never a file the user may not change or a folder.
 
 0.19.3 - November 3, 2026
 -------------------------

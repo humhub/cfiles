@@ -119,13 +119,23 @@ class FolderContentServiceTest extends HumHubDbTestCase
 
     // --- uploading over an existing name ---------------------------------------------
 
-    public function testUploadingOverOwnFileReplacesItAsANewVersion()
+    public function testUploadingOverOwnFileToReplaceItStoresANewVersion()
+    {
+        $mine = $this->upload($this->spaceA, 'notes.txt');
+
+        $again = $this->upload($this->spaceA, 'notes.txt', true);
+
+        $this->assertSame((int)$mine->id, (int)$again->id);
+    }
+
+    public function testUploadingOverATakenNameWithoutReplacingKeepsBoth()
     {
         $mine = $this->upload($this->spaceA, 'notes.txt');
 
         $again = $this->upload($this->spaceA, 'notes.txt');
 
-        $this->assertSame((int)$mine->id, (int)$again->id);
+        $this->assertNotSame((int)$mine->id, (int)$again->id);
+        $this->assertSame('notes(1).txt', $again->getTitle());
     }
 
     public function testUploadingOverAFileOfAnotherUserStoresTheUploadUnderANewName()
@@ -134,7 +144,7 @@ class FolderContentServiceTest extends HumHubDbTestCase
         // A member: may add files, may not change those of others.
         $this->becomeUser('User2');
 
-        $mine = $this->upload($this->spaceA, 'report.txt');
+        $mine = $this->upload($this->spaceA, 'report.txt', true);
 
         $this->assertNotSame((int)$theirs->id, (int)$mine->id);
         $this->assertSame('report(1).txt', $mine->getTitle());
@@ -277,7 +287,7 @@ class FolderContentServiceTest extends HumHubDbTestCase
     /**
      * What the browser's upload does: a form upload of `$name` into the top level.
      */
-    private function upload(Space $space, string $name): File
+    private function upload(Space $space, string $name, bool $replace = false): File
     {
         $path = Yii::getAlias('@runtime') . '/' . uniqid() . '-' . $name;
         file_put_contents($path, 'test');
@@ -287,7 +297,7 @@ class FolderContentServiceTest extends HumHubDbTestCase
             'tempName' => $path,
             'type' => 'text/plain',
             'size' => 4,
-        ]));
+        ]), $replace);
 
         $this->assertFalse($file->hasErrors(), implode(' ', $file->getFirstErrors()));
 

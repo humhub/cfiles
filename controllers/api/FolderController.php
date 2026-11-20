@@ -57,6 +57,7 @@ class FolderController extends BaseController
                     'update' => ['PATCH'],
                     'create' => ['POST'],
                     'upload' => ['POST'],
+                    'conflicts' => ['GET', 'HEAD'],
                 ],
             ],
         ]);
@@ -176,8 +177,58 @@ class FolderController extends BaseController
     }
 
     /**
+     * @var int how many names one conflict check may carry
+     */
+    public const MAX_NAMES = 100;
+
+    /**
+     * Which of `names` an item of the level already has — asked before an upload, so the user
+     * can decide what happens to those: replaced (`replace` of the upload), kept both under an
+     * indexed name, or skipped. Per name taken `{name, type, id, canReplace}`: `name` as asked,
+     * `canReplace` whether the caller may upload a new version of that file — never of a folder.
+     *
+     * Only for those who may add to the container: the answer is about an upload. Items in the
+     * trash or not yet published hold no name (see FolderContentService).
+     */
+    public function actionConflicts($containerId)
+    {
+        $container = $this->findContainer((int)$containerId);
+        $this->assertCanWrite($container);
+
+        $request = Yii::$app->request;
+        $parent = $this->findParent($container, $request->get('parent'));
+        $names = $request->get('names');
+
+        if (!is_array($names) || count($names) > self::MAX_NAMES) {
+            Yii::$app->response->statusCode = 422;
+
+            return ['errors' => ['names' => [
+                Yii::t('CfilesModule.base', 'A list of at most {count} names is required.', ['count' => self::MAX_NAMES]),
+            ]]];
+        }
+
+        $level = new FolderContentService($container, $parent);
+        $conflicts = [];
+
+        foreach (array_unique(array_map('strval', $names)) as $name) {
+            if (($file = $level->findFile($name)) !== null) {
+                $conflicts[] = ['name' => $name, 'type' => 'file', 'id' => (int)$file->id, 'canReplace' => (bool)$file->content->canEdit()];
+            } elseif (($folder = $level->findFolder($name)) !== null) {
+                $conflicts[] = ['name' => $name, 'type' => 'folder', 'id' => (int)$folder->id, 'canReplace' => false];
+            }
+        }
+
+        return ['conflicts' => $conflicts];
+    }
+
+    /**
      * Uploads one or more files to the addressed level - or, with `guids`, files platform files
      * that already exist there (what a file handler such as "New spreadsheet" created).
+     *
+     * A name already taken in the level is indexed (`report(1).pdf`) — unless it is named in
+     * `replace`: then the upload is stored as a new version of the file of that name, the
+     * previous content kept as an older one, where the caller may change that file. Never a
+     * silent overwrite: the browser asks first (see actionConflicts()).
      *
      * Answers per file rather than failing the whole request on one bad upload: a batch in
      * which a single file is rejected should still land the others, and the client has to be
@@ -207,8 +258,10 @@ class FolderController extends BaseController
         $created = [];
         $errors = [];
 
+        $replace = array_map('strval', (array)Yii::$app->request->post('replace', []));
+
         foreach ($uploads as $upload) {
-            $file = $content->addUploadedFile($upload);
+            $file = $content->addUploadedFile($upload, in_array($upload->name, $replace, true));
 
             if ($file->hasErrors() || $file->baseFile->hasErrors()) {
                 $errors[] = [

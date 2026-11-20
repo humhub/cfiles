@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 import CfilesFileBrowser from '../../vue/CfilesFileBrowser.vue';
 import CfilesItemForm from '../../vue/CfilesItemForm.vue';
+import ConflictDialog from '../../vue/browser/ConflictDialog.vue';
 import FilterBar from '@core/vue/FilterBar.vue';
 import { browserProps, fileRow, folderRow, insideFolder, results, topLevel } from './support/fixtures.mjs';
 
@@ -34,10 +35,16 @@ const deferred = () => {
     return d;
 };
 
-/** `client.get` answering each call with the next of the given deferreds. */
+/**
+ * `client.get` answering each listing request with the next of the given deferreds — and the
+ * name check before an upload (`/conflicts`) at once, with no name taken.
+ */
 const queuedGets = (...queue) => {
-    globalThis.humhubStubs.client.get = vi.fn(() => queue.shift().promise);
+    globalThis.humhubStubs.client.get = vi.fn((url) => (url.includes('/conflicts') ? Promise.resolve({ conflicts: [] }) : queue.shift().promise));
 };
+
+/** The listing requests made, without the name check before an upload. */
+const listingCalls = () => globalThis.humhubStubs.client.get.mock.calls.filter(([url]) => !url.includes('/conflicts'));
 
 const statusMessages = () => {
     const reported = [];
@@ -684,7 +691,7 @@ describe('CfilesFileBrowser', () => {
             expect(reported.at(-1).level).toBe('success');
             expect(reported.at(-1).message).toBe('2 files uploaded to test123');
             // Nothing of it is on this level.
-            expect(globalThis.humhubStubs.client.get).not.toHaveBeenCalled();
+            expect(listingCalls()).toHaveLength(0);
 
             globalThis.humhub.modules.vue.setStatusHandler(null);
         });
@@ -738,6 +745,121 @@ describe('CfilesFileBrowser', () => {
             expect(reported.at(-1).message).toContain('File is too big');
 
             globalThis.humhub.modules.vue.setStatusHandler(null);
+        });
+    });
+
+    // Before an upload the browser asks which of its names are taken in the level, and lets
+    // the user decide: replace (a new version), keep both (an indexed name) or skip them.
+    describe('uploading over names that are taken', () => {
+        const taken = (...conflicts) => {
+            globalThis.humhubStubs.client.get = vi.fn((url) => Promise.resolve(url.includes('/conflicts') ? { conflicts } : topLevel()));
+        };
+        const conflictChecks = () => globalThis.humhubStubs.client.get.mock.calls.filter(([url]) => url.includes('/conflicts'));
+        const uploads = () => globalThis.humhubStubs.client.post.mock.calls.filter(([url]) => url.includes('/files'));
+        const sent = (call, key) => call[1].data.getAll(key);
+        const names = (call) => sent(call, 'files[]').map((file) => file.name);
+        const files = () => [new File(['a'], 'a.txt'), new File(['b'], 'b.txt')];
+        const mine = { name: 'a.txt', type: 'file', id: 21, canReplace: true };
+        const answer = (wrapper, choice) => wrapper.findComponent(ConflictDialog).vm.$emit(...(choice === 'cancel' ? ['cancel'] : ['resolve', choice]));
+
+        it('asks the server which names are taken in the level uploaded to', async () => {
+            const wrapper = browser(insideFolder([]));
+
+            wrapper.vm.upload(files());
+            await flushPromises();
+
+            const url = decodeURIComponent(conflictChecks()[0][0]);
+            expect(url).toContain('cfiles/5/conflicts');
+            expect(url).toContain('parent=9');
+            expect(url).toContain('names[]=a.txt');
+            expect(url).toContain('names[]=b.txt');
+        });
+
+        it('uploads at once when no name is taken', async () => {
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.upload(files());
+            await flushPromises();
+
+            expect(uploads()).toHaveLength(1);
+            expect(sent(uploads()[0], 'replace[]')).toEqual([]);
+            expect(wrapper.findComponent(ConflictDialog).props('show')).toBe(false);
+        });
+
+        it('asks before uploading over a taken name', async () => {
+            taken(mine);
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.upload(files());
+            await flushPromises();
+
+            expect(uploads()).toHaveLength(0);
+            expect(wrapper.findComponent(ConflictDialog).props('show')).toBe(true);
+            expect(wrapper.findComponent(ConflictDialog).props('conflicts')).toEqual([mine]);
+        });
+
+        it('replaces what it may when asked to replace', async () => {
+            taken(mine, { name: 'b.txt', type: 'file', id: 22, canReplace: false });
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.upload(files());
+            await flushPromises();
+            answer(wrapper, 'replace');
+            await flushPromises();
+
+            expect(names(uploads()[0])).toEqual(['a.txt', 'b.txt']);
+            expect(sent(uploads()[0], 'replace[]')).toEqual(['a.txt']);
+            expect(wrapper.findComponent(ConflictDialog).props('show')).toBe(false);
+        });
+
+        it('uploads everything under free names when asked to keep both', async () => {
+            taken(mine);
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.upload(files());
+            await flushPromises();
+            answer(wrapper, 'keep');
+            await flushPromises();
+
+            expect(names(uploads()[0])).toEqual(['a.txt', 'b.txt']);
+            expect(sent(uploads()[0], 'replace[]')).toEqual([]);
+        });
+
+        it('leaves out the taken names when asked to skip them', async () => {
+            taken(mine);
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.upload(files());
+            await flushPromises();
+            answer(wrapper, 'skip');
+            await flushPromises();
+
+            expect(names(uploads()[0])).toEqual(['b.txt']);
+        });
+
+        it('uploads nothing when every name is skipped', async () => {
+            taken(mine);
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.upload([new File(['a'], 'a.txt')]);
+            await flushPromises();
+            answer(wrapper, 'skip');
+            await flushPromises();
+
+            expect(uploads()).toHaveLength(0);
+        });
+
+        it('uploads nothing when the question is dismissed', async () => {
+            taken(mine);
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.upload(files());
+            await flushPromises();
+            answer(wrapper, 'cancel');
+            await flushPromises();
+
+            expect(uploads()).toHaveLength(0);
+            expect(wrapper.findComponent(ConflictDialog).props('show')).toBe(false);
         });
     });
 
@@ -1123,7 +1245,7 @@ describe('CfilesFileBrowser', () => {
             await flushPromises();
 
             // Its item count changed.
-            expect(globalThis.humhubStubs.client.get).toHaveBeenCalledTimes(1);
+            expect(listingCalls()).toHaveLength(1);
             expect(reported.at(-1).message).toBe('1 file uploaded to Entwürfe');
             globalThis.humhub.modules.vue.setStatusHandler(null);
         });
@@ -1852,6 +1974,7 @@ describe('CfilesFileBrowser', () => {
 
             expect(wrapper.find('.cfiles-details').exists()).toBe(false);
         });
+
     });
 
     describe('write permission', () => {

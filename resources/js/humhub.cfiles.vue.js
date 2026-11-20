@@ -13,7 +13,7 @@
     return target;
   };
   const UPLOAD_BY_TYPE_ACTION = "file.uploadByType";
-  const _sfc_main$9 = {
+  const _sfc_main$a = {
     props: {
       /** The file handlers (`{label, icon, attributes}`, see the class docblock). */
       handlers: { type: Array, default: () => [] }
@@ -49,9 +49,9 @@
       }
     }
   };
-  const _hoisted_1$9 = { class: "cfiles-add-menu" };
-  const _hoisted_2$8 = ["aria-label", "title"];
-  const _hoisted_3$7 = ["aria-label", "title"];
+  const _hoisted_1$a = { class: "cfiles-add-menu" };
+  const _hoisted_2$9 = ["aria-label", "title"];
+  const _hoisted_3$8 = ["aria-label", "title"];
   const _hoisted_4$7 = {
     key: 1,
     class: "dropdown"
@@ -59,8 +59,8 @@
   const _hoisted_5$6 = ["aria-label", "title"];
   const _hoisted_6$6 = { class: "dropdown-menu dropdown-menu-end" };
   const _hoisted_7$3 = ["onClick"];
-  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$9, [
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$a, [
       vue$1.createElementVNode("button", {
         type: "button",
         class: "btn btn-light btn-icon-only cfiles-add-folder",
@@ -72,7 +72,7 @@
           class: "ti ti-folder-plus",
           "aria-hidden": "true"
         }, null, -1)
-      ])], 8, _hoisted_2$8),
+      ])], 8, _hoisted_2$9),
       !$props.handlers.length ? (vue$1.openBlock(), vue$1.createElementBlock("button", {
         key: 0,
         type: "button",
@@ -85,7 +85,7 @@
           class: "ti ti-upload",
           "aria-hidden": "true"
         }, null, -1)
-      ])], 8, _hoisted_3$7)) : (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_4$7, [
+      ])], 8, _hoisted_3$8)) : (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_4$7, [
         vue$1.createElementVNode("button", {
           type: "button",
           class: "btn btn-accent btn-icon-only",
@@ -139,7 +139,102 @@
       ]))
     ]);
   }
-  const AddMenu = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$9]]);
+  const AddMenu = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$a]]);
+  const _sfc_main$9 = {
+    props: {
+      show: { type: Boolean, default: false },
+      /** `{name, type, id, canReplace}` per name taken. */
+      conflicts: { type: Array, default: () => [] }
+    },
+    emits: ["resolve", "cancel"],
+    computed: {
+      replaceable() {
+        return this.conflicts.some((conflict) => conflict.canReplace);
+      },
+      title() {
+        return vue.i18n.t("CfilesModule.base", "Names already taken");
+      },
+      intro() {
+        return vue.i18n.t("CfilesModule.base", "{count, plural, one{An item with this name already exists here:} other{Items with these names already exist here:}}", {
+          count: this.conflicts.length
+        });
+      },
+      versionNote() {
+        return vue.i18n.t("CfilesModule.base", "A replaced file keeps its previous content as an older version.");
+      },
+      skipLabel() {
+        return vue.i18n.t("CfilesModule.base", "Skip");
+      },
+      keepLabel() {
+        return vue.i18n.t("CfilesModule.base", "Keep both");
+      },
+      replaceLabel() {
+        return vue.i18n.t("CfilesModule.base", "Replace");
+      }
+    },
+    methods: {
+      noteOf(conflict) {
+        return conflict.type === "folder" ? vue.i18n.t("CfilesModule.base", "a folder") : vue.i18n.t("CfilesModule.base", "you may not replace it");
+      }
+    }
+  };
+  const _hoisted_1$9 = { class: "cfiles-conflicts list-unstyled" };
+  const _hoisted_2$8 = {
+    key: 0,
+    class: "cfiles-conflict-note text-muted"
+  };
+  const _hoisted_3$7 = {
+    key: 0,
+    class: "text-muted small mb-0"
+  };
+  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_UiModal = vue$1.resolveComponent("UiModal");
+    return vue$1.openBlock(), vue$1.createBlock(_component_UiModal, {
+      show: $props.show,
+      title: $options.title,
+      "onUpdate:show": _cache[3] || (_cache[3] = ($event) => _ctx.$emit("cancel"))
+    }, {
+      footer: vue$1.withCtx(() => [
+        vue$1.createElementVNode("button", {
+          type: "button",
+          class: "btn btn-light",
+          onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("resolve", "skip"))
+        }, vue$1.toDisplayString($options.skipLabel), 1),
+        vue$1.createElementVNode("button", {
+          type: "button",
+          class: vue$1.normalizeClass(["btn", $options.replaceable ? "btn-light" : "btn-primary"]),
+          onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("resolve", "keep"))
+        }, vue$1.toDisplayString($options.keepLabel), 3),
+        $options.replaceable ? (vue$1.openBlock(), vue$1.createElementBlock("button", {
+          key: 0,
+          type: "button",
+          class: "btn btn-primary",
+          onClick: _cache[2] || (_cache[2] = ($event) => _ctx.$emit("resolve", "replace"))
+        }, vue$1.toDisplayString($options.replaceLabel), 1)) : vue$1.createCommentVNode("", true)
+      ]),
+      default: vue$1.withCtx(() => [
+        vue$1.createElementVNode("p", null, vue$1.toDisplayString($options.intro), 1),
+        vue$1.createElementVNode("ul", _hoisted_1$9, [
+          (vue$1.openBlock(true), vue$1.createElementBlock(vue$1.Fragment, null, vue$1.renderList($props.conflicts, (conflict) => {
+            return vue$1.openBlock(), vue$1.createElementBlock("li", {
+              key: conflict.name,
+              class: "py-1"
+            }, [
+              vue$1.createElementVNode("i", {
+                class: vue$1.normalizeClass(["ti icon-fw text-muted", conflict.type === "folder" ? "ti-folder-filled" : "ti-file"]),
+                "aria-hidden": "true"
+              }, null, 2),
+              vue$1.createTextVNode(" " + vue$1.toDisplayString(conflict.name) + " ", 1),
+              !conflict.canReplace ? (vue$1.openBlock(), vue$1.createElementBlock("small", _hoisted_2$8, "(" + vue$1.toDisplayString($options.noteOf(conflict)) + ")", 1)) : vue$1.createCommentVNode("", true)
+            ]);
+          }), 128))
+        ]),
+        $options.replaceable ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_3$7, vue$1.toDisplayString($options.versionNote), 1)) : vue$1.createCommentVNode("", true)
+      ]),
+      _: 1
+    }, 8, ["show", "title"]);
+  }
+  const ConflictDialog = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$9]]);
   const SUPPRESSED_CORE_ENTRIES = ["edit", "delete", "permalink", "pin", "move", "archive"];
   const CONTROLS_VIEW_CONTEXT = "detail";
   const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
@@ -1286,9 +1381,21 @@
     data: { containerId, items: batch.map(descriptor), targetFolderId }
   }));
   const deleteItems = (items) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/delete"), { data: { items: batch.map(descriptor) } }));
-  const uploadFiles = (containerId, parent, files, onProgress) => {
+  const NAMES_PER_CHECK = 50;
+  const findConflicts = (containerId, parent, names) => {
+    const batches = [];
+    for (let start = 0; start < names.length; start += NAMES_PER_CHECK) {
+      batches.push(names.slice(start, start + NAMES_PER_CHECK));
+    }
+    return Promise.all(batches.map((batch) => vue.client.get(vue.apiUrl("cfiles/" + containerId + "/conflicts", {
+      ...parent ? { parent } : {},
+      names: batch
+    })))).then((responses) => responses.flatMap((response) => response.conflicts || []));
+  };
+  const uploadFiles = (containerId, parent, files, onProgress, replace = []) => {
     const form = new FormData();
     Array.prototype.forEach.call(files, (file) => form.append("files[]", file));
+    replace.forEach((name) => form.append("replace[]", name));
     if (parent) {
       form.append("parent", parent);
     }
@@ -1672,7 +1779,7 @@
   const PAGE_SIZES = { list: 50, tiles: 96 };
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
-    components: { AddMenu, DetailsPanel, FileTiles, ItemList, MoveDialog },
+    components: { AddMenu, ConflictDialog, DetailsPanel, FileTiles, ItemList, MoveDialog },
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -1681,7 +1788,7 @@
       /** Whether the user may write in the container — the space browser's; see `writable`. */
       canWrite: { type: Boolean, default: false },
       /**
-       * Whether the user may manage the container's files - move them, and change those of
+       * Whether the user may manage the container's files — move them, and change those of
        * others. The space browser's, like `canWrite`; see `movable`.
        */
       canManage: { type: Boolean, default: false },
@@ -1775,6 +1882,8 @@
         moveItemsList: [],
         moveBusy: false,
         moveError: null,
+        // The names an upload found taken, while the user is asked about them (ConflictDialog).
+        conflicts: [],
         // What an item drag in flight carries: the selection, or the one item dragged.
         dragged: [],
         // Two values, two conventions: TileGrid's/ItemList's `null` is "no target", while
@@ -1999,6 +2108,7 @@
     },
     created() {
       this.loadSeq = 0;
+      this.conflictAnswer = null;
       this.requested = { folderId: this.folderId, push: false, container: this.container };
       this.openedAt = pageOf(window.location);
       if (this.urlNames(this.container, this.folderId)) {
@@ -2617,7 +2727,57 @@
         event.target.value = "";
       },
       /**
-       * Uploads a batch into `parentId` (the open level by default).
+       * Uploads a batch into `parentId` (the open level by default) — after asking about the
+       * names that are taken there: the user decides whether those are replaced (a new
+       * version), kept both (an indexed name) or skipped (see ConflictDialog).
+       */
+      upload(files, parentId = this.folderId, options = {}) {
+        var _a;
+        if (!files || !files.length || !this.writable) {
+          return Promise.resolve();
+        }
+        const list = Array.from(files);
+        const container = this.container;
+        const intoLevel = parentId === this.folderId;
+        options = { ...options, intoLevel, title: options.title ?? (intoLevel ? (_a = this.folder) == null ? void 0 : _a.title : null) };
+        return findConflicts(container.contentContainerId, parentId, list.map((file) => file.name)).then((conflicts) => {
+          if (!conflicts.length) {
+            return this.sendUpload(list, parentId, options, container);
+          }
+          return this.askConflicts(conflicts).then((choice) => {
+            if (choice === "replace" || choice === "keep") {
+              const replace = choice === "replace" ? conflicts.filter((conflict) => conflict.canReplace).map((conflict) => conflict.name) : [];
+              return this.sendUpload(list, parentId, options, container, replace);
+            }
+            const taken = new Set(conflicts.map((conflict) => conflict.name));
+            const rest = choice === "skip" ? list.filter((file) => !taken.has(file.name)) : [];
+            return rest.length ? this.sendUpload(rest, parentId, options, container) : void 0;
+          });
+        }).catch((response) => {
+          vue.log.error(response, true);
+        });
+      },
+      /**
+       * Asks the user about the names an upload found taken; settles with their choice —
+       * `replace`, `keep`, `skip` or `cancel`. A question still open is given up (`cancel`).
+       */
+      askConflicts(conflicts) {
+        this.settleConflicts("cancel");
+        return new Promise((resolve) => {
+          this.conflictAnswer = resolve;
+          this.conflicts = conflicts;
+        });
+      },
+      settleConflicts(choice) {
+        const answer = this.conflictAnswer;
+        this.conflictAnswer = null;
+        this.conflicts = [];
+        if (answer) {
+          answer(choice);
+        }
+      },
+      /**
+       * Sends an upload `upload()` settled; where it goes was captured there.
        *
        * Into the open level each file gets a placeholder after the items (kept with that
        * level: `parent`); into a folder shown here (`targetKey`) that folder shows the
@@ -2625,15 +2785,9 @@
        * it is in. The level reloads only when the upload shows on it, and the placeholders
        * stay until the reloaded rows are there.
        */
-      upload(files, parentId = this.folderId, { targetKey = null, title = null } = {}) {
-        var _a;
-        if (!files || !files.length || !this.writable) {
-          return;
-        }
+      sendUpload(files, parentId, { targetKey = null, title = null, intoLevel = false }, container, replace = []) {
         const batch = ++uploadSeq;
-        const container = this.container;
-        const intoLevel = parentId === this.folderId;
-        const folderTitle = title ?? (intoLevel ? (_a = this.folder) == null ? void 0 : _a.title : null);
+        const folderTitle = title;
         const placeholders = intoLevel ? Array.from(files).map((file) => ({
           type: "upload",
           id: ++uploadSeq,
@@ -2666,8 +2820,8 @@
         };
         this.uploads = this.uploads.concat(placeholders);
         progress(0);
-        uploadFiles(container.contentContainerId, parentId, files, progress).then((response) => {
-          var _a2;
+        return uploadFiles(container.contentContainerId, parentId, files, progress, replace).then((response) => {
+          var _a;
           this.reportUploadErrors(response.errors);
           const here = sameContainer(container, this.targetContainer());
           const open = here && parentId === this.targetFolderId();
@@ -2676,7 +2830,7 @@
           if (!open && count) {
             vue.status("success", vue.i18n.t("CfilesModule.base", "{count, plural, one{# file} other{# files}} uploaded to {folder}", {
               count,
-              folder: folderTitle || ((_a2 = container.space) == null ? void 0 : _a2.name) || this.rootLabel
+              folder: folderTitle || ((_a = container.space) == null ? void 0 : _a.name) || this.rootLabel
             }));
           }
           if (shown) {
@@ -2824,6 +2978,7 @@
     const _component_CfilesItemForm = vue$1.resolveComponent("CfilesItemForm");
     const _component_UiModal = vue$1.resolveComponent("UiModal");
     const _component_MoveDialog = vue$1.resolveComponent("MoveDialog");
+    const _component_ConflictDialog = vue$1.resolveComponent("ConflictDialog");
     return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$2, [
       vue$1.createVNode(_component_PageHeader, { title: $options.titleLabel }, {
         actions: vue$1.withCtx(() => [
@@ -2833,7 +2988,7 @@
             class: "btn btn-light btn-icon-only",
             "aria-label": $options.settingsLabel,
             title: $options.settingsLabel
-          }, [..._cache[16] || (_cache[16] = [
+          }, [..._cache[17] || (_cache[17] = [
             vue$1.createElementVNode("i", {
               class: "ti ti-settings",
               "aria-hidden": "true"
@@ -2996,7 +3151,13 @@
         error: $data.moveError,
         onClose: _cache[14] || (_cache[14] = ($event) => $data.showMove = false),
         onConfirm: _cache[15] || (_cache[15] = (id) => $options.moveTo(id, $data.moveItemsList))
-      }, null, 8, ["show", "content-container-id", "items", "busy", "error"])) : vue$1.createCommentVNode("", true)
+      }, null, 8, ["show", "content-container-id", "items", "busy", "error"])) : vue$1.createCommentVNode("", true),
+      vue$1.createVNode(_component_ConflictDialog, {
+        show: $data.conflicts.length > 0,
+        conflicts: $data.conflicts,
+        onResolve: $options.settleConflicts,
+        onCancel: _cache[16] || (_cache[16] = ($event) => $options.settleConflicts("cancel"))
+      }, null, 8, ["show", "conflicts", "onResolve"])
     ]);
   }
   const C0 = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$2]]);

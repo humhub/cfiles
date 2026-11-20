@@ -123,15 +123,15 @@ class FolderContentService
     /**
      * Stores an uploaded file in this folder.
      *
-     * Uploading over the name of a file the uploader may change is an UPDATE, not a duplicate:
-     * the platform's file versioning keeps the previous content. Over any other name taken at
-     * this level the upload is stored under an indexed one (`report(1).pdf`).
+     * An upload over a name taken at this level is stored under an indexed one (`report(1).pdf`)
+     * — unless it is to `$replace` the file of that name and the uploader may change that file:
+     * then it is an UPDATE, and the platform's file versioning keeps the previous content.
      *
      * The caller checks `$file->hasErrors()` and `$file->baseFile->hasErrors()`.
      */
-    public function addUploadedFile(UploadedFile $uploadedFile): File
+    public function addUploadedFile(UploadedFile $uploadedFile, bool $replace = false): File
     {
-        $file = $this->fileInstance($uploadedFile);
+        $file = $this->fileInstance($uploadedFile, $replace);
 
         if ($file->setUploadedFile($uploadedFile)) {
             $file->save();
@@ -309,11 +309,11 @@ class FolderContentService
 
     /**
      * The record an upload of this name should write to: the file of that name, as its new
-     * version — when the uploader may change it. Anyone else's upload lands next to it.
+     * version — when it is to be replaced and the uploader may change it. Else a new one.
      */
-    private function fileInstance(UploadedFile $uploadedFile): File
+    private function fileInstance(UploadedFile $uploadedFile, bool $replace): File
     {
-        $existing = $this->findFile($uploadedFile->name);
+        $existing = $replace ? $this->findFile($uploadedFile->name) : null;
 
         if ($existing !== null && $existing->content->canEdit()) {
             return $existing;

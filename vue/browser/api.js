@@ -127,8 +127,30 @@ export const moveItems = (containerId, items, targetFolderId) => inBatches(items
 export const deleteItems = (items) => inBatches(items, (batch) =>
     client.post(apiUrl('cfiles/items/delete'), { data: { items: batch.map(descriptor) } }));
 
+/** How many names one conflict check carries: they travel in its URL, which has to stay short. */
+const NAMES_PER_CHECK = 50;
+
 /**
- * Uploads a batch of files to one level of the tree.
+ * Which of `names` an item of the level already has — `{name, type, id, canReplace}` per name
+ * taken, `canReplace` when the caller may upload a new version of that file. Asked before an
+ * upload, so the user can decide what happens to those (see ConflictDialog).
+ */
+export const findConflicts = (containerId, parent, names) => {
+    const batches = [];
+    for (let start = 0; start < names.length; start += NAMES_PER_CHECK) {
+        batches.push(names.slice(start, start + NAMES_PER_CHECK));
+    }
+
+    return Promise.all(batches.map((batch) => client.get(apiUrl('cfiles/' + containerId + '/conflicts', {
+        ...(parent ? { parent } : {}),
+        names: batch,
+    })))).then((responses) => responses.flatMap((response) => response.conflicts || []));
+};
+
+/**
+ * Uploads a batch of files to one level of the tree. A file named in `replace` is stored as a
+ * new version of the file of that name, where the caller may change it; any other name taken
+ * is indexed (`report(1).pdf`).
  *
  * Goes through the platform client rather than a hand-rolled XMLHttpRequest, which is what
  * makes it work at all: Yii's ajax prefilter is what attaches the CSRF token, and a
@@ -140,10 +162,11 @@ export const deleteItems = (items) => inBatches(items, (batch) =>
  * jQuery does not surface. Everything else — CSRF, error handling, Response wrapping — stays
  * with the platform.
  */
-export const uploadFiles = (containerId, parent, files, onProgress) => {
+export const uploadFiles = (containerId, parent, files, onProgress, replace = []) => {
     const form = new FormData();
 
     Array.prototype.forEach.call(files, (file) => form.append('files[]', file));
+    replace.forEach((name) => form.append('replace[]', name));
 
     if (parent) {
         form.append('parent', parent);
