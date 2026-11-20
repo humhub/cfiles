@@ -4,7 +4,7 @@ import CfilesFileBrowser from '../../vue/CfilesFileBrowser.vue';
 import CfilesItemForm from '../../vue/CfilesItemForm.vue';
 import FilterBar from '@core/vue/FilterBar.vue';
 import {
-    browserProps, fileRow, globalProps, topLevel, globalResults, globalTop, insideFolder, openSpace, salesTile, spaceEntry, spaceLevel, spaceTile,
+    browserProps, fileRow, folderRow, globalProps, topLevel, globalResults, globalTop, insideFolder, openSpace, salesTile, spaceEntry, spaceLevel, spaceTile,
 } from './support/fixtures.mjs';
 
 // The browser listens on `window` (popstate): leaving instances mounted would let one test's
@@ -452,6 +452,20 @@ describe('CfilesFileBrowser on the global files page', () => {
 
         expect(itemCalls()[0]).toContain('cfiles/7/items');
         expect(wrapper.vm.container.space.name).toBe('Marketing');
+    });
+
+    // The space the browser shows is a reactive object; the entry needs it as plain data.
+    it('opens a folder of the space shown with an entry that names the space', async () => {
+        window.history.replaceState({}, '', '/files?space=3');
+        const wrapper = browser(spaceLevel(), { space: openSpace(), contentContainerId: 7 });
+        answer(() => Promise.resolve(insideFolder([], { folder: folderRow(), path: [{ id: 11, title: 'Entwürfe' }] })));
+
+        await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
+        await flushPromises();
+
+        expect(globalThis.humhubStubs.logCalls.error).toHaveLength(0);
+        expect(window.history.state.cfiles).toEqual({ folderId: 11, space: openSpace() });
+        expect(new URLSearchParams(window.location.search).get('fid')).toBe('11');
     });
 
     describe('the first paint', () => {

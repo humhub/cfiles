@@ -111,6 +111,16 @@ config.global.components = {
     CfilesItemForm,
 };
 
+// A browser keeps a history entry's state as a structured clone and throws a `DataCloneError`
+// for what it cannot clone — a Vue reactive object among them. jsdom keeps the object as given,
+// so a state no browser takes would pass here. Cloned as the browser does.
+for (const method of ['pushState', 'replaceState']) {
+    const native = History.prototype[method];
+    History.prototype[method] = function (state, ...rest) {
+        return native.call(this, structuredClone(state), ...rest);
+    };
+}
+
 // `v-additions` is registered by the island runtime on the real app. Stands in for that here
 // so markup handed to the legacy enhancer pipeline takes the same path.
 config.global.directives = {

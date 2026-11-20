@@ -2031,9 +2031,13 @@
         const params = appendFilters(new URLSearchParams({ fid: String(folderId || 0) }), this.filterValues);
         return this.browseUrl + (this.browseUrl.indexOf("?") === -1 ? "?" : "&") + params.toString();
       },
-      /** What a history entry of a level keeps (`cfiles`): the global page adds the space. */
+      /**
+       * What a history entry of a level keeps (`cfiles`): the global page adds the space. A
+       * copy of it: the browser clones the state, and the space shown is a reactive object it
+       * refuses (`DataCloneError`). Its fields are all plain values (see `containerOf()`).
+       */
       historyState(container, folderId) {
-        return this.global ? { folderId, space: (container == null ? void 0 : container.space) ?? null } : { folderId };
+        return this.global ? { folderId, space: (container == null ? void 0 : container.space) ? { ...container.space } : null } : { folderId };
       },
       /** Says in the current history entry which level is shown, keeping PJAX's own keys. */
       stampEntry() {
