@@ -116,6 +116,7 @@
                 ref="createForm"
                 :content-container-id="container ? container.contentContainerId : null"
                 :parent-folder-id="folderId"
+                :default-visibility="levelNewItemVisibility"
                 @saved="onCreated"
                 @cancel="showCreate = false"
             />
@@ -344,6 +345,8 @@ export default {
             levelCanWrite: typeof this.listing.canWrite === 'boolean' ? this.listing.canWrite : this.canWrite,
             // Whether the user may manage the files of the level shown, the same way.
             levelCanManage: typeof this.listing.canManage === 'boolean' ? this.listing.canManage : this.canManage,
+            /** What a new item of the level shown is visible to (`newItemVisibility`). */
+            levelNewItemVisibility: this.listing.newItemVisibility || 'public',
             // Whether the items are the filters' hits in the folder and its subfolders.
             resultsMode: this.listing.resultsMode === true,
             // The payload's `view` is the stored preference; from here on the island owns it.
@@ -887,6 +890,9 @@ export default {
             }
             if (typeof payload.canManage === 'boolean') {
                 this.levelCanManage = payload.canManage;
+            }
+            if (payload.newItemVisibility) {
+                this.levelNewItemVisibility = payload.newItemVisibility;
             }
             this.level = levelKey(this.global, container, payload.folder);
             this.folder = payload.folder;

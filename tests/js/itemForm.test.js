@@ -91,6 +91,18 @@ describe('CfilesItemForm topics', () => {
         expect(sent().visibility).toBe('public');
     });
 
+    it('starts a new folder with the visibility a new item of its level gets', async () => {
+        globalThis.humhubStubs.client.post = vi.fn((url, cfg) => Promise.resolve({ ...folderRow(), ...cfg.data }));
+        const wrapper = form(null, { parentFolderId: 9, defaultVisibility: 'private' });
+
+        expect(wrapper.find('select').element.value).toBe('private');
+        await wrapper.find('input').setValue('Neu');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+
+        expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.visibility).toBe('private');
+    });
+
     it('has no topics when a folder is created', () => {
         const wrapper = form(null, { parentFolderId: null });
 

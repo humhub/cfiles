@@ -86,6 +86,7 @@ class GlobalListingService
             // Nothing to add to: the top level holds the spaces.
             'canWrite' => false,
             'canManage' => false,
+            'newItemVisibility' => null,
             'likeStates' => [],
             'total' => (int)$pagination->totalCount,
             'page' => $pagination->getPage() + 1,

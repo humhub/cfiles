@@ -63,6 +63,11 @@ export default {
         /** Set when creating a folder; null creates it at the container's top level. */
         parentFolderId: { type: Number, default: null },
         standalone: { type: Boolean, default: false },
+        /**
+         * Creating, what the new folder is visible to unless the user chooses otherwise: what a
+         * new item of its level gets (the level's `newItemVisibility`).
+         */
+        defaultVisibility: { type: String, default: 'public' },
     },
     emits: ['saved', 'cancel'],
     data() {
@@ -71,7 +76,7 @@ export default {
             values: {
                 title: this.item ? this.item.title : '',
                 description: this.item ? this.item.description : '',
-                visibility: this.item ? this.item.visibility : 'public',
+                visibility: this.item ? this.item.visibility : this.defaultVisibility,
                 // The ids as strings, as the control takes them.
                 topics: (this.item?.topics || []).map((topic) => String(topic.id)),
             },

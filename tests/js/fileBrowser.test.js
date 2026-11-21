@@ -633,6 +633,28 @@ describe('CfilesFileBrowser', () => {
      * there rather than inside the wrapper — and these wait for the modal's `opened`, because
      * the dialog focuses itself first (that is what makes Escape and the tab ring work).
      */
+    describe('creating a folder', () => {
+        it('preselects the visibility a new item of the open level gets', async () => {
+            const wrapper = browser(insideFolder([], { newItemVisibility: 'private' }));
+
+            wrapper.vm.showCreate = true;
+            await flushPromises();
+
+            expect(wrapper.findComponent(CfilesItemForm).props('defaultVisibility')).toBe('private');
+        });
+
+        it('takes that of the level it went to', async () => {
+            globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(insideFolder([], { newItemVisibility: 'private' })));
+            const wrapper = browser(topLevel());
+
+            await wrapper.vm.open(9);
+            wrapper.vm.showCreate = true;
+            await flushPromises();
+
+            expect(wrapper.findComponent(CfilesItemForm).props('defaultVisibility')).toBe('private');
+        });
+    });
+
     describe('dialog focus', () => {
         // Asserted on the focused element itself rather than by looking the field up: modals
         // are teleported onto the shared document.body, where earlier tests leave theirs.

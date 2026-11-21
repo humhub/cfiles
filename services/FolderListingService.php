@@ -19,6 +19,7 @@ use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use humhub\modules\cfiles\serializers\FolderSerializer;
 use humhub\modules\cfiles\serializers\ItemTopicSerializer;
+use humhub\modules\cfiles\serializers\ItemVisibility;
 use humhub\modules\like\serializers\LikeSerializer;
 use Yii;
 use yii\data\Pagination;
@@ -108,6 +109,9 @@ class FolderListingService
             'resultsMode' => $this->list->resultsMode,
             'canWrite' => $this->canWrite(),
             'canManage' => $this->canManage(),
+            // What a new item of the level is visible to, which the create form preselects;
+            // null for a list over several containers, which has no level to add to.
+            'newItemVisibility' => $this->newItemVisibility(),
             // The one per-caller section of this payload. Kept out of the rows themselves,
             // which stay caller-neutral (see FileSerializer/FolderSerializer): who liked what
             // is about the reader, not about the file.
@@ -243,6 +247,15 @@ class FolderListingService
     {
         return count($this->list->containers) === 1
             && $this->list->container()->getPermissionManager($this->list->context->user)->can(ManageFiles::class);
+    }
+
+    private function newItemVisibility(): ?string
+    {
+        if (count($this->list->containers) !== 1) {
+            return null;
+        }
+
+        return ItemVisibility::name((new FolderContentService($this->list->container(), $this->list->folder()))->newItemVisibility());
     }
 
     private function likesEnabled(): bool

@@ -98,6 +98,8 @@ export const topLevel = (results = [folderRow(), fileRow()], over = {}) => ({
     results,
     // The hits of the filters in the folder and its subfolders rather than the level.
     resultsMode: false,
+    // What a new item of the level is visible to (FolderContentService::newItemVisibility()).
+    newItemVisibility: 'public',
     // The payload's per-caller section (see FolderListingService::payload()).
     likeStates: likeStates(results),
     total: results.length,
@@ -120,6 +122,8 @@ export const insideFolder = (results = [], over = {}) => ({
     results,
     // The hits of the filters in the folder and its subfolders rather than the level.
     resultsMode: false,
+    // What a new item of the level is visible to (FolderContentService::newItemVisibility()).
+    newItemVisibility: 'public',
     // The payload's per-caller section (see FolderListingService::payload()).
     likeStates: likeStates(results),
     total: results.length,

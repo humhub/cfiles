@@ -57,6 +57,7 @@ Changelog
 - Enh: Files and folders can be copied ("Copy" in the context and the selection menu, `POST /api/v2/cfiles/items/copy`). A copy is new content of the user: it gets the visibility a new item gets in the target folder and a free name there (`plan(1).txt` next to the original), takes the description and the topics along, but not the likes, comments and earlier versions. A folder is copied with everything inside it the user may read. Whoever may add files may copy; the stored file is copied in the storage, not read into memory.
 - Enh: The folder dialog of Move and Copy opens on the folder the items are in, with the way to it expanded (as the dialog of 0.19 did), can be used with the keyboard — a tree: the arrow keys walk and open the folders, Enter chooses one —, and lists all subfolders of a folder rather than the first 200.
 - Fix: Opening a folder from the list or the path bar, and clearing the selection from its menu, left the focus nowhere: it is on the open level in the path bar now. Escape clears the selection only when it is pressed in the browser and not in one of its text fields.
+- Fix: The dialog for a new folder preselected "Public" whatever the space's default. It preselects what a new item of the open folder gets now: the default content visibility of the space at its top level, the visibility of the folder inside one (`newItemVisibility` of the listing).
 
 0.19.3 - November 3, 2026
 -------------------------

@@ -1976,6 +1976,8 @@
         levelCanWrite: typeof this.listing.canWrite === "boolean" ? this.listing.canWrite : this.canWrite,
         // Whether the user may manage the files of the level shown, the same way.
         levelCanManage: typeof this.listing.canManage === "boolean" ? this.listing.canManage : this.canManage,
+        /** What a new item of the level shown is visible to (`newItemVisibility`). */
+        levelNewItemVisibility: this.listing.newItemVisibility || "public",
         // Whether the items are the filters' hits in the folder and its subfolders.
         resultsMode: this.listing.resultsMode === true,
         // The payload's `view` is the stored preference; from here on the island owns it.
@@ -2464,6 +2466,9 @@
         }
         if (typeof payload.canManage === "boolean") {
           this.levelCanManage = payload.canManage;
+        }
+        if (payload.newItemVisibility) {
+          this.levelNewItemVisibility = payload.newItemVisibility;
         }
         this.level = levelKey(this.global, container, payload.folder);
         this.folder = payload.folder;
@@ -3312,9 +3317,10 @@
             ref: "createForm",
             "content-container-id": $data.container ? $data.container.contentContainerId : null,
             "parent-folder-id": $options.folderId,
+            "default-visibility": $data.levelNewItemVisibility,
             onSaved: $options.onCreated,
             onCancel: _cache[8] || (_cache[8] = ($event) => $data.showCreate = false)
-          }, null, 8, ["content-container-id", "parent-folder-id", "onSaved"])) : vue$1.createCommentVNode("", true)
+          }, null, 8, ["content-container-id", "parent-folder-id", "default-visibility", "onSaved"])) : vue$1.createCommentVNode("", true)
         ]),
         _: 1
       }, 8, ["show", "title"]),
@@ -3477,7 +3483,12 @@
       contentContainerId: { type: Number, default: null },
       /** Set when creating a folder; null creates it at the container's top level. */
       parentFolderId: { type: Number, default: null },
-      standalone: { type: Boolean, default: false }
+      standalone: { type: Boolean, default: false },
+      /**
+       * Creating, what the new folder is visible to unless the user chooses otherwise: what a
+       * new item of its level gets (the level's `newItemVisibility`).
+       */
+      defaultVisibility: { type: String, default: "public" }
     },
     emits: ["saved", "cancel"],
     data() {
@@ -3487,7 +3498,7 @@
         values: {
           title: this.item ? this.item.title : "",
           description: this.item ? this.item.description : "",
-          visibility: this.item ? this.item.visibility : "public",
+          visibility: this.item ? this.item.visibility : this.defaultVisibility,
           // The ids as strings, as the control takes them.
           topics: (((_a = this.item) == null ? void 0 : _a.topics) || []).map((topic) => String(topic.id))
         }

@@ -14,6 +14,7 @@ use humhub\modules\cfiles\components\FolderListBuilder;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\services\FolderListingService;
+use humhub\modules\content\models\Content;
 use humhub\modules\space\models\Space;
 use tests\codeception\_support\HumHubDbTestCase;
 use Yii;
@@ -229,6 +230,24 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $this->assertFalse($payload['canManage']);
     }
 
+    /**
+     * What the create form preselects: what a new item of the level gets — the default of
+     * the space at its top level, that of the folder inside one.
+     */
+    public function testALevelSaysWhatANewItemOfItIsVisibleTo()
+    {
+        $this->space->updateAttributes(['default_content_visibility' => Content::VISIBILITY_PRIVATE]);
+        $this->assertSame('private', $this->payload()['newItemVisibility']);
+
+        $this->space->updateAttributes(['default_content_visibility' => Content::VISIBILITY_PUBLIC]);
+        $this->space = Space::findOne(1);
+        $this->assertSame('public', $this->payload()['newItemVisibility']);
+
+        $private = $this->addFolder('Internal');
+        Content::updateAll(['visibility' => Content::VISIBILITY_PRIVATE], ['id' => $private->content->id]);
+        $this->assertSame('private', $this->payload(['parentFolderId' => $private->id])['newItemVisibility']);
+    }
+
     public function testAListOverSeveralContainersHasNoRightToWrite()
     {
         $builder = new FolderListBuilder([$this->space, Space::findOne(3)], ListContext::forCurrentUser());
@@ -238,6 +257,7 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $payload = (new FolderListingService($builder))->payload();
         $this->assertFalse($payload['canWrite']);
         $this->assertFalse($payload['canManage']);
+        $this->assertNull($payload['newItemVisibility']);
     }
 
     /**
