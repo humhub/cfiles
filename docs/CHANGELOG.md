@@ -55,6 +55,7 @@ Changelog
 - Fix: The details panel stayed open for an item of a level the user had left — and opened again when the path bar led back there —, and for an item that was deleted.
 - Enh: The API follows the conventions of the core's `/api/v2`: the visibility of a file or folder is a named value (`private`, `public`), the folder of a level is `parentFolderId` in every request, as in the payloads, and an upload, a move and a delete answer `200` with `{results, errors}` — an error per item with its `messages` — also when none of the items could be carried out. OAuth and personal access tokens reach it with the scopes `cfiles:read` and `cfiles:write`.
 - Enh: Files and folders can be copied ("Copy" in the context and the selection menu, `POST /api/v2/cfiles/items/copy`). A copy is new content of the user: it gets the visibility a new item gets in the target folder and a free name there (`plan(1).txt` next to the original), takes the description and the topics along, but not the likes, comments and earlier versions. A folder is copied with everything inside it the user may read. Whoever may add files may copy; the stored file is copied in the storage, not read into memory.
+- Enh: The folder dialog of Move and Copy opens on the folder the items are in, with the way to it expanded (as the dialog of 0.19 did), can be used with the keyboard — a tree: the arrow keys walk and open the folders, Enter chooses one —, and lists all subfolders of a folder rather than the first 200.
 
 0.19.3 - November 3, 2026
 -------------------------

@@ -474,6 +474,16 @@ describe('CfilesFileBrowser', () => {
             expect(wrapper.vm.moveError).toBeTruthy();
         });
 
+        it('opens the folder dialog on the open folder', async () => {
+            const wrapper = browser(insideFolder([fileRow({ parentFolderId: 9 })]));
+
+            wrapper.vm.openMove(wrapper.vm.items);
+            await flushPromises();
+
+            expect(wrapper.findComponent({ name: 'MoveDialog' }).props('currentPath')).toEqual(wrapper.vm.path);
+            expect(wrapper.vm.path.length).toBeGreaterThan(0);
+        });
+
         it('copies the selection into the folder chosen in the dialog', async () => {
             const reported = statusMessages();
             globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({ results: [{ type: 'file', id: 99 }], errors: [] }));

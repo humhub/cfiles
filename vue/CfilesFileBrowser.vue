@@ -137,6 +137,7 @@
             :content-container-id="container.contentContainerId"
             :items="moveItemsList"
             :mode="transferMode"
+            :current-path="path || []"
             :busy="moveBusy"
             :error="moveError"
             @close="showMove = false"

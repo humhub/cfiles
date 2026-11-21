@@ -1517,6 +1517,8 @@
     ]);
   }
   const ItemList = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$4]]);
+  const PAGE_SIZE = 200;
+  let dialogSeq = 0;
   const _sfc_main$3 = {
     props: {
       show: { type: Boolean, default: false },
@@ -1525,21 +1527,27 @@
       items: { type: Array, default: () => [] },
       /** `move` or `copy` — what the chosen folder is for. */
       mode: { type: String, default: "move" },
+      /**
+       * The folders from the top down to the one the items are in (`[{id, title}]`, the
+       * listing's `path`), empty at the top level: what the dialog opens on.
+       */
+      currentPath: { type: Array, default: () => [] },
       busy: { type: Boolean, default: false },
       error: { type: String, default: null }
     },
     emits: ["close", "confirm"],
     data() {
-      return { nodes: [], selectedId: null };
+      return { nodes: [], selectedId: void 0, focusedKey: "top", introId: "cfiles-move-intro-" + ++dialogSeq };
+    },
+    created() {
+      this.elements = /* @__PURE__ */ new Map();
     },
     watch: {
       show: {
         immediate: true,
         handler(open) {
           if (open) {
-            this.selectedId = void 0;
-            this.nodes = [{ id: null, title: "", isTop: true, depth: 0, expanded: false, children: null }];
-            this.toggle(this.nodes[0]);
+            this.open();
           }
         }
       }
@@ -1578,6 +1586,40 @@
       }
     },
     methods: {
+      /**
+       * Starts over at the top level, then expands the way down to the folder the items are
+       * in and chooses it. The top level is a node with no id: `null` is what the move
+       * endpoint takes for "no parent".
+       */
+      open() {
+        this.nodes = [{ id: null, title: "", isTop: true, depth: 0, expanded: false, children: null, parent: null }];
+        const top = this.nodes[0];
+        this.selectedId = void 0;
+        this.focusedKey = "top";
+        const walk = (node, path) => this.expand(node).then(() => {
+          const next = path.length ? (node.children || []).find((child) => child.id === path[0].id) : null;
+          if (next) {
+            return walk(next, path.slice(1));
+          }
+          this.select(node);
+          this.focusedKey = this.keyOf(node);
+          return void 0;
+        });
+        walk(top, this.currentPath);
+      },
+      keyOf(node) {
+        return node.isTop ? "top" : String(node.id);
+      },
+      isSelected(node) {
+        return this.selectedId !== void 0 && node.id === this.selectedId;
+      },
+      remember(node, element) {
+        if (element) {
+          this.elements.set(this.keyOf(node), element);
+        } else {
+          this.elements.delete(this.keyOf(node));
+        }
+      },
       select(node) {
         this.selectedId = node.id;
       },
@@ -1586,30 +1628,92 @@
           node.expanded = false;
           return;
         }
+        this.expand(node);
+      },
+      /** Expands the node, loading its subfolders the first time. */
+      expand(node) {
         node.expanded = true;
         if (node.children !== null) {
-          return;
+          return Promise.resolve();
         }
-        loadItems(this.contentContainerId, node.id, { pageSize: 200 }).then((payload) => {
-          node.children = (payload.results || []).filter((row) => row.type === "folder").filter((row) => this.movedFolderIds.indexOf(row.id) === -1).map((row) => ({
+        return this.subfolders(node).then((children) => {
+          node.children = children;
+        }).catch((e) => {
+          node.children = [];
+          vue.log.error(e, true);
+        });
+      },
+      /**
+       * The subfolders of a node, every page of them: a listing puts the folders ahead of the
+       * files, so a page that ends with a file holds the last of them.
+       */
+      subfolders(node) {
+        const children = [];
+        const load = (page) => loadItems(this.contentContainerId, node.id, { pageSize: PAGE_SIZE, page }).then((payload) => {
+          const rows = payload.results || [];
+          children.push(...rows.filter((row) => row.type === "folder").filter((row) => this.movedFolderIds.indexOf(row.id) === -1).map((row) => ({
             id: row.id,
             title: row.title,
             isTop: false,
             depth: node.depth + 1,
             expanded: false,
             children: null,
-            hasChildren: row.itemCount > 0
-          }));
-        }).catch((e) => {
-          node.children = [];
-          vue.log.error(e, true);
+            hasChildren: row.itemCount > 0,
+            parent: node
+          })));
+          const more = (payload.page || 1) < (payload.pages || 1) && rows.length > 0 && rows[rows.length - 1].type === "folder";
+          return more ? load(page + 1) : children;
         });
+        return load(1);
+      },
+      focus(node) {
+        var _a;
+        if (!node) {
+          return;
+        }
+        this.focusedKey = this.keyOf(node);
+        (_a = this.elements.get(this.focusedKey)) == null ? void 0 : _a.focus();
+      },
+      onKeydown(event, node) {
+        const flat = this.flatTree;
+        const index = flat.indexOf(node);
+        const expandable = node.hasChildren !== false;
+        const actions = {
+          ArrowDown: () => this.focus(flat[index + 1]),
+          ArrowUp: () => this.focus(flat[index - 1]),
+          Home: () => this.focus(flat[0]),
+          End: () => this.focus(flat[flat.length - 1]),
+          ArrowRight: () => {
+            var _a;
+            if (!expandable) {
+              return;
+            }
+            if (!node.expanded) {
+              this.expand(node);
+            } else if ((_a = node.children) == null ? void 0 : _a.length) {
+              this.focus(node.children[0]);
+            }
+          },
+          ArrowLeft: () => {
+            if (node.expanded && expandable) {
+              node.expanded = false;
+            } else {
+              this.focus(node.parent);
+            }
+          },
+          Enter: () => this.select(node),
+          " ": () => this.select(node)
+        };
+        if (actions[event.key]) {
+          event.preventDefault();
+          actions[event.key]();
+        }
       }
     }
   };
-  const _hoisted_1$3 = { class: "text-muted" };
-  const _hoisted_2$2 = { class: "list-group cfiles-move-tree" };
-  const _hoisted_3$1 = ["onClick", "onKeydown"];
+  const _hoisted_1$3 = ["id"];
+  const _hoisted_2$2 = ["aria-labelledby"];
+  const _hoisted_3$1 = ["aria-level", "aria-selected", "aria-expanded", "tabindex", "onClick", "onFocus", "onKeydown"];
   const _hoisted_4$1 = ["onClick"];
   const _hoisted_5$1 = {
     key: 0,
@@ -1637,20 +1741,30 @@
         }, vue$1.toDisplayString($options.confirmLabel), 9, _hoisted_6$1)
       ]),
       default: vue$1.withCtx(() => [
-        vue$1.createElementVNode("p", _hoisted_1$3, vue$1.toDisplayString($options.intro), 1),
-        vue$1.createElementVNode("div", _hoisted_2$2, [
+        vue$1.createElementVNode("p", {
+          id: $data.introId,
+          class: "text-muted"
+        }, vue$1.toDisplayString($options.intro), 9, _hoisted_1$3),
+        vue$1.createElementVNode("div", {
+          class: "list-group cfiles-move-tree",
+          role: "tree",
+          "aria-labelledby": $data.introId
+        }, [
           (vue$1.openBlock(true), vue$1.createElementBlock(vue$1.Fragment, null, vue$1.renderList($options.flatTree, (node) => {
             return vue$1.openBlock(), vue$1.createElementBlock("div", {
-              key: node.id,
-              class: vue$1.normalizeClass(["list-group-item list-group-item-action", { active: node.id === $data.selectedId && $data.selectedId !== void 0 }]),
+              key: $options.keyOf(node),
+              ref_for: true,
+              ref: (el) => $options.remember(node, el),
+              class: vue$1.normalizeClass(["list-group-item list-group-item-action", { active: $options.isSelected(node) }]),
               style: vue$1.normalizeStyle({ "--hh-cfiles-depth": node.depth }),
-              role: "button",
-              tabindex: "0",
+              role: "treeitem",
+              "aria-level": node.depth + 1,
+              "aria-selected": String($options.isSelected(node)),
+              "aria-expanded": node.hasChildren === false ? void 0 : String(node.expanded),
+              tabindex: $options.keyOf(node) === $data.focusedKey ? 0 : -1,
               onClick: ($event) => $options.select(node),
-              onKeydown: [
-                vue$1.withKeys(vue$1.withModifiers(($event) => $options.select(node), ["prevent"]), ["enter"]),
-                vue$1.withKeys(vue$1.withModifiers(($event) => $options.select(node), ["prevent"]), ["space"])
-              ]
+              onFocus: ($event) => $data.focusedKey = $options.keyOf(node),
+              onKeydown: ($event) => $options.onKeydown($event, node)
             }, [
               vue$1.createElementVNode("i", {
                 class: vue$1.normalizeClass(["ti icon-fw", node.expanded ? "ti-caret-down-filled" : node.hasChildren === false ? "" : "ti-caret-right-filled"]),
@@ -1664,7 +1778,7 @@
               vue$1.createTextVNode(" " + vue$1.toDisplayString(node.isTop ? $options.rootLabel : node.title), 1)
             ], 46, _hoisted_3$1);
           }), 128))
-        ]),
+        ], 8, _hoisted_2$2),
         $props.error ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_5$1, vue$1.toDisplayString($props.error), 1)) : vue$1.createCommentVNode("", true)
       ]),
       _: 1
@@ -3194,11 +3308,12 @@
         "content-container-id": $data.container.contentContainerId,
         items: $data.moveItemsList,
         mode: $data.transferMode,
+        "current-path": $data.path || [],
         busy: $data.moveBusy,
         error: $data.moveError,
         onClose: _cache[14] || (_cache[14] = ($event) => $data.showMove = false),
         onConfirm: _cache[15] || (_cache[15] = (id) => $data.transferMode === "copy" ? $options.copyTo(id, $data.moveItemsList) : $options.moveTo(id, $data.moveItemsList))
-      }, null, 8, ["show", "content-container-id", "items", "mode", "busy", "error"])) : vue$1.createCommentVNode("", true),
+      }, null, 8, ["show", "content-container-id", "items", "mode", "current-path", "busy", "error"])) : vue$1.createCommentVNode("", true),
       vue$1.createVNode(_component_ConflictDialog, {
         show: $data.conflicts.length > 0,
         conflicts: $data.conflicts,
