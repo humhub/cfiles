@@ -372,7 +372,7 @@
         return formatSize(this.item.size);
       },
       visibility() {
-        return this.item.visibility === 0 ? vue.i18n.t("CfilesModule.base", "Private") : vue.i18n.t("CfilesModule.base", "Public");
+        return this.item.visibility === "private" ? vue.i18n.t("CfilesModule.base", "Private") : vue.i18n.t("CfilesModule.base", "Public");
       },
       downloadUrl() {
         return this.isFolder ? null : this.item.downloadUrl || this.item.url || null;
@@ -899,7 +899,7 @@
           onClick: ($event) => $options.onOpen(item, $event)
         }), [
           vue$1.createTextVNode(vue$1.toDisplayString($options.labelFor(item)), 1),
-          item.visibility === 0 ? (vue$1.openBlock(), vue$1.createElementBlock("i", {
+          item.visibility === "private" ? (vue$1.openBlock(), vue$1.createElementBlock("i", {
             key: 0,
             class: "ti ti-lock ms-1 text-muted",
             role: "img",
@@ -981,7 +981,7 @@
         return spaceImage(this.item);
       },
       isPrivate() {
-        return this.item.visibility === 0;
+        return this.item.visibility === "private";
       },
       displayTitle() {
         return this.isSpace ? this.item.name : this.item.title;
@@ -1337,12 +1337,12 @@
     }
     return params;
   };
-  const loadItems = (containerId, parent, options = {}) => vue.client.get(vue.apiUrl("cfiles/" + containerId + "/items", listParams(options, parent ? { parent } : {})));
+  const loadItems = (containerId, parent, options = {}) => vue.client.get(vue.apiUrl("cfiles/" + containerId + "/items", listParams(options, parent ? { parentFolderId: parent } : {})));
   const loadGlobalItems = (options = {}) => vue.client.get(vue.apiUrl("cfiles/items", listParams(options)));
   const resolveTopics = (containerId, ids) => vue.client.get(vue.apiUrl("topic/picker", { ids: ids.join(","), containerId, pageSize: ids.length })).then((response) => (response.results || []).map((topic) => String(topic.id)));
   const savePreferences = ({ view }) => vue.client.patch(vue.apiUrl("cfiles/preferences"), { data: { view } });
   const createFolder = (containerId, parent, attributes) => vue.client.post(vue.apiUrl("cfiles/" + containerId + "/folders"), {
-    data: { ...attributes, parent }
+    data: { ...attributes, parentFolderId: parent }
   });
   const updateItem = (item, attributes) => vue.client.patch(vue.apiUrl("cfiles/" + item.type + "/" + item.id), { data: attributes });
   const MAX_ITEMS = 200;
@@ -1353,32 +1353,26 @@
     }
     const results = [];
     const errors = [];
-    let refused = null;
     let broken = null;
     const sendOne = (batch) => send(batch).then((response) => {
       results.push(...response.results || []);
       errors.push(...response.errors || []);
     }, (response) => {
-      if (Array.isArray(response == null ? void 0 : response.errors)) {
-        refused = refused || response;
-        errors.push(...response.errors);
-      } else {
-        broken = broken || response;
-      }
+      broken = broken || response;
     });
     return batches.reduce((chain, batch) => chain.then(() => sendOne(batch)), Promise.resolve()).then(() => {
       if (broken) {
-        throw broken;
+        return Promise.reject(broken);
       }
-      if (refused && results.length === 0) {
-        refused.errors = errors;
-        throw refused;
+      if (results.length === 0 && errors.length) {
+        return Promise.reject({ errors });
       }
       return { results, errors };
     });
   };
-  const moveItems = (containerId, items, targetFolderId) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
-    data: { containerId, items: batch.map(descriptor), targetFolderId }
+  const errorText = (error) => [error.title || error.fileName, (error.messages || []).join(" ")].filter(Boolean).join(": ");
+  const moveItems = (containerId, items, parentFolderId) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
+    data: { containerId, items: batch.map(descriptor), parentFolderId }
   }));
   const deleteItems = (items) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/delete"), { data: { items: batch.map(descriptor) } }));
   const NAMES_PER_CHECK = 50;
@@ -1388,7 +1382,7 @@
       batches.push(names.slice(start, start + NAMES_PER_CHECK));
     }
     return Promise.all(batches.map((batch) => vue.client.get(vue.apiUrl("cfiles/" + containerId + "/conflicts", {
-      ...parent ? { parent } : {},
+      ...parent ? { parentFolderId: parent } : {},
       names: batch
     })))).then((responses) => responses.flatMap((response) => response.conflicts || []));
   };
@@ -1397,7 +1391,7 @@
     Array.prototype.forEach.call(files, (file) => form.append("files[]", file));
     replace.forEach((name) => form.append("replace[]", name));
     if (parent) {
-      form.append("parent", parent);
+      form.append("parentFolderId", parent);
     }
     return vue.client.post(vue.apiUrl("cfiles/" + containerId + "/files"), {
       data: form,
@@ -1420,7 +1414,7 @@
     });
   };
   const attachFiles = (containerId, parent, guids) => vue.client.post(vue.apiUrl("cfiles/" + containerId + "/files"), {
-    data: parent ? { guids, parent } : { guids }
+    data: parent ? { guids, parentFolderId: parent } : { guids }
   });
   const descriptor = (item) => ({ type: item.type, id: item.id });
   const keyOf = (item) => item.type + ":" + item.id;
@@ -2672,10 +2666,14 @@
           this.reload();
         }).catch((response) => {
           this.moveBusy = false;
-          const first = Array.isArray(response == null ? void 0 : response.errors) ? response.errors[0] : null;
-          this.moveError = first ? first.message : vue.i18n.t("CfilesModule.base", "Could not move the item!");
+          const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
+          this.moveError = errors ? errorText(errors[0]) : vue.i18n.t("CfilesModule.base", "Could not move the item!");
           if (!this.showMove) {
-            vue.log.error(response, true);
+            if (errors) {
+              this.reportErrors(errors);
+            } else {
+              vue.log.error(response, true);
+            }
             this.reload();
           }
         });
@@ -2712,7 +2710,7 @@
       },
       reportErrors(errors) {
         (errors || []).forEach((error) => {
-          vue.status("error", error.message || error.messages || "");
+          vue.status("error", errorText(error));
         });
       },
       // --- upload -----------------------------------------------------------------
@@ -2826,7 +2824,7 @@
         progress(0);
         return uploadFiles(container.contentContainerId, parentId, files, progress, replace).then((response) => {
           var _a;
-          this.reportUploadErrors(response.errors);
+          this.reportErrors(response.errors);
           const here = sameContainer(container, this.targetContainer());
           const open = here && parentId === this.targetFolderId();
           const shown = open || here && targetKey !== null && this.items.some((item) => keyOf(item) === targetKey);
@@ -2844,10 +2842,6 @@
           }
         }).catch((response) => {
           done();
-          if (response && response.status === 422 && Array.isArray(response.errors)) {
-            this.reportUploadErrors(response.errors);
-            return;
-          }
           vue.log.error(response, true);
         });
       },
@@ -2880,26 +2874,17 @@
         }
         this.handlerLevel = null;
         attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
-          this.reportUploadErrors(response.errors);
+          this.reportErrors(response.errors);
           if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
             this.reload();
           }
         }).catch((response) => {
-          if (response && response.status === 422 && Array.isArray(response.errors)) {
-            this.reportUploadErrors(response.errors);
-            return;
-          }
           vue.log.error(response, true);
         });
       },
       /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
       onFileModified() {
         this.reload();
-      },
-      reportUploadErrors(errors) {
-        (errors || []).forEach((error) => {
-          vue.status("error", error.fileName + ": " + (error.messages || []).join(" "));
-        });
       },
       // --- drag & drop ------------------------------------------------------------
       /** Whether a drag carries desktop files rather than one of our own items. */
@@ -3295,7 +3280,7 @@
         values: {
           title: this.item ? this.item.title : "",
           description: this.item ? this.item.description : "",
-          visibility: this.item ? String(this.item.visibility) : "1",
+          visibility: this.item ? this.item.visibility : "public",
           // The ids as strings, as the control takes them.
           topics: (((_a = this.item) == null ? void 0 : _a.topics) || []).map((topic) => String(topic.id))
         }
@@ -3331,8 +3316,8 @@
       },
       visibilityOptions() {
         return [
-          { value: "1", label: vue.i18n.t("CfilesModule.base", "Public") },
-          { value: "0", label: vue.i18n.t("CfilesModule.base", "Private") }
+          { value: "public", label: vue.i18n.t("CfilesModule.base", "Public") },
+          { value: "private", label: vue.i18n.t("CfilesModule.base", "Private") }
         ];
       },
       saveLabel() {
@@ -3359,7 +3344,7 @@
         const attributes = {
           title: this.values.title,
           description: this.values.description,
-          visibility: Number(this.values.visibility)
+          visibility: this.values.visibility
         };
         if (this.hasTopics) {
           attributes.topics = this.values.topics.length ? [...this.values.topics] : "";

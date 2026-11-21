@@ -99,10 +99,10 @@ class GlobalItemsActionTest extends HumHubDbTestCase
 
     public function testAnUnknownParameterIsA422()
     {
-        $answer = $this->items(['parent' => '1']);
+        $answer = $this->items(['parentFolderId' => '1']);
 
         $this->assertSame(422, Yii::$app->response->statusCode);
-        $this->assertArrayHasKey('parent', $answer['errors']);
+        $this->assertArrayHasKey('parentFolderId', $answer['errors']);
     }
 
     public function testTheSortSentIsRememberedAndDefaultForgetsIt()

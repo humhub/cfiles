@@ -31,9 +31,9 @@ final class FirstListing
 {
     /**
      * @param array $query the page URL's parameters
-     * @param array $fixed parameters the page sets itself, e.g. the folder (`parent`)
+     * @param array $fixed parameters the page sets itself, e.g. the folder (`parentFolderId`)
      * @param string[] $pageParams parameters of the list's filters that are the page's rather
-     *        than the URL's — `parent`, which is `fid` there
+     *        than the URL's — `parentFolderId`, which is `fid` there
      * @return array{builder: ListBuilder, initialFilters: array<string, string>} the list, and
      *         the values of its filters it was built with, by parameter (`''` = not set, several
      *         values comma-separated)

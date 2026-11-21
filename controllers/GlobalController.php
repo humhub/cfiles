@@ -167,7 +167,7 @@ class GlobalController extends Controller
                 $containerList,
                 $spaceContext,
                 $this->withTopicsOf($space, $query),
-                ['parent' => $folder?->id],
+                [FolderParentFilter::KEY => $folder?->id],
                 [FolderParentFilter::KEY],
             );
             $listing = (new FolderListingService($builder))->payload();

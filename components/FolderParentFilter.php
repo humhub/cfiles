@@ -15,19 +15,19 @@ use humhub\components\listing\ListFilter;
 use humhub\modules\cfiles\models\Folder;
 
 /**
- * `parent`: the folder whose contents are listed — a context filter, without UI. Absent (or
+ * `parentFolderId`: the folder whose contents are listed — a context filter, without UI. Absent (or
  * `0`) is the container's top level, which has no folder record of its own.
  *
  * It authorizes itself while parsing: the folder has to exist, be readable by the caller and
  * belong to the list's container ({@see ListContext::$container}); anything else is an error
- * for `parent`. Unknown, unreadable and foreign folders are deliberately indistinguishable, so
+ * for `parentFolderId`. Unknown, unreadable and foreign folders are deliberately indistinguishable, so
  * the list does not confirm the existence of content the caller may not see.
  *
  * @since 1.0
  */
 class FolderParentFilter extends ListFilter
 {
-    public const KEY = 'parent';
+    public const KEY = 'parentFolderId';
 
     /**
      * @inheritdoc

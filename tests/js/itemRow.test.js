@@ -97,8 +97,8 @@ describe('ItemRow', () => {
         });
 
         it('marks a private item in its meta line and leaves a public one unmarked', () => {
-            expect(row(fileRow({ visibility: 0 })).find('.cfiles-row-meta .ti-lock').exists()).toBe(true);
-            expect(row(fileRow({ visibility: 1 })).find('.ti-lock').exists()).toBe(false);
+            expect(row(fileRow({ visibility: 'private' })).find('.cfiles-row-meta .ti-lock').exists()).toBe(true);
+            expect(row(fileRow({ visibility: 'public' })).find('.ti-lock').exists()).toBe(false);
         });
 
         it('counts a folder\'s items and sizes a file', () => {

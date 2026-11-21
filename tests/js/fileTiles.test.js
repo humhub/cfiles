@@ -133,7 +133,7 @@ describe('FileTiles', () => {
     });
 
     it('names the lock of a private item as an image', () => {
-        const lock = tiles({ items: [fileRow({ visibility: 0 })] }).find('.tile-name a i.ti-lock');
+        const lock = tiles({ items: [fileRow({ visibility: 'private' })] }).find('.tile-name a i.ti-lock');
 
         expect(lock.attributes('role')).toBe('img');
         expect(lock.attributes('aria-label')).toBe('Private');

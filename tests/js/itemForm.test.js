@@ -77,6 +77,20 @@ describe('CfilesItemForm topics', () => {
         expect(input.attributes('aria-invalid')).toBeUndefined();
     });
 
+    it('sends the visibility by its name', async () => {
+        const wrapper = form(fileRow({ visibility: 'private' }));
+        await flushPromises();
+
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+        expect(sent().visibility).toBe('private');
+
+        await wrapper.find('select').setValue('public');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+        expect(sent().visibility).toBe('public');
+    });
+
     it('has no topics when a folder is created', () => {
         const wrapper = form(null, { parentFolderId: null });
 

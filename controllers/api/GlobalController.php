@@ -36,6 +36,11 @@ class GlobalController extends BaseController
     /**
      * @inheritdoc
      */
+    protected array $scopes = ['*' => Module::SCOPE_READ];
+
+    /**
+     * @inheritdoc
+     */
     public function behaviors()
     {
         return ArrayHelper::merge(parent::behaviors(), [

@@ -14,6 +14,7 @@ use humhub\components\listing\ListContext;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\FileSystemItem;
+use humhub\modules\cfiles\serializers\ItemVisibility;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\content\models\ContentContainer;
@@ -165,6 +166,30 @@ abstract class BaseController extends ApiBaseController
         if (!$item->content->canEdit()) {
             throw new ForbiddenHttpException();
         }
+    }
+
+    /**
+     * The `visibility` of an item write as the content stores it, sent as its name (`private`,
+     * `public`, see {@see ItemVisibility}).
+     *
+     * @return FilterValue|null null when the request sends no `visibility`; else invalid (its
+     *         error under `visibility`) or the stored value
+     */
+    protected function visibilityParam(): ?FilterValue
+    {
+        $raw = Yii::$app->request->getBodyParam('visibility');
+        if ($raw === null) {
+            return null;
+        }
+
+        $value = ItemVisibility::value($raw);
+        if ($value === null) {
+            return FilterValue::invalid(['visibility' => [
+                Yii::t('base', 'Unknown value "{value}".', ['value' => is_scalar($raw) ? (string)$raw : '']),
+            ]]);
+        }
+
+        return FilterValue::of($value);
     }
 
     /**

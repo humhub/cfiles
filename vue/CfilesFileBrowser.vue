@@ -237,7 +237,7 @@ import FileTiles from './browser/FileTiles.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
 import {
-    attachFiles, deleteItems, findConflicts, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
+    attachFiles, deleteItems, errorText, findConflicts, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
 } from './browser/api';
 import {
     SPACE_CRUMB, TOPIC_KEY, appendFilters, containerOf, idsOf, isPageLocation, isPageUrl, isSet, levelFilters, levelKey, levelUrl,
@@ -1262,12 +1262,17 @@ export default {
                 this.reload();
             }).catch((response) => {
                 this.moveBusy = false;
-                const first = Array.isArray(response?.errors) ? response.errors[0] : null;
-                this.moveError = first ? first.message : i18n.t('CfilesModule.base', 'Could not move the item!');
+                // Nothing moved: the reasons per item, or a request that failed as a whole.
+                const errors = Array.isArray(response?.errors) ? response.errors : null;
+                this.moveError = errors ? errorText(errors[0]) : i18n.t('CfilesModule.base', 'Could not move the item!');
                 if (!this.showMove) {
                     // A dragged move has no dialog to show the error in; the reload puts back
                     // whatever did not move after all.
-                    log.error(response, true);
+                    if (errors) {
+                        this.reportErrors(errors);
+                    } else {
+                        log.error(response, true);
+                    }
                     this.reload();
                 }
             });
@@ -1307,7 +1312,7 @@ export default {
         },
         reportErrors(errors) {
             (errors || []).forEach((error) => {
-                status('error', error.message || error.messages || '');
+                status('error', errorText(error));
             });
         },
 
@@ -1429,7 +1434,7 @@ export default {
             progress(0);
 
             return uploadFiles(container.contentContainerId, parentId, files, progress, replace).then((response) => {
-                this.reportUploadErrors(response.errors);
+                this.reportErrors(response.errors);
 
                 const here = sameContainer(container, this.targetContainer());
                 const open = here && parentId === this.targetFolderId();
@@ -1450,15 +1455,9 @@ export default {
                     done();
                 }
             }).catch((response) => {
+                // Not one file the endpoint says something about: a request that failed as a
+                // whole. Files it could not add are in the answer (`errors`), see above.
                 done();
-
-                // The endpoint answers 422 only when NOTHING landed, and then says why per
-                // file — that is a result, not a transport failure.
-                if (response && response.status === 422 && Array.isArray(response.errors)) {
-                    this.reportUploadErrors(response.errors);
-                    return;
-                }
-
                 log.error(response, true);
             });
         },
@@ -1494,28 +1493,18 @@ export default {
             this.handlerLevel = null;
 
             attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
-                this.reportUploadErrors(response.errors);
+                this.reportErrors(response.errors);
 
                 if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
                     this.reload();
                 }
             }).catch((response) => {
-                if (response && response.status === 422 && Array.isArray(response.errors)) {
-                    this.reportUploadErrors(response.errors);
-                    return;
-                }
-
                 log.error(response, true);
             });
         },
         /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
         onFileModified() {
             this.reload();
-        },
-        reportUploadErrors(errors) {
-            (errors || []).forEach((error) => {
-                status('error', error.fileName + ': ' + (error.messages || []).join(' '));
-            });
         },
 
         // --- drag & drop ------------------------------------------------------------

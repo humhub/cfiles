@@ -50,7 +50,7 @@ class ApiReadabilityTest extends HumHubDbTestCase
 
     public function testCreatingInAnUnreadableFolderIsA404()
     {
-        Yii::$app->request->setBodyParams(['title' => 'New', 'parent' => $this->unreadable->id]);
+        Yii::$app->request->setBodyParams(['title' => 'New', 'parentFolderId' => $this->unreadable->id]);
 
         $this->expectException(NotFoundHttpException::class);
         $this->folderController()->actionCreate($this->space->contentcontainer_id);
@@ -58,7 +58,7 @@ class ApiReadabilityTest extends HumHubDbTestCase
 
     public function testUploadingIntoAnUnreadableFolderIsA404()
     {
-        Yii::$app->request->setBodyParams(['parent' => (string)$this->unreadable->id]);
+        Yii::$app->request->setBodyParams(['parentFolderId' => (string)$this->unreadable->id]);
 
         $this->expectException(NotFoundHttpException::class);
         $this->folderController()->actionUpload($this->space->contentcontainer_id);
@@ -72,7 +72,7 @@ class ApiReadabilityTest extends HumHubDbTestCase
         Yii::$app->request->setBodyParams([
             'containerId' => $this->space->contentcontainer_id,
             'items' => [['type' => 'folder', 'id' => $folder->id]],
-            'targetFolderId' => $this->unreadable->id,
+            'parentFolderId' => $this->unreadable->id,
         ]);
 
         $this->expectException(NotFoundHttpException::class);

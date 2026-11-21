@@ -181,7 +181,7 @@ export default {
             return spaceImage(this.item);
         },
         isPrivate() {
-            return this.item.visibility === 0;
+            return this.item.visibility === 'private';
         },
         displayTitle() {
             // A space names itself the core's way, `name` (see GlobalListingService).

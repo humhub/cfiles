@@ -317,10 +317,10 @@ class GlobalFolderListTest extends HumHubDbTestCase
     public function testAnUnknownParameterIsRefused()
     {
         try {
-            $this->build(['parent' => '1']);
+            $this->build(['parentFolderId' => '1']);
             $this->fail('An unknown parameter must be refused.');
         } catch (ListValidationException $e) {
-            $this->assertArrayHasKey('parent', $e->errors);
+            $this->assertArrayHasKey('parentFolderId', $e->errors);
         }
     }
 

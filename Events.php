@@ -7,6 +7,8 @@ use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\services\DownloadCounterService;
 use humhub\modules\cfiles\services\IntegrityService;
 use humhub\modules\file\models\File as BaseFile;
+use humhub\modules\oauth\events\ScopesEvent;
+use humhub\modules\oauth\models\Scope;
 use humhub\modules\space\models\Space;
 use humhub\modules\space\widgets\Menu;
 use humhub\modules\user\models\User;
@@ -119,4 +121,12 @@ class Events
         ]);
     }
 
+    /**
+     * The scopes a token may hold for the module's API, see the `$scopes` of its controllers.
+     */
+    public static function onCollectScopes(ScopesEvent $event): void
+    {
+        $event->scopes[] = new Scope(Module::SCOPE_READ, Yii::t('CfilesModule.base', 'Read files and folders'));
+        $event->scopes[] = new Scope(Module::SCOPE_WRITE, Yii::t('CfilesModule.base', 'Add, change, move and delete files and folders'));
+    }
 }

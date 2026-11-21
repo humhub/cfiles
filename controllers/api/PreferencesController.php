@@ -8,6 +8,7 @@
 
 namespace humhub\modules\cfiles\controllers\api;
 
+use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\services\FolderListingService;
 use Yii;
@@ -27,6 +28,11 @@ use yii\helpers\ArrayHelper;
  */
 class PreferencesController extends BaseController
 {
+    /**
+     * @inheritdoc
+     */
+    protected array $scopes = ['*' => Module::SCOPE_WRITE];
+
     /**
      * @inheritdoc
      */

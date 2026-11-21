@@ -28,15 +28,15 @@ use yii\helpers\Url;
  * its {@see self::definitions()}.
  *
  * ```php
- * $builder = (new FolderList())->build(['parent' => 12, 'sort' => 'newest'], ListContext::forCurrentUser(null, $container));
+ * $builder = (new FolderList())->build(['parentFolderId' => 12, 'sort' => 'newest'], ListContext::forCurrentUser(null, $container));
  * ```
  *
  * The context needs the container ({@see ListContext::$container}); visibility (`readable()`)
  * is the base of both queries ({@see FolderListBuilder}), no filter can bring back an item the
  * caller may not see.
  *
- * Parameters: `parent` (a folder id of the container, {@see FolderParentFilter}; absent = the
- * top level), the filters of the page's bar — `q` (folder titles, file names and the
+ * Parameters: `parentFolderId` (a folder id of the container, {@see FolderParentFilter};
+ * absent = the top level), the filters of the page's bar — `q` (folder titles, file names and the
  * descriptions of both), `userId` (the author: who created the folder or file — not for
  * guests, see {@see UserFilter}), `topicId` (one or several topics of the container or global
  * ones, {@see self::topicFilter()} — not for guests either), `type` (files of one of
@@ -403,7 +403,7 @@ class FolderList extends FilterableList
     }
 
     /**
-     * The scope — the level (`parent`, top level when absent), or in results mode the open
+     * The scope — the level (`parentFolderId`, top level when absent), or in results mode the open
      * folder with its subtree —, then the order; see the class docblock for which sort applies.
      *
      * @inheritdoc

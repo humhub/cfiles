@@ -96,7 +96,7 @@ class BrowseController extends ContentContainerController
             $list,
             $context,
             Yii::$app->request->getQueryParams(),
-            ['parent' => $folder?->id],
+            [FolderParentFilter::KEY => $folder?->id],
             // The folder is `fid` here.
             [FolderParentFilter::KEY],
         );

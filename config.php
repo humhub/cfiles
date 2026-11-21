@@ -4,6 +4,7 @@ use humhub\commands\IntegrityController;
 use humhub\modules\cfiles\components\UrlRule;
 use humhub\modules\file\controllers\FileController;
 use humhub\modules\file\models\File;
+use humhub\modules\oauth\components\ScopeRegistry;
 use humhub\modules\space\widgets\Menu;
 use humhub\modules\user\widgets\ProfileMenu;
 use humhub\widgets\TopMenu;
@@ -20,9 +21,9 @@ return [
         // The module's only JSON surface (see docs/develop/concept-api.md in core). The Vue
         // file browser is built entirely on these endpoints.
         //
-        // Reading and adding are addressed as a container plus an optional `parent`
-        // folder: the top level has no folder record, so a folder id alone cannot name
-        // every level of a tree.
+        // Reading and adding are addressed as a container plus an optional `parentFolderId`:
+        // the top level has no folder record, so a folder id alone cannot name every level
+        // of a tree.
         // The global files page's listing, across the spaces of the user; inside a space it
         // lists with the container's endpoint below.
         ['pattern' => 'api/v2/cfiles/items', 'route' => 'cfiles/api/global/items', 'verb' => ['GET', 'HEAD']],
@@ -47,5 +48,6 @@ return [
         [IntegrityController::class, IntegrityController::EVENT_ON_RUN, ['humhub\modules\cfiles\Events', 'onIntegrityCheck']],
         [FileController::class, FileController::EVENT_AFTER_ACTION, ['humhub\modules\cfiles\Events', 'onAfterFileAction']],
         [File::class, File::EVENT_AFTER_NEW_STORED_FILE, ['humhub\modules\cfiles\Events', 'onAfterNewStoredFile']],
+        [ScopeRegistry::class, ScopeRegistry::EVENT_COLLECT_SCOPES, ['humhub\modules\cfiles\Events', 'onCollectScopes']],
     ],
 ];

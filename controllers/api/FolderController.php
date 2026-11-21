@@ -11,6 +11,7 @@ namespace humhub\modules\cfiles\controllers\api;
 use humhub\components\listing\ListContext;
 use humhub\components\listing\ListValidationException;
 use humhub\modules\cfiles\components\FolderList;
+use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\serializers\FolderSerializer;
@@ -25,7 +26,7 @@ use yii\web\UploadedFile;
 /**
  * Reading a level of a container's file tree, and adding to it.
  *
- * Everything here is addressed as a container plus an optional `parent` folder, because that
+ * Everything here is addressed as a container plus an optional `parentFolderId`, because that
  * is what a level actually is: there is no folder record standing in for the top, so a folder
  * id alone cannot name every level. Changing an item that already exists is the other way
  * round — it has an id of its own, see {@see FileController} and {@see ItemController}.
@@ -42,6 +43,16 @@ class FolderController extends BaseController
      * through the `readable()` content scope, the same one that page render runs.
      */
     protected array $guestAllowedActions = ['items'];
+
+    /**
+     * @inheritdoc
+     */
+    protected array $scopes = [
+        'items' => Module::SCOPE_READ,
+        'suggestions' => Module::SCOPE_READ,
+        'conflicts' => Module::SCOPE_READ,
+        '*' => Module::SCOPE_WRITE,
+    ];
 
     /**
      * @inheritdoc
@@ -67,10 +78,10 @@ class FolderController extends BaseController
      * One level of the tree: the folder itself (null at the top), the path down to it, and a
      * page of its contents with folders sorted ahead of files.
      *
-     * Parameters are those of {@see FolderList} (`parent`, the filters `q`, `userId`, `type`,
+     * Parameters are those of {@see FolderList} (`parentFolderId`, the filters `q`, `userId`, `type`,
      * `modified`, and `sort`) plus `page`/`pageSize`; with a filter set the page holds the hits in the folder
      * and all its subfolders (`resultsMode`, a `path` per item);
-     * any other is refused (`422`), as is a `parent` that is not a readable folder of this
+     * any other is refused (`422`), as is a `parentFolderId` that is not a readable folder of this
      * container. Without `sort` the user's last choice applies, a `sort` sent is remembered
      * ({@see BrowserPreferences}). Without `pageSize` the page is that of the user's view.
      *
@@ -128,17 +139,26 @@ class FolderController extends BaseController
     }
 
     /**
-     * Creates a folder at the addressed level.
+     * Creates a folder at the addressed level (`parentFolderId`, none for the top level) with
+     * `title`, `description` and `visibility` (`private` or `public`).
      */
     public function actionCreate($containerId)
     {
         $container = $this->findContainer((int)$containerId);
         $this->assertCanWrite($container);
 
-        $parent = $this->findParent($container, Yii::$app->request->getBodyParam('parent'));
+        $parent = $this->findParent($container, Yii::$app->request->getBodyParam('parentFolderId'));
+
+        $visibility = $this->visibilityParam();
+        if ($visibility !== null && !$visibility->isValid()) {
+            return $this->validationErrors($visibility->errors);
+        }
 
         $folder = (new FolderContentService($container, $parent))->newFolder();
         $folder->setAttributes($this->writableAttributes(), false);
+        if ($visibility !== null) {
+            $folder->visibility = $visibility->value;
+        }
 
         if (!$folder->save()) {
             return $this->validationErrors($folder);
@@ -151,8 +171,8 @@ class FolderController extends BaseController
     }
 
     /**
-     * Renames a folder, changes its description, its visibility or its topics (`topics`, see
-     * {@see self::topicsParam()}).
+     * Renames a folder, changes its description, its visibility (`private` or `public`) or its
+     * topics (`topics`, see {@see self::topicsParam()}).
      */
     public function actionUpdate($id)
     {
@@ -164,7 +184,15 @@ class FolderController extends BaseController
             return $this->validationErrors($topics->errors);
         }
 
+        $visibility = $this->visibilityParam();
+        if ($visibility !== null && !$visibility->isValid()) {
+            return $this->validationErrors($visibility->errors);
+        }
+
         $folder->setAttributes($this->writableAttributes(), false);
+        if ($visibility !== null) {
+            $folder->visibility = $visibility->value;
+        }
         if ($topics !== null) {
             $folder->topics = $topics->present ? $topics->value : [];
         }
@@ -196,7 +224,7 @@ class FolderController extends BaseController
         $this->assertCanWrite($container);
 
         $request = Yii::$app->request;
-        $parent = $this->findParent($container, $request->get('parent'));
+        $parent = $this->findParent($container, $request->get('parentFolderId'));
         $names = $request->get('names');
 
         if (!is_array($names) || count($names) > self::MAX_NAMES) {
@@ -232,14 +260,16 @@ class FolderController extends BaseController
      *
      * Answers per file rather than failing the whole request on one bad upload: a batch in
      * which a single file is rejected should still land the others, and the client has to be
-     * able to say which one did not make it.
+     * able to say which one did not make it. Like the core's upload (`POST /api/v2/file`) with
+     * `200` whenever the request carried a file, even if none could be added; a request
+     * without any is a `422`.
      */
     public function actionUpload($containerId)
     {
         $container = $this->findContainer((int)$containerId);
         $this->assertCanWrite($container);
 
-        $parent = $this->findParent($container, Yii::$app->request->post('parent'));
+        $parent = $this->findParent($container, Yii::$app->request->post('parentFolderId'));
 
         $guids = Yii::$app->request->post('guids');
         if (!empty($guids)) {
@@ -278,8 +308,6 @@ class FolderController extends BaseController
             $created[] = FileSerializer::file($file, []);
         }
 
-        Yii::$app->response->statusCode = $created === [] ? 422 : 201;
-
         return ['results' => $created, 'errors' => $errors];
     }
 
@@ -317,13 +345,12 @@ class FolderController extends BaseController
             $created[] = FileSerializer::file($file, []);
         }
 
-        Yii::$app->response->statusCode = $created === [] ? 422 : 201;
-
         return ['results' => $created, 'errors' => $errors];
     }
 
     /**
-     * The attributes a folder write accepts.
+     * The attributes a folder write accepts as they are; `visibility` and `topics` are parsed
+     * on their own ({@see self::visibilityParam()}, {@see self::topicsParam()}).
      *
      * An allowlist rather than `load()`: mass assignment would otherwise reach
      * `parent_folder_id`, which is what the move endpoint is for, with its own permission
@@ -338,10 +365,6 @@ class FolderController extends BaseController
             if ($request->getBodyParam($name) !== null) {
                 $attributes[$name] = (string)$request->getBodyParam($name);
             }
-        }
-
-        if ($request->getBodyParam('visibility') !== null) {
-            $attributes['visibility'] = (int)$request->getBodyParam('visibility');
         }
 
         return $attributes;

@@ -42,7 +42,7 @@ class FileSerializer
      *     guid: string|null,
      *     title: string,
      *     description: string,
-     *     visibility: int,
+     *     visibility: string,
      *     mimeType: string|null,
      *     icon: string,
      *     size: int,
@@ -79,7 +79,7 @@ class FileSerializer
             // file (see File::setTitle()).
             'title' => (string)$file->getTitle(),
             'description' => (string)$file->description,
-            'visibility' => (int)$content->visibility,
+            'visibility' => ItemVisibility::name((int)$content->visibility),
             'mimeType' => $baseFile?->mime_type,
             // The Tabler name of the file type's glyph, for the Vue browser's
             // `<i class="ti ti-<icon>">` — see MimeHelper::getIconNameByExtension().

@@ -37,7 +37,7 @@ use yii\db\ActiveQuery;
  * $builder->fileQuery()->andWhere(['file.file_name' => ...]);
  * ```
  *
- * The scope — the level itself (`parent`, {@see FolderParentFilter}), or in results mode the
+ * The scope — the level itself (`parentFolderId`, {@see FolderParentFilter}), or in results mode the
  * open folder with its subtree ({@see self::scopeToSubtree()}) — and the order are applied by
  * the list's `finalize()`, after the filters.
  *

@@ -77,7 +77,7 @@ class FolderListTest extends HumHubDbTestCase
         $this->addFile('inside.txt', $folder);
         $this->addFile('outside.txt');
 
-        $builder = $this->build(['parent' => (string)$folder->id]);
+        $builder = $this->build(['parentFolderId' => (string)$folder->id]);
 
         $this->assertSame($folder->id, $builder->folder()->id);
         $this->assertSame(['Child'], array_column($builder->folderQuery()->all(), 'title'));
@@ -90,10 +90,10 @@ class FolderListTest extends HumHubDbTestCase
         $this->assertTrue($foreign->save(), implode(' ', $foreign->getFirstErrors()));
 
         try {
-            $this->build(['parent' => (string)$foreign->id]);
+            $this->build(['parentFolderId' => (string)$foreign->id]);
             $this->fail('A folder of another container must be refused.');
         } catch (ListValidationException $e) {
-            $this->assertArrayHasKey('parent', $e->errors);
+            $this->assertArrayHasKey('parentFolderId', $e->errors);
         }
     }
 
@@ -101,10 +101,10 @@ class FolderListTest extends HumHubDbTestCase
     {
         foreach (['999999', 'abc'] as $parent) {
             try {
-                $this->build(['parent' => $parent]);
+                $this->build(['parentFolderId' => $parent]);
                 $this->fail('The parent "' . $parent . '" must be refused.');
             } catch (ListValidationException $e) {
-                $this->assertArrayHasKey('parent', $e->errors);
+                $this->assertArrayHasKey('parentFolderId', $e->errors);
             }
         }
     }
@@ -173,10 +173,10 @@ class FolderListTest extends HumHubDbTestCase
         Content::updateAll(['state' => Content::STATE_DELETED], ['id' => $folder->content->id]);
 
         try {
-            $this->build(['parent' => (string)$folder->id]);
+            $this->build(['parentFolderId' => (string)$folder->id]);
             $this->fail('An unreadable folder must be refused.');
         } catch (ListValidationException $e) {
-            $this->assertArrayHasKey('parent', $e->errors);
+            $this->assertArrayHasKey('parentFolderId', $e->errors);
         }
     }
 
@@ -407,7 +407,7 @@ class FolderListTest extends HumHubDbTestCase
         $this->addFile('logo-deeper.png', $old);
         $this->addFile('logo-other.png', $other);
 
-        $inBrand = $this->build(['parent' => (string)$brand->id, 'q' => 'logo', 'sort' => 'name']);
+        $inBrand = $this->build(['parentFolderId' => (string)$brand->id, 'q' => 'logo', 'sort' => 'name']);
         $this->assertTrue($inBrand->resultsMode);
         $this->assertSame(['Logos', 'Old logos'], $this->folderTitles($inBrand));
         $this->assertSame(['logo-brand.png', 'logo-deep.png', 'logo-deeper.png'], $this->fileNames($inBrand));
@@ -524,7 +524,7 @@ class FolderListTest extends HumHubDbTestCase
         $logos = $this->addFolder('Logos', $brand);
         $old = $this->addFolder('Old', $logos);
 
-        $inBrand = $this->build(['parent' => (string)$brand->id, 'q' => 'x']);
+        $inBrand = $this->build(['parentFolderId' => (string)$brand->id, 'q' => 'x']);
         $this->assertSame([], $inBrand->pathOf($brand->id));
         $this->assertSame([['type' => 'folder', 'id' => $logos->id, 'title' => 'Logos']], $inBrand->pathOf($logos->id));
         $this->assertSame(

@@ -71,7 +71,7 @@ export default {
             values: {
                 title: this.item ? this.item.title : '',
                 description: this.item ? this.item.description : '',
-                visibility: this.item ? String(this.item.visibility) : '1',
+                visibility: this.item ? this.item.visibility : 'public',
                 // The ids as strings, as the control takes them.
                 topics: (this.item?.topics || []).map((topic) => String(topic.id)),
             },
@@ -109,8 +109,8 @@ export default {
         },
         visibilityOptions() {
             return [
-                { value: '1', label: i18n.t('CfilesModule.base', 'Public') },
-                { value: '0', label: i18n.t('CfilesModule.base', 'Private') },
+                { value: 'public', label: i18n.t('CfilesModule.base', 'Public') },
+                { value: 'private', label: i18n.t('CfilesModule.base', 'Private') },
             ];
         },
         saveLabel() {
@@ -139,7 +139,7 @@ export default {
             const attributes = {
                 title: this.values.title,
                 description: this.values.description,
-                visibility: Number(this.values.visibility),
+                visibility: this.values.visibility,
             };
             if (this.hasTopics) {
                 // Form-encoded, an empty list is not sent at all: `''` is "none".

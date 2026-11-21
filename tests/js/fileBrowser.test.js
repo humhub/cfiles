@@ -109,7 +109,7 @@ describe('CfilesFileBrowser', () => {
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('/5/items');
-            expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('parent=11');
+            expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('parentFolderId=11');
             expect(window.location.search).toContain('fid=11');
             // Pushed without a `container` key, which is what keeps jquery.pjax's own popstate
             // handler from claiming the entry (see the component docblock).
@@ -125,7 +125,7 @@ describe('CfilesFileBrowser', () => {
             await flushPromises();
 
             expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
-            expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).not.toContain('parent=');
+            expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).not.toContain('parentFolderId=');
         });
 
         it('goes up through the path bar', async () => {
@@ -135,7 +135,7 @@ describe('CfilesFileBrowser', () => {
             await wrapper.find('a.path-bar-root').trigger('click');
             await flushPromises();
 
-            expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).not.toContain('parent=');
+            expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).not.toContain('parentFolderId=');
             expect(window.location.search).toContain('fid=0');
         });
 
@@ -270,7 +270,7 @@ describe('CfilesFileBrowser', () => {
 
             wrapper.vm.open(11);
             wrapper.vm.onFilters({ sort: 'newest' });
-            expect(globalThis.humhubStubs.client.get.mock.calls[1][0]).toContain('parent=11');
+            expect(globalThis.humhubStubs.client.get.mock.calls[1][0]).toContain('parentFolderId=11');
 
             second.resolve(insideFolder([], { folder: folderRow(), path: [{ id: 11, title: 'Entwürfe' }] }));
             await flushPromises();
@@ -391,7 +391,7 @@ describe('CfilesFileBrowser', () => {
             expect(cfg.data).toEqual({
                 containerId: 5,
                 items: [{ type: 'file', id: 21 }],
-                targetFolderId: null,
+                parentFolderId: null,
             });
         });
 
@@ -419,9 +419,9 @@ describe('CfilesFileBrowser', () => {
 
         it('says why nothing was deleted, and shows the level as it is now', async () => {
             globalThis.humhubStubs.modal.confirm = vi.fn(() => Promise.resolve(true));
-            globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject({
-                status: 422,
-                errors: [{ type: 'file', id: 21, title: 'Plan.pdf', message: 'Could not delete the item!' }],
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({
+                results: [],
+                errors: [{ type: 'file', id: 21, title: 'Plan.pdf', messages: ['Could not delete the item!'] }],
             }));
             const reported = statusMessages();
             const wrapper = browser(topLevel());
@@ -429,7 +429,7 @@ describe('CfilesFileBrowser', () => {
             wrapper.vm.confirmDelete([fileRow()]);
             await flushPromises();
 
-            expect(reported.at(-1).message).toBe('Could not delete the item!');
+            expect(reported.at(-1).message).toBe('Plan.pdf: Could not delete the item!');
             expect(globalThis.humhubStubs.logCalls.error).toHaveLength(0);
             expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
         });
@@ -445,6 +445,21 @@ describe('CfilesFileBrowser', () => {
 
             expect(globalThis.humhubStubs.logCalls.error).toHaveLength(1);
             expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
+        });
+
+        it('says in the move dialog why nothing was moved', async () => {
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({
+                results: [],
+                errors: [{ type: 'file', id: 21, title: 'Plan.pdf', messages: ['A file with that name already exists in this folder.'] }],
+            }));
+            const wrapper = browser(insideFolder([fileRow({ parentFolderId: 9 })]));
+
+            wrapper.vm.openMove(wrapper.vm.items);
+            wrapper.vm.moveTo(null, wrapper.vm.items);
+            await flushPromises();
+
+            expect(wrapper.vm.showMove).toBe(true);
+            expect(wrapper.vm.moveError).toBe('Plan.pdf: A file with that name already exists in this folder.');
         });
 
         it('says in the move dialog that the move failed, also when the server gave no reason', async () => {
@@ -554,7 +569,7 @@ describe('CfilesFileBrowser', () => {
             wrapper.vm.upload([new File(['a'], 'a.txt')]);
             await flushPromises();
 
-            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parent')).toBe('9');
+            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parentFolderId')).toBe('9');
         });
 
         it('sends no parent at the top level, where there is none', async () => {
@@ -563,7 +578,7 @@ describe('CfilesFileBrowser', () => {
             wrapper.vm.upload([new File(['a'], 'a.txt')]);
             await flushPromises();
 
-            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parent')).toBeNull();
+            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parentFolderId')).toBeNull();
         });
 
         it('uploads nothing when the caller may not write', async () => {
@@ -731,8 +746,8 @@ describe('CfilesFileBrowser', () => {
             const reported = [];
             globalThis.humhub.modules.vue.setStatusHandler((entry) => reported.push(entry));
 
-            globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject({
-                status: 422,
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({
+                results: [],
                 errors: [{ fileName: 'huge.iso', messages: ['File is too big'] }],
             }));
             const wrapper = browser(topLevel());
@@ -770,7 +785,7 @@ describe('CfilesFileBrowser', () => {
 
             const url = decodeURIComponent(conflictChecks()[0][0]);
             expect(url).toContain('cfiles/5/conflicts');
-            expect(url).toContain('parent=9');
+            expect(url).toContain('parentFolderId=9');
             expect(url).toContain('names[]=a.txt');
             expect(url).toContain('names[]=b.txt');
         });
@@ -883,7 +898,7 @@ describe('CfilesFileBrowser', () => {
 
             const [url, cfg] = globalThis.humhubStubs.client.post.mock.calls[0];
             expect(url).toContain('cfiles/5/files');
-            expect(cfg.data).toEqual({ guids: ['guid-1', 'guid-2'], parent: 9 });
+            expect(cfg.data).toEqual({ guids: ['guid-1', 'guid-2'], parentFolderId: 9 });
         });
 
         it('sends no parent at the top level', async () => {
@@ -1221,7 +1236,7 @@ describe('CfilesFileBrowser', () => {
             expect(globalThis.humhubStubs.client.post).toHaveBeenCalledTimes(1);
             const [url, cfg] = globalThis.humhubStubs.client.post.mock.calls[0];
             expect(url).toContain('/5/files');
-            expect(cfg.data.get('parent')).toBe('11');
+            expect(cfg.data.get('parentFolderId')).toBe('11');
         });
 
         it('shows the progress on the folder being uploaded into', async () => {
@@ -1269,8 +1284,25 @@ describe('CfilesFileBrowser', () => {
             expect(tile(wrapper, 'folder:11').classes()).not.toContain('is-uploading');
         });
 
-        it('reloads when a dragged move fails, so nothing looks moved that was not', async () => {
-            globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject({ errors: [{ message: 'No.' }] }));
+        it('says why a dragged move failed and reloads, so nothing looks moved that was not', async () => {
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({
+                results: [],
+                errors: [{ type: 'file', id: 21, title: 'Plan.pdf', messages: ['No.'] }],
+            }));
+            const reported = statusMessages();
+            const wrapper = browser(topLevel(undefined, { view: 'tiles' }));
+
+            await tile(wrapper, 'file:21').trigger('dragstart', itemDrag());
+            await tile(wrapper, 'folder:11').trigger('drop', itemDrag());
+            await flushPromises();
+
+            expect(reported.at(-1).message).toBe('Plan.pdf: No.');
+            expect(globalThis.humhubStubs.logCalls.error).toHaveLength(0);
+            expect(globalThis.humhubStubs.client.get).toHaveBeenCalledTimes(1);
+        });
+
+        it('logs a dragged move that failed without a reason and reloads', async () => {
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject({ status: 500 }));
             const wrapper = browser(topLevel(undefined, { view: 'tiles' }));
 
             await tile(wrapper, 'file:21').trigger('dragstart', itemDrag());
@@ -1288,7 +1320,7 @@ describe('CfilesFileBrowser', () => {
             await wrapper.find('.drop-zone').trigger('drop', fileDrag());
             await flushPromises();
 
-            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parent')).toBe('9');
+            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parentFolderId')).toBe('9');
             const placeholder = wrapper.find('.tile.is-uploading');
             expect(placeholder.exists()).toBe(true);
             expect(placeholder.text()).toContain('a.txt');
@@ -1317,7 +1349,7 @@ describe('CfilesFileBrowser', () => {
             expect(cfg.data).toEqual({
                 containerId: 5,
                 items: [{ type: 'file', id: 21 }, { type: 'file', id: 22 }],
-                targetFolderId: 11,
+                parentFolderId: 11,
             });
         });
 
@@ -1345,7 +1377,7 @@ describe('CfilesFileBrowser', () => {
 
             const [url, cfg] = globalThis.humhubStubs.client.post.mock.calls[0];
             expect(url).toContain('cfiles/items/move');
-            expect(cfg.data.targetFolderId).toBeNull();
+            expect(cfg.data.parentFolderId).toBeNull();
             expect(cfg.data.items).toEqual([{ type: 'file', id: 21 }]);
             expect(wrapper.findAll('li.breadcrumb-item')[0].classes()).not.toContain('is-drop-target');
         });
@@ -1356,7 +1388,7 @@ describe('CfilesFileBrowser', () => {
             await wrapper.findAll('li.breadcrumb-item')[1].trigger('drop', fileDrag());
             await flushPromises();
 
-            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parent')).toBe('7');
+            expect(globalThis.humhubStubs.client.post.mock.calls[0][1].data.get('parentFolderId')).toBe('7');
         });
 
         it('never offers a folder as a drop target for itself', async () => {
@@ -1563,7 +1595,7 @@ describe('CfilesFileBrowser', () => {
             await locations[0].trigger('click');
             await flushPromises();
 
-            expect(lastUrl()).toContain('parent=8');
+            expect(lastUrl()).toContain('parentFolderId=8');
             expect(lastUrl()).toContain('q=logo');
             const params = new URLSearchParams(window.location.search);
             expect(params.get('fid')).toBe('8');
@@ -1579,7 +1611,7 @@ describe('CfilesFileBrowser', () => {
             await wrapper.find('.cfiles-row .cfiles-row-name a').trigger('click');
             await flushPromises();
 
-            expect(lastUrl()).toContain('parent=11');
+            expect(lastUrl()).toContain('parentFolderId=11');
             expect(lastUrl()).toContain('type=image');
             expect(window.location.search).toContain('type=image');
         });
@@ -1593,7 +1625,7 @@ describe('CfilesFileBrowser', () => {
             await wrapper.find('a.path-bar-root').trigger('click');
             await flushPromises();
 
-            expect(lastUrl()).not.toContain('parent=');
+            expect(lastUrl()).not.toContain('parentFolderId=');
             expect(lastUrl()).toContain('q=logo');
         });
 
@@ -1667,7 +1699,7 @@ describe('CfilesFileBrowser', () => {
             window.dispatchEvent(new Event('popstate'));
             await flushPromises();
 
-            expect(lastUrl()).not.toContain('parent=');
+            expect(lastUrl()).not.toContain('parentFolderId=');
             expect(lastUrl()).toContain('q=logo');
         });
 
@@ -1840,7 +1872,7 @@ describe('CfilesFileBrowser', () => {
             window.dispatchEvent(new Event('popstate'));
             await flushPromises();
 
-            expect(lastUrl()).not.toContain('parent=');
+            expect(lastUrl()).not.toContain('parentFolderId=');
             expect(lastUrl()).toContain('q=logo');
             expect(wrapper.vm.filterValues.q).toBe('logo');
         });

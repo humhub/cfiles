@@ -35,7 +35,8 @@ const listParams = ({ sort, page, pageSize, filters = {} }, params = {}) => {
 
 /**
  * One level of a container's tree. `parent` is a folder id, or null for the top level, which
- * has no folder record of its own — that is why the container is what the URL addresses.
+ * has no folder record of its own — that is why the container is what the URL addresses. It
+ * travels as `parentFolderId`, as everywhere the API names the folder of a level.
  *
  * `sort` is a key of the list's sort select (`default` = the module's order, forgetting the
  * one the user chose last; left out = the one the user chose last), `pageSize` the page the
@@ -45,7 +46,7 @@ const listParams = ({ sort, page, pageSize, filters = {} }, params = {}) => {
  * answers `422` for a parameter it does not know: send only its own filters.
  */
 export const loadItems = (containerId, parent, options = {}) =>
-    client.get(apiUrl('cfiles/' + containerId + '/items', listParams(options, parent ? { parent } : {})));
+    client.get(apiUrl('cfiles/' + containerId + '/items', listParams(options, parent ? { parentFolderId: parent } : {})));
 
 /**
  * The top level of the global files page (`GET cfiles/items`, `GlobalFolderList`): a tile per
@@ -69,7 +70,7 @@ export const savePreferences = ({ view }) =>
 
 export const createFolder = (containerId, parent, attributes) =>
     client.post(apiUrl('cfiles/' + containerId + '/folders'), {
-        data: { ...attributes, parent },
+        data: { ...attributes, parentFolderId: parent },
     });
 
 export const updateItem = (item, attributes) =>
@@ -80,9 +81,12 @@ const MAX_ITEMS = 200;
 
 /**
  * Sends `items` in requests of at most `MAX_ITEMS`, one after the other, and answers like a
- * single request: the `results` and `errors` of all of them. Rejected like a single request
- * when no batch carried anything out, or when one failed without naming its items (a server
- * error) — whatever the others did, that batch's items are in an unknown state.
+ * single request: the `results` and `errors` (`{type, id, title?, messages}`) of all of them.
+ *
+ * Rejected when a request failed as a whole (a server error, a refusal) — whatever the others
+ * did, that batch's items are in an unknown state —, and with `{errors}` when none of the
+ * items was carried out: the server answers that with a 200 and the reasons per item, but for
+ * the caller nothing happened.
  */
 const inBatches = (items, send) => {
     const batches = [];
@@ -92,36 +96,35 @@ const inBatches = (items, send) => {
 
     const results = [];
     const errors = [];
-    let refused = null;
     let broken = null;
 
     const sendOne = (batch) => send(batch).then((response) => {
         results.push(...(response.results || []));
         errors.push(...(response.errors || []));
     }, (response) => {
-        if (Array.isArray(response?.errors)) {
-            refused = refused || response;
-            errors.push(...response.errors);
-        } else {
-            broken = broken || response;
-        }
+        broken = broken || response;
     });
 
     return batches.reduce((chain, batch) => chain.then(() => sendOne(batch)), Promise.resolve()).then(() => {
         if (broken) {
-            throw broken;
+            return Promise.reject(broken);
         }
-        if (refused && results.length === 0) {
-            refused.errors = errors;
-            throw refused;
+        if (results.length === 0 && errors.length) {
+            return Promise.reject({ errors });
         }
         return { results, errors };
     });
 };
 
-export const moveItems = (containerId, items, targetFolderId) => inBatches(items, (batch) =>
+/** What went wrong with one item of a batch, as one line: `title: messages`. */
+export const errorText = (error) => [error.title || error.fileName, (error.messages || []).join(' ')]
+    .filter(Boolean)
+    .join(': ');
+
+/** Moves `items` into the folder `parentFolderId` of the container, null for its top level. */
+export const moveItems = (containerId, items, parentFolderId) => inBatches(items, (batch) =>
     client.post(apiUrl('cfiles/items/move'), {
-        data: { containerId, items: batch.map(descriptor), targetFolderId },
+        data: { containerId, items: batch.map(descriptor), parentFolderId },
     }));
 
 export const deleteItems = (items) => inBatches(items, (batch) =>
@@ -142,7 +145,7 @@ export const findConflicts = (containerId, parent, names) => {
     }
 
     return Promise.all(batches.map((batch) => client.get(apiUrl('cfiles/' + containerId + '/conflicts', {
-        ...(parent ? { parent } : {}),
+        ...(parent ? { parentFolderId: parent } : {}),
         names: batch,
     })))).then((responses) => responses.flatMap((response) => response.conflicts || []));
 };
@@ -150,7 +153,8 @@ export const findConflicts = (containerId, parent, names) => {
 /**
  * Uploads a batch of files to one level of the tree. A file named in `replace` is stored as a
  * new version of the file of that name, where the caller may change it; any other name taken
- * is indexed (`report(1).pdf`).
+ * is indexed (`report(1).pdf`). Answers `{results, errors}` — `{fileName, messages}` per file
+ * that could not be added, also when none could.
  *
  * Goes through the platform client rather than a hand-rolled XMLHttpRequest, which is what
  * makes it work at all: Yii's ajax prefilter is what attaches the CSRF token, and a
@@ -169,7 +173,7 @@ export const uploadFiles = (containerId, parent, files, onProgress, replace = []
     replace.forEach((name) => form.append('replace[]', name));
 
     if (parent) {
-        form.append('parent', parent);
+        form.append('parentFolderId', parent);
     }
 
     return client.post(apiUrl('cfiles/' + containerId + '/files'), {
@@ -200,7 +204,7 @@ export const uploadFiles = (containerId, parent, files, onProgress, replace = []
  * spreadsheet") created and announced with `humhub:file:created`. Answers like an upload.
  */
 export const attachFiles = (containerId, parent, guids) => client.post(apiUrl('cfiles/' + containerId + '/files'), {
-    data: parent ? { guids, parent } : { guids },
+    data: parent ? { guids, parentFolderId: parent } : { guids },
 });
 
 const descriptor = (item) => ({ type: item.type, id: item.id });

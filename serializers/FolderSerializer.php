@@ -32,7 +32,7 @@ class FolderSerializer
      *     recordId: int,
      *     title: string,
      *     description: string,
-     *     visibility: int,
+     *     visibility: string,
      *     parentFolderId: int|null,
      *     itemCount: int|null,
      *     createdAt: string|null,
@@ -57,7 +57,7 @@ class FolderSerializer
             'recordId' => RecordMap::getId($folder),
             'title' => (string)$folder->title,
             'description' => (string)$folder->description,
-            'visibility' => (int)$content->visibility,
+            'visibility' => ItemVisibility::name((int)$content->visibility),
             'parentFolderId' => $folder->parent_folder_id ? (int)$folder->parent_folder_id : null,
             // Only filled where the list query counted children anyway; null means "not
             // counted", which a client renders as nothing rather than as zero.

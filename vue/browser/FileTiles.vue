@@ -41,7 +41,7 @@
                 :title="labelFor(item)"
                 @click="onOpen(item, $event)"
             >{{ labelFor(item) }}<i
-                v-if="item.visibility === 0"
+                v-if="item.visibility === 'private'"
                 class="ti ti-lock ms-1 text-muted"
                 role="img"
                 :aria-label="privateLabel"

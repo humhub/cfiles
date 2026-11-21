@@ -100,7 +100,7 @@ class ItemBatchActionTest extends HumHubDbTestCase
         Yii::$app->request->setBodyParams([
             'containerId' => $this->space->contentcontainer_id,
             'items' => $items,
-            'targetFolderId' => $target?->id,
+            'parentFolderId' => $target?->id,
         ]);
 
         return $this->controller()->actionMove();

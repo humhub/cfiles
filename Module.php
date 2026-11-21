@@ -16,6 +16,16 @@ use yii\helpers\Url;
 class Module extends ContentContainerModule
 {
     /**
+     * The OAuth scope a token needs to read files and folders through the API.
+     */
+    public const SCOPE_READ = 'cfiles:read';
+
+    /**
+     * The OAuth scope a token needs to add, change, move and delete files and folders.
+     */
+    public const SCOPE_WRITE = 'cfiles:write';
+
+    /**
      * @var int no effect: the core groups the new-content notifications of several uploaded files
      *      into one entry now. Kept so that a module configuration setting it does not fail with an
      *      unknown property.

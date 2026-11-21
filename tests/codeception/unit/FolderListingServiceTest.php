@@ -37,7 +37,7 @@ class FolderListingServiceTest extends HumHubDbTestCase
     {
         $folder = $this->addFolder('Empty');
 
-        $payload = $this->payload(['parent' => $folder->id]);
+        $payload = $this->payload(['parentFolderId' => $folder->id]);
 
         $this->assertSame([], $payload['results']);
         $this->assertSame(0, $payload['total']);
@@ -171,7 +171,7 @@ class FolderListingServiceTest extends HumHubDbTestCase
         );
 
         // Relative to the open folder, which is not part of it.
-        $inBrand = $this->payload(['parent' => $brand->id, 'q' => 'logo', 'sort' => 'name']);
+        $inBrand = $this->payload(['parentFolderId' => $brand->id, 'q' => 'logo', 'sort' => 'name']);
         $this->assertSame(
             ['Logos' => [], 'logo-brand.png' => [], 'logo-deep.png' => [['type' => 'folder', 'id' => $logos->id, 'title' => 'Logos']]],
             array_column($inBrand['results'], 'path', 'title'),

@@ -75,10 +75,10 @@ class FolderItemsActionTest extends HumHubDbTestCase
         $foreign = (new FolderContentService(Space::findOne(2)))->newFolder('Elsewhere', '');
         $this->assertTrue($foreign->save());
 
-        $answer = $this->items(['parent' => (string)$foreign->id]);
+        $answer = $this->items(['parentFolderId' => (string)$foreign->id]);
 
         $this->assertSame(422, Yii::$app->response->statusCode);
-        $this->assertArrayHasKey('parent', $answer['errors']);
+        $this->assertArrayHasKey('parentFolderId', $answer['errors']);
     }
 
     public function testAFilterValueTheListDoesNotKnowIsA422()

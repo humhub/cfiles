@@ -106,7 +106,7 @@ describe('CfilesFileBrowser on the global files page', () => {
 
             expect(itemCalls()).toHaveLength(1);
             expect(itemCalls()[0]).toContain('cfiles/7/items');
-            expect(itemCalls()[0]).not.toContain('parent=');
+            expect(itemCalls()[0]).not.toContain('parentFolderId=');
             expect(new URLSearchParams(window.location.search).get('space')).toBe('3');
             expect(wrapper.vm.container.contentContainerId).toBe(7);
             expect(wrapper.findAll('.cfiles-row')).toHaveLength(2);
@@ -151,7 +151,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             await flushPromises();
 
             expect(itemCalls()[0]).toContain('cfiles/7/items');
-            expect(itemCalls()[0]).not.toContain('parent=');
+            expect(itemCalls()[0]).not.toContain('parentFolderId=');
         });
     });
 
@@ -368,7 +368,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             await flushPromises();
 
             expect(itemCalls()[0]).toContain('cfiles/7/items');
-            expect(itemCalls()[0]).not.toContain('parent=');
+            expect(itemCalls()[0]).not.toContain('parentFolderId=');
             expect(itemCalls()[0]).toContain('q=logo');
             expect(new URLSearchParams(window.location.search).get('space')).toBe('3');
             expect(wrapper.findAll('.breadcrumb-item + .breadcrumb-item > a').map((link) => link.text())).toEqual([]);
@@ -382,7 +382,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             await flushPromises();
 
             expect(itemCalls()[0]).toContain('cfiles/7/items');
-            expect(itemCalls()[0]).toContain('parent=8');
+            expect(itemCalls()[0]).toContain('parentFolderId=8');
             const params = new URLSearchParams(window.location.search);
             expect(params.get('space')).toBe('3');
             expect(params.get('fid')).toBe('8');
@@ -579,7 +579,7 @@ describe('CfilesFileBrowser on the global files page', () => {
 
             expect(itemCalls()).toHaveLength(1);
             expect(itemCalls()[0]).toContain('cfiles/5/items');
-            expect(itemCalls()[0]).not.toContain('parent=');
+            expect(itemCalls()[0]).not.toContain('parentFolderId=');
         });
 
         it('goes back to it without pretty URLs', async () => {
@@ -592,7 +592,7 @@ describe('CfilesFileBrowser on the global files page', () => {
             await backToFirst('/index.php?r=cfiles%2Fbrowse&cguid=abc', wrapper);
 
             expect(itemCalls()).toHaveLength(1);
-            expect(itemCalls()[0]).not.toContain('parent=');
+            expect(itemCalls()[0]).not.toContain('parentFolderId=');
         });
 
         it('goes back to it on the global page opened by its route', async () => {

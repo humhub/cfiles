@@ -9,6 +9,7 @@
 namespace humhub\modules\cfiles\controllers\api;
 
 use humhub\modules\cfiles\models\File;
+use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\serializers\FileSerializer;
 use Yii;
@@ -27,6 +28,11 @@ class FileController extends BaseController
     /**
      * @inheritdoc
      */
+    protected array $scopes = ['*' => Module::SCOPE_WRITE];
+
+    /**
+     * @inheritdoc
+     */
     public function behaviors()
     {
         return ArrayHelper::merge(parent::behaviors(), [
@@ -40,8 +46,8 @@ class FileController extends BaseController
     }
 
     /**
-     * Renames a file, changes its description, its visibility or its topics (`topics`, see
-     * {@see self::topicsParam()}).
+     * Renames a file, changes its description, its visibility (`private` or `public`) or its
+     * topics (`topics`, see {@see self::topicsParam()}).
      *
      * Renaming means renaming the STORED file: a cfiles file has no title of its own, its
      * name is the platform file's `file_name` (see {@see File::getTitle()}). The two records
@@ -56,6 +62,11 @@ class FileController extends BaseController
         $topics = $this->topicsParam($file);
         if ($topics !== null && !$topics->isValid()) {
             return $this->validationErrors($topics->errors);
+        }
+
+        $visibility = $this->visibilityParam();
+        if ($visibility !== null && !$visibility->isValid()) {
+            return $this->validationErrors($visibility->errors);
         }
 
         $request = Yii::$app->request;
@@ -73,8 +84,8 @@ class FileController extends BaseController
             $file->description = (string)$request->getBodyParam('description');
         }
 
-        if ($request->getBodyParam('visibility') !== null) {
-            $file->visibility = (int)$request->getBodyParam('visibility');
+        if ($visibility !== null) {
+            $file->visibility = $visibility->value;
         }
 
         if ($topics !== null) {

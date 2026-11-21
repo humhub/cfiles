@@ -28,14 +28,14 @@ describe('moving and deleting many items', () => {
         await moveItems(7, items(201), 12);
 
         expect(sizes(post)).toEqual([200, 1]);
-        expect(post.mock.calls.every(([, { data }]) => data.containerId === 7 && data.targetFolderId === 12)).toBe(true);
+        expect(post.mock.calls.every(([, { data }]) => data.containerId === 7 && data.parentFolderId === 12)).toBe(true);
     });
 
     it('keeps the errors of a batch that carried nothing out when another one did', async () => {
-        const refused = { type: 'file', id: 201, title: 'x.txt', message: 'You cannot delete this.' };
-        globalThis.humhubStubs.client.post = vi.fn((url, { data }) => (data.items.length === 200
-            ? Promise.resolve({ results: data.items, errors: [] })
-            : Promise.reject({ errors: [refused] })));
+        const refused = { type: 'file', id: 201, title: 'x.txt', messages: ['You cannot delete this.'] };
+        globalThis.humhubStubs.client.post = vi.fn((url, { data }) => Promise.resolve(data.items.length === 200
+            ? { results: data.items, errors: [] }
+            : { results: [], errors: [refused] }));
 
         const answer = await deleteItems(items(201));
 
@@ -43,11 +43,19 @@ describe('moving and deleting many items', () => {
         expect(answer.errors).toEqual([refused]);
     });
 
-    it('fails like one request when no batch carried anything out', async () => {
-        const failure = { errors: [{ type: 'file', id: 1, message: 'Nope' }] };
-        globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject(failure));
+    // The server answers 200 with the errors per item also when it carried out none of them.
+    it('fails with the errors of all items when no batch carried anything out', async () => {
+        const errors = [{ type: 'file', id: 1, messages: ['Nope'] }];
+        globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({ results: [], errors }));
 
-        await expect(deleteItems(items(3))).rejects.toBe(failure);
+        await expect(deleteItems(items(3))).rejects.toEqual({ errors });
+    });
+
+    it('fails like the request when the server refused it as a whole', async () => {
+        const refusal = { status: 422, errors: { items: ['items cannot be blank.'] } };
+        globalThis.humhubStubs.client.post = vi.fn(() => Promise.reject(refusal));
+
+        await expect(deleteItems(items(3))).rejects.toBe(refusal);
     });
 
     it('fails when a batch failed without saying which items, even if another one went through', async () => {

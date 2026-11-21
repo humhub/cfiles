@@ -229,7 +229,7 @@ export default {
             return formatSize(this.item.size);
         },
         visibility() {
-            return this.item.visibility === 0
+            return this.item.visibility === 'private'
                 ? i18n.t('CfilesModule.base', 'Private')
                 : i18n.t('CfilesModule.base', 'Public');
         },

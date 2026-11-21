@@ -97,7 +97,7 @@ class ConflictsActionTest extends HumHubDbTestCase
 
     private function conflicts($names, ?Folder $parent = null): array
     {
-        Yii::$app->request->setQueryParams(['names' => $names, 'parent' => $parent?->id]);
+        Yii::$app->request->setQueryParams(['names' => $names, 'parentFolderId' => $parent?->id]);
 
         return (new FolderController('folder', Yii::$app->getModule('cfiles')))
             ->actionConflicts($this->space->contentcontainer_id);
