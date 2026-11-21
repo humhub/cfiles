@@ -131,10 +131,12 @@ class ItemMoveService
             return $item;
         }
 
-        // Same name as an existing folder: merge into it rather than creating a second one.
+        // Same name as an existing folder: merge into it rather than creating a second one —
+        // with everything inside it, also what the mover cannot see (the draft of someone else,
+        // an item in the trash), since the folder is deleted afterwards.
         $failed = false;
 
-        foreach ((new FolderContentService($container, $item))->children() as $child) {
+        foreach (self::subItems($item) as $child) {
             if (self::moveInto($container, $existing, $child)) {
                 continue;
             }

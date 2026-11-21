@@ -58,6 +58,7 @@ Changelog
 - Enh: The folder dialog of Move and Copy opens on the folder the items are in, with the way to it expanded (as the dialog of 0.19 did), can be used with the keyboard — a tree: the arrow keys walk and open the folders, Enter chooses one —, and lists all subfolders of a folder rather than the first 200.
 - Fix: Opening a folder from the list or the path bar, and clearing the selection from its menu, left the focus nowhere: it is on the open level in the path bar now. Escape clears the selection only when it is pressed in the browser and not in one of its text fields.
 - Fix: The dialog for a new folder preselected "Public" whatever the space's default. It preselects what a new item of the open folder gets now: the default content visibility of the space at its top level, the visibility of the folder inside one (`newItemVisibility` of the listing).
+- Fix: Making a folder private left the drafts of other users and the items in the trash inside it public, and merging a folder into one of the same name moved only what the user could see and deleted the rest with the folder.
 
 0.19.3 - November 3, 2026
 -------------------------

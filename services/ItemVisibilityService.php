@@ -53,17 +53,32 @@ class ItemVisibilityService
     {
         $folder->content->visibility = $visibility;
 
-        $content = new FolderContentService($folder->content->container, $folder);
+        foreach (self::reached($folder, $visibility) as $item) {
+            if ($item instanceof Folder) {
+                self::applyToFolder($item, $visibility);
+            } else {
+                $item->content->visibility = $visibility;
+            }
+            $item->content->save();
+        }
+    }
 
-        foreach ($content->subFiles() as $file) {
-            $file->content->visibility = $visibility;
-            $file->content->save();
+    /**
+     * What a change of the folder reaches inside it. Going private reaches everything, whatever
+     * its state and whoever may see it: nothing may stay more visible than the folder holding
+     * it, also not the draft of someone else, published later, or an item in the trash,
+     * restored later. Going public reaches what the user making the change can see — what they
+     * cannot see, they cannot decide to publish.
+     *
+     * @return FileSystemItem[]
+     */
+    private static function reached(Folder $folder, int $visibility): array
+    {
+        if ($visibility === Content::VISIBILITY_PRIVATE) {
+            return ItemMoveService::subItems($folder);
         }
 
-        foreach ($content->subFolders() as $subFolder) {
-            self::applyToFolder($subFolder, $visibility);
-            $subFolder->content->save();
-        }
+        return (new FolderContentService($folder->content->container, $folder))->children();
     }
 
     private static function applyToFile(File $file, int $visibility): void
