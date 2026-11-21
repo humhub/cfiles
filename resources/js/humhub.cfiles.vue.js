@@ -2167,7 +2167,20 @@
           ...this.writable ? [{ id: "copy", sortOrder: 25, icon: "copy", label: vue.i18n.t("CfilesModule.base", "Copy"), onClick: () => this.openCopy(this.selectedItems) }] : [],
           { id: "delete", sortOrder: 30, icon: "trash", label: vue.i18n.t("CfilesModule.base", "Delete"), onClick: () => this.confirmDelete(this.selectedItems) },
           { id: "divider", sortOrder: 90, divider: true },
-          { id: "clear", sortOrder: 100, icon: "x", label: vue.i18n.t("CfilesModule.base", "Clear selection"), onClick: () => this.clearSelection() }
+          {
+            id: "clear",
+            sortOrder: 100,
+            icon: "x",
+            label: vue.i18n.t("CfilesModule.base", "Clear selection"),
+            // The menu goes with the selection, and the focus it had with it.
+            onClick: () => {
+              this.clearSelection();
+              this.$nextTick(() => {
+                var _a;
+                return (_a = this.$refs.pathBar) == null ? void 0 : _a.focusCurrent();
+              });
+            }
+          }
         ];
       },
       viewOptions() {
@@ -2514,20 +2527,36 @@
       onOpen(item) {
         var _a;
         if (item.type === "space") {
-          return this.open(null, { container: containerOf(item) });
+          return this.go(null, { container: containerOf(item) });
         }
         const space = item.space ?? ((_a = itemLocation(item)) == null ? void 0 : _a.space) ?? null;
         if (this.global && space && !sameContainer(containerOf(space), this.container)) {
-          return this.open(item.id, { container: containerOf(space) });
+          return this.go(item.id, { container: containerOf(space) });
         }
-        return this.open(item.id);
+        return this.go(item.id);
       },
       /** The path bar's `navigate`: on the global page the root is its top level. */
       onNavigate(id) {
         if (this.global && id === null) {
-          return this.open(null, { container: null });
+          return this.go(null, { container: null });
         }
-        return this.open(id === SPACE_CRUMB ? null : id);
+        return this.go(id === SPACE_CRUMB ? null : id);
+      },
+      /**
+       * `open()` for where the user went in the browser: once the level is shown, the focus
+       * is on it in the path bar — the row or crumb that had it may be gone with the level
+       * left, and the next Tab continues in the level reached.
+       */
+      go(folderId, options = {}) {
+        return this.open(folderId, options).then((shown) => {
+          if (shown) {
+            this.$nextTick(() => {
+              var _a;
+              return (_a = this.$refs.pathBar) == null ? void 0 : _a.focusCurrent();
+            });
+          }
+          return shown;
+        });
       },
       onPopState() {
         if (!isPageUrl(this.global ? this.globalUrl : this.browseUrl, window.location) && !isPageLocation(this.openedAt, window.location)) {
@@ -2670,6 +2699,10 @@
       },
       onKeydown(event) {
         if (event.key !== "Escape" || !this.selection.length || event.defaultPrevented || this.showMove || this.showCreate || this.showEdit) {
+          return;
+        }
+        const target = event.target;
+        if (target instanceof Element && target !== document.body && (!this.$el.contains(target) || target.closest('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable]'))) {
           return;
         }
         this.clearSelection();
@@ -3179,6 +3212,7 @@
         (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "card content-card p-2 cfiles-browser-card" }, $options.cardProps, vue$1.toHandlers($options.cardListeners)), {
           default: vue$1.withCtx(() => [
             vue$1.createVNode(_component_PathBar, {
+              ref: "pathBar",
               path: $options.crumbs,
               "root-label": $options.rootLabel,
               "root-url": $options.rootUrl,

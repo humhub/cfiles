@@ -40,6 +40,7 @@
                 <!-- At the global top level it is the root alone: no crumb below it, no
                      selection, no drop target (the top level holds spaces). -->
                 <PathBar
+                    ref="pathBar"
                     :path="crumbs"
                     :root-label="rootLabel"
                     :root-url="rootUrl"
@@ -548,7 +549,17 @@ export default {
                 ...(this.writable ? [{ id: 'copy', sortOrder: 25, icon: 'copy', label: i18n.t('CfilesModule.base', 'Copy'), onClick: () => this.openCopy(this.selectedItems) }] : []),
                 { id: 'delete', sortOrder: 30, icon: 'trash', label: i18n.t('CfilesModule.base', 'Delete'), onClick: () => this.confirmDelete(this.selectedItems) },
                 { id: 'divider', sortOrder: 90, divider: true },
-                { id: 'clear', sortOrder: 100, icon: 'x', label: i18n.t('CfilesModule.base', 'Clear selection'), onClick: () => this.clearSelection() },
+                {
+                    id: 'clear',
+                    sortOrder: 100,
+                    icon: 'x',
+                    label: i18n.t('CfilesModule.base', 'Clear selection'),
+                    // The menu goes with the selection, and the focus it had with it.
+                    onClick: () => {
+                        this.clearSelection();
+                        this.$nextTick(() => this.$refs.pathBar?.focusCurrent());
+                    },
+                },
             ];
         },
         viewOptions() {
@@ -951,20 +962,33 @@ export default {
          */
         onOpen(item) {
             if (item.type === 'space') {
-                return this.open(null, { container: containerOf(item) });
+                return this.go(null, { container: containerOf(item) });
             }
             const space = item.space ?? itemLocation(item)?.space ?? null;
             if (this.global && space && !sameContainer(containerOf(space), this.container)) {
-                return this.open(item.id, { container: containerOf(space) });
+                return this.go(item.id, { container: containerOf(space) });
             }
-            return this.open(item.id);
+            return this.go(item.id);
         },
         /** The path bar's `navigate`: on the global page the root is its top level. */
         onNavigate(id) {
             if (this.global && id === null) {
-                return this.open(null, { container: null });
+                return this.go(null, { container: null });
             }
-            return this.open(id === SPACE_CRUMB ? null : id);
+            return this.go(id === SPACE_CRUMB ? null : id);
+        },
+        /**
+         * `open()` for where the user went in the browser: once the level is shown, the focus
+         * is on it in the path bar — the row or crumb that had it may be gone with the level
+         * left, and the next Tab continues in the level reached.
+         */
+        go(folderId, options = {}) {
+            return this.open(folderId, options).then((shown) => {
+                if (shown) {
+                    this.$nextTick(() => this.$refs.pathBar?.focusCurrent());
+                }
+                return shown;
+            });
         },
         onPopState() {
             // An entry of another page (PJAX's, after navigating away) is none of ours. This page
@@ -1137,6 +1161,13 @@ export default {
             // An open dialog or menu takes its own Escape; the selection it acts on stays.
             if (event.key !== 'Escape' || !this.selection.length || event.defaultPrevented
                 || this.showMove || this.showCreate || this.showEdit) {
+                return;
+            }
+            // Only the browser's: not that of another part of the page (a modal, another
+            // island), nor that of a text field, which takes Escape itself.
+            const target = event.target;
+            if (target instanceof Element && target !== document.body
+                && (!this.$el.contains(target) || target.closest('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable]'))) {
                 return;
             }
             this.clearSelection();

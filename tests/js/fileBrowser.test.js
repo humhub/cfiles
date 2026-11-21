@@ -185,6 +185,66 @@ describe('CfilesFileBrowser', () => {
     });
 
     // Latest request wins: a response that was overtaken by a newer request is dropped.
+    describe('focus', () => {
+        // The row that held the focus is gone with the level it was on.
+        it('puts the focus on the open folder in the path after opening a folder from the list', async () => {
+            globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(insideFolder([fileRow({ parentFolderId: 11 })])));
+            const wrapper = mount(CfilesFileBrowser, { props: browserProps(topLevel()), attachTo: document.body });
+
+            const link = wrapper.find('.cfiles-row .cfiles-row-name a');
+            link.element.focus();
+            await link.trigger('click');
+            await flushPromises();
+
+            expect(document.activeElement.closest('[aria-current="page"]').textContent.trim()).toBe('sgadgasdg');
+            expect(wrapper.find('.path-bar').element.contains(document.activeElement)).toBe(true);
+        });
+
+        it('puts the focus on the level reached through the path bar', async () => {
+            globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(insideFolder([], {
+                folder: folderRow({ id: 7, title: 'test123' }),
+                path: [{ id: 7, title: 'test123', url: '/s/x/cfiles/browse/index?fid=7' }],
+            })));
+            const wrapper = mount(CfilesFileBrowser, { props: browserProps(insideFolder([fileRow({ parentFolderId: 9 })])), attachTo: document.body });
+
+            // The link to the parent, which becomes the current level — no link anymore.
+            const crumb = wrapper.find('.path-bar a[title="test123"]');
+            crumb.element.focus();
+            await crumb.trigger('click');
+            await flushPromises();
+
+            expect(document.activeElement.closest('[aria-current="page"]').textContent.trim()).toBe('test123');
+        });
+
+        // The selection menu that had the focus is gone with the selection.
+        it('puts the focus on the open level when the selection is cleared from its menu', async () => {
+            const wrapper = mount(CfilesFileBrowser, { props: browserProps(topLevel()), attachTo: document.body });
+
+            await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
+            const clear = wrapper.findAll('.selection-menu .dropdown-item').find((entry) => entry.text() === 'Clear selection');
+            clear.element.focus();
+            await clear.trigger('click');
+            await flushPromises();
+
+            expect(wrapper.vm.selection).toEqual([]);
+            expect(document.activeElement).toBe(wrapper.find('.path-bar-root').element);
+        });
+
+        // A reload, a popstate, a page of the browser opened from outside: the focus is the
+        // user's, wherever it is.
+        it('leaves the focus alone when the level changed without the user going there in the browser', async () => {
+            const wrapper = mount(CfilesFileBrowser, { props: browserProps(topLevel()), attachTo: document.body });
+            const elsewhere = document.body.appendChild(document.createElement('button'));
+            elsewhere.focus();
+
+            await wrapper.vm.reload();
+            await flushPromises();
+
+            expect(document.activeElement).toBe(elsewhere);
+            elsewhere.remove();
+        });
+    });
+
     describe('overlapping loads', () => {
         it('shows the later of two overlapping loads even when the earlier answers last', async () => {
             const first = deferred();
@@ -1224,6 +1284,40 @@ describe('CfilesFileBrowser', () => {
             await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
             await wrapper.vm.$nextTick();
+
+            expect(wrapper.vm.selection).toEqual([]);
+        });
+
+        // Another island, the page's search, a modal of the platform: their Escape is theirs.
+        it('leaves the selection alone on an Escape outside the browser', async () => {
+            const wrapper = browser(topLevel());
+            const elsewhere = document.body.appendChild(document.createElement('button'));
+
+            await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
+            elsewhere.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+            expect(wrapper.vm.selection).toEqual(['folder:11']);
+            elsewhere.remove();
+        });
+
+        // A text field takes its own Escape (clearing it, closing its suggestions).
+        it('leaves the selection alone on an Escape in a text field of the browser', async () => {
+            const wrapper = mount(CfilesFileBrowser, { props: browserProps(topLevel()), attachTo: document.body });
+
+            await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
+            const field = wrapper.find('input[type="search"], input[type="text"]');
+            expect(field.exists()).toBe(true);
+            field.element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+            expect(wrapper.vm.selection).toEqual(['folder:11']);
+        });
+
+        it('clears the selection on an Escape on one of its rows', async () => {
+            const wrapper = mount(CfilesFileBrowser, { props: browserProps(topLevel()), attachTo: document.body });
+
+            const box = wrapper.find('.cfiles-row input[type="checkbox"]');
+            await box.trigger('click');
+            box.element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 
             expect(wrapper.vm.selection).toEqual([]);
         });
