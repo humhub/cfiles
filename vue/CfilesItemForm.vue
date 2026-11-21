@@ -27,14 +27,9 @@
 
 <script>
 /**
- * Create/rename dialog for a file or a folder — one form for both kinds, and for both places
- * it is opened from: inline in the file browser, and inside the modal the stream's wall entry
- * controls load (`cfiles/edit/file`, see `controllers/EditController`). There is one edit
- * form in this module, not two.
- *
- * `standalone` is what tells the two callers apart. Inside the browser the form emits `saved`
- * and the list updates in place; opened from the stream there is no list to update and no
- * parent island to emit into, so it reloads the page the platform's modal is sitting on.
+ * Create/rename dialog for a file or a folder — one form for both kinds, opened in the file
+ * browser, which updates its list on `saved`. The stream's Edit control links into the browser
+ * rather than opening a form of its own: there is one edit form in this module, not two.
  *
  * Field names are bare (`title`, not `Folder[title]`): `HumHubForm` gets no `modelName`, so
  * the inputs and the API's 422 keys line up without a mapping step.
@@ -62,7 +57,6 @@ export default {
         contentContainerId: { type: Number, default: null },
         /** Set when creating a folder; null creates it at the container's top level. */
         parentFolderId: { type: Number, default: null },
-        standalone: { type: Boolean, default: false },
         /**
          * Creating, what the new folder is visible to unless the user chooses otherwise: what a
          * new item of its level gets (the level's `newItemVisibility`).
@@ -157,13 +151,6 @@ export default {
 
             request.then((saved) => {
                 this.busy = false;
-
-                if (this.standalone) {
-                    // Nothing here owns the surrounding page — hand it back to the platform.
-                    window.location.reload();
-                    return;
-                }
-
                 this.$emit('saved', saved);
             }).catch((response) => {
                 this.busy = false;

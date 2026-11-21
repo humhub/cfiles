@@ -3483,7 +3483,6 @@
       contentContainerId: { type: Number, default: null },
       /** Set when creating a folder; null creates it at the container's top level. */
       parentFolderId: { type: Number, default: null },
-      standalone: { type: Boolean, default: false },
       /**
        * Creating, what the new folder is visible to unless the user chooses otherwise: what a
        * new item of its level gets (the level's `newItemVisibility`).
@@ -3570,10 +3569,6 @@
         const request = this.isCreate ? createFolder(this.contentContainerId, this.parentFolderId, attributes) : updateItem(this.item, attributes);
         request.then((saved) => {
           this.busy = false;
-          if (this.standalone) {
-            window.location.reload();
-            return;
-          }
           this.$emit("saved", saved);
         }).catch((response) => {
           this.busy = false;
