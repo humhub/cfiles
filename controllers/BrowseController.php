@@ -16,6 +16,7 @@ use humhub\modules\cfiles\permissions\ManageFiles;
 use humhub\modules\cfiles\permissions\WriteAccess;
 use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\services\FirstListing;
+use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\services\FolderListingService;
 use humhub\modules\content\components\ContentContainerController;
 use humhub\modules\space\models\Space;
@@ -126,13 +127,9 @@ class BrowseController extends ContentContainerController
             return null;
         }
 
-        $folder = Folder::find()
-            ->contentContainer($this->contentContainer)
-            ->readable()
-            ->andWhere(['cfiles_folder.id' => $fid])
-            ->one();
+        $folder = (new FolderContentService($this->contentContainer))->readableFolder($fid);
 
-        if (!$folder instanceof Folder) {
+        if ($folder === null) {
             throw new HttpException(404);
         }
 

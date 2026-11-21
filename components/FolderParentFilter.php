@@ -12,7 +12,7 @@ use humhub\components\listing\FilterValue;
 use humhub\components\listing\ListBuilder;
 use humhub\components\listing\ListContext;
 use humhub\components\listing\ListFilter;
-use humhub\modules\cfiles\models\Folder;
+use humhub\modules\cfiles\services\FolderContentService;
 
 /**
  * `parentFolderId`: the folder whose contents are listed — a context filter, without UI. Absent (or
@@ -52,13 +52,9 @@ class FolderParentFilter extends ListFilter
             return $this->invalid($this->unknownValue($value));
         }
 
-        $folder = $context->container === null ? null : Folder::find()
-            ->contentContainer($context->container)
-            ->readable()
-            ->andWhere(['cfiles_folder.id' => (int)$value])
-            ->one();
+        $folder = $context->container === null ? null : (new FolderContentService($context->container))->readableFolder((int)$value);
 
-        return $folder instanceof Folder ? FilterValue::of($folder) : $this->invalid($this->unknownValue($value));
+        return $folder !== null ? FilterValue::of($folder) : $this->invalid($this->unknownValue($value));
     }
 
     /**

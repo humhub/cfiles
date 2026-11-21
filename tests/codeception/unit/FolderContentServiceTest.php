@@ -153,6 +153,22 @@ class FolderContentServiceTest extends HumHubDbTestCase
 
     // --- names of trashed items --------------------------------------------------------
 
+    /**
+     * A folder of the container the user may read — and nothing else, without telling which
+     * of the two it was not.
+     */
+    public function testAReadableFolderIsFoundByItsIdInItsContainerOnly()
+    {
+        $folder = $this->addFolder($this->spaceA, 'Projects');
+        $trashed = $this->addFolder($this->spaceA, 'Old');
+        $this->trash($trashed);
+
+        $this->assertSame((int)$folder->id, (int)(new FolderContentService($this->spaceA))->readableFolder($folder->id)?->id);
+        $this->assertNull((new FolderContentService($this->spaceB))->readableFolder($folder->id));
+        $this->assertNull((new FolderContentService($this->spaceA))->readableFolder($trashed->id));
+        $this->assertNull((new FolderContentService($this->spaceA))->readableFolder(999999));
+    }
+
     public function testATrashedFolderDoesNotBlockItsName()
     {
         $this->trash($this->addFolder($this->spaceA, 'Projects'));

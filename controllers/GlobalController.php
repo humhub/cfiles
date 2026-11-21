@@ -19,6 +19,7 @@ use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\services\BrowserPreferences;
 use humhub\modules\cfiles\services\FirstListing;
+use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\cfiles\services\FolderListingService;
 use humhub\modules\cfiles\services\GlobalListingService;
 use humhub\modules\space\models\Space;
@@ -248,12 +249,6 @@ class GlobalController extends Controller
             return null;
         }
 
-        $folder = Folder::find()
-            ->contentContainer($space)
-            ->readable()
-            ->andWhere(['cfiles_folder.id' => $fid])
-            ->one();
-
-        return $folder instanceof Folder ? $folder : null;
+        return (new FolderContentService($space))->readableFolder($fid);
     }
 }

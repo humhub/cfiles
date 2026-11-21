@@ -83,6 +83,22 @@ class FolderContentService
     }
 
     /**
+     * A folder of the container the user may read, by its id: null when the container holds no
+     * such folder and when the user may not see it — deliberately the same answer, so it does
+     * not confirm content the user may not see. Whatever level it is on.
+     */
+    public function readableFolder(int $id): ?Folder
+    {
+        $folder = Folder::find()
+            ->contentContainer($this->container)
+            ->readable()
+            ->andWhere(['cfiles_folder.id' => $id])
+            ->one();
+
+        return $folder instanceof Folder ? $folder : null;
+    }
+
+    /**
      * @return Folder[]
      */
     public function subFolders(array $order = ['title' => SORT_ASC]): array
