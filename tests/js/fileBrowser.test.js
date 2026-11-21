@@ -5,6 +5,7 @@ import CfilesItemForm from '../../vue/CfilesItemForm.vue';
 import ConflictDialog from '../../vue/browser/ConflictDialog.vue';
 import FilterBar from '@core/vue/FilterBar.vue';
 import { browserProps, fileRow, folderRow, insideFolder, results, topLevel } from './support/fixtures.mjs';
+import { keyOf } from '../../vue/browser/api';
 
 // The browser listens on `window` (popstate) and `document` (Escape): leaving instances mounted
 // would let one test's browser answer another test's events.
@@ -392,6 +393,21 @@ describe('CfilesFileBrowser', () => {
 
             expect(wrapper.vm.loadingMore).toBe(false);
             expect(wrapper.vm.page).toBe(1);
+        });
+
+        // An item added to the level since the first page pushes the rows down by one: the
+        // last row of the first page comes again as the first of the next.
+        it('appends no row of a further page that is already shown', async () => {
+            globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve(topLevel(
+                [fileRow(), fileRow({ id: 22, title: 'Zweite.pdf' })],
+                { page: 2, pages: 2 },
+            )));
+            const wrapper = browser(topLevel([folderRow(), fileRow()], { pages: 2 }));
+
+            wrapper.vm.loadMore();
+            await flushPromises();
+
+            expect(wrapper.vm.items.map(keyOf)).toEqual(['folder:11', 'file:21', 'file:22']);
         });
 
         // The reload replaces the rows the further page would be appended to.

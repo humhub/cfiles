@@ -1113,7 +1113,10 @@ export default {
                     if (stale()) {
                         return;
                     }
-                    this.items = this.items.concat(payload.results);
+                    // Pages are offsets: an item added to the level since the last one pushed
+                    // its rows down, and a row shown already comes again.
+                    const shown = new Set(this.items.map(keyOf));
+                    this.items = this.items.concat(payload.results.filter((row) => !shown.has(keyOf(row))));
                     // A further page brings the like states of its own rows only.
                     this.likeStates = { ...this.likeStates, ...(payload.likeStates || {}) };
                     this.page = payload.page;

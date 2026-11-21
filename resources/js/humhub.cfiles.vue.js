@@ -2656,7 +2656,8 @@
           if (stale()) {
             return;
           }
-          this.items = this.items.concat(payload.results);
+          const shown = new Set(this.items.map(keyOf));
+          this.items = this.items.concat(payload.results.filter((row) => !shown.has(keyOf(row))));
           this.likeStates = { ...this.likeStates, ...payload.likeStates || {} };
           this.page = payload.page;
           this.pages = payload.pages;
