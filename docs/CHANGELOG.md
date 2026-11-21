@@ -59,6 +59,7 @@ Changelog
 - Fix: Opening a folder from the list or the path bar, and clearing the selection from its menu, left the focus nowhere: it is on the open level in the path bar now. Escape clears the selection only when it is pressed in the browser and not in one of its text fields.
 - Fix: The dialog for a new folder preselected "Public" whatever the space's default. It preselects what a new item of the open folder gets now: the default content visibility of the space at its top level, the visibility of the folder inside one (`newItemVisibility` of the listing).
 - Fix: Making a folder private left the drafts of other users and the items in the trash inside it public, and merging a folder into one of the same name moved only what the user could see and deleted the rest with the folder.
+- Enh: `Folder::getFiles()` is the core's relation to the files attached to the folder again; the files inside a folder are `Folder::getSubFiles()`.
 
 0.19.3 - November 3, 2026
 -------------------------

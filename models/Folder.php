@@ -207,7 +207,7 @@ class Folder extends FileSystemItem
             $folder->delete();
         }
 
-        foreach ($this->files as $file) {
+        foreach ($this->subFiles as $file) {
             $file->delete();
         }
 
@@ -223,7 +223,7 @@ class Folder extends FileSystemItem
             $folder->hardDelete();
         }
 
-        foreach ($this->files as $file) {
+        foreach ($this->subFiles as $file) {
             $file->hardDelete();
         }
 
@@ -231,9 +231,14 @@ class Folder extends FileSystemItem
     }
 
     /**
+     * The files directly inside the folder. Not `files`: that is the relation of every content
+     * record to the files attached to it, which the core's file manager reads
+     * ({@see \humhub\modules\content\components\ContentActiveRecord::getFiles()}).
+     *
      * @return ActiveQuery of all direct child files
+     * @since 1.0
      */
-    public function getFiles()
+    public function getSubFiles()
     {
         return $this->hasMany(File::class, ['parent_folder_id' => 'id'])
                         ->joinWith('baseFile')

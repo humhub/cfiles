@@ -12,6 +12,7 @@ use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\space\models\Space;
 use tests\codeception\_support\HumHubDbTestCase;
+use Yii;
 
 /**
  * The folder model's own rules.
@@ -101,6 +102,24 @@ class FolderTest extends HumHubDbTestCase
         $this->assertTrue($parent->hardDelete());
         $this->assertNull(Folder::findOne(['id' => $parent->id]));
         $this->assertNull(Folder::findOne(['id' => $child->id]));
+    }
+
+    /**
+     * `files` is the relation every content record has: the files attached to it. The files
+     * inside a folder are its `subFiles`.
+     */
+    public function testTheFilesOfAFolderAreThoseAttachedToItNotThoseInsideIt()
+    {
+        $folder = $this->addFolder('Projects');
+        $path = Yii::getAlias('@runtime') . '/' . uniqid() . '-plan.txt';
+        file_put_contents($path, 'test');
+        $file = (new FolderContentService($this->space, $folder))->addFileFromPath('plan.txt', $path);
+        $this->assertFalse($file->hasErrors(), implode(' ', $file->getFirstErrors()));
+
+        $folder = Folder::findOne($folder->id);
+
+        $this->assertSame([], $folder->files);
+        $this->assertSame([(int)$file->id], array_map(static fn($sub) => (int)$sub->id, $folder->subFiles));
     }
 
     private function addFolder(string $title, ?Folder $parent = null): Folder
