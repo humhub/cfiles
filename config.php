@@ -37,6 +37,7 @@ return [
         ['pattern' => 'api/v2/cfiles/folder/<id:\d+>', 'route' => 'cfiles/api/folder/update', 'verb' => 'PATCH'],
         ['pattern' => 'api/v2/cfiles/file/<id:\d+>', 'route' => 'cfiles/api/file/update', 'verb' => 'PATCH'],
         ['pattern' => 'api/v2/cfiles/items/move', 'route' => 'cfiles/api/item/move', 'verb' => 'POST'],
+        ['pattern' => 'api/v2/cfiles/items/copy', 'route' => 'cfiles/api/item/copy', 'verb' => 'POST'],
         ['pattern' => 'api/v2/cfiles/items/delete', 'route' => 'cfiles/api/item/delete', 'verb' => 'POST'],
         // The caller's own browser preferences (the view), not tied to a container.
         ['pattern' => 'api/v2/cfiles/preferences', 'route' => 'cfiles/api/preferences/update', 'verb' => 'PATCH'],

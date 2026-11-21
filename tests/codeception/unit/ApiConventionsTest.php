@@ -185,7 +185,7 @@ class ApiConventionsTest extends HumHubDbTestCase
         $expected = [
             [new FolderController('folder', $module), ['items', 'suggestions', 'conflicts'], ['create', 'update', 'upload']],
             [new FileController('file', $module), [], ['update']],
-            [new ItemController('item', $module), [], ['move', 'delete']],
+            [new ItemController('item', $module), [], ['move', 'copy', 'delete']],
             [new GlobalController('global', $module), ['items', 'suggestions'], []],
             [new PreferencesController('preferences', $module), [], ['update']],
         ];

@@ -1374,6 +1374,9 @@
   const moveItems = (containerId, items, parentFolderId) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/move"), {
     data: { containerId, items: batch.map(descriptor), parentFolderId }
   }));
+  const copyItems = (containerId, items, parentFolderId) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/copy"), {
+    data: { containerId, items: batch.map(descriptor), parentFolderId }
+  }));
   const deleteItems = (items) => inBatches(items, (batch) => vue.client.post(vue.apiUrl("cfiles/items/delete"), { data: { items: batch.map(descriptor) } }));
   const NAMES_PER_CHECK = 50;
   const findConflicts = (containerId, parent, names) => {
@@ -1520,6 +1523,8 @@
       contentContainerId: { type: Number, required: true },
       // Items being moved — they and their descendants are not valid targets.
       items: { type: Array, default: () => [] },
+      /** `move` or `copy` — what the chosen folder is for. */
+      mode: { type: String, default: "move" },
       busy: { type: Boolean, default: false },
       error: { type: String, default: null }
     },
@@ -1540,11 +1545,14 @@
       }
     },
     computed: {
+      isCopy() {
+        return this.mode === "copy";
+      },
       title() {
-        return vue.i18n.t("CfilesModule.base", "Move");
+        return this.confirmLabel;
       },
       intro() {
-        return vue.i18n.t("CfilesModule.base", "Choose the folder to move the selection into.");
+        return this.isCopy ? vue.i18n.t("CfilesModule.base", "Choose the folder to copy the selection into.") : vue.i18n.t("CfilesModule.base", "Choose the folder to move the selection into.");
       },
       rootLabel() {
         return vue.i18n.t("CfilesModule.base", "Files");
@@ -1552,8 +1560,8 @@
       cancelLabel() {
         return vue.i18n.t("base", "Cancel");
       },
-      moveLabel() {
-        return vue.i18n.t("CfilesModule.base", "Move");
+      confirmLabel() {
+        return this.isCopy ? vue.i18n.t("CfilesModule.base", "Copy") : vue.i18n.t("CfilesModule.base", "Move");
       },
       movedFolderIds() {
         return this.items.filter((item) => item.type === "folder").map((item) => item.id);
@@ -1626,7 +1634,7 @@
           class: "btn btn-primary",
           disabled: $data.selectedId === void 0 || $props.busy,
           onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("confirm", $data.selectedId))
-        }, vue$1.toDisplayString($options.moveLabel), 9, _hoisted_6$1)
+        }, vue$1.toDisplayString($options.confirmLabel), 9, _hoisted_6$1)
       ]),
       default: vue$1.withCtx(() => [
         vue$1.createElementVNode("p", _hoisted_1$3, vue$1.toDisplayString($options.intro), 1),
@@ -1873,6 +1881,8 @@
         // The panel's tab, kept when another item's details are opened.
         detailsTab: "info",
         showMove: false,
+        /** What the folder dialog is open for: `move` or `copy`. */
+        transferMode: "move",
         moveItemsList: [],
         moveBusy: false,
         moveError: null,
@@ -2040,6 +2050,7 @@
         return [
           { id: "select-all", sortOrder: 10, icon: "checks", label: vue.i18n.t("CfilesModule.base", "Select all"), onClick: () => this.selectAll() },
           ...this.movable ? [{ id: "move", sortOrder: 20, icon: "arrows-left-right", label: vue.i18n.t("CfilesModule.base", "Move"), onClick: () => this.openMove(this.selectedItems) }] : [],
+          ...this.writable ? [{ id: "copy", sortOrder: 25, icon: "copy", label: vue.i18n.t("CfilesModule.base", "Copy"), onClick: () => this.openCopy(this.selectedItems) }] : [],
           { id: "delete", sortOrder: 30, icon: "trash", label: vue.i18n.t("CfilesModule.base", "Delete"), onClick: () => this.confirmDelete(this.selectedItems) },
           { id: "divider", sortOrder: 90, divider: true },
           { id: "clear", sortOrder: 100, icon: "x", label: vue.i18n.t("CfilesModule.base", "Clear selection"), onClick: () => this.clearSelection() }
@@ -2593,6 +2604,16 @@
             onClick: () => this.openMove([item])
           },
           {
+            id: "cfiles-copy",
+            sortOrder: 55,
+            label: vue.i18n.t("CfilesModule.base", "Copy"),
+            icon: "copy",
+            // A copy is new content of the caller: reading the item and adding to the
+            // level is all it takes. Not at the global page's top level, as Move.
+            condition: () => this.writable,
+            onClick: () => this.openCopy([item])
+          },
+          {
             id: "cfiles-delete",
             sortOrder: 60,
             label: vue.i18n.t("CfilesModule.base", "Delete"),
@@ -2645,9 +2666,17 @@
         this.reload();
       },
       openMove(items) {
+        this.openFolderDialog(items, "move");
+      },
+      openCopy(items) {
+        this.openFolderDialog(items, "copy");
+      },
+      /** Opens the folder dialog for moving or copying (`mode`) the items. */
+      openFolderDialog(items, mode) {
         if (!items.length) {
           return;
         }
+        this.transferMode = mode;
         this.moveItemsList = items;
         this.moveError = null;
         this.showMove = true;
@@ -2675,6 +2704,34 @@
               vue.log.error(response, true);
             }
             this.reload();
+          }
+        });
+      },
+      /**
+       * Copies the items into the folder `parentFolderId` of the open container, null for its
+       * top level — also the level they are on, where the copies get indexed names.
+       */
+      copyTo(parentFolderId, items) {
+        if (!items.length) {
+          this.showMove = false;
+          return;
+        }
+        this.moveBusy = true;
+        copyItems(this.container.contentContainerId, items, parentFolderId).then((response) => {
+          this.moveBusy = false;
+          this.showMove = false;
+          this.moveItemsList = [];
+          this.reportErrors(response.errors);
+          vue.status("success", vue.i18n.t("CfilesModule.base", "{count, plural, one{# item} other{# items}} copied", {
+            count: (response.results || []).length
+          }));
+          this.reload();
+        }).catch((response) => {
+          this.moveBusy = false;
+          const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
+          this.moveError = errors ? errorText(errors[0]) : vue.i18n.t("CfilesModule.base", "Could not copy the item!");
+          if (!errors) {
+            vue.log.error(response);
           }
         });
       },
@@ -3136,11 +3193,12 @@
         show: $data.showMove,
         "content-container-id": $data.container.contentContainerId,
         items: $data.moveItemsList,
+        mode: $data.transferMode,
         busy: $data.moveBusy,
         error: $data.moveError,
         onClose: _cache[14] || (_cache[14] = ($event) => $data.showMove = false),
-        onConfirm: _cache[15] || (_cache[15] = (id) => $options.moveTo(id, $data.moveItemsList))
-      }, null, 8, ["show", "content-container-id", "items", "busy", "error"])) : vue$1.createCommentVNode("", true),
+        onConfirm: _cache[15] || (_cache[15] = (id) => $data.transferMode === "copy" ? $options.copyTo(id, $data.moveItemsList) : $options.moveTo(id, $data.moveItemsList))
+      }, null, 8, ["show", "content-container-id", "items", "mode", "busy", "error"])) : vue$1.createCommentVNode("", true),
       vue$1.createVNode(_component_ConflictDialog, {
         show: $data.conflicts.length > 0,
         conflicts: $data.conflicts,

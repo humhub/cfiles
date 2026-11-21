@@ -35,14 +35,14 @@
                 class="btn btn-primary"
                 :disabled="selectedId === undefined || busy"
                 @click="$emit('confirm', selectedId)"
-            >{{ moveLabel }}</button>
+            >{{ confirmLabel }}</button>
         </template>
     </UiModal>
 </template>
 
 <script>
 /**
- * Folder picker for moving items.
+ * Folder picker for moving or copying items (`mode`).
  *
  * Lazily expanded: each node loads its own subfolders from the same listing endpoint the
  * browser uses (filtered to folders), so no separate tree endpoint exists. Phase 2's
@@ -57,6 +57,8 @@ export default {
         contentContainerId: { type: Number, required: true },
         // Items being moved — they and their descendants are not valid targets.
         items: { type: Array, default: () => [] },
+        /** `move` or `copy` — what the chosen folder is for. */
+        mode: { type: String, default: 'move' },
         busy: { type: Boolean, default: false },
         error: { type: String, default: null },
     },
@@ -79,11 +81,16 @@ export default {
         },
     },
     computed: {
+        isCopy() {
+            return this.mode === 'copy';
+        },
         title() {
-            return i18n.t('CfilesModule.base', 'Move');
+            return this.confirmLabel;
         },
         intro() {
-            return i18n.t('CfilesModule.base', 'Choose the folder to move the selection into.');
+            return this.isCopy
+                ? i18n.t('CfilesModule.base', 'Choose the folder to copy the selection into.')
+                : i18n.t('CfilesModule.base', 'Choose the folder to move the selection into.');
         },
         rootLabel() {
             return i18n.t('CfilesModule.base', 'Files');
@@ -91,8 +98,10 @@ export default {
         cancelLabel() {
             return i18n.t('base', 'Cancel');
         },
-        moveLabel() {
-            return i18n.t('CfilesModule.base', 'Move');
+        confirmLabel() {
+            return this.isCopy
+                ? i18n.t('CfilesModule.base', 'Copy')
+                : i18n.t('CfilesModule.base', 'Move');
         },
         movedFolderIds() {
             return this.items.filter((item) => item.type === 'folder').map((item) => item.id);
@@ -128,8 +137,8 @@ export default {
             loadItems(this.contentContainerId, node.id, { pageSize: 200 }).then((payload) => {
                 node.children = (payload.results || [])
                     .filter((row) => row.type === 'folder')
-                    // A folder cannot be moved into itself or into its own subtree; the
-                    // server refuses it too, but offering it as a target is just cruel.
+                    // A folder cannot be moved or copied into itself or into its own subtree;
+                    // the server refuses it too, but offering it as a target is just cruel.
                     .filter((row) => this.movedFolderIds.indexOf(row.id) === -1)
                     .map((row) => ({
                         id: row.id,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { deleteItems, findConflicts, moveItems } from '../../vue/browser/api';
+import { copyItems, deleteItems, findConflicts, moveItems } from '../../vue/browser/api';
 
 const items = (count) => Array.from({ length: count }, (_, index) => ({ type: 'file', id: index + 1 }));
 
@@ -29,6 +29,17 @@ describe('moving and deleting many items', () => {
 
         expect(sizes(post)).toEqual([200, 1]);
         expect(post.mock.calls.every(([, { data }]) => data.containerId === 7 && data.parentFolderId === 12)).toBe(true);
+    });
+
+    it('copies every batch to the same target', async () => {
+        const post = carryOut();
+        globalThis.humhubStubs.client.post = post;
+
+        await copyItems(7, items(201), null);
+
+        expect(post.mock.calls.map(([url]) => url).every((url) => url.includes('cfiles/items/copy'))).toBe(true);
+        expect(sizes(post)).toEqual([200, 1]);
+        expect(post.mock.calls.every(([, { data }]) => data.containerId === 7 && data.parentFolderId === null)).toBe(true);
     });
 
     it('keeps the errors of a batch that carried nothing out when another one did', async () => {

@@ -474,6 +474,51 @@ describe('CfilesFileBrowser', () => {
             expect(wrapper.vm.moveError).toBeTruthy();
         });
 
+        it('copies the selection into the folder chosen in the dialog', async () => {
+            const reported = statusMessages();
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({ results: [{ type: 'file', id: 99 }], errors: [] }));
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.openCopy([fileRow()]);
+            await flushPromises();
+            expect(wrapper.findComponent({ name: 'MoveDialog' }).props('mode')).toBe('copy');
+
+            wrapper.findComponent({ name: 'MoveDialog' }).vm.$emit('confirm', 11);
+            await flushPromises();
+
+            const [url, cfg] = globalThis.humhubStubs.client.post.mock.calls[0];
+            expect(url).toContain('cfiles/items/copy');
+            expect(cfg.data).toEqual({ containerId: 5, items: [{ type: 'file', id: 21 }], parentFolderId: 11 });
+            expect(wrapper.vm.showMove).toBe(false);
+            expect(reported.at(-1).message).toBe('1 item copied');
+            expect(globalThis.humhubStubs.client.get).toHaveBeenCalled();
+        });
+
+        // Unlike a move, a copy next to the original is something: `plan(1).txt`.
+        it('copies to the level the items are on', async () => {
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.copyTo(null, [fileRow()]);
+            await flushPromises();
+
+            expect(globalThis.humhubStubs.client.post.mock.calls[0][0]).toContain('cfiles/items/copy');
+        });
+
+        it('says in the dialog why nothing was copied', async () => {
+            globalThis.humhubStubs.client.post = vi.fn(() => Promise.resolve({
+                results: [],
+                errors: [{ type: 'folder', id: 11, title: 'Entwürfe', messages: ['Folder Entwürfe can\'t be copied into itself!'] }],
+            }));
+            const wrapper = browser(topLevel());
+
+            wrapper.vm.openCopy([folderRow()]);
+            wrapper.vm.copyTo(11, [folderRow()]);
+            await flushPromises();
+
+            expect(wrapper.vm.showMove).toBe(true);
+            expect(wrapper.vm.moveError).toBe('Entwürfe: Folder Entwürfe can\'t be copied into itself!');
+        });
+
         it('deletes nothing when the confirmation is declined', async () => {
             globalThis.humhubStubs.modal.confirm = vi.fn(() => Promise.resolve(false));
             const wrapper = browser(topLevel());
@@ -1107,16 +1152,16 @@ describe('CfilesFileBrowser', () => {
             await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
 
             expect(wrapper.findAll('.selection-menu .dropdown-item').map((e) => e.text()))
-                .toEqual(['Select all', 'Move', 'Delete', 'Clear selection']);
+                .toEqual(['Select all', 'Move', 'Copy', 'Delete', 'Clear selection']);
         });
 
-        it('offers no Move for the selection of a user who may not manage the files', async () => {
+        it('offers no Move for the selection of a user who may not manage the files, but Copy', async () => {
             const wrapper = browser(topLevel(undefined, { canManage: false }));
 
             await wrapper.find('.cfiles-row input[type="checkbox"]').trigger('click');
 
             expect(wrapper.findAll('.selection-menu .dropdown-item').map((e) => e.text()))
-                .toEqual(['Select all', 'Delete', 'Clear selection']);
+                .toEqual(['Select all', 'Copy', 'Delete', 'Clear selection']);
             expect(wrapper.find('.cfiles-row').attributes('draggable')).toBe('false');
         });
 
@@ -1912,23 +1957,26 @@ describe('CfilesFileBrowser', () => {
             }));
         });
 
-        it('offers Details, and Open for a folder or Download for a file, before anything is loaded', () => {
+        // Copy asks for no permission on the item, only for adding to the level.
+        it('offers Details, Open for a folder or Download for a file, and Copy before anything is loaded', () => {
             const wrapper = browser(topLevel([folderRow(), fileRow()]));
             const labels = wrapper.findAll('.cfiles-row').map(
                 (r) => r.findAll('.dropdown-item').map((i) => i.text()),
             );
 
-            expect(labels).toEqual([['Details', 'Open'], ['Details', 'Download']]);
+            expect(labels).toEqual([['Details', 'Open', 'Copy'], ['Details', 'Download', 'Copy']]);
         });
 
         it('adds the editing actions once the permissions are in', async () => {
             const wrapper = browser(topLevel([fileRow()]));
             await openMenu(wrapper);
 
-            expect(rowMenu(wrapper)).toEqual(['Details', 'Download', 'Edit', 'Move', 'Delete']);
+            expect(rowMenu(wrapper)).toEqual(['Details', 'Download', 'Edit', 'Move', 'Copy', 'Delete']);
         });
 
-        it('leaves out what the caller may not do', async () => {
+        // A copy is new content of the caller: reading the item and adding to the level is all
+        // it takes.
+        it('leaves out what the caller may not do, and offers Copy to whoever may add files', async () => {
             globalThis.humhubStubs.client.get = vi.fn(() => Promise.resolve({
                 entries: [],
                 capabilities: { canEdit: false, canDelete: false },
@@ -1936,7 +1984,14 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(topLevel([fileRow()]));
             await openMenu(wrapper);
 
-            expect(rowMenu(wrapper)).toEqual(['Details', 'Download']);
+            expect(rowMenu(wrapper)).toEqual(['Details', 'Download', 'Copy']);
+        });
+
+        it('offers no Copy to a user who may not add files', async () => {
+            const wrapper = browser(topLevel([fileRow()]), { canWrite: false });
+            await openMenu(wrapper);
+
+            expect(rowMenu(wrapper)).not.toContain('Copy');
         });
 
         // Moving needs the right to manage the files (the server's rule), editing one's own
@@ -1945,7 +2000,7 @@ describe('CfilesFileBrowser', () => {
             const wrapper = browser(topLevel([fileRow()], { canManage: false }));
             await openMenu(wrapper);
 
-            expect(rowMenu(wrapper)).toEqual(['Details', 'Download', 'Edit', 'Delete']);
+            expect(rowMenu(wrapper)).toEqual(['Details', 'Download', 'Edit', 'Copy', 'Delete']);
         });
 
         it('appends what the server contributed', async () => {

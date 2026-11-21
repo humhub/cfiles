@@ -76,7 +76,7 @@ export const createFolder = (containerId, parent, attributes) =>
 export const updateItem = (item, attributes) =>
     client.patch(apiUrl('cfiles/' + item.type + '/' + item.id), { data: attributes });
 
-/** How many items one move or delete request may carry (`ItemController::MAX_ITEMS`). */
+/** How many items one move, copy or delete request may carry (`ItemController::MAX_ITEMS`). */
 const MAX_ITEMS = 200;
 
 /**
@@ -124,6 +124,15 @@ export const errorText = (error) => [error.title || error.fileName, (error.messa
 /** Moves `items` into the folder `parentFolderId` of the container, null for its top level. */
 export const moveItems = (containerId, items, parentFolderId) => inBatches(items, (batch) =>
     client.post(apiUrl('cfiles/items/move'), {
+        data: { containerId, items: batch.map(descriptor), parentFolderId },
+    }));
+
+/**
+ * Copies `items` into the folder `parentFolderId` of the container, null for its top level;
+ * `results` are the copies. A copy next to its original gets an indexed name (`plan(1).txt`).
+ */
+export const copyItems = (containerId, items, parentFolderId) => inBatches(items, (batch) =>
+    client.post(apiUrl('cfiles/items/copy'), {
         data: { containerId, items: batch.map(descriptor), parentFolderId },
     }));
 

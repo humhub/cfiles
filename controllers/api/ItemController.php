@@ -11,6 +11,7 @@ namespace humhub\modules\cfiles\controllers\api;
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\Module;
+use humhub\modules\cfiles\services\ItemCopyService;
 use humhub\modules\cfiles\services\ItemMoveService;
 use Yii;
 use yii\filters\VerbFilter;
@@ -18,9 +19,9 @@ use yii\helpers\ArrayHelper;
 use yii\web\NotFoundHttpException;
 
 /**
- * Operations over a SET of files and folders — moving and deleting.
+ * Operations over a SET of files and folders — moving, copying and deleting.
  *
- * Both exist only in the bulk form, and a context menu acting on one row sends a
+ * They exist only in the bulk form, and a context menu acting on one row sends a
  * one-element `items` array. One way to delete beats two that have to stay in step. That is
  * also why a delete is an operation here (`POST items/delete`) rather than the `DELETE` of a
  * record: it acts on a set, and a `DELETE` carries no body to name one in.
@@ -56,6 +57,7 @@ class ItemController extends BaseController
                 'class' => VerbFilter::class,
                 'actions' => [
                     'move' => ['POST'],
+                    'copy' => ['POST'],
                     'delete' => ['POST'],
                 ],
             ],
@@ -111,6 +113,47 @@ class ItemController extends BaseController
     }
 
     /**
+     * Copies `items` into the folder `parentFolderId` of the container `containerId`, or to its
+     * top level ({@see ItemCopyService}); `results` are the copies. Any item the caller may read
+     * can be copied — also one of another container, and one they may not change. A folder that
+     * was copied without some of its contents is in `results` and in `errors`.
+     */
+    public function actionCopy()
+    {
+        $request = Yii::$app->request;
+        $container = $this->findContainer((int)$request->getBodyParam('containerId'));
+        $this->assertCanWrite($container);
+
+        $target = $this->findParent($container, $request->getBodyParam('parentFolderId'));
+
+        $refusal = $this->refusal();
+        if ($refusal !== null) {
+            return $refusal;
+        }
+
+        $copies = [];
+        $errors = [];
+
+        foreach ($this->requestedItems() as [$descriptor, $item]) {
+            if ($item === null) {
+                $errors[] = $this->missingError($descriptor);
+                continue;
+            }
+
+            $copy = ItemCopyService::copyInto($container, $target, $item);
+            if ($copy !== null) {
+                $copies[] = $this->descriptor($copy);
+            }
+
+            if ($item->hasErrors()) {
+                $errors[] = $this->itemError($item, ...array_merge(...array_values($item->getErrors())));
+            }
+        }
+
+        return ['results' => $copies, 'errors' => $errors];
+    }
+
+    /**
      * Deletes `items`.
      */
     public function actionDelete()
@@ -162,7 +205,7 @@ class ItemController extends BaseController
 
         if (count($items) > self::MAX_ITEMS) {
             return $this->validationErrors(['items' => [
-                Yii::t('CfilesModule.base', 'At most {count} items can be moved or deleted at once.', ['count' => self::MAX_ITEMS]),
+                Yii::t('CfilesModule.base', 'At most {count} items can be moved, copied or deleted at once.', ['count' => self::MAX_ITEMS]),
             ]]);
         }
 

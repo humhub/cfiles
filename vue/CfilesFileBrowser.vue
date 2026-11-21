@@ -136,10 +136,11 @@
             :show="showMove"
             :content-container-id="container.contentContainerId"
             :items="moveItemsList"
+            :mode="transferMode"
             :busy="moveBusy"
             :error="moveError"
             @close="showMove = false"
-            @confirm="(id) => moveTo(id, moveItemsList)"
+            @confirm="(id) => (transferMode === 'copy' ? copyTo(id, moveItemsList) : moveTo(id, moveItemsList))"
         />
 
         <ConflictDialog
@@ -237,7 +238,7 @@ import FileTiles from './browser/FileTiles.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
 import {
-    attachFiles, deleteItems, errorText, findConflicts, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
+    attachFiles, copyItems, deleteItems, errorText, findConflicts, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
 } from './browser/api';
 import {
     SPACE_CRUMB, TOPIC_KEY, appendFilters, containerOf, idsOf, isPageLocation, isPageUrl, isSet, levelFilters, levelKey, levelUrl,
@@ -364,6 +365,8 @@ export default {
             detailsTab: 'info',
 
             showMove: false,
+            /** What the folder dialog is open for: `move` or `copy`. */
+            transferMode: 'move',
             moveItemsList: [],
             moveBusy: false,
             moveError: null,
@@ -541,6 +544,7 @@ export default {
             return [
                 { id: 'select-all', sortOrder: 10, icon: 'checks', label: i18n.t('CfilesModule.base', 'Select all'), onClick: () => this.selectAll() },
                 ...(this.movable ? [{ id: 'move', sortOrder: 20, icon: 'arrows-left-right', label: i18n.t('CfilesModule.base', 'Move'), onClick: () => this.openMove(this.selectedItems) }] : []),
+                ...(this.writable ? [{ id: 'copy', sortOrder: 25, icon: 'copy', label: i18n.t('CfilesModule.base', 'Copy'), onClick: () => this.openCopy(this.selectedItems) }] : []),
                 { id: 'delete', sortOrder: 30, icon: 'trash', label: i18n.t('CfilesModule.base', 'Delete'), onClick: () => this.confirmDelete(this.selectedItems) },
                 { id: 'divider', sortOrder: 90, divider: true },
                 { id: 'clear', sortOrder: 100, icon: 'x', label: i18n.t('CfilesModule.base', 'Clear selection'), onClick: () => this.clearSelection() },
@@ -1183,6 +1187,16 @@ export default {
                     onClick: () => this.openMove([item]),
                 },
                 {
+                    id: 'cfiles-copy',
+                    sortOrder: 55,
+                    label: i18n.t('CfilesModule.base', 'Copy'),
+                    icon: 'copy',
+                    // A copy is new content of the caller: reading the item and adding to the
+                    // level is all it takes. Not at the global page's top level, as Move.
+                    condition: () => this.writable,
+                    onClick: () => this.openCopy([item]),
+                },
+                {
                     id: 'cfiles-delete',
                     sortOrder: 60,
                     label: i18n.t('CfilesModule.base', 'Delete'),
@@ -1237,9 +1251,17 @@ export default {
             this.reload();
         },
         openMove(items) {
+            this.openFolderDialog(items, 'move');
+        },
+        openCopy(items) {
+            this.openFolderDialog(items, 'copy');
+        },
+        /** Opens the folder dialog for moving or copying (`mode`) the items. */
+        openFolderDialog(items, mode) {
             if (!items.length) {
                 return;
             }
+            this.transferMode = mode;
             this.moveItemsList = items;
             this.moveError = null;
             this.showMove = true;
@@ -1274,6 +1296,37 @@ export default {
                         log.error(response, true);
                     }
                     this.reload();
+                }
+            });
+        },
+        /**
+         * Copies the items into the folder `parentFolderId` of the open container, null for its
+         * top level — also the level they are on, where the copies get indexed names.
+         */
+        copyTo(parentFolderId, items) {
+            if (!items.length) {
+                this.showMove = false;
+                return;
+            }
+
+            this.moveBusy = true;
+
+            copyItems(this.container.contentContainerId, items, parentFolderId).then((response) => {
+                this.moveBusy = false;
+                this.showMove = false;
+                this.moveItemsList = [];
+                this.reportErrors(response.errors);
+                status('success', i18n.t('CfilesModule.base', '{count, plural, one{# item} other{# items}} copied', {
+                    count: (response.results || []).length,
+                }));
+                this.reload();
+            }).catch((response) => {
+                this.moveBusy = false;
+                // Nothing copied: the reasons per item, or a request that failed as a whole.
+                const errors = Array.isArray(response?.errors) ? response.errors : null;
+                this.moveError = errors ? errorText(errors[0]) : i18n.t('CfilesModule.base', 'Could not copy the item!');
+                if (!errors) {
+                    log.error(response);
                 }
             });
         },
