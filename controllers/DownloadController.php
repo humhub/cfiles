@@ -28,7 +28,8 @@ class DownloadController extends ContentContainerController
     {
         $file = File::findOne(['guid' => $guid]);
 
-        if (!$file) {
+        // Not found rather than forbidden, and no redirect: its URL would name the file.
+        if (!$file || !$file->canView()) {
             throw new NotFoundHttpException();
         }
 

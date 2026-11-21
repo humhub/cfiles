@@ -60,6 +60,7 @@ Changelog
 - Fix: The dialog for a new folder preselected "Public" whatever the space's default. It preselects what a new item of the open folder gets now: the default content visibility of the space at its top level, the visibility of the folder inside one (`newItemVisibility` of the listing).
 - Fix: Making a folder private left the drafts of other users and the items in the trash inside it public, and merging a folder into one of the same name moved only what the user could see and deleted the rest with the folder.
 - Enh: `Folder::getFiles()` is the core's relation to the files attached to the folder again; the files inside a folder are `Folder::getSubFiles()`.
+- Fix: The download link of a file redirected for the GUID of any file, also of one the user may not read, and named it in the redirect.
 
 0.19.3 - November 3, 2026
 -------------------------
