@@ -4,14 +4,16 @@ Enhance your network's efficiency with the Files Module, a complete solution for
 
 ## Key Features
 
-- **File Overview:** Get instant access to all files from your stream and profile.
-- **Interact:** Comment on and like files for better collaboration and feedback.
-- **Folder Structure:** Organize your files into unlimited folders and subfolders.
+- **Folders:** Organize your files into folders and subfolders, as deep as you need.
 - **Two Displays:** Switch between a compact list and a tile grid with previews; your choice is remembered.
-- **Migration:** Effortlessly move files and folders within your network.
-- **File Info:** Always visible information about the creator, editor, and creation date.
-- **Import Files:** Import files and folder structures directly from a .zip file.
-- **Export Files:** Download folders and files in bulk as a .zip file.
+- **Drag & Drop Upload:** Drop files from your desktop into the open folder or onto any folder. When a name is taken, you choose: replace the file as a new version, keep both, or skip it.
+- **Move and Copy:** Move or copy files and folders through a folder dialog, or drag them where they belong.
+- **Search and Filters:** Find files by name and description, and narrow them down by author, file type and topic.
+- **Details:** See who created and changed a file and when, its versions and its history, and discuss it with comments and likes.
+- **Topics and Visibility:** Tag files and folders with topics, and keep them private or share them publicly — a folder passes its visibility on to its content.
+- **All Files at a Glance:** An optional page in the main navigation brings together the files of all your spaces.
+- **Works with Other Modules:** Create documents with the file handlers of other modules, and open files in their viewers and editors.
+- **API:** Read and manage files through the HumHub API (`/api/v2/cfiles`), with the scopes `cfiles:read` and `cfiles:write`.
 
 ## Development
 
