@@ -1,6 +1,8 @@
 /**
- * The selection of the file browser: which items of the level shown are selected — by their
- * key, so a selection survives a reload of the rows — and the selection's menu.
+ * The selection of the file browser: which items of the level shown are selected, by their
+ * key, and the selection's menu. Another level, or the level reloaded, starts without one
+ * (`applyPayload()`); the level brought up to date after an upload keeps what is still there
+ * (`refresh()`).
  *
  * Both views report clicks the same way (`toggle-select`, with `range` for Shift), so ranges
  * work alike in tiles and rows, in the order the level shows. Escape clears the selection, the

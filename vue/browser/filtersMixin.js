@@ -22,7 +22,7 @@
  * global) is refused there too.
  *
  * A mixin of the island, see its docblock. Uses the level shown (`container`, `folder`,
- * `isGlobalTop`, `total`, `reload()`); `open()` sends `levelFilters()` with every load.
+ * `isGlobalTop`, `total`, `reload()`); every load sends `levelFilters()` (`fetchLevel()`).
  */
 import { i18n, log } from '@humhub/vue';
 import { resolveTopics } from './api';
