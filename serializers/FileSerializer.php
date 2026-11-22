@@ -9,10 +9,9 @@
 namespace humhub\modules\cfiles\serializers;
 
 use humhub\components\api\Format;
-use humhub\libs\MimeHelper;
 use humhub\models\RecordMap;
 use humhub\modules\cfiles\models\File;
-use humhub\modules\file\converter\PreviewImage;
+use humhub\modules\file\serializers\FileSerializer as CoreFileSerializer;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\file\widgets\FileDownload;
 use humhub\modules\user\serializers\UserSerializer;
@@ -63,7 +62,8 @@ class FileSerializer
     {
         $content = $file->content;
         $baseFile = $file->baseFile;
-        $previewImage = new PreviewImage();
+        // The platform file as the core hands it out: type, size, icon, URL and preview.
+        $stored = $baseFile ? CoreFileSerializer::file($baseFile) : null;
 
         return [
             'type' => 'file',
@@ -80,22 +80,19 @@ class FileSerializer
             'title' => (string)$file->getTitle(),
             'description' => (string)$file->description,
             'visibility' => ItemVisibility::name((int)$content->visibility),
-            'mimeType' => $baseFile?->mime_type,
+            'mimeType' => $stored['mimeType'] ?? null,
             // The Tabler name of the file type's glyph, for the Vue browser's
-            // `<i class="ti ti-<icon>">` — see MimeHelper::getIconNameByExtension().
-            'icon' => $baseFile
-                ? MimeHelper::getIconNameByExtension(FileHelper::getExtension($baseFile->file_name))
-                : 'file',
-            'size' => (int)($baseFile?->size ?? 0),
+            // `<i class="ti ti-<icon>">` — see the core's FileSerializer.
+            'icon' => $stored['icon'] ?? 'file',
+            'size' => $stored['size'] ?? 0,
             // Opens the file the way the browser prefers (inline for what it can render).
-            'url' => $baseFile?->getUrl([], true),
+            'url' => $stored['url'] ?? null,
             // Forces a download and survives renames and content changes - see
             // humhub\modules\cfiles\controllers\DownloadController for why the indirection
             // exists.
             'downloadUrl' => self::downloadUrl($file),
-            'previewUrl' => $baseFile && $previewImage->applyFile($baseFile)
-                ? Url::to($previewImage->getUrl(), true)
-                : null,
+            // Created on its first request, not while a page of many images is built.
+            'previewUrl' => $stored['previewUrl'] ?? null,
             // Where clicking the name goes, and with which attributes — see self::link().
             'link' => self::link($file),
             'downloadCount' => (int)$file->download_count,

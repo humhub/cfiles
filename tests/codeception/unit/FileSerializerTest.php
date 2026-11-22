@@ -9,9 +9,11 @@
 namespace humhub\modules\cfiles\tests\codeception\unit;
 
 use humhub\modules\cfiles\serializers\FileSerializer;
+use humhub\modules\file\converter\PreviewImage;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\space\models\Space;
 use tests\codeception\_support\HumHubDbTestCase;
+use Yii;
 use yii\web\UploadedFile;
 
 /**
@@ -38,6 +40,23 @@ class FileSerializerTest extends HumHubDbTestCase
         // The same glyph the stream entry draws (see WallEntryFile::getIcon()) - one mapping,
         // read by both the API payload and the server-rendered entry.
         $this->assertSame('file-type-pdf', $file->getIcon());
+    }
+
+    public function testThePreviewOfAnImageIsCreatedOnItsFirstRequestNotWithTheRow()
+    {
+        $this->becomeUser('Admin');
+        $path = Yii::getAlias('@runtime') . '/' . uniqid() . '.png';
+        $image = imagecreatetruecolor(900, 600);
+        imagepng($image, $path);
+        $file = (new FolderContentService(Space::findOne(1)))->addFileFromPath('photo.png', $path);
+        unlink($path);
+        $this->assertFalse($file->hasErrors(), implode(' ', $file->getFirstErrors()));
+
+        $row = FileSerializer::file($file);
+
+        $this->assertStringContainsString(PreviewImage::VARIANT, (string)$row['previewUrl']);
+        $this->assertFalse($file->baseFile->store->has(PreviewImage::VARIANT));
+        $this->assertSame('image/png', $row['mimeType']);
     }
 
     public function testIconFallsBackToFileForAnUnknownExtension()
