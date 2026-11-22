@@ -2675,6 +2675,172 @@
       }
     }
   };
+  const navigationMixin = {
+    computed: {
+      rootUrl() {
+        return this.global ? this.folderUrl(null, null) : this.folderUrl(null);
+      },
+      /**
+       * The path bar's levels. On the global page the root is its top level and the space
+       * comes first — its top level, then its folders.
+       */
+      crumbs() {
+        const folders = (this.path || []).map((crumb) => ({ ...crumb, url: this.folderUrl(crumb.id) }));
+        return this.global && this.container ? [{ id: SPACE_CRUMB, title: this.container.space.name, url: this.folderUrl(null) }, ...folders] : folders;
+      }
+    },
+    created() {
+      this.openedAt = pageOf(window.location);
+      if (this.urlNames(this.container, this.folderId)) {
+        this.stampEntry();
+      }
+    },
+    mounted() {
+      var _a, _b;
+      window.addEventListener("popstate", this.onPopState);
+      const urlFolderId = this.folderIdFromUrl();
+      if (this.global) {
+        const spaceId = this.spaceIdFromUrl();
+        if (spaceId !== (((_b = (_a = this.container) == null ? void 0 : _a.space) == null ? void 0 : _b.id) ?? null) || spaceId !== null && (urlFolderId || null) !== this.folderId) {
+          const container = spaceId === null ? null : this.containerOfSpaceId(spaceId);
+          if (spaceId === null || container) {
+            this.open(container ? urlFolderId || null : null, { push: false, container }).then(this.stampIfShown);
+          }
+        }
+        return;
+      }
+      if (urlFolderId !== null && (urlFolderId || null) !== this.folderId) {
+        this.open(urlFolderId || null, { push: false }).then(this.stampIfShown);
+      }
+    },
+    beforeUnmount() {
+      window.removeEventListener("popstate", this.onPopState);
+    },
+    methods: {
+      /**
+       * The page URL of a level, with the filters and the sort the bar shows — what the bar
+       * writes into the URL itself, so a folder opened (or a link copied) keeps them.
+       */
+      folderUrl(folderId, space) {
+        var _a;
+        if (this.global) {
+          return levelUrl(this.globalUrl, space === void 0 ? ((_a = this.container) == null ? void 0 : _a.space) ?? null : space, folderId, this.filterValues);
+        }
+        const params = appendFilters(new URLSearchParams({ fid: String(folderId || 0) }), this.filterValues);
+        return this.browseUrl + (this.browseUrl.indexOf("?") === -1 ? "?" : "&") + params.toString();
+      },
+      /**
+       * What a history entry of a level keeps (`cfiles`): the global page adds the space. A
+       * copy of it: the browser clones the state, and the space shown is a reactive object it
+       * refuses (`DataCloneError`). Its fields are all plain values (see `containerOf()`).
+       */
+      historyState(container, folderId) {
+        return this.global ? { folderId, space: (container == null ? void 0 : container.space) ? { ...container.space } : null } : { folderId };
+      },
+      /** Says in the current history entry which level is shown, keeping PJAX's own keys. */
+      stampEntry() {
+        window.history.replaceState({ ...window.history.state || {}, cfiles: this.historyState(this.container, this.folderId) }, "");
+      },
+      /** `stampEntry()` once an `open()` showed its level — not when a later one overtook it. */
+      stampIfShown(shown) {
+        if (shown) {
+          this.stampEntry();
+        }
+      },
+      folderIdFromUrl() {
+        const value = new URLSearchParams(window.location.search).get("fid");
+        return value === null ? null : parseInt(value, 10) || 0;
+      },
+      /** The space the global page's URL names (`space`), null for its top level. */
+      spaceIdFromUrl() {
+        return spaceIdFromUrl(window.location.search);
+      },
+      /** Whether the page URL names that level already. A folder only counts in a space. */
+      urlNames(container, folderId) {
+        var _a;
+        if (!this.global) {
+          return this.folderIdFromUrl() === (folderId || 0);
+        }
+        const spaceId = this.spaceIdFromUrl();
+        return spaceId === (((_a = container == null ? void 0 : container.space) == null ? void 0 : _a.id) ?? null) && (spaceId === null || (this.folderIdFromUrl() || 0) === (folderId || 0));
+      },
+      /**
+       * The container state of a space the global page's URL names, from what the island
+       * knows of it (`resolveSpace()`), null when it knows nothing of it.
+       */
+      containerOfSpaceId(spaceId) {
+        var _a;
+        return resolveSpace(spaceId, {
+          known: [this.container, (_a = this.requested) == null ? void 0 : _a.container],
+          state: window.history.state,
+          items: this.items
+        });
+      },
+      /**
+       * Opens what a view emits `open` with: a space tile (its top level), a folder of the
+       * open level, or — on the global page — a folder in a space of its own (a hit, or the
+       * folder part of a hit's location: its `space`) or a hit's space part.
+       */
+      onOpen(item) {
+        var _a;
+        if (item.type === "space") {
+          return this.go(null, { container: containerOf(item) });
+        }
+        const space = item.space ?? ((_a = itemLocation(item)) == null ? void 0 : _a.space) ?? null;
+        if (this.global && space && !sameContainer(containerOf(space), this.container)) {
+          return this.go(item.id, { container: containerOf(space) });
+        }
+        return this.go(item.id);
+      },
+      /** The path bar's `navigate`: on the global page the root is its top level. */
+      onNavigate(id) {
+        if (this.global && id === null) {
+          return this.go(null, { container: null });
+        }
+        return this.go(id === SPACE_CRUMB ? null : id);
+      },
+      /**
+       * `open()` for where the user went in the browser: once the level is shown, the focus
+       * is on it in the path bar — the row or crumb that had it may be gone with the level
+       * left, and the next Tab continues in the level reached.
+       */
+      go(folderId, options = {}) {
+        return this.open(folderId, options).then((shown) => {
+          if (shown) {
+            this.$nextTick(() => {
+              var _a;
+              return (_a = this.$refs.pathBar) == null ? void 0 : _a.focusCurrent();
+            });
+          }
+          return shown;
+        });
+      },
+      onPopState() {
+        if (!isPageUrl(this.global ? this.globalUrl : this.browseUrl, window.location) && !isPageLocation(this.openedAt, window.location)) {
+          return;
+        }
+        let target = this.folderIdFromUrl() || null;
+        let container = this.container;
+        if (this.global) {
+          const spaceId = this.spaceIdFromUrl();
+          container = spaceId === null ? null : this.containerOfSpaceId(spaceId);
+          target = container ? target : null;
+        }
+        this.detailsKey = new URLSearchParams(window.location.search).get("details") || null;
+        const query = this.queryFromUrl();
+        const filtersChanged = JSON.stringify(query) !== JSON.stringify(this.query);
+        const urlSort = new URLSearchParams(window.location.search).get("sort");
+        const select = this.activeFilters.find((filter) => filter.key === "sort");
+        const sort = ((select == null ? void 0 : select.options) || []).some((option) => option.value === urlSort) ? urlSort : this.sort;
+        const sortChanged = sort !== this.sort;
+        this.query = query;
+        this.sort = sort;
+        if (filtersChanged || sortChanged || target !== this.targetFolderId() || !sameContainer(container, this.targetContainer())) {
+          this.open(target, { push: false, container });
+        }
+      }
+    }
+  };
   const selectionMixin = {
     data() {
       return {
@@ -2930,7 +3096,7 @@
   const PAGE_SIZES = { list: 50, tiles: 96 };
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [filtersMixin, detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
+    mixins: [navigationMixin, filtersMixin, detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -3050,9 +3216,6 @@
       movable() {
         return this.writable && this.levelCanManage;
       },
-      rootUrl() {
-        return this.global ? this.folderUrl(null, null) : this.folderUrl(null);
-      },
       /** What both views take; each view only what it declares. */
       viewProps() {
         const common = {
@@ -3070,14 +3233,6 @@
         };
         return this.view === "tiles" ? { ...common, level: this.level, direction: this.direction } : { ...common, canWrite: this.writable };
       },
-      /**
-       * The path bar's levels. On the global page the root is its top level and the space
-       * comes first — its top level, then its folders.
-       */
-      crumbs() {
-        const folders = (this.path || []).map((crumb) => ({ ...crumb, url: this.folderUrl(crumb.id) }));
-        return this.global && this.container ? [{ id: SPACE_CRUMB, title: this.container.space.name, url: this.folderUrl(null) }, ...folders] : folders;
-      },
       viewOptions() {
         return [
           { value: "tiles", icon: "layout-grid", label: vue.i18n.t("CfilesModule.base", "Tiles") },
@@ -3094,94 +3249,12 @@
     created() {
       this.loadSeq = 0;
       this.requested = { folderId: this.folderId, push: false, container: this.container };
-      this.openedAt = pageOf(window.location);
-      if (this.urlNames(this.container, this.folderId)) {
-        this.stampEntry();
-      }
-    },
-    mounted() {
-      var _a, _b;
-      window.addEventListener("popstate", this.onPopState);
-      const urlFolderId = this.folderIdFromUrl();
-      if (this.global) {
-        const spaceId = this.spaceIdFromUrl();
-        if (spaceId !== (((_b = (_a = this.container) == null ? void 0 : _a.space) == null ? void 0 : _b.id) ?? null) || spaceId !== null && (urlFolderId || null) !== this.folderId) {
-          const container = spaceId === null ? null : this.containerOfSpaceId(spaceId);
-          if (spaceId === null || container) {
-            this.open(container ? urlFolderId || null : null, { push: false, container }).then(this.stampIfShown);
-          }
-        }
-        return;
-      }
-      if (urlFolderId !== null && (urlFolderId || null) !== this.folderId) {
-        this.open(urlFolderId || null, { push: false }).then(this.stampIfShown);
-      }
     },
     beforeUnmount() {
       this.loadSeq++;
-      window.removeEventListener("popstate", this.onPopState);
     },
     methods: {
       keyOf,
-      /**
-       * The page URL of a level, with the filters and the sort the bar shows — what the bar
-       * writes into the URL itself, so a folder opened (or a link copied) keeps them.
-       */
-      folderUrl(folderId, space) {
-        var _a;
-        if (this.global) {
-          return levelUrl(this.globalUrl, space === void 0 ? ((_a = this.container) == null ? void 0 : _a.space) ?? null : space, folderId, this.filterValues);
-        }
-        const params = appendFilters(new URLSearchParams({ fid: String(folderId || 0) }), this.filterValues);
-        return this.browseUrl + (this.browseUrl.indexOf("?") === -1 ? "?" : "&") + params.toString();
-      },
-      /**
-       * What a history entry of a level keeps (`cfiles`): the global page adds the space. A
-       * copy of it: the browser clones the state, and the space shown is a reactive object it
-       * refuses (`DataCloneError`). Its fields are all plain values (see `containerOf()`).
-       */
-      historyState(container, folderId) {
-        return this.global ? { folderId, space: (container == null ? void 0 : container.space) ? { ...container.space } : null } : { folderId };
-      },
-      /** Says in the current history entry which level is shown, keeping PJAX's own keys. */
-      stampEntry() {
-        window.history.replaceState({ ...window.history.state || {}, cfiles: this.historyState(this.container, this.folderId) }, "");
-      },
-      /** `stampEntry()` once an `open()` showed its level — not when a later one overtook it. */
-      stampIfShown(shown) {
-        if (shown) {
-          this.stampEntry();
-        }
-      },
-      folderIdFromUrl() {
-        const value = new URLSearchParams(window.location.search).get("fid");
-        return value === null ? null : parseInt(value, 10) || 0;
-      },
-      /** The space the global page's URL names (`space`), null for its top level. */
-      spaceIdFromUrl() {
-        return spaceIdFromUrl(window.location.search);
-      },
-      /** Whether the page URL names that level already. A folder only counts in a space. */
-      urlNames(container, folderId) {
-        var _a;
-        if (!this.global) {
-          return this.folderIdFromUrl() === (folderId || 0);
-        }
-        const spaceId = this.spaceIdFromUrl();
-        return spaceId === (((_a = container == null ? void 0 : container.space) == null ? void 0 : _a.id) ?? null) && (spaceId === null || (this.folderIdFromUrl() || 0) === (folderId || 0));
-      },
-      /**
-       * The container state of a space the global page's URL names, from what the island
-       * knows of it (`resolveSpace()`), null when it knows nothing of it.
-       */
-      containerOfSpaceId(spaceId) {
-        var _a;
-        return resolveSpace(spaceId, {
-          known: [this.container, (_a = this.requested) == null ? void 0 : _a.container],
-          state: window.history.state,
-          items: this.items
-        });
-      },
       /** One page of a level: a space's (or the container's) or the global top level. */
       fetchLevel(container, folderId, options) {
         if (!container) {
@@ -3259,69 +3332,6 @@
       /** The container of the level shown — or, while one is loading, of the one on its way. */
       targetContainer() {
         return this.loading ? this.requested.container : this.container;
-      },
-      /**
-       * Opens what a view emits `open` with: a space tile (its top level), a folder of the
-       * open level, or — on the global page — a folder in a space of its own (a hit, or the
-       * folder part of a hit's location: its `space`) or a hit's space part.
-       */
-      onOpen(item) {
-        var _a;
-        if (item.type === "space") {
-          return this.go(null, { container: containerOf(item) });
-        }
-        const space = item.space ?? ((_a = itemLocation(item)) == null ? void 0 : _a.space) ?? null;
-        if (this.global && space && !sameContainer(containerOf(space), this.container)) {
-          return this.go(item.id, { container: containerOf(space) });
-        }
-        return this.go(item.id);
-      },
-      /** The path bar's `navigate`: on the global page the root is its top level. */
-      onNavigate(id) {
-        if (this.global && id === null) {
-          return this.go(null, { container: null });
-        }
-        return this.go(id === SPACE_CRUMB ? null : id);
-      },
-      /**
-       * `open()` for where the user went in the browser: once the level is shown, the focus
-       * is on it in the path bar — the row or crumb that had it may be gone with the level
-       * left, and the next Tab continues in the level reached.
-       */
-      go(folderId, options = {}) {
-        return this.open(folderId, options).then((shown) => {
-          if (shown) {
-            this.$nextTick(() => {
-              var _a;
-              return (_a = this.$refs.pathBar) == null ? void 0 : _a.focusCurrent();
-            });
-          }
-          return shown;
-        });
-      },
-      onPopState() {
-        if (!isPageUrl(this.global ? this.globalUrl : this.browseUrl, window.location) && !isPageLocation(this.openedAt, window.location)) {
-          return;
-        }
-        let target = this.folderIdFromUrl() || null;
-        let container = this.container;
-        if (this.global) {
-          const spaceId = this.spaceIdFromUrl();
-          container = spaceId === null ? null : this.containerOfSpaceId(spaceId);
-          target = container ? target : null;
-        }
-        this.detailsKey = new URLSearchParams(window.location.search).get("details") || null;
-        const query = this.queryFromUrl();
-        const filtersChanged = JSON.stringify(query) !== JSON.stringify(this.query);
-        const urlSort = new URLSearchParams(window.location.search).get("sort");
-        const select = this.activeFilters.find((filter) => filter.key === "sort");
-        const sort = ((select == null ? void 0 : select.options) || []).some((option) => option.value === urlSort) ? urlSort : this.sort;
-        const sortChanged = sort !== this.sort;
-        this.query = query;
-        this.sort = sort;
-        if (filtersChanged || sortChanged || target !== this.targetFolderId() || !sameContainer(container, this.targetContainer())) {
-          this.open(target, { push: false, container });
-        }
       },
       /** Reloads the level shown — or the one still opening, keeping its history entry. */
       reload() {
@@ -3462,12 +3472,12 @@
           default: vue$1.withCtx(() => [
             vue$1.createVNode(_component_PathBar, {
               ref: "pathBar",
-              path: $options.crumbs,
+              path: _ctx.crumbs,
               "root-label": $options.rootLabel,
-              "root-url": $options.rootUrl,
+              "root-url": _ctx.rootUrl,
               "can-drop": _ctx.canDropOnCrumb,
               "drop-target-id": _ctx.crumbDropTargetId,
-              onNavigate: $options.onNavigate,
+              onNavigate: _ctx.onNavigate,
               onDragOver: _ctx.onCrumbDragOver,
               onDragLeave: _ctx.onCrumbDragLeave,
               onDropOn: _ctx.onDropOnCrumb
@@ -3490,7 +3500,7 @@
             }, 8, ["path", "root-label", "root-url", "can-drop", "drop-target-id", "onNavigate", "onDragOver", "onDragLeave", "onDropOn"]),
             $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString(_ctx.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
             (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($data.view === "tiles" ? "FileTiles" : "ItemList"), vue$1.mergeProps($options.viewProps, {
-              onOpen: $options.onOpen,
+              onOpen: _ctx.onOpen,
               onToggleSelect: _ctx.toggleSelect,
               onDragStart: _ctx.onDragStart,
               onDragEnd: _ctx.onDragEnd,
