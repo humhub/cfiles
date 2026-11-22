@@ -20,6 +20,8 @@ use humhub\widgets\form\ContentHiddenCheckbox;
 
         <?= $form->field($model, 'showGlobalMenuItem')->checkbox(); ?>
 
+        <?= $form->field($model, 'enableWebDav')->checkbox(); ?>
+
         <?= $form->field($model, 'contentHiddenDefault')->widget(ContentHiddenCheckbox::class, [
             'type' => ContentHiddenCheckbox::TYPE_GLOBAL,
         ]); ?>

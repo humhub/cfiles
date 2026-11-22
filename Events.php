@@ -3,9 +3,12 @@
 namespace humhub\modules\cfiles;
 
 use humhub\helpers\ControllerHelper;
+use humhub\modules\cfiles\components\dav\FilesCollection;
 use humhub\modules\cfiles\models\File;
 use humhub\modules\cfiles\services\DownloadCounterService;
 use humhub\modules\cfiles\services\IntegrityService;
+use humhub\modules\dav\components\Mount;
+use humhub\modules\dav\events\MountsEvent;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\oauth\events\ScopesEvent;
 use humhub\modules\oauth\models\Scope;
@@ -128,5 +131,26 @@ class Events
     {
         $event->scopes[] = new Scope(Module::SCOPE_READ, Yii::t('CfilesModule.base', 'Read files and folders'));
         $event->scopes[] = new Scope(Module::SCOPE_WRITE, Yii::t('CfilesModule.base', 'Add, change, move and delete files and folders'));
+    }
+
+    /**
+     * The files of the user's spaces and profile under `/dav/files/`, with the module's scopes
+     * (see {@see FilesCollection}).
+     */
+    public static function onDavCollectMounts(MountsEvent $event): void
+    {
+        /** @var Module $module */
+        $module = Yii::$app->getModule('cfiles');
+        if (!$module->getEnableWebDav()) {
+            return;
+        }
+
+        $user = $event->user;
+        $event->mounts[] = new Mount(
+            FilesCollection::NAME,
+            Module::SCOPE_READ,
+            Module::SCOPE_WRITE,
+            static fn() => new FilesCollection($user),
+        );
     }
 }

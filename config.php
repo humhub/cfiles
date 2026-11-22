@@ -2,6 +2,7 @@
 
 use humhub\commands\IntegrityController;
 use humhub\modules\cfiles\components\UrlRule;
+use humhub\modules\dav\Module as DavModule;
 use humhub\modules\file\controllers\FileController;
 use humhub\modules\file\models\File;
 use humhub\modules\oauth\components\ScopeRegistry;
@@ -50,5 +51,6 @@ return [
         [FileController::class, FileController::EVENT_AFTER_ACTION, ['humhub\modules\cfiles\Events', 'onAfterFileAction']],
         [File::class, File::EVENT_AFTER_NEW_STORED_FILE, ['humhub\modules\cfiles\Events', 'onAfterNewStoredFile']],
         [ScopeRegistry::class, ScopeRegistry::EVENT_COLLECT_SCOPES, ['humhub\modules\cfiles\Events', 'onCollectScopes']],
+        [DavModule::class, DavModule::EVENT_COLLECT_MOUNTS, ['humhub\modules\cfiles\Events', 'onDavCollectMounts']],
     ],
 ];

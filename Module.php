@@ -177,6 +177,14 @@ class Module extends ContentContainerModule
         return $this->settings->get('showGlobalMenuItem', false);
     }
 
+    /**
+     * Whether the files are served over WebDAV at `/dav/files/` (see `components/dav`).
+     */
+    public function getEnableWebDav(): bool
+    {
+        return (bool)$this->settings->get('enableWebDav', true);
+    }
+
     public function getContentHiddenGlobalDefault(): bool
     {
         return $this->settings->get('contentHiddenGlobalDefault', false);
