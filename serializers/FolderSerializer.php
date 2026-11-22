@@ -79,21 +79,35 @@ class FolderSerializer
      */
     public static function path(?Folder $folder): array
     {
+        $container = $folder?->content->container;
+        if ($container === null) {
+            return [];
+        }
+
+        // The folders of the container in one query, its tree walked here: one query whatever
+        // the depth, instead of a parent, its content and its container per level.
+        $folders = Folder::find()
+            ->select(['cfiles_folder.id', 'cfiles_folder.parent_folder_id', 'cfiles_folder.title'])
+            ->innerJoin('content', 'content.object_id = cfiles_folder.id AND content.object_model = :model', [':model' => Folder::class])
+            ->where(['content.contentcontainer_id' => $container->contentcontainer_id])
+            ->asArray()
+            ->indexBy('id')
+            ->all();
+
         $path = [];
         $seen = [];
-
-        for ($current = $folder; $current !== null; $current = $current->parentFolder) {
+        for ($id = (int)$folder->id; isset($folders[$id]); $id = (int)$folders[$id]['parent_folder_id']) {
             // A corrupt parent chain (a cycle) must not hang the request; the integrity check
             // is what repairs it, this just refuses to spin.
-            if (isset($seen[$current->id])) {
+            if (isset($seen[$id])) {
                 break;
             }
-            $seen[$current->id] = true;
+            $seen[$id] = true;
 
             array_unshift($path, [
-                'id' => (int)$current->id,
-                'title' => (string)$current->title,
-                'url' => $current->getUrl(true),
+                'id' => $id,
+                'title' => (string)$folders[$id]['title'],
+                'url' => $container->createUrl('/cfiles/browse/index', ['fid' => $id], true),
             ]);
         }
 

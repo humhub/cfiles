@@ -18,6 +18,7 @@ use humhub\modules\content\models\Content;
 use humhub\modules\space\models\Space;
 use tests\codeception\_support\HumHubDbTestCase;
 use Yii;
+use yii\log\Logger;
 
 /**
  * The listing the file browser and its API endpoint both read
@@ -274,6 +275,57 @@ class FolderListingServiceTest extends HumHubDbTestCase
         $payload = (new FolderListingService($builder))->payload();
 
         $this->assertStringContainsString('in-memory-only', $payload['results'][0]['downloadUrl']);
+    }
+
+    public function testAPageCostsAsManyQueriesForTwentyRowsAsForTwo()
+    {
+        $folder = $this->addFolder('Reports');
+        $this->addFolder('Q1', $folder);
+        $this->addFile('one.txt', $folder);
+        $few = $this->queriesOf(fn() => $this->payload(['parentFolderId' => $folder->id]));
+
+        for ($i = 2; $i <= 10; $i++) {
+            $this->addFolder('Q' . $i, $folder);
+            $this->addFile('file-' . $i . '.txt', $folder);
+        }
+        $many = $this->queriesOf(fn() => $this->payload(['parentFolderId' => $folder->id]));
+
+        $this->assertSame($few, $many, 'Queries for 2 rows: ' . $few . ', for 20 rows: ' . $many);
+    }
+
+    public function testADeepFolderCostsAsManyQueriesAsAShallowOne()
+    {
+        // Both empty, at the top level and four levels below it
+        $shallow = $this->addFolder('Alone');
+        $deep = $this->addFolder('One');
+        foreach (['Two', 'Three', 'Four', 'Five'] as $title) {
+            $deep = $this->addFolder($title, $deep);
+        }
+
+        $this->assertSame(
+            $this->queriesOf(fn() => $this->payload(['parentFolderId' => $shallow->id])),
+            $this->queriesOf(fn() => $this->payload(['parentFolderId' => $deep->id])),
+        );
+    }
+
+    /**
+     * The database queries of a call, after a call to warm the schema cache, with an empty
+     * per-request cache.
+     */
+    private function queriesOf(callable $call): int
+    {
+        $call();
+        Yii::$app->runtimeCache->flush();
+
+        $logger = Yii::getLogger();
+        Yii::setLogger(new Logger(['flushInterval' => 0]));
+        try {
+            $call();
+            $timings = Yii::getLogger()->getProfiling(['yii\db\Command::query', 'yii\db\Command::execute']);
+            return count($timings);
+        } finally {
+            Yii::setLogger($logger);
+        }
     }
 
     private function payload(array $params = [], int $page = 1, ?int $pageSize = null): array

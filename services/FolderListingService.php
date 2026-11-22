@@ -147,6 +147,10 @@ class FolderListingService
             : [];
 
         $this->attachContainers(array_merge($folders, $files));
+        // The record ids of the rows (`recordId`, the like states) in one go, not one per row.
+        if ($folders !== [] || $files !== []) {
+            RecordMap::getIds(array_merge($folders, $files));
+        }
         $itemCounts = $this->countChildren($folders);
         $this->collectLikeStates(array_merge($folders, $files));
         // One query for the topics of the page, not one per row.
