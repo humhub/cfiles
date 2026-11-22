@@ -3360,7 +3360,20 @@
   };
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [levelMixin, pagingMixin, navigationMixin, filtersMixin, detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
+    // Their hooks run in this order: the level is set up before what reads it, and the edit a
+    // link asks for opens before the URL may open another level.
+    mixins: [
+      levelMixin,
+      pagingMixin,
+      itemActionsMixin,
+      navigationMixin,
+      filtersMixin,
+      selectionMixin,
+      uploadMixin,
+      dragDropMixin,
+      detailsMixin,
+      fileHandlersMixin
+    ],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {

@@ -144,7 +144,36 @@
 
 <script>
 /**
- * The file browser island.
+ * The file browser island: the files of a space, or — with `global` — of every space of the
+ * user (see below).
+ *
+ * ## Layout
+ *
+ * Built on the core's item-browser kit: a `PageHeader` (`BrowserHeader`: title, the settings
+ * link, the `AddMenu`) with a `FilterBar` (the filters and the sort), and below it a `DropZone`
+ * card holding the `PathBar` (with the `SelectionMenu` and the `ViewSwitch` at its end) and the
+ * open level as `FileTiles` or as an `ItemList`. Both views speak the same event vocabulary, so
+ * selection (Shift ranges included), drop targets and uploads are resolved here, once, for
+ * either.
+ *
+ * ## Structure
+ *
+ * One instance, split by concern into mixins the way the core's form fields share
+ * `fieldMixin`: the views, the menus and the extension points (the `cfiles.selection` menu, the
+ * `cfiles.details` slot, `ContentControls`) talk to that one instance, and a concern reaches
+ * what it needs of another through it. Each mixin's docblock names what it uses without
+ * defining it; the island itself only wires their state into its children.
+ *
+ * - `levelMixin`: the level shown and how it is loaded (`open()`, `reload()`, `refresh()`)
+ * - `pagingMixin`: the display (tiles or rows) and the further pages
+ * - `navigationMixin`: going from level to level, the page URL and the history
+ * - `filtersMixin`: the filters, the sort and the result list they make
+ * - `selectionMixin`: the selection and its menu
+ * - `itemActionsMixin`: creating, editing, moving, copying, deleting; the menu of one item
+ * - `uploadMixin`: uploads, their placeholders and the names already taken
+ * - `dragDropMixin`: items and desktop files dragged onto folders and crumbs
+ * - `detailsMixin`: the item of the details panel, mirrored into the URL
+ * - `fileHandlersMixin`: the file handlers of the add menu
  *
  * ## The global files page
  *
@@ -160,22 +189,6 @@
  * With a result filter the top level lists the hits across all spaces, each placed "in Space ›
  * Folder" (`ItemLocation`): the space part opens the space, the folder part the folder in it.
  * Moving works in one container, so a hit there has no Move; open its space for that.
- *
- * ## Layout
- *
- * Built on the core's item-browser kit: a `PageHeader` (`BrowserHeader`: title, the settings
- * link, the `AddMenu`) with a `FilterBar` (the filters and the sort), and below it a `DropZone` card
- * holding the `PathBar` (with the `SelectionMenu` and the `ViewSwitch` at its end) and the open
- * level as `FileTiles` or as an `ItemList`. Both views speak the same event vocabulary, so selection (Shift ranges
- * included), drop targets and uploads are resolved here, once, for either.
- *
- * ## Structure
- *
- * One instance, split by concern into mixins (`browser/*Mixin.js`) the way the core's form
- * fields share `fieldMixin`: the views, the menus and the extension points talk to that one
- * instance, and a concern reaches what it needs of another through it. Each mixin's docblock
- * names what it uses without defining it.
- *
  */
 import { i18n } from '@humhub/vue';
 import BrowserHeader from './browser/BrowserHeader.vue';
@@ -199,7 +212,12 @@ import uploadMixin from './browser/uploadMixin';
 
 export default {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [levelMixin, pagingMixin, navigationMixin, filtersMixin, detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
+    // Their hooks run in this order: the level is set up before what reads it, and the edit a
+    // link asks for opens before the URL may open another level.
+    mixins: [
+        levelMixin, pagingMixin, itemActionsMixin, navigationMixin, filtersMixin,
+        selectionMixin, uploadMixin, dragDropMixin, detailsMixin, fileHandlersMixin,
+    ],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {

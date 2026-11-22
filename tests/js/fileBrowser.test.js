@@ -113,7 +113,7 @@ describe('CfilesFileBrowser', () => {
             expect(globalThis.humhubStubs.client.get.mock.calls[0][0]).toContain('parentFolderId=11');
             expect(window.location.search).toContain('fid=11');
             // Pushed without a `container` key, which is what keeps jquery.pjax's own popstate
-            // handler from claiming the entry (see the component docblock).
+            // handler from claiming the entry (see navigationMixin).
             expect(window.history.state.cfiles).toEqual({ folderId: 11 });
         });
 
