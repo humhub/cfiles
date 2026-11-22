@@ -2274,6 +2274,93 @@
       }
     }
   };
+  const selectionMixin = {
+    data() {
+      return {
+        selection: [],
+        // The item the last plain selection click was on, where a Shift range starts.
+        anchorKey: null
+      };
+    },
+    computed: {
+      selectedItems() {
+        return this.items.filter((item) => this.selection.indexOf(keyOf(item)) !== -1);
+      },
+      selectionEntries() {
+        return [
+          { id: "select-all", sortOrder: 10, icon: "checks", label: vue.i18n.t("CfilesModule.base", "Select all"), onClick: () => this.selectAll() },
+          ...this.movable ? [{ id: "move", sortOrder: 20, icon: "arrows-left-right", label: vue.i18n.t("CfilesModule.base", "Move"), onClick: () => this.openMove(this.selectedItems) }] : [],
+          ...this.writable ? [{ id: "copy", sortOrder: 25, icon: "copy", label: vue.i18n.t("CfilesModule.base", "Copy"), onClick: () => this.openCopy(this.selectedItems) }] : [],
+          { id: "delete", sortOrder: 30, icon: "trash", label: vue.i18n.t("CfilesModule.base", "Delete"), onClick: () => this.confirmDelete(this.selectedItems) },
+          { id: "divider", sortOrder: 90, divider: true },
+          {
+            id: "clear",
+            sortOrder: 100,
+            icon: "x",
+            label: vue.i18n.t("CfilesModule.base", "Clear selection"),
+            // The menu goes with the selection, and the focus it had with it.
+            onClick: () => {
+              this.clearSelection();
+              this.$nextTick(() => {
+                var _a;
+                return (_a = this.$refs.pathBar) == null ? void 0 : _a.focusCurrent();
+              });
+            }
+          }
+        ];
+      }
+    },
+    mounted() {
+      document.addEventListener("keydown", this.onKeydown);
+    },
+    beforeUnmount() {
+      document.removeEventListener("keydown", this.onKeydown);
+    },
+    methods: {
+      /**
+       * Flips one item, or — with `range` (Shift) — adds everything between the last item
+       * clicked and this one, in the order both views show. A Shift-click without an
+       * earlier click (or after the anchor left the page) is a plain toggle.
+       */
+      toggleSelect(item, { range } = {}) {
+        const key = keyOf(item);
+        const keys = this.items.map(keyOf);
+        if (range && this.anchorKey !== null && keys.includes(this.anchorKey) && keys.includes(key)) {
+          const [from, to] = [keys.indexOf(this.anchorKey), keys.indexOf(key)].sort((a, b) => a - b);
+          const span = keys.slice(from, to + 1);
+          this.selection = keys.filter((k) => this.selection.includes(k) || span.includes(k));
+        } else if (this.selection.includes(key)) {
+          this.selection = this.selection.filter((k) => k !== key);
+        } else {
+          this.selection = this.selection.concat(key);
+        }
+        this.anchorKey = key;
+      },
+      /**
+       * Selects every LOADED item.
+       *
+       * Deliberately not "everything in this folder": with paging that would arm the delete
+       * action with rows the reader has never seen.
+       */
+      selectAll() {
+        this.selection = this.items.map(keyOf);
+      },
+      clearSelection() {
+        this.selection = [];
+        this.anchorKey = null;
+      },
+      onKeydown(event) {
+        if (event.key !== "Escape" || !this.selection.length || event.defaultPrevented || this.showMove || this.showCreate || this.showEdit) {
+          return;
+        }
+        const target = event.target;
+        if (target instanceof Element && target !== document.body && (!this.$el.contains(target) || target.closest('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable]'))) {
+          return;
+        }
+        this.clearSelection();
+      }
+    }
+  };
   let uploadSeq = 0;
   const uploadMixin = {
     data() {
@@ -2443,7 +2530,7 @@
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin, uploadMixin],
+    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin, selectionMixin, uploadMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2539,7 +2626,6 @@
         pages: this.listing.pages,
         loading: false,
         loadingMore: false,
-        selection: [],
         showCreate: false,
         showEdit: false,
         editItem: null,
@@ -2552,8 +2638,6 @@
         // On the global page: which topic ids each space takes (its own and the global ones),
         // by content container id — `{ [id]: true|false }`, asked once per id and space.
         topicScopes: {},
-        // The item the last plain selection click was on, where a Shift range starts.
-        anchorKey: null,
         // The level the tiles show, and which way the last change went (for the slide).
         level: levelKey(this.global, this.global ? this.space ? containerOf(this.space) : null : null, this.listing.folder),
         direction: "forward"
@@ -2606,9 +2690,6 @@
       rootUrl() {
         return this.global ? this.folderUrl(null, null) : this.folderUrl(null);
       },
-      selectedItems() {
-        return this.items.filter((item) => this.selection.indexOf(keyOf(item)) !== -1);
-      },
       /** What both views take; each view only what it declares. */
       viewProps() {
         const common = {
@@ -2642,29 +2723,6 @@
         const select = this.activeFilters.find((filter) => filter.key === "sort");
         const offered = ((select == null ? void 0 : select.options) || []).some((option) => option.value === this.sort);
         return this.scopeTopics({ ...this.query, sort: offered ? this.sort : "" }, this.container);
-      },
-      selectionEntries() {
-        return [
-          { id: "select-all", sortOrder: 10, icon: "checks", label: vue.i18n.t("CfilesModule.base", "Select all"), onClick: () => this.selectAll() },
-          ...this.movable ? [{ id: "move", sortOrder: 20, icon: "arrows-left-right", label: vue.i18n.t("CfilesModule.base", "Move"), onClick: () => this.openMove(this.selectedItems) }] : [],
-          ...this.writable ? [{ id: "copy", sortOrder: 25, icon: "copy", label: vue.i18n.t("CfilesModule.base", "Copy"), onClick: () => this.openCopy(this.selectedItems) }] : [],
-          { id: "delete", sortOrder: 30, icon: "trash", label: vue.i18n.t("CfilesModule.base", "Delete"), onClick: () => this.confirmDelete(this.selectedItems) },
-          { id: "divider", sortOrder: 90, divider: true },
-          {
-            id: "clear",
-            sortOrder: 100,
-            icon: "x",
-            label: vue.i18n.t("CfilesModule.base", "Clear selection"),
-            // The menu goes with the selection, and the focus it had with it.
-            onClick: () => {
-              this.clearSelection();
-              this.$nextTick(() => {
-                var _a;
-                return (_a = this.$refs.pathBar) == null ? void 0 : _a.focusCurrent();
-              });
-            }
-          }
-        ];
       },
       viewOptions() {
         return [
@@ -2706,7 +2764,6 @@
     mounted() {
       var _a, _b;
       window.addEventListener("popstate", this.onPopState);
-      document.addEventListener("keydown", this.onKeydown);
       this.openRequestedEdit();
       const urlFolderId = this.folderIdFromUrl();
       if (this.global) {
@@ -2726,7 +2783,6 @@
     beforeUnmount() {
       this.loadSeq++;
       window.removeEventListener("popstate", this.onPopState);
-      document.removeEventListener("keydown", this.onKeydown);
     },
     methods: {
       keyOf,
@@ -3161,48 +3217,6 @@
           vue.log.error(e, true);
         });
       },
-      /**
-       * Flips one item, or — with `range` (Shift) — adds everything between the last item
-       * clicked and this one, in the order both views show. A Shift-click without an
-       * earlier click (or after the anchor left the page) is a plain toggle.
-       */
-      toggleSelect(item, { range } = {}) {
-        const key = keyOf(item);
-        const keys = this.items.map(keyOf);
-        if (range && this.anchorKey !== null && keys.includes(this.anchorKey) && keys.includes(key)) {
-          const [from, to] = [keys.indexOf(this.anchorKey), keys.indexOf(key)].sort((a, b) => a - b);
-          const span = keys.slice(from, to + 1);
-          this.selection = keys.filter((k) => this.selection.includes(k) || span.includes(k));
-        } else if (this.selection.includes(key)) {
-          this.selection = this.selection.filter((k) => k !== key);
-        } else {
-          this.selection = this.selection.concat(key);
-        }
-        this.anchorKey = key;
-      },
-      /**
-       * Selects every LOADED item.
-       *
-       * Deliberately not "everything in this folder": with paging that would arm the delete
-       * action with rows the reader has never seen.
-       */
-      selectAll() {
-        this.selection = this.items.map(keyOf);
-      },
-      clearSelection() {
-        this.selection = [];
-        this.anchorKey = null;
-      },
-      onKeydown(event) {
-        if (event.key !== "Escape" || !this.selection.length || event.defaultPrevented || this.showMove || this.showCreate || this.showEdit) {
-          return;
-        }
-        const target = event.target;
-        if (target instanceof Element && target !== document.body && (!this.$el.contains(target) || target.closest('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable]'))) {
-          return;
-        }
-        this.clearSelection();
-      },
       // --- context menu ------------------------------------------------------------
       /**
        * The module's own entries. `ContentControls` merges them with what the server's
@@ -3436,10 +3450,10 @@
             }, {
               end: vue$1.withCtx(() => [
                 vue$1.createVNode(_component_SelectionMenu, {
-                  count: $data.selection.length,
+                  count: _ctx.selection.length,
                   "menu-id": "cfiles.selection",
-                  entries: $options.selectionEntries,
-                  context: { items: $options.selectedItems }
+                  entries: _ctx.selectionEntries,
+                  context: { items: _ctx.selectedItems }
                 }, null, 8, ["count", "entries", "context"]),
                 vue$1.createVNode(_component_ViewSwitch, {
                   "model-value": $data.view,
@@ -3453,7 +3467,7 @@
             $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString($options.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
             (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($data.view === "tiles" ? "FileTiles" : "ItemList"), vue$1.mergeProps($options.viewProps, {
               onOpen: $options.onOpen,
-              onToggleSelect: $options.toggleSelect,
+              onToggleSelect: _ctx.toggleSelect,
               onDragStart: _ctx.onDragStart,
               onDragEnd: _ctx.onDragEnd,
               onDragOver: _ctx.onItemDragOver,
