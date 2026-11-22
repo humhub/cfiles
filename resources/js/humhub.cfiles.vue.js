@@ -2031,11 +2031,81 @@
     const current = new URLSearchParams(location.search);
     return Object.entries(page.params).every(([key, value]) => current.get(key) === value);
   };
+  const detailsMixin = {
+    data() {
+      return {
+        // The item the details panel shows (`file:<id>`/`folder:<id>`), mirrored into the
+        // URL as `details` — see `detailsItem`.
+        detailsKey: new URLSearchParams(window.location.search).get("details") || null,
+        // The panel's tab, kept when another item's details are opened.
+        detailsTab: "info"
+      };
+    },
+    computed: {
+      /**
+       * The item the details panel shows: looked up among the rows loaded, so it follows a
+       * reload (an edit) and is gone with the item (a delete) or the level (navigating).
+       */
+      detailsItem() {
+        if (!this.detailsKey) {
+          return null;
+        }
+        return this.items.find((item) => (item.type === "file" || item.type === "folder") && keyOf(item) === this.detailsKey) || null;
+      },
+      /** Where the item of the details panel lies: a hit's own path, else the level open. */
+      detailsLocation() {
+        var _a, _b;
+        const location = this.detailsItem ? itemLocation(this.detailsItem) : null;
+        if (location) {
+          return location.label;
+        }
+        return [(_b = (_a = this.container) == null ? void 0 : _a.space) == null ? void 0 : _b.name, ...(this.path || []).map((crumb) => crumb.title)].filter(Boolean).join(" › ");
+      },
+      /**
+       * The like state the details' Discussion tab shows: none where the like module is off,
+       * or where nobody liked the item and the caller may not.
+       */
+      detailsLikeState() {
+        const state = this.detailsItem ? this.likeStates[this.detailsItem.recordId] : null;
+        return state && (state.canLike || state.total > 0) ? state : null;
+      }
+    },
+    methods: {
+      showDetails(item) {
+        this.detailsKey = keyOf(item);
+        this.mirrorDetails();
+        this.$nextTick(() => {
+          var _a;
+          return (_a = this.$refs.details) == null ? void 0 : _a.focus();
+        });
+      },
+      closeDetails() {
+        this.detailsKey = null;
+        this.mirrorDetails();
+      },
+      /** Writes `details` into the current history entry, so a reload or a copied link keeps it. */
+      mirrorDetails() {
+        const url = new URL(window.location.href);
+        if (this.detailsKey) {
+          url.searchParams.set("details", this.detailsKey);
+        } else {
+          url.searchParams.delete("details");
+        }
+        if (url.href === window.location.href) {
+          return;
+        }
+        const state = window.history.state;
+        const next = state && typeof state === "object" && typeof state.url === "string" ? { ...state, url: url.href } : state;
+        window.history.replaceState(next, "", url.pathname + url.search + url.hash);
+      }
+    }
+  };
   let uploadSeq = 0;
   const PAGE_SIZES = { list: 50, tiles: 96 };
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
+    mixins: [detailsMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2138,11 +2208,6 @@
         showCreate: false,
         showEdit: false,
         editItem: null,
-        // The item the details panel shows (`file:<id>`/`folder:<id>`), mirrored into the
-        // URL as `details` — see `detailsItem`.
-        detailsKey: new URLSearchParams(window.location.search).get("details") || null,
-        // The panel's tab, kept when another item's details are opened.
-        detailsTab: "info",
         showMove: false,
         /** What the folder dialog is open for: `move` or `copy`. */
         transferMode: "move",
@@ -2247,33 +2312,6 @@
           return upload.parent === this.folderId && upload.containerId === ((_a = this.container) == null ? void 0 : _a.contentContainerId);
         });
         return items.concat(uploads.map((upload) => ({ ...upload, key: keyOf(upload) })));
-      },
-      /**
-       * The item the details panel shows: looked up among the rows loaded, so it follows a
-       * reload (an edit) and is gone with the item (a delete) or the level (navigating).
-       */
-      detailsItem() {
-        if (!this.detailsKey) {
-          return null;
-        }
-        return this.items.find((item) => (item.type === "file" || item.type === "folder") && keyOf(item) === this.detailsKey) || null;
-      },
-      /** Where the item of the details panel lies: a hit's own path, else the level open. */
-      detailsLocation() {
-        var _a, _b;
-        const location = this.detailsItem ? itemLocation(this.detailsItem) : null;
-        if (location) {
-          return location.label;
-        }
-        return [(_b = (_a = this.container) == null ? void 0 : _a.space) == null ? void 0 : _b.name, ...(this.path || []).map((crumb) => crumb.title)].filter(Boolean).join(" › ");
-      },
-      /**
-       * The like state the details' Discussion tab shows: none where the like module is off,
-       * or where nobody liked the item and the caller may not.
-       */
-      detailsLikeState() {
-        const state = this.detailsItem ? this.likeStates[this.detailsItem.recordId] : null;
-        return state && (state.canLike || state.total > 0) ? state : null;
       },
       /** What both views take; each view only what it declares. */
       viewProps() {
@@ -2945,34 +2983,6 @@
           }
         ];
       },
-      // --- details -----------------------------------------------------------------
-      showDetails(item) {
-        this.detailsKey = keyOf(item);
-        this.mirrorDetails();
-        this.$nextTick(() => {
-          var _a;
-          return (_a = this.$refs.details) == null ? void 0 : _a.focus();
-        });
-      },
-      closeDetails() {
-        this.detailsKey = null;
-        this.mirrorDetails();
-      },
-      /** Writes `details` into the current history entry, so a reload or a copied link keeps it. */
-      mirrorDetails() {
-        const url = new URL(window.location.href);
-        if (this.detailsKey) {
-          url.searchParams.set("details", this.detailsKey);
-        } else {
-          url.searchParams.delete("details");
-        }
-        if (url.href === window.location.href) {
-          return;
-        }
-        const state = window.history.state;
-        const next = state && typeof state === "object" && typeof state.url === "string" ? { ...state, url: url.href } : state;
-        window.history.replaceState(next, "", url.pathname + url.search + url.hash);
-      },
       // --- mutations ---------------------------------------------------------------
       openEdit(item) {
         this.editItem = item;
@@ -3357,7 +3367,7 @@
         onFilters: $options.onFilters
       }, null, 8, ["connect-url", "settings-url", "writable", "handlers", "filters", "filter-values", "onUpload", "onHandler", "onFilters"]),
       vue$1.createElementVNode("div", {
-        class: vue$1.normalizeClass(["cfiles-browser-body", { "is-details-open": $options.detailsItem }])
+        class: vue$1.normalizeClass(["cfiles-browser-body", { "is-details-open": _ctx.detailsItem }])
       }, [
         (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "card content-card p-2 cfiles-browser-card" }, $options.cardProps, vue$1.toHandlers($options.cardListeners)), {
           default: vue$1.withCtx(() => [
@@ -3422,18 +3432,18 @@
           ]),
           _: 1
         }, 16)),
-        $options.detailsItem ? (vue$1.openBlock(), vue$1.createBlock(_component_DetailsPanel, {
+        _ctx.detailsItem ? (vue$1.openBlock(), vue$1.createBlock(_component_DetailsPanel, {
           ref: "details",
-          key: $options.keyOf($options.detailsItem),
-          item: $options.detailsItem,
-          location: $options.detailsLocation,
-          "like-state": $options.detailsLikeState,
-          "initial-tab": $data.detailsTab,
+          key: $options.keyOf(_ctx.detailsItem),
+          item: _ctx.detailsItem,
+          location: _ctx.detailsLocation,
+          "like-state": _ctx.detailsLikeState,
+          "initial-tab": _ctx.detailsTab,
           "show-download-count": $props.showDownloadCount,
           onTab: _cache[5] || (_cache[5] = (tab) => {
-            $data.detailsTab = tab;
+            _ctx.detailsTab = tab;
           }),
-          onClose: $options.closeDetails
+          onClose: _ctx.closeDetails
         }, null, 8, ["item", "location", "like-state", "initial-tab", "show-download-count", "onClose"])) : vue$1.createCommentVNode("", true)
       ], 2),
       vue$1.createElementVNode("input", {

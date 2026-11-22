@@ -237,6 +237,7 @@ import {
     mergeScoped, normalizeQuery, pageOf, resolveSpace, sameContainer, scopedIds, spaceIdFromUrl, urlValue,
 } from './browser/globalLevel';
 import { itemLocation } from './browser/itemPresentation';
+import detailsMixin from './browser/detailsMixin';
 
 // Ids for upload placeholders, unique for the page's lifetime.
 let uploadSeq = 0;
@@ -252,6 +253,7 @@ const SORT_DEFAULT = 'default';
 
 export default {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
+    mixins: [detailsMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {
@@ -358,12 +360,6 @@ export default {
             showCreate: false,
             showEdit: false,
             editItem: null,
-
-            // The item the details panel shows (`file:<id>`/`folder:<id>`), mirrored into the
-            // URL as `details` — see `detailsItem`.
-            detailsKey: new URLSearchParams(window.location.search).get('details') || null,
-            // The panel's tab, kept when another item's details are opened.
-            detailsTab: 'info',
 
             showMove: false,
             /** What the folder dialog is open for: `move` or `copy`. */
@@ -475,32 +471,6 @@ export default {
             const uploads = this.uploads.filter((upload) => upload.parent === this.folderId
                 && upload.containerId === this.container?.contentContainerId);
             return items.concat(uploads.map((upload) => ({ ...upload, key: keyOf(upload) })));
-        },
-        /**
-         * The item the details panel shows: looked up among the rows loaded, so it follows a
-         * reload (an edit) and is gone with the item (a delete) or the level (navigating).
-         */
-        detailsItem() {
-            if (!this.detailsKey) {
-                return null;
-            }
-            return this.items.find((item) => (item.type === 'file' || item.type === 'folder') && keyOf(item) === this.detailsKey) || null;
-        },
-        /** Where the item of the details panel lies: a hit's own path, else the level open. */
-        detailsLocation() {
-            const location = this.detailsItem ? itemLocation(this.detailsItem) : null;
-            if (location) {
-                return location.label;
-            }
-            return [this.container?.space?.name, ...(this.path || []).map((crumb) => crumb.title)].filter(Boolean).join(' › ');
-        },
-        /**
-         * The like state the details' Discussion tab shows: none where the like module is off,
-         * or where nobody liked the item and the caller may not.
-         */
-        detailsLikeState() {
-            const state = this.detailsItem ? this.likeStates[this.detailsItem.recordId] : null;
-            return state && (state.canLike || state.total > 0) ? state : null;
         },
         /** What both views take; each view only what it declares. */
         viewProps() {
@@ -1261,35 +1231,6 @@ export default {
                     onClick: () => this.confirmDelete([item]),
                 },
             ];
-        },
-
-        // --- details -----------------------------------------------------------------
-        showDetails(item) {
-            this.detailsKey = keyOf(item);
-            this.mirrorDetails();
-            this.$nextTick(() => this.$refs.details?.focus());
-        },
-        closeDetails() {
-            this.detailsKey = null;
-            this.mirrorDetails();
-        },
-        /** Writes `details` into the current history entry, so a reload or a copied link keeps it. */
-        mirrorDetails() {
-            const url = new URL(window.location.href);
-            if (this.detailsKey) {
-                url.searchParams.set('details', this.detailsKey);
-            } else {
-                url.searchParams.delete('details');
-            }
-            if (url.href === window.location.href) {
-                return;
-            }
-            const state = window.history.state;
-            // PJAX compares its own `state.url` on popstate (see `alignUrl`); kept current.
-            const next = state && typeof state === 'object' && typeof state.url === 'string'
-                ? { ...state, url: url.href }
-                : state;
-            window.history.replaceState(next, '', url.pathname + url.search + url.hash);
         },
 
         // --- mutations ---------------------------------------------------------------
