@@ -243,7 +243,8 @@
  *
  * An upload into the open level shows a placeholder per file (`{ type: 'upload', id, title,
  * uploading: true, progress }`) after the items; one into a folder shown here marks that
- * folder as uploading instead. Both go once the batch is in and the level reloads.
+ * folder as uploading instead. Both go once the batch is in and the level is up to date —
+ * refreshed in place, not reloaded: the selection, the further pages and the details stay.
  */
 import { events, getConfig, i18n, log, modal, status } from '@humhub/vue';
 import AddMenu from './browser/AddMenu.vue';
@@ -1060,6 +1061,55 @@ export default {
                 ? this.open(this.requested.folderId, { push: this.requested.push, container: this.requested.container })
                 : this.open(this.folderId, { push: false });
         },
+        /**
+         * Brings the level shown up to date where it stands — after an upload into it, which adds
+         * to the level rather than leaving it. Unlike `reload()` it fetches every page loaded so
+         * far (the new file may sort onto any of them) and keeps what the reader set up there:
+         * the further pages, the selection of the rows still there, the details. Like a load it
+         * overtakes a further page on its way and is overtaken by an `open()`.
+         *
+         * While a level is opening there is nothing to keep: that one is reloaded instead.
+         */
+        refresh() {
+            if (this.loading) {
+                return this.reload();
+            }
+            const seq = ++this.loadSeq;
+            // A further page still on its way is stale by `seq` now (see `loadMore`).
+            this.loadingMore = false;
+            const pages = Array.from({ length: this.page || 1 }, (_, index) => index + 1);
+
+            return Promise.all(pages.map((page) => this.fetchLevel(this.container, this.folderId, {
+                sort: this.sort,
+                page,
+                pageSize: this.pageSize(),
+            }))).then((payloads) => {
+                if (seq !== this.loadSeq) {
+                    return false;
+                }
+                // Pages are offsets: a row the upload pushed onto the next page comes twice.
+                const shown = new Set();
+                this.items = payloads.flatMap((payload) => payload.results).filter((row) => {
+                    const key = keyOf(row);
+                    return !shown.has(key) && shown.add(key);
+                });
+                this.likeStates = Object.assign({}, ...payloads.map((payload) => payload.likeStates || {}));
+                const last = payloads[payloads.length - 1];
+                this.total = last.total;
+                this.page = last.page;
+                this.pages = last.pages;
+                this.selection = this.selection.filter((key) => shown.has(key));
+                if (!shown.has(this.anchorKey)) {
+                    this.anchorKey = null;
+                }
+                return true;
+            }).catch((e) => {
+                if (seq === this.loadSeq) {
+                    log.error(e, true);
+                }
+                return false;
+            });
+        },
         /** The page the current view asks for. */
         pageSize() {
             return PAGE_SIZES[this.view] || PAGE_SIZES.list;
@@ -1513,8 +1563,9 @@ export default {
          * Into the open level each file gets a placeholder after the items (kept with that
          * level: `parent`); into a folder shown here (`targetKey`) that folder shows the
          * progress instead. A batch into a level not open says where it went (`title`) once
-         * it is in. The level reloads only when the upload shows on it, and the placeholders
-         * stay until the reloaded rows are there.
+         * it is in. The level is brought up to date only when the upload shows on it — in place
+         * (`refresh()`), the selection, further pages and details kept — and the placeholders
+         * stay until the new rows are there.
          */
         sendUpload(files, parentId, { targetKey = null, title = null, intoLevel = false }, container, replace = []) {
             const batch = ++uploadSeq;
@@ -1566,7 +1617,7 @@ export default {
                 }
 
                 if (shown) {
-                    this.reload().then(done);
+                    this.refresh().then(done);
                 } else {
                     done();
                 }

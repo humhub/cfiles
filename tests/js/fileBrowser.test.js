@@ -833,6 +833,85 @@ describe('CfilesFileBrowser', () => {
             expect(wrapper.findAll('.cfiles-row')).toHaveLength(1);
         });
 
+        // An upload adds to the level shown, it does not leave it: what the reader set up there
+        // stays, and the new file shows among the rows.
+        describe('into the level shown', () => {
+            const page1 = () => [folderRow(), fileRow()];
+            const brief = () => fileRow({ id: 22, contentId: 202, recordId: 1202, title: 'Brief.pdf' });
+            const added = () => fileRow({ id: 23, contentId: 203, recordId: 1203, title: 'Neu.pdf' });
+            // Two pages; once the upload is in, the new file is on the second.
+            const serve = (uploaded) => {
+                globalThis.humhubStubs.client.get = vi.fn((url) => {
+                    if (url.includes('/conflicts')) {
+                        return Promise.resolve({ conflicts: [] });
+                    }
+                    const total = uploaded ? 4 : 3;
+                    return Promise.resolve(url.includes('page=2')
+                        ? topLevel(uploaded ? [brief(), added()] : [brief()], { page: 2, pages: 2, total })
+                        : topLevel(page1(), { pages: 2, total }));
+                });
+            };
+            const twoPages = async () => {
+                serve(false);
+                const wrapper = browser(topLevel(page1(), { pages: 2, total: 3 }));
+                wrapper.vm.loadMore();
+                await flushPromises();
+                serve(true);
+                return wrapper;
+            };
+            const names = (wrapper) => wrapper.findAll('.cfiles-row-name').map((name) => name.text());
+
+            it('keeps the further pages loaded and shows the new file among them', async () => {
+                const wrapper = await twoPages();
+
+                await wrapper.vm.upload([new File(['n'], 'Neu.pdf')]);
+                await flushPromises();
+
+                expect(names(wrapper)).toEqual(['Entwürfe', 'Angebot.pdf', 'Brief.pdf', 'Neu.pdf']);
+                expect(wrapper.vm.page).toBe(2);
+            });
+
+            it('keeps the selection', async () => {
+                const wrapper = await twoPages();
+                wrapper.vm.toggleSelect(brief());
+
+                await wrapper.vm.upload([new File(['n'], 'Neu.pdf')]);
+                await flushPromises();
+
+                expect(wrapper.vm.selection).toEqual(['file:22']);
+            });
+
+            it('keeps the details open', async () => {
+                const wrapper = await twoPages();
+                await wrapper.findAll('.cfiles-row')[2].findAll('.dropdown-item')
+                    .find((i) => i.text() === 'Details').trigger('click');
+
+                await wrapper.vm.upload([new File(['n'], 'Neu.pdf')]);
+                await flushPromises();
+
+                expect(wrapper.find('.cfiles-details').text()).toContain('Brief.pdf');
+            });
+
+            it('drops the update of a level left in the meantime', async () => {
+                const wrapper = await twoPages();
+                const updated = deferred();
+                globalThis.humhubStubs.client.get = vi.fn((url) => {
+                    if (url.includes('/conflicts')) {
+                        return Promise.resolve({ conflicts: [] });
+                    }
+                    return url.includes('parentFolderId=9') ? Promise.resolve(insideFolder([])) : updated.promise;
+                });
+
+                await wrapper.vm.upload([new File(['n'], 'Neu.pdf')]);
+                await wrapper.vm.open(9);
+                updated.resolve(topLevel(page1(), { pages: 2, total: 4 }));
+                await flushPromises();
+
+                expect(wrapper.vm.folderId).toBe(9);
+                expect(wrapper.vm.items).toEqual([]);
+            });
+        });
+
         it('does not reload a level the upload did not go to', async () => {
             const upload = deferred();
             globalThis.humhubStubs.client.post = vi.fn(() => upload.promise);
