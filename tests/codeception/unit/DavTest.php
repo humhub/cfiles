@@ -33,9 +33,14 @@ class DavTest extends HumHubDbTestCase
 {
     private Space $space;
 
+    private bool $prettyUrl;
+
     public function _before()
     {
         parent::_before();
+        $this->prettyUrl = Yii::$app->urlManager->enablePrettyUrl;
+        // `/dav/` is served below pretty URLs only
+        Yii::$app->urlManager->enablePrettyUrl = true;
         $this->becomeUser('Admin');
 
         $this->space = Space::findOne(1);
@@ -50,6 +55,7 @@ class DavTest extends HumHubDbTestCase
         Grant::deleteAll();
         Yii::$app->getModule('cfiles')->settings->delete('enableWebDav');
         OAuthModule::instance()->settings->delete('allowPersonalAccessTokens');
+        Yii::$app->urlManager->enablePrettyUrl = $this->prettyUrl;
         parent::_after();
     }
 
@@ -138,6 +144,15 @@ class DavTest extends HumHubDbTestCase
 
         OAuthModule::instance()->settings->set('allowPersonalAccessTokens', false);
         $this->assertFalse((new ConfigureForm())->canEnableWebDav());
+    }
+
+    public function testWithoutPrettyUrlsThereIsNoNetworkDrive()
+    {
+        Yii::$app->urlManager->enablePrettyUrl = false;
+
+        $this->assertFalse((new ConfigureForm())->canEnableWebDav());
+        $this->assertStringContainsString('pretty URLs', (new ConfigureForm())->getAttributeHint('enableWebDav'));
+        $this->assertNull(DeviceConnectionRegistry::find(User::findOne(['username' => 'Admin']), Module::DAV_CONNECTION));
     }
 
     public function testSwitchedOffTheFilesAreNotServed()

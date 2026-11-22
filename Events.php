@@ -165,7 +165,8 @@ class Events
     {
         /** @var Module $module */
         $module = Yii::$app->getModule('cfiles');
-        if (!$module->getEnableWebDav()) {
+        // `/dav/` is served below pretty URLs only
+        if (!$module->getEnableWebDav() || !Yii::$app->urlManager->enablePrettyUrl) {
             return;
         }
 

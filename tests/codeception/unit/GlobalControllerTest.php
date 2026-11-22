@@ -255,10 +255,18 @@ class GlobalControllerTest extends HumHubDbTestCase
 
     public function testThePageLinksTheNetworkDrive()
     {
-        $connectUrl = $this->props([])['connectUrl'];
+        $prettyUrl = Yii::$app->urlManager->enablePrettyUrl;
+        // `/dav/` is served below pretty URLs only
+        Yii::$app->urlManager->enablePrettyUrl = true;
+        try {
+            $connectUrl = $this->props([])['connectUrl'];
+            $this->assertNotNull($connectUrl);
+            $this->assertSame($this->module()->getDavConnectionUrl(), $connectUrl);
+        } finally {
+            Yii::$app->urlManager->enablePrettyUrl = $prettyUrl;
+        }
 
-        $this->assertNotNull($connectUrl);
-        $this->assertSame($this->module()->getDavConnectionUrl(), $connectUrl);
+        $this->assertNull($this->props([])['connectUrl']);
     }
 
     public function testOnlyAnAdminGetsTheSettings()

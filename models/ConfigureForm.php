@@ -71,7 +71,10 @@ class ConfigureForm extends \yii\base\Model
     public function attributeHints()
     {
         $webDav = Yii::t('CfilesModule.base', 'Users connect the files of their spaces and their profile as a network drive, with a password for each device (a personal access token).');
-        if (!$this->canEnableWebDav()) {
+        if (!Yii::$app->urlManager->enablePrettyUrl) {
+            $webDav .= ' ' . Yii::t('CfilesModule.base', 'Requires pretty URLs, see the installation guide.');
+        }
+        if (!OAuthModule::instance()->allowsPersonalAccessTokens()) {
             $webDav .= ' ' . Yii::t('CfilesModule.base', 'Requires personal access tokens, which are switched off under {link}.', [
                 'link' => Html::a(Yii::t('CfilesModule.base', 'Apps & API Access'), Url::to(['/oauth/admin/index'])),
             ]);
@@ -84,11 +87,12 @@ class ConfigureForm extends \yii\base\Model
     }
 
     /**
-     * Whether WebDAV can work: a device signs in with a personal access token.
+     * Whether WebDAV can work: `/dav/` is served below pretty URLs only, and a device signs in
+     * with a personal access token.
      */
     public function canEnableWebDav(): bool
     {
-        return OAuthModule::instance()->allowsPersonalAccessTokens();
+        return Yii::$app->urlManager->enablePrettyUrl && OAuthModule::instance()->allowsPersonalAccessTokens();
     }
 
     public function save(): bool
