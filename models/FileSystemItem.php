@@ -139,9 +139,10 @@ abstract class FileSystemItem extends ContentActiveRecord
      */
     public function afterSave($insert, $changedAttributes)
     {
-        // this should set the editor and edit date of all parent folders if sth. inside of them has changed
+        // A change inside changes every folder above: their editor and date of change, in one
+        // statement rather than a save (validation, content, search index) per level.
         if (!empty($this->parentFolder)) {
-            $this->parentFolder->save();
+            Folder::markAsChanged(Folder::ancestorIds((int)$this->parent_folder_id));
             if ($this->parentFolder->content->isPrivate() && $this->content->isPublic()) {
                 $this->content->visibility = Content::VISIBILITY_PRIVATE;
             }

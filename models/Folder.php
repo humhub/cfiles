@@ -12,6 +12,7 @@ use humhub\modules\file\models\FileContent;
 use humhub\modules\file\libs\FileHelper;
 use humhub\modules\user\models\User;
 use humhub\modules\space\models\Space;
+use Throwable;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\imagine\Image;
@@ -139,6 +140,76 @@ class Folder extends FileSystemItem
         }
 
         return $attributes;
+    }
+
+    /**
+     * A change of a folder cascades into what it holds (its visibility, see beforeSave(), and its
+     * hard deletion, see beforeDelete()): all of it or nothing, in one transaction.
+     *
+     * @inheritdoc
+     */
+    public function transactions()
+    {
+        return array_fill_keys(array_keys($this->scenarios()), self::OP_UPDATE | self::OP_DELETE);
+    }
+
+    /**
+     * Moved to the trash with everything inside it (see afterSoftDelete()), or not at all.
+     *
+     * @inheritdoc
+     */
+    public function softDelete(): bool
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $deleted = parent::softDelete();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        $deleted ? $transaction->commit() : $transaction->rollBack();
+
+        return $deleted;
+    }
+
+    /**
+     * The id of the folder and those of the folders above it, up to the top level: one query
+     * of the parent's id per level (no recursive query on MySQL 5.7).
+     *
+     * @return int[]
+     */
+    public static function ancestorIds(int $folderId): array
+    {
+        $ids = [];
+        for ($id = $folderId; $id !== null && !isset($ids[$id]); $id = $parentId) {
+            // A corrupt parent chain (a cycle) must not hang the request.
+            $ids[$id] = true;
+            $parentId = static::find()->select('parent_folder_id')->where(['id' => $id])->scalar();
+            $parentId = $parentId ? (int)$parentId : null;
+        }
+
+        return array_keys($ids);
+    }
+
+    /**
+     * Marks the folders as changed now, by the current user, as a save of their content would:
+     * one statement for all of them.
+     *
+     * @param int[] $folderIds
+     */
+    public static function markAsChanged(array $folderIds): void
+    {
+        if ($folderIds === []) {
+            return;
+        }
+
+        $attributes = ['updated_at' => date('Y-m-d H:i:s')];
+        if (isset(Yii::$app->user->id)) {
+            $attributes['updated_by'] = Yii::$app->user->id;
+        }
+
+        Content::updateAll($attributes, ['object_model' => static::class, 'object_id' => $folderIds]);
     }
 
     /**
