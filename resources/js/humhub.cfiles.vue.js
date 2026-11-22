@@ -2100,6 +2100,108 @@
       }
     }
   };
+  const dragDropMixin = {
+    data() {
+      return {
+        // What an item drag in flight carries: the selection, or the one item dragged.
+        dragged: [],
+        // Two values, two conventions: TileGrid's/ItemList's `null` is "no target", while
+        // PathBar's `null` is the root crumb and `undefined` is "no target".
+        itemDropTargetKey: null,
+        crumbDropTargetId: void 0
+      };
+    },
+    computed: {
+      /** The card's `DropZone` — none at the global top level, which holds spaces. */
+      cardProps() {
+        return this.isGlobalTop ? {} : { accept: this.writable, label: this.dropLabel, refusedLabel: this.refusedLabel };
+      },
+      cardListeners() {
+        return this.isGlobalTop ? {} : { drop: (files) => this.upload(files, this.folderId) };
+      },
+      dropLabel() {
+        return vue.i18n.t("CfilesModule.base", "Drop files here to upload them");
+      },
+      refusedLabel() {
+        return vue.i18n.t("CfilesModule.base", "You cannot upload files here");
+      }
+    },
+    methods: {
+      /** Whether a drag carries desktop files rather than one of our own items. */
+      isFileDrag(event) {
+        var _a;
+        return Array.prototype.includes.call(((_a = event == null ? void 0 : event.dataTransfer) == null ? void 0 : _a.types) || [], "Files");
+      },
+      /**
+       * A folder takes desktop files and the items being dragged — never itself, nor
+       * anything from a reader who may not write.
+       */
+      canDropOnItem(item, event) {
+        if (!this.writable || item.type !== "folder") {
+          return false;
+        }
+        if (this.isFileDrag(event)) {
+          return true;
+        }
+        return this.dragged.length > 0 && !this.dragged.some((dragged) => keyOf(dragged) === keyOf(item));
+      },
+      canDropOnCrumb(id, event) {
+        if (this.global && id === null) {
+          return false;
+        }
+        return this.writable && (this.isFileDrag(event) || this.dragged.length > 0);
+      },
+      onDragStart(item) {
+        this.dragged = this.selection.includes(keyOf(item)) ? this.selectedItems : [item];
+      },
+      /**
+       * Ends a drag — on a drop (no `drag-leave` follows one, so the target is cleared here)
+       * and on the `drag-end` the browser fires after it or after a cancelled drag.
+       * Idempotent: whichever comes second finds nothing left to clear.
+       */
+      onDragEnd() {
+        this.dragged = [];
+        this.itemDropTargetKey = null;
+        this.crumbDropTargetId = void 0;
+      },
+      onItemDragOver(item) {
+        this.itemDropTargetKey = keyOf(item);
+      },
+      onItemDragLeave(item) {
+        if (this.itemDropTargetKey === keyOf(item)) {
+          this.itemDropTargetKey = null;
+        }
+      },
+      onCrumbDragOver(id) {
+        this.crumbDropTargetId = id;
+      },
+      onCrumbDragLeave(id) {
+        if (this.crumbDropTargetId === id) {
+          this.crumbDropTargetId = void 0;
+        }
+      },
+      onDropOnItem(folder, event) {
+        const items = this.dragged;
+        this.onDragEnd();
+        if (this.isFileDrag(event)) {
+          this.upload(event.dataTransfer.files, folder.id, { targetKey: keyOf(folder), title: folder.title });
+          return;
+        }
+        this.moveTo(folder.id, items);
+      },
+      onDropOnCrumb(id, event) {
+        const items = this.dragged;
+        this.onDragEnd();
+        const folderId = id === SPACE_CRUMB ? null : id;
+        if (this.isFileDrag(event)) {
+          const crumb = this.crumbs.find((level) => level.id === id);
+          this.upload(event.dataTransfer.files, folderId, { title: crumb ? crumb.title : null });
+          return;
+        }
+        this.moveTo(folderId, items);
+      }
+    }
+  };
   const fileHandlersMixin = {
     data() {
       return {
@@ -2177,7 +2279,7 @@
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin, fileHandlersMixin],
+    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2285,12 +2387,6 @@
         moveError: null,
         // The names an upload found taken, while the user is asked about them (ConflictDialog).
         conflicts: [],
-        // What an item drag in flight carries: the selection, or the one item dragged.
-        dragged: [],
-        // Two values, two conventions: TileGrid's/ItemList's `null` is "no target", while
-        // PathBar's `null` is the root crumb and `undefined` is "no target".
-        itemDropTargetKey: null,
-        crumbDropTargetId: void 0,
         // On the global page: which topic ids each space takes (its own and the global ones),
         // by content container id — `{ [id]: true|false }`, asked once per id and space.
         topicScopes: {},
@@ -2348,12 +2444,6 @@
         }
         const containerId = this.container.contentContainerId;
         return this.containerFilters.map((filter) => filter.type === "topic" ? { ...filter, props: { ...filter.props || {}, containerId } } : filter);
-      },
-      cardProps() {
-        return this.isGlobalTop ? {} : { accept: this.writable, label: this.dropLabel, refusedLabel: this.refusedLabel };
-      },
-      cardListeners() {
-        return this.isGlobalTop ? {} : { drop: (files) => this.upload(files, this.folderId) };
       },
       rootUrl() {
         return this.global ? this.folderUrl(null, null) : this.folderUrl(null);
@@ -2442,12 +2532,6 @@
       },
       viewLabel() {
         return vue.i18n.t("CfilesModule.base", "View");
-      },
-      dropLabel() {
-        return vue.i18n.t("CfilesModule.base", "Drop files here to upload them");
-      },
-      refusedLabel() {
-        return vue.i18n.t("CfilesModule.base", "You cannot upload files here");
       },
       resultsLabel() {
         if (this.isGlobalTop) {
@@ -3289,64 +3373,6 @@
           done();
           vue.log.error(response, true);
         });
-      },
-      // --- drag & drop ------------------------------------------------------------
-      /** Whether a drag carries desktop files rather than one of our own items. */
-      isFileDrag(event) {
-        var _a;
-        return Array.prototype.includes.call(((_a = event == null ? void 0 : event.dataTransfer) == null ? void 0 : _a.types) || [], "Files");
-      },
-      /**
-       * A folder takes desktop files and the items being dragged — never itself, nor
-       * anything from a reader who may not write.
-       */
-      canDropOnItem(item, event) {
-        if (!this.writable || item.type !== "folder") {
-          return false;
-        }
-        if (this.isFileDrag(event)) {
-          return true;
-        }
-        return this.dragged.length > 0 && !this.dragged.some((dragged) => keyOf(dragged) === keyOf(item));
-      },
-      canDropOnCrumb(id, event) {
-        if (this.global && id === null) {
-          return false;
-        }
-        return this.writable && (this.isFileDrag(event) || this.dragged.length > 0);
-      },
-      onDragStart(item) {
-        this.dragged = this.selection.includes(keyOf(item)) ? this.selectedItems : [item];
-      },
-      /**
-       * Ends a drag — on a drop (no `drag-leave` follows one, so the target is cleared here)
-       * and on the `drag-end` the browser fires after it or after a cancelled drag.
-       * Idempotent: whichever comes second finds nothing left to clear.
-       */
-      onDragEnd() {
-        this.dragged = [];
-        this.itemDropTargetKey = null;
-        this.crumbDropTargetId = void 0;
-      },
-      onDropOnItem(folder, event) {
-        const items = this.dragged;
-        this.onDragEnd();
-        if (this.isFileDrag(event)) {
-          this.upload(event.dataTransfer.files, folder.id, { targetKey: keyOf(folder), title: folder.title });
-          return;
-        }
-        this.moveTo(folder.id, items);
-      },
-      onDropOnCrumb(id, event) {
-        const items = this.dragged;
-        this.onDragEnd();
-        const folderId = id === SPACE_CRUMB ? null : id;
-        if (this.isFileDrag(event)) {
-          const crumb = this.crumbs.find((level) => level.id === id);
-          this.upload(event.dataTransfer.files, folderId, { title: crumb ? crumb.title : null });
-          return;
-        }
-        this.moveTo(folderId, items);
       }
     }
   };
@@ -3383,23 +3409,19 @@
       vue$1.createElementVNode("div", {
         class: vue$1.normalizeClass(["cfiles-browser-body", { "is-details-open": _ctx.detailsItem }])
       }, [
-        (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "card content-card p-2 cfiles-browser-card" }, $options.cardProps, vue$1.toHandlers($options.cardListeners)), {
+        (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "card content-card p-2 cfiles-browser-card" }, _ctx.cardProps, vue$1.toHandlers(_ctx.cardListeners)), {
           default: vue$1.withCtx(() => [
             vue$1.createVNode(_component_PathBar, {
               ref: "pathBar",
               path: $options.crumbs,
               "root-label": $options.rootLabel,
               "root-url": $options.rootUrl,
-              "can-drop": $options.canDropOnCrumb,
-              "drop-target-id": $data.crumbDropTargetId,
+              "can-drop": _ctx.canDropOnCrumb,
+              "drop-target-id": _ctx.crumbDropTargetId,
               onNavigate: $options.onNavigate,
-              onDragOver: _cache[1] || (_cache[1] = (id) => {
-                $data.crumbDropTargetId = id;
-              }),
-              onDragLeave: _cache[2] || (_cache[2] = (id) => {
-                if ($data.crumbDropTargetId === id) $data.crumbDropTargetId = void 0;
-              }),
-              onDropOn: $options.onDropOnCrumb
+              onDragOver: _ctx.onCrumbDragOver,
+              onDragLeave: _ctx.onCrumbDragLeave,
+              onDropOn: _ctx.onDropOnCrumb
             }, {
               end: vue$1.withCtx(() => [
                 vue$1.createVNode(_component_SelectionMenu, {
@@ -3416,20 +3438,16 @@
                 }, null, 8, ["model-value", "options", "label", "onUpdate:modelValue"])
               ]),
               _: 1
-            }, 8, ["path", "root-label", "root-url", "can-drop", "drop-target-id", "onNavigate", "onDropOn"]),
+            }, 8, ["path", "root-label", "root-url", "can-drop", "drop-target-id", "onNavigate", "onDragOver", "onDragLeave", "onDropOn"]),
             $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString($options.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
             (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($data.view === "tiles" ? "FileTiles" : "ItemList"), vue$1.mergeProps($options.viewProps, {
               onOpen: $options.onOpen,
               onToggleSelect: $options.toggleSelect,
-              onDragStart: $options.onDragStart,
-              onDragEnd: $options.onDragEnd,
-              onDragOver: _cache[3] || (_cache[3] = (item) => {
-                $data.itemDropTargetKey = $options.keyOf(item);
-              }),
-              onDragLeave: _cache[4] || (_cache[4] = (item) => {
-                if ($data.itemDropTargetKey === $options.keyOf(item)) $data.itemDropTargetKey = null;
-              }),
-              onDropOn: $options.onDropOnItem,
+              onDragStart: _ctx.onDragStart,
+              onDragEnd: _ctx.onDragEnd,
+              onDragOver: _ctx.onItemDragOver,
+              onDragLeave: _ctx.onItemDragLeave,
+              onDropOn: _ctx.onDropOnItem,
               onLoadMore: $options.loadMore
             }), {
               empty: vue$1.withCtx(() => [
@@ -3442,7 +3460,7 @@
                 }, null, 8, ["results", "global-top", "in-folder", "writable", "onReset"])
               ]),
               _: 1
-            }, 16, ["onOpen", "onToggleSelect", "onDragStart", "onDragEnd", "onDropOn", "onLoadMore"]))
+            }, 16, ["onOpen", "onToggleSelect", "onDragStart", "onDragEnd", "onDragOver", "onDragLeave", "onDropOn", "onLoadMore"]))
           ]),
           _: 1
         }, 16)),
@@ -3454,7 +3472,7 @@
           "like-state": _ctx.detailsLikeState,
           "initial-tab": _ctx.detailsTab,
           "show-download-count": $props.showDownloadCount,
-          onTab: _cache[5] || (_cache[5] = (tab) => {
+          onTab: _cache[1] || (_cache[1] = (tab) => {
             _ctx.detailsTab = tab;
           }),
           onClose: _ctx.closeDetails
@@ -3465,13 +3483,13 @@
         type: "file",
         multiple: "",
         class: "d-none",
-        onChange: _cache[6] || (_cache[6] = (...args) => $options.onFilesPicked && $options.onFilesPicked(...args))
+        onChange: _cache[2] || (_cache[2] = (...args) => $options.onFilesPicked && $options.onFilesPicked(...args))
       }, null, 544),
       vue$1.createVNode(_component_UiModal, {
         show: $data.showCreate,
-        "onUpdate:show": _cache[8] || (_cache[8] = ($event) => $data.showCreate = $event),
+        "onUpdate:show": _cache[4] || (_cache[4] = ($event) => $data.showCreate = $event),
         title: $options.createTitle,
-        onOpened: _cache[9] || (_cache[9] = ($event) => $options.focusForm("createForm"))
+        onOpened: _cache[5] || (_cache[5] = ($event) => $options.focusForm("createForm"))
       }, {
         default: vue$1.withCtx(() => [
           $data.showCreate ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
@@ -3481,16 +3499,16 @@
             "parent-folder-id": $options.folderId,
             "default-visibility": $data.levelNewItemVisibility,
             onSaved: $options.onCreated,
-            onCancel: _cache[7] || (_cache[7] = ($event) => $data.showCreate = false)
+            onCancel: _cache[3] || (_cache[3] = ($event) => $data.showCreate = false)
           }, null, 8, ["content-container-id", "parent-folder-id", "default-visibility", "onSaved"])) : vue$1.createCommentVNode("", true)
         ]),
         _: 1
       }, 8, ["show", "title"]),
       vue$1.createVNode(_component_UiModal, {
         show: $data.showEdit,
-        "onUpdate:show": _cache[11] || (_cache[11] = ($event) => $data.showEdit = $event),
+        "onUpdate:show": _cache[7] || (_cache[7] = ($event) => $data.showEdit = $event),
         title: $options.editTitle,
-        onOpened: _cache[12] || (_cache[12] = ($event) => $options.focusForm("editForm"))
+        onOpened: _cache[8] || (_cache[8] = ($event) => $options.focusForm("editForm"))
       }, {
         default: vue$1.withCtx(() => [
           $data.showEdit ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
@@ -3499,7 +3517,7 @@
             item: $data.editItem,
             "content-container-id": $options.editContainerId,
             onSaved: $options.onUpdated,
-            onCancel: _cache[10] || (_cache[10] = ($event) => $data.showEdit = false)
+            onCancel: _cache[6] || (_cache[6] = ($event) => $data.showEdit = false)
           }, null, 8, ["item", "content-container-id", "onSaved"])) : vue$1.createCommentVNode("", true)
         ]),
         _: 1
@@ -3513,14 +3531,14 @@
         "current-path": $data.path || [],
         busy: $data.moveBusy,
         error: $data.moveError,
-        onClose: _cache[13] || (_cache[13] = ($event) => $data.showMove = false),
-        onConfirm: _cache[14] || (_cache[14] = (id) => $data.transferMode === "copy" ? $options.copyTo(id, $data.moveItemsList) : $options.moveTo(id, $data.moveItemsList))
+        onClose: _cache[9] || (_cache[9] = ($event) => $data.showMove = false),
+        onConfirm: _cache[10] || (_cache[10] = (id) => $data.transferMode === "copy" ? $options.copyTo(id, $data.moveItemsList) : $options.moveTo(id, $data.moveItemsList))
       }, null, 8, ["show", "content-container-id", "items", "mode", "current-path", "busy", "error"])) : vue$1.createCommentVNode("", true),
       vue$1.createVNode(_component_ConflictDialog, {
         show: $data.conflicts.length > 0,
         conflicts: $data.conflicts,
         onResolve: $options.settleConflicts,
-        onCancel: _cache[15] || (_cache[15] = ($event) => $options.settleConflicts("cancel"))
+        onCancel: _cache[11] || (_cache[11] = ($event) => $options.settleConflicts("cancel"))
       }, null, 8, ["show", "conflicts", "onResolve"])
     ]);
   }

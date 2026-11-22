@@ -34,8 +34,8 @@
                     :can-drop="canDropOnCrumb"
                     :drop-target-id="crumbDropTargetId"
                     @navigate="onNavigate"
-                    @drag-over="(id) => { crumbDropTargetId = id; }"
-                    @drag-leave="(id) => { if (crumbDropTargetId === id) crumbDropTargetId = undefined; }"
+                    @drag-over="onCrumbDragOver"
+                    @drag-leave="onCrumbDragLeave"
                     @drop-on="onDropOnCrumb"
                 >
                     <template #end>
@@ -58,8 +58,8 @@
                     @toggle-select="toggleSelect"
                     @drag-start="onDragStart"
                     @drag-end="onDragEnd"
-                    @drag-over="(item) => { itemDropTargetKey = keyOf(item); }"
-                    @drag-leave="(item) => { if (itemDropTargetKey === keyOf(item)) itemDropTargetKey = null; }"
+                    @drag-over="onItemDragOver"
+                    @drag-leave="onItemDragLeave"
                     @drop-on="onDropOnItem"
                     @load-more="loadMore"
                 >
@@ -215,12 +215,6 @@
  * instance, and a concern reaches what it needs of another through it. Each mixin's docblock
  * names what it uses without defining it.
  *
- * ## Drag & drop
- *
- * Drop targets are folder tiles/rows and the path's ancestors: desktop files dropped on one
- * upload into it, dragged items move there. Files dropped anywhere else in the card upload into
- * the open level (`DropZone`). One owner, one vocabulary for tiles and rows.
- *
  * ## Uploads
  *
  * An upload into the open level shows a placeholder per file (`{ type: 'upload', id, title,
@@ -245,6 +239,7 @@ import {
 } from './browser/globalLevel';
 import { itemLocation } from './browser/itemPresentation';
 import detailsMixin from './browser/detailsMixin';
+import dragDropMixin from './browser/dragDropMixin';
 import fileHandlersMixin from './browser/fileHandlersMixin';
 
 // Ids for upload placeholders, unique for the page's lifetime.
@@ -261,7 +256,7 @@ const SORT_DEFAULT = 'default';
 
 export default {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin, fileHandlersMixin],
+    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {
@@ -375,13 +370,6 @@ export default {
             // The names an upload found taken, while the user is asked about them (ConflictDialog).
             conflicts: [],
 
-            // What an item drag in flight carries: the selection, or the one item dragged.
-            dragged: [],
-            // Two values, two conventions: TileGrid's/ItemList's `null` is "no target", while
-            // PathBar's `null` is the root crumb and `undefined` is "no target".
-            itemDropTargetKey: null,
-            crumbDropTargetId: undefined,
-
             // On the global page: which topic ids each space takes (its own and the global ones),
             // by content container id — `{ [id]: true|false }`, asked once per id and space.
             topicScopes: {},
@@ -442,12 +430,6 @@ export default {
             return this.containerFilters.map((filter) => (filter.type === 'topic'
                 ? { ...filter, props: { ...(filter.props || {}), containerId } }
                 : filter));
-        },
-        cardProps() {
-            return this.isGlobalTop ? {} : { accept: this.writable, label: this.dropLabel, refusedLabel: this.refusedLabel };
-        },
-        cardListeners() {
-            return this.isGlobalTop ? {} : { drop: (files) => this.upload(files, this.folderId) };
         },
         rootUrl() {
             return this.global ? this.folderUrl(null, null) : this.folderUrl(null);
@@ -539,12 +521,6 @@ export default {
         },
         viewLabel() {
             return i18n.t('CfilesModule.base', 'View');
-        },
-        dropLabel() {
-            return i18n.t('CfilesModule.base', 'Drop files here to upload them');
-        },
-        refusedLabel() {
-            return i18n.t('CfilesModule.base', 'You cannot upload files here');
         },
         resultsLabel() {
             if (this.isGlobalTop) {
@@ -1502,71 +1478,6 @@ export default {
                 done();
                 log.error(response, true);
             });
-        },
-
-        // --- drag & drop ------------------------------------------------------------
-        /** Whether a drag carries desktop files rather than one of our own items. */
-        isFileDrag(event) {
-            return Array.prototype.includes.call(event?.dataTransfer?.types || [], 'Files');
-        },
-        /**
-         * A folder takes desktop files and the items being dragged — never itself, nor
-         * anything from a reader who may not write.
-         */
-        canDropOnItem(item, event) {
-            if (!this.writable || item.type !== 'folder') {
-                return false;
-            }
-            if (this.isFileDrag(event)) {
-                return true;
-            }
-            return this.dragged.length > 0 && !this.dragged.some((dragged) => keyOf(dragged) === keyOf(item));
-        },
-        canDropOnCrumb(id, event) {
-            // The global page's root is its top level, which holds spaces, not files.
-            if (this.global && id === null) {
-                return false;
-            }
-            return this.writable && (this.isFileDrag(event) || this.dragged.length > 0);
-        },
-        onDragStart(item) {
-            // Dragging one of the selected items moves the whole selection.
-            this.dragged = this.selection.includes(keyOf(item)) ? this.selectedItems : [item];
-        },
-        /**
-         * Ends a drag — on a drop (no `drag-leave` follows one, so the target is cleared here)
-         * and on the `drag-end` the browser fires after it or after a cancelled drag.
-         * Idempotent: whichever comes second finds nothing left to clear.
-         */
-        onDragEnd() {
-            this.dragged = [];
-            this.itemDropTargetKey = null;
-            this.crumbDropTargetId = undefined;
-        },
-        onDropOnItem(folder, event) {
-            const items = this.dragged;
-            this.onDragEnd();
-
-            if (this.isFileDrag(event)) {
-                this.upload(event.dataTransfer.files, folder.id, { targetKey: keyOf(folder), title: folder.title });
-                return;
-            }
-
-            this.moveTo(folder.id, items);
-        },
-        onDropOnCrumb(id, event) {
-            const items = this.dragged;
-            this.onDragEnd();
-            // The space's crumb is its top level.
-            const folderId = id === SPACE_CRUMB ? null : id;
-
-            if (this.isFileDrag(event)) {
-                const crumb = this.crumbs.find((level) => level.id === id);
-                this.upload(event.dataTransfer.files, folderId, { title: crumb ? crumb.title : null });
-                return;
-            }
-
-            this.moveTo(folderId, items);
         },
     },
 };
