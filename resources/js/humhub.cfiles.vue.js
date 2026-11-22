@@ -2274,6 +2274,163 @@
       }
     }
   };
+  const SORT_DEFAULT = "default";
+  const filtersMixin = {
+    data() {
+      return {
+        // A key of the list's sorts, `default` for none chosen.
+        sort: this.listing.sort || SORT_DEFAULT,
+        // The values of the list's filters by key, `''` = not set; sent with every load (on
+        // the global page only those the level's endpoint knows, see `levelFilters()`).
+        query: normalizeQuery({ ...this.initialFilters }, [...this.filters, ...this.containerFilters]),
+        // On the global page: which topic ids each space takes (its own and the global ones),
+        // by content container id — `{ [id]: true|false }`, asked once per id and space.
+        topicScopes: {}
+      };
+    },
+    computed: {
+      /**
+       * The FilterBar definitions of the level shown: inside a space the space's own. The page
+       * builds those for no space in particular (`GlobalController`): the Topic searches the
+       * topics of the one open (`props.containerId`), as the space's endpoint takes them.
+       */
+      activeFilters() {
+        if (!this.global || !this.container) {
+          return this.filters;
+        }
+        const containerId = this.container.contentContainerId;
+        return this.containerFilters.map((filter) => filter.type === "topic" ? { ...filter, props: { ...filter.props || {}, containerId } } : filter);
+      },
+      /**
+       * The bar's values: the filters, and the sort — the select shows an offered key;
+       * `default` (and a key it does not offer) is its label.
+       */
+      filterValues() {
+        const select = this.activeFilters.find((filter) => filter.key === "sort");
+        const offered = ((select == null ? void 0 : select.options) || []).some((option) => option.value === this.sort);
+        return this.scopeTopics({ ...this.query, sort: offered ? this.sort : "" }, this.container);
+      },
+      resultsLabel() {
+        if (this.isGlobalTop) {
+          return vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in your spaces", { count: this.total });
+        }
+        return this.folder ? vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in this folder and its subfolders", { count: this.total }) : vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in all files", { count: this.total });
+      }
+    },
+    created() {
+      this.alignUrl();
+      if (this.global && this.container && isSet(this.query[TOPIC_KEY])) {
+        this.checkTopics(this.container);
+      }
+    },
+    methods: {
+      /**
+       * Puts the page URL's filters and sort in line with what the first page was built with
+       * (`initialFilters`, the payload's sort): a value the server trimmed or refused, or a
+       * sort it did not use, would otherwise be applied by the bar on mount — a second load,
+       * a `422`, or `sort=default`, which forgets the user's stored sort.
+       */
+      alignUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const before = params.toString();
+        Object.entries(this.query).forEach(([key, value]) => {
+          if (isSet(value)) {
+            params.set(key, urlValue(value));
+          } else {
+            params.delete(key);
+          }
+        });
+        if (params.has("sort") && params.get("sort") !== this.filterValues.sort) {
+          params.delete("sort");
+        }
+        if (params.toString() === before) {
+          return;
+        }
+        const query = params.toString();
+        const path = window.location.pathname + (query ? "?" + query : "") + window.location.hash;
+        const state = window.history.state;
+        const next = state && typeof state === "object" && typeof state.url === "string" ? { ...state, url: window.location.origin + path } : state;
+        window.history.replaceState(next, "", path);
+      },
+      /** The values of the list's filters the page URL carries (`''` = not set). */
+      queryFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return normalizeQuery(
+          Object.fromEntries(Object.keys(this.query).map((key) => [key, params.get(key) ?? ""])),
+          [...this.filters, ...this.containerFilters]
+        );
+      },
+      /**
+       * The filters a level's endpoint knows, with their values: the space browser sends them
+       * all; the global page those of the level's definitions — a space's endpoint answers
+       * `422` for the global page's own (Space), whose value is kept for the way back.
+       */
+      levelFilters(container) {
+        return this.scopeTopics(
+          levelFilters(this.query, this.global ? container ? this.containerFilters : this.filters : null),
+          container
+        );
+      },
+      /**
+       * The values as a space of the global page takes them: of the topics, those that are the
+       * space's or global (`topicScopes`) — the space's endpoint refuses the others, which
+       * `query` keeps for the way back. Unchanged elsewhere.
+       */
+      scopeTopics(values, container) {
+        if (!this.global || !container || !(TOPIC_KEY in values)) {
+          return values;
+        }
+        return { ...values, [TOPIC_KEY]: scopedIds(values[TOPIC_KEY], this.topicScopes[container.contentContainerId]) };
+      },
+      /**
+       * Asks the picker, once, which of the chosen topics a space of the global page takes
+       * (`topicScopes`); settles when it knows — also when asking failed, which leaves the ids
+       * it could not check out of that space's filter.
+       */
+      checkTopics(container) {
+        const containerId = container.contentContainerId;
+        const unknown = idsOf(this.query[TOPIC_KEY]).filter((id) => !(id in (this.topicScopes[containerId] || {})));
+        if (!unknown.length) {
+          return Promise.resolve();
+        }
+        return resolveTopics(containerId, unknown).then((taken) => {
+          const scope = { ...this.topicScopes[containerId] || {} };
+          unknown.forEach((id) => scope[id] = taken.includes(id));
+          this.topicScopes = { ...this.topicScopes, [containerId]: scope };
+        }).catch((error) => vue.log.error(error));
+      },
+      /**
+       * Applies what the FilterBar emits: the filters and the sort select. Nothing changed
+       * (the bar's first look at a URL the page was built from) is no reload.
+       *
+       * A cleared select (`''`) asks for `default` explicitly: sending no sort would have the
+       * server re-apply the stored one, and the clear would do nothing. `default` is the
+       * module's order, and the server forgets the stored one.
+       */
+      onFilters(values) {
+        const { sort: chosen, ...filters } = values;
+        const sort = chosen || SORT_DEFAULT;
+        if (this.global && this.container && TOPIC_KEY in filters) {
+          filters[TOPIC_KEY] = mergeScoped(filters[TOPIC_KEY], this.query[TOPIC_KEY], this.topicScopes[this.container.contentContainerId]);
+        }
+        const query = { ...this.query, ...filters };
+        if (sort === this.sort && JSON.stringify(query) === JSON.stringify(this.query)) {
+          return;
+        }
+        this.sort = sort;
+        this.query = query;
+        this.reload();
+      },
+      /**
+       * Clears the filters, keeps the sort — the empty result list's way out. The bar takes
+       * the new values as they are (a `modelValue` from outside), so this is one load.
+       */
+      resetFilters() {
+        this.query = Object.fromEntries(Object.keys(this.query).map((key) => [key, ""]));
+        this.reload();
+      }
+    }
+  };
   const itemActionsMixin = {
     data() {
       return {
@@ -2771,10 +2928,9 @@
     }
   };
   const PAGE_SIZES = { list: 50, tiles: 96 };
-  const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
+    mixins: [filtersMixin, detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2845,11 +3001,6 @@
         path: this.listing.path,
         items: this.listing.results,
         likeStates: this.listing.likeStates || {},
-        // A key of the list's sorts, `default` for none chosen.
-        sort: this.listing.sort || SORT_DEFAULT,
-        // The values of the list's filters by key, `''` = not set; sent with every load (on
-        // the global page only those the level's endpoint knows, see `levelFilters()`).
-        query: normalizeQuery({ ...this.initialFilters }, [...this.filters, ...this.containerFilters]),
         // The container the open level is of: `{ contentContainerId, space }`, `space` set on
         // the global page only. `null` is the global page's top level. Every request goes to
         // it; the space browser's never changes.
@@ -2870,9 +3021,6 @@
         pages: this.listing.pages,
         loading: false,
         loadingMore: false,
-        // On the global page: which topic ids each space takes (its own and the global ones),
-        // by content container id — `{ [id]: true|false }`, asked once per id and space.
-        topicScopes: {},
         // The level the tiles show, and which way the last change went (for the slide).
         level: levelKey(this.global, this.global ? this.space ? containerOf(this.space) : null : null, this.listing.folder),
         direction: "forward"
@@ -2902,18 +3050,6 @@
       movable() {
         return this.writable && this.levelCanManage;
       },
-      /**
-       * The FilterBar definitions of the level shown: inside a space the space's own. The page
-       * builds those for no space in particular (`GlobalController`): the Topic searches the
-       * topics of the one open (`props.containerId`), as the space's endpoint takes them.
-       */
-      activeFilters() {
-        if (!this.global || !this.container) {
-          return this.filters;
-        }
-        const containerId = this.container.contentContainerId;
-        return this.containerFilters.map((filter) => filter.type === "topic" ? { ...filter, props: { ...filter.props || {}, containerId } } : filter);
-      },
       rootUrl() {
         return this.global ? this.folderUrl(null, null) : this.folderUrl(null);
       },
@@ -2942,15 +3078,6 @@
         const folders = (this.path || []).map((crumb) => ({ ...crumb, url: this.folderUrl(crumb.id) }));
         return this.global && this.container ? [{ id: SPACE_CRUMB, title: this.container.space.name, url: this.folderUrl(null) }, ...folders] : folders;
       },
-      /**
-       * The bar's values: the filters, and the sort — the select shows an offered key;
-       * `default` (and a key it does not offer) is its label.
-       */
-      filterValues() {
-        const select = this.activeFilters.find((filter) => filter.key === "sort");
-        const offered = ((select == null ? void 0 : select.options) || []).some((option) => option.value === this.sort);
-        return this.scopeTopics({ ...this.query, sort: offered ? this.sort : "" }, this.container);
-      },
       viewOptions() {
         return [
           { value: "tiles", icon: "layout-grid", label: vue.i18n.t("CfilesModule.base", "Tiles") },
@@ -2962,12 +3089,6 @@
       },
       viewLabel() {
         return vue.i18n.t("CfilesModule.base", "View");
-      },
-      resultsLabel() {
-        if (this.isGlobalTop) {
-          return vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in your spaces", { count: this.total });
-        }
-        return this.folder ? vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in this folder and its subfolders", { count: this.total }) : vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in all files", { count: this.total });
       }
     },
     created() {
@@ -2976,10 +3097,6 @@
       this.openedAt = pageOf(window.location);
       if (this.urlNames(this.container, this.folderId)) {
         this.stampEntry();
-      }
-      this.alignUrl();
-      if (this.global && this.container && isSet(this.query[TOPIC_KEY])) {
-        this.checkTopics(this.container);
       }
     },
     mounted() {
@@ -3036,42 +3153,6 @@
           this.stampEntry();
         }
       },
-      /**
-       * Puts the page URL's filters and sort in line with what the first page was built with
-       * (`initialFilters`, the payload's sort): a value the server trimmed or refused, or a
-       * sort it did not use, would otherwise be applied by the bar on mount — a second load,
-       * a `422`, or `sort=default`, which forgets the user's stored sort.
-       */
-      alignUrl() {
-        const params = new URLSearchParams(window.location.search);
-        const before = params.toString();
-        Object.entries(this.query).forEach(([key, value]) => {
-          if (isSet(value)) {
-            params.set(key, urlValue(value));
-          } else {
-            params.delete(key);
-          }
-        });
-        if (params.has("sort") && params.get("sort") !== this.filterValues.sort) {
-          params.delete("sort");
-        }
-        if (params.toString() === before) {
-          return;
-        }
-        const query = params.toString();
-        const path = window.location.pathname + (query ? "?" + query : "") + window.location.hash;
-        const state = window.history.state;
-        const next = state && typeof state === "object" && typeof state.url === "string" ? { ...state, url: window.location.origin + path } : state;
-        window.history.replaceState(next, "", path);
-      },
-      /** The values of the list's filters the page URL carries (`''` = not set). */
-      queryFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        return normalizeQuery(
-          Object.fromEntries(Object.keys(this.query).map((key) => [key, params.get(key) ?? ""])),
-          [...this.filters, ...this.containerFilters]
-        );
-      },
       folderIdFromUrl() {
         const value = new URLSearchParams(window.location.search).get("fid");
         return value === null ? null : parseInt(value, 10) || 0;
@@ -3100,45 +3181,6 @@
           state: window.history.state,
           items: this.items
         });
-      },
-      /**
-       * The filters a level's endpoint knows, with their values: the space browser sends them
-       * all; the global page those of the level's definitions — a space's endpoint answers
-       * `422` for the global page's own (Space), whose value is kept for the way back.
-       */
-      levelFilters(container) {
-        return this.scopeTopics(
-          levelFilters(this.query, this.global ? container ? this.containerFilters : this.filters : null),
-          container
-        );
-      },
-      /**
-       * The values as a space of the global page takes them: of the topics, those that are the
-       * space's or global (`topicScopes`) — the space's endpoint refuses the others, which
-       * `query` keeps for the way back. Unchanged elsewhere.
-       */
-      scopeTopics(values, container) {
-        if (!this.global || !container || !(TOPIC_KEY in values)) {
-          return values;
-        }
-        return { ...values, [TOPIC_KEY]: scopedIds(values[TOPIC_KEY], this.topicScopes[container.contentContainerId]) };
-      },
-      /**
-       * Asks the picker, once, which of the chosen topics a space of the global page takes
-       * (`topicScopes`); settles when it knows — also when asking failed, which leaves the ids
-       * it could not check out of that space's filter.
-       */
-      checkTopics(container) {
-        const containerId = container.contentContainerId;
-        const unknown = idsOf(this.query[TOPIC_KEY]).filter((id) => !(id in (this.topicScopes[containerId] || {})));
-        if (!unknown.length) {
-          return Promise.resolve();
-        }
-        return resolveTopics(containerId, unknown).then((taken) => {
-          const scope = { ...this.topicScopes[containerId] || {} };
-          unknown.forEach((id) => scope[id] = taken.includes(id));
-          this.topicScopes = { ...this.topicScopes, [containerId]: scope };
-        }).catch((error) => vue.log.error(error));
       },
       /** One page of a level: a space's (or the container's) or the global top level. */
       fetchLevel(container, folderId, options) {
@@ -3336,36 +3378,6 @@
         return PAGE_SIZES[this.view] || PAGE_SIZES.list;
       },
       /**
-       * Applies what the FilterBar emits: the filters and the sort select. Nothing changed
-       * (the bar's first look at a URL the page was built from) is no reload.
-       *
-       * A cleared select (`''`) asks for `default` explicitly: sending no sort would have the
-       * server re-apply the stored one, and the clear would do nothing. `default` is the
-       * module's order, and the server forgets the stored one.
-       */
-      onFilters(values) {
-        const { sort: chosen, ...filters } = values;
-        const sort = chosen || SORT_DEFAULT;
-        if (this.global && this.container && TOPIC_KEY in filters) {
-          filters[TOPIC_KEY] = mergeScoped(filters[TOPIC_KEY], this.query[TOPIC_KEY], this.topicScopes[this.container.contentContainerId]);
-        }
-        const query = { ...this.query, ...filters };
-        if (sort === this.sort && JSON.stringify(query) === JSON.stringify(this.query)) {
-          return;
-        }
-        this.sort = sort;
-        this.query = query;
-        this.reload();
-      },
-      /**
-       * Clears the filters, keeps the sort — the empty result list's way out. The bar takes
-       * the new values as they are (a `modelValue` from outside), so this is one load.
-       */
-      resetFilters() {
-        this.query = Object.fromEntries(Object.keys(this.query).map((key) => [key, ""]));
-        this.reload();
-      },
-      /**
        * Switches display, remembers it and reloads with the new view's page size.
        *
        * The preference is stored on its own (`PATCH preferences`), fire-and-forget: failing
@@ -3436,12 +3448,12 @@
         "settings-url": $props.settingsUrl,
         writable: $options.writable,
         handlers: $props.global ? [] : _ctx.fileHandlers,
-        filters: $options.activeFilters,
-        "filter-values": $options.filterValues,
+        filters: _ctx.activeFilters,
+        "filter-values": _ctx.filterValues,
         onUpload: _ctx.pickFiles,
         onCreateFolder: _cache[0] || (_cache[0] = ($event) => _ctx.showCreate = true),
         onHandler: _ctx.onHandlerChosen,
-        onFilters: $options.onFilters
+        onFilters: _ctx.onFilters
       }, null, 8, ["connect-url", "settings-url", "writable", "handlers", "filters", "filter-values", "onUpload", "onHandler", "onFilters"]),
       vue$1.createElementVNode("div", {
         class: vue$1.normalizeClass(["cfiles-browser-body", { "is-details-open": _ctx.detailsItem }])
@@ -3476,7 +3488,7 @@
               ]),
               _: 1
             }, 8, ["path", "root-label", "root-url", "can-drop", "drop-target-id", "onNavigate", "onDragOver", "onDragLeave", "onDropOn"]),
-            $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString($options.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
+            $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString(_ctx.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
             (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($data.view === "tiles" ? "FileTiles" : "ItemList"), vue$1.mergeProps($options.viewProps, {
               onOpen: $options.onOpen,
               onToggleSelect: _ctx.toggleSelect,
@@ -3493,7 +3505,7 @@
                   "global-top": $options.isGlobalTop,
                   "in-folder": !!$data.folder,
                   writable: $options.writable,
-                  onReset: $options.resetFilters
+                  onReset: _ctx.resetFilters
                 }, null, 8, ["results", "global-top", "in-folder", "writable", "onReset"])
               ]),
               _: 1
