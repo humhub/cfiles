@@ -192,6 +192,7 @@ class GlobalController extends Controller
             // The module's settings, where the page is switched on, for the admins.
             'settingsUrl' => Yii::$app->user->isAdmin() ? $this->module->getConfigUrl() : null,
             'connectUrl' => $this->module->getDavConnectionUrl(),
+            'showDownloadCount' => $this->module->getDisplayDownloadCount(),
         ];
     }
 

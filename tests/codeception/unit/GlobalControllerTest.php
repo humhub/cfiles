@@ -269,6 +269,15 @@ class GlobalControllerTest extends HumHubDbTestCase
         $this->assertNull($this->props([])['connectUrl']);
     }
 
+    public function testThePageCountsDownloadsOnlyWhenSwitchedOn()
+    {
+        $this->assertFalse($this->props([])['showDownloadCount']);
+
+        $this->module()->settings->set('displayDownloadCount', true);
+        $this->assertTrue($this->props([])['showDownloadCount']);
+        $this->module()->settings->delete('displayDownloadCount');
+    }
+
     public function testOnlyAnAdminGetsTheSettings()
     {
         $this->assertNull($this->props([])['settingsUrl']);

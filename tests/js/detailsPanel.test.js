@@ -87,6 +87,14 @@ describe('DetailsPanel', () => {
         expect(none.find('.cfiles-details-social').exists()).toBe(false);
     });
 
+    it('counts the downloads of a file only where the administrator wants it', () => {
+        const file = fileRow({ downloadCount: 7 });
+
+        expect(panel(file).text()).not.toContain('Downloads');
+        expect(panel(file, { showDownloadCount: true }).text()).toContain('Downloads7');
+        expect(panel(folderRow(), { showDownloadCount: true }).text()).not.toContain('Downloads');
+    });
+
     it('offers Download for a file, not for a folder', () => {
         expect(panel().find('.card-footer a.btn-primary').attributes('href')).toBe('/s/x/cfiles/download/f-21');
         expect(panel(folderRow()).find('.card-footer').exists()).toBe(false);

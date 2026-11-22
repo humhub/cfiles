@@ -108,6 +108,7 @@
                 :location="detailsLocation"
                 :like-state="detailsLikeState"
                 :initial-tab="detailsTab"
+                :show-download-count="showDownloadCount"
                 @tab="(tab) => { detailsTab = tab; }"
                 @close="closeDetails"
             />
@@ -335,6 +336,8 @@ export default {
          * not offered (`Module::getDavConnectionUrl()`).
          */
         connectUrl: { type: String, default: null },
+        /** Whether the details show how often a file was downloaded (`Module::getDisplayDownloadCount()`). */
+        showDownloadCount: { type: Boolean, default: false },
     },
     data() {
         return {

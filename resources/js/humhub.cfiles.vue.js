@@ -339,7 +339,9 @@
        */
       likeState: { type: Object, default: null },
       /** The tab shown first. */
-      initialTab: { type: String, default: "info" }
+      initialTab: { type: String, default: "info" },
+      /** Whether a file shows how often it was downloaded (a setting of the module). */
+      showDownloadCount: { type: Boolean, default: false }
     },
     emits: ["close", "tab"],
     data() {
@@ -609,7 +611,7 @@
             vue$1.createElementVNode("dl", _hoisted_39, [
               vue$1.createElementVNode("dt", _hoisted_40, vue$1.toDisplayString($options.visibilityLabel), 1),
               vue$1.createElementVNode("dd", _hoisted_41, vue$1.toDisplayString($options.visibility), 1),
-              !$options.isFolder ? (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 0 }, [
+              !$options.isFolder && $props.showDownloadCount ? (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 0 }, [
                 vue$1.createElementVNode("dt", _hoisted_42, vue$1.toDisplayString($options.downloadsLabel), 1),
                 vue$1.createElementVNode("dd", _hoisted_43, vue$1.toDisplayString($props.item.downloadCount || 0), 1)
               ], 64)) : vue$1.createCommentVNode("", true)
@@ -1956,7 +1958,9 @@
        * The dialog that connects the files as a network drive (WebDAV), or null while it is
        * not offered (`Module::getDavConnectionUrl()`).
        */
-      connectUrl: { type: String, default: null }
+      connectUrl: { type: String, default: null },
+      /** Whether the details show how often a file was downloaded (`Module::getDisplayDownloadCount()`). */
+      showDownloadCount: { type: Boolean, default: false }
     },
     data() {
       return {
@@ -3316,11 +3320,12 @@
           location: $options.detailsLocation,
           "like-state": $options.detailsLikeState,
           "initial-tab": $data.detailsTab,
+          "show-download-count": $props.showDownloadCount,
           onTab: _cache[6] || (_cache[6] = (tab) => {
             $data.detailsTab = tab;
           }),
           onClose: $options.closeDetails
-        }, null, 8, ["item", "location", "like-state", "initial-tab", "onClose"])) : vue$1.createCommentVNode("", true)
+        }, null, 8, ["item", "location", "like-state", "initial-tab", "show-download-count", "onClose"])) : vue$1.createCommentVNode("", true)
       ], 2),
       vue$1.createElementVNode("input", {
         ref: "fileInput",

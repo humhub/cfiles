@@ -166,13 +166,11 @@ class Module extends ContentContainerModule
     }
 
     /**
-     * Determines a download count column is visible or not
-     *
-     * @return bool
+     * Whether the details of a file show how often it was downloaded.
      */
     public function getDisplayDownloadCount(): bool
     {
-        return $this->settings->get('displayDownloadCount', false);
+        return (bool)$this->settings->get('displayDownloadCount', false);
     }
 
     /**

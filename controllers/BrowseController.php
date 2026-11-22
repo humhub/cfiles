@@ -72,6 +72,7 @@ class BrowseController extends ContentContainerController
                 ? $this->contentContainer->createUrl('/cfiles/config-container')
                 : null,
             'connectUrl' => $this->module->getDavConnectionUrl(),
+            'showDownloadCount' => $this->module->getDisplayDownloadCount(),
         ]);
     }
 

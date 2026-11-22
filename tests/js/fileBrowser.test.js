@@ -2190,6 +2190,13 @@ describe('CfilesFileBrowser', () => {
             expect(new URLSearchParams(window.location.search).get('details')).toBe('file:21');
         });
 
+        it('counts the downloads only where the page asks for it', () => {
+            window.history.replaceState({}, '', '/s/x/cfiles/browse/index?details=file:21');
+
+            expect(browser(topLevel([fileRow({ downloadCount: 7 })])).find('.cfiles-details').text()).not.toContain('Downloads');
+            expect(browser(topLevel([fileRow({ downloadCount: 7 })]), { showDownloadCount: true }).find('.cfiles-details').text()).toContain('Downloads');
+        });
+
         it('opens on mount for the item the URL names', () => {
             window.history.replaceState({}, '', '/s/x/cfiles/browse/index?details=folder:11');
             const wrapper = browser(topLevel([folderRow(), fileRow()]));

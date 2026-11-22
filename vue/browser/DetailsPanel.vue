@@ -91,7 +91,7 @@
                     <dl class="row cfiles-details-facts">
                         <dt class="col-4">{{ visibilityLabel }}</dt>
                         <dd class="col-8">{{ visibility }}</dd>
-                        <template v-if="!isFolder">
+                        <template v-if="!isFolder && showDownloadCount">
                             <dt class="col-4">{{ downloadsLabel }}</dt>
                             <dd class="col-8">{{ item.downloadCount || 0 }}</dd>
                         </template>
@@ -195,6 +195,8 @@ export default {
         likeState: { type: Object, default: null },
         /** The tab shown first. */
         initialTab: { type: String, default: 'info' },
+        /** Whether a file shows how often it was downloaded (a setting of the module). */
+        showDownloadCount: { type: Boolean, default: false },
     },
     emits: ['close', 'tab'],
     data() {

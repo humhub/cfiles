@@ -14,6 +14,7 @@ use humhub\widgets\VueComponent;
 /* @var $initialFilters array<string, string> the filter values the first page was built with, from the page URL */
 /* @var $settingsUrl string|null the container's cfiles settings page, or null for those who may not change them */
 /* @var $connectUrl string|null the dialog of the network drive, or null while it is not offered */
+/* @var $showDownloadCount bool whether the details show how often a file was downloaded */
 
 ?>
 <?= VueComponent::widget([
@@ -35,5 +36,6 @@ use humhub\widgets\VueComponent;
         'initialFilters' => $initialFilters,
         'settingsUrl' => $settingsUrl,
         'connectUrl' => $connectUrl,
+        'showDownloadCount' => $showDownloadCount,
     ],
 ]) ?>

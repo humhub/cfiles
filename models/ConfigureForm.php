@@ -59,7 +59,7 @@ class ConfigureForm extends \yii\base\Model
     public function attributeLabels()
     {
         return [
-            'displayDownloadCount' => Yii::t('CfilesModule.base', 'Display a download count column'),
+            'displayDownloadCount' => Yii::t('CfilesModule.base', 'Show the number of downloads in the details of a file'),
             'showGlobalMenuItem' => Yii::t('CfilesModule.base', 'Add entry to main navigation'),
             'enableWebDav' => Yii::t('CfilesModule.base', 'Access via WebDAV (network drive)'),
         ];

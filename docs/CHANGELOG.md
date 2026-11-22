@@ -61,6 +61,7 @@ Changelog
 - Fix: Making a folder private left the drafts of other users and the items in the trash inside it public, and merging a folder into one of the same name moved only what the user could see and deleted the rest with the folder.
 - Enh: `Folder::getFiles()` is the core's relation to the files attached to the folder again; the files inside a folder are `Folder::getSubFiles()`.
 - Fix: The download link of a file redirected for the GUID of any file, also of one the user may not read, and named it in the redirect.
+- Enh: The details of a file show its number of downloads while "Show the number of downloads" is switched on in the module settings
 - Enh: WebDAV: the files of the user's spaces and of their profile at `/dav/files/<space URL>/` and `/dav/files/~<username>/` (core 1.20), connected with "Connect as network drive" in the file browser, which creates a password for the device (a personal access token with the scopes `cfiles:read` and `cfiles:write`); uploads and changes follow the rules of the browser (new versions, names, visibility, trash); on by default, switched off in the module settings
 
 0.19.3 - November 3, 2026
