@@ -208,6 +208,13 @@
  * level as `FileTiles` or as an `ItemList`. Both views speak the same event vocabulary, so selection (Shift ranges
  * included), drop targets and uploads are resolved here, once, for either.
  *
+ * ## Structure
+ *
+ * One instance, split by concern into mixins (`browser/*Mixin.js`) the way the core's form
+ * fields share `fieldMixin`: the views, the menus and the extension points talk to that one
+ * instance, and a concern reaches what it needs of another through it. Each mixin's docblock
+ * names what it uses without defining it.
+ *
  * ## Drag & drop
  *
  * Drop targets are folder tiles/rows and the path's ancestors: desktop files dropped on one
@@ -221,7 +228,7 @@
  * folder as uploading instead. Both go once the batch is in and the level is up to date —
  * refreshed in place, not reloaded: the selection, the further pages and the details stay.
  */
-import { events, getConfig, i18n, log, modal, status } from '@humhub/vue';
+import { i18n, log, modal, status } from '@humhub/vue';
 import BrowserHeader from './browser/BrowserHeader.vue';
 import ConflictDialog from './browser/ConflictDialog.vue';
 import DetailsPanel from './browser/DetailsPanel.vue';
@@ -230,7 +237,7 @@ import FileTiles from './browser/FileTiles.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
 import {
-    attachFiles, copyItems, deleteItems, errorText, findConflicts, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
+    copyItems, deleteItems, errorText, findConflicts, keyOf, loadGlobalItems, loadItems, moveItems, resolveTopics, savePreferences, uploadFiles,
 } from './browser/api';
 import {
     SPACE_CRUMB, TOPIC_KEY, appendFilters, containerOf, idsOf, isPageLocation, isPageUrl, isSet, levelFilters, levelKey, levelUrl,
@@ -238,6 +245,7 @@ import {
 } from './browser/globalLevel';
 import { itemLocation } from './browser/itemPresentation';
 import detailsMixin from './browser/detailsMixin';
+import fileHandlersMixin from './browser/fileHandlersMixin';
 
 // Ids for upload placeholders, unique for the page's lifetime.
 let uploadSeq = 0;
@@ -253,7 +261,7 @@ const SORT_DEFAULT = 'default';
 
 export default {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin],
+    mixins: [detailsMixin, fileHandlersMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {
@@ -320,9 +328,6 @@ export default {
     },
     data() {
         return {
-            // The level a file handler of the add menu was chosen on: what it creates is filed
-            // there (see onFileCreated()).
-            handlerLevel: null,
             folder: this.listing.folder,
             path: this.listing.path,
             items: this.listing.results,
@@ -394,14 +399,6 @@ export default {
         };
     },
     computed: {
-        /**
-         * The file handlers modules contribute ("New spreadsheet", "Import from …") and the
-         * platform's "upload this type" entries, for the `AddMenu` - the page's, from the core
-         * JS config (`file.handlers`).
-         */
-        fileHandlers() {
-            return (getConfig('file') || {}).handlers || [];
-        },
         /** The id of the level currently open — null at the top. */
         folderId() {
             return this.folder ? this.folder.id : null;
@@ -596,9 +593,6 @@ export default {
     mounted() {
         window.addEventListener('popstate', this.onPopState);
         document.addEventListener('keydown', this.onKeydown);
-        document.addEventListener('click', this.onAnyClick, true);
-        events.on('humhub:file:created', this.onFileCreated);
-        events.on('humhub:file:modified', this.onFileModified);
 
         this.openRequestedEdit();
 
@@ -628,9 +622,6 @@ export default {
         this.loadSeq++;
         window.removeEventListener('popstate', this.onPopState);
         document.removeEventListener('keydown', this.onKeydown);
-        document.removeEventListener('click', this.onAnyClick, true);
-        events.off('humhub:file:created', this.onFileCreated);
-        events.off('humhub:file:modified', this.onFileModified);
     },
     methods: {
         keyOf,
@@ -1511,51 +1502,6 @@ export default {
                 done();
                 log.error(response, true);
             });
-        },
-        onHandlerChosen() {
-            this.handlerLevel = { container: this.container, parentId: this.folderId };
-        },
-        /**
-         * Any file handler entry chosen on the page - the add menu's, or another field's (the
-         * comment form of the details panel) - ends an earlier choice of the add menu: what
-         * that handler creates is the other field's. Listened to in the capture phase, so the
-         * add menu's own entry claims the choice again afterwards (`onHandlerChosen`). The core's
-         * `UploadField` keeps its choice the same way.
-         */
-        onAnyClick(event) {
-            if (event.target instanceof Element && event.target.closest('a[data-action-process="file-handler"]')) {
-                this.handlerLevel = null;
-            }
-        },
-        /**
-         * Files what a file handler of the add menu created ("New spreadsheet") into the level
-         * it was chosen on. The handler announces the new platform file(s) on the global
-         * `humhub:file:created` event and leaves it to whoever asked to attach them - the
-         * browser did, so it does. An event no handler of this menu caused is not ours.
-         */
-        onFileCreated(event, ...files) {
-            const level = this.handlerLevel;
-            const guids = files.flat().map((file) => file && file.guid).filter(Boolean);
-
-            if (!level || !guids.length) {
-                return;
-            }
-
-            this.handlerLevel = null;
-
-            attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
-                this.reportErrors(response.errors);
-
-                if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
-                    this.reload();
-                }
-            }).catch((response) => {
-                log.error(response, true);
-            });
-        },
-        /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
-        onFileModified() {
-            this.reload();
         },
 
         // --- drag & drop ------------------------------------------------------------

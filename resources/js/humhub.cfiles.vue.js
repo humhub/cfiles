@@ -2100,12 +2100,84 @@
       }
     }
   };
+  const fileHandlersMixin = {
+    data() {
+      return {
+        // The level a file handler of the add menu was chosen on: what it creates is filed
+        // there (see onFileCreated()).
+        handlerLevel: null
+      };
+    },
+    computed: {
+      /**
+       * The file handlers modules contribute ("New spreadsheet", "Import from …") and the
+       * platform's "upload this type" entries, for the `AddMenu` - the page's, from the core
+       * JS config (`file.handlers`).
+       */
+      fileHandlers() {
+        return (vue.getConfig("file") || {}).handlers || [];
+      }
+    },
+    mounted() {
+      document.addEventListener("click", this.onAnyClick, true);
+      vue.events.on("humhub:file:created", this.onFileCreated);
+      vue.events.on("humhub:file:modified", this.onFileModified);
+    },
+    beforeUnmount() {
+      document.removeEventListener("click", this.onAnyClick, true);
+      vue.events.off("humhub:file:created", this.onFileCreated);
+      vue.events.off("humhub:file:modified", this.onFileModified);
+    },
+    methods: {
+      onHandlerChosen() {
+        this.handlerLevel = { container: this.container, parentId: this.folderId };
+      },
+      /**
+       * Any file handler entry chosen on the page - the add menu's, or another field's (the
+       * comment form of the details panel) - ends an earlier choice of the add menu: what
+       * that handler creates is the other field's. Listened to in the capture phase, so the
+       * add menu's own entry claims the choice again afterwards (`onHandlerChosen`). The core's
+       * `UploadField` keeps its choice the same way.
+       */
+      onAnyClick(event) {
+        if (event.target instanceof Element && event.target.closest('a[data-action-process="file-handler"]')) {
+          this.handlerLevel = null;
+        }
+      },
+      /**
+       * Files what a file handler of the add menu created ("New spreadsheet") into the level
+       * it was chosen on. The handler announces the new platform file(s) on the global
+       * `humhub:file:created` event and leaves it to whoever asked to attach them - the
+       * browser did, so it does. An event no handler of this menu caused is not ours.
+       */
+      onFileCreated(event, ...files) {
+        const level = this.handlerLevel;
+        const guids = files.flat().map((file) => file && file.guid).filter(Boolean);
+        if (!level || !guids.length) {
+          return;
+        }
+        this.handlerLevel = null;
+        attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
+          this.reportErrors(response.errors);
+          if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
+            this.reload();
+          }
+        }).catch((response) => {
+          vue.log.error(response, true);
+        });
+      },
+      /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
+      onFileModified() {
+        this.reload();
+      }
+    }
+  };
   let uploadSeq = 0;
   const PAGE_SIZES = { list: 50, tiles: 96 };
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin],
+    mixins: [detailsMixin, fileHandlersMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2172,9 +2244,6 @@
     },
     data() {
       return {
-        // The level a file handler of the add menu was chosen on: what it creates is filed
-        // there (see onFileCreated()).
-        handlerLevel: null,
         folder: this.listing.folder,
         path: this.listing.path,
         items: this.listing.results,
@@ -2237,14 +2306,6 @@
       };
     },
     computed: {
-      /**
-       * The file handlers modules contribute ("New spreadsheet", "Import from …") and the
-       * platform's "upload this type" entries, for the `AddMenu` - the page's, from the core
-       * JS config (`file.handlers`).
-       */
-      fileHandlers() {
-        return (vue.getConfig("file") || {}).handlers || [];
-      },
       /** The id of the level currently open — null at the top. */
       folderId() {
         return this.folder ? this.folder.id : null;
@@ -2418,9 +2479,6 @@
       var _a, _b;
       window.addEventListener("popstate", this.onPopState);
       document.addEventListener("keydown", this.onKeydown);
-      document.addEventListener("click", this.onAnyClick, true);
-      vue.events.on("humhub:file:created", this.onFileCreated);
-      vue.events.on("humhub:file:modified", this.onFileModified);
       this.openRequestedEdit();
       const urlFolderId = this.folderIdFromUrl();
       if (this.global) {
@@ -2441,9 +2499,6 @@
       this.loadSeq++;
       window.removeEventListener("popstate", this.onPopState);
       document.removeEventListener("keydown", this.onKeydown);
-      document.removeEventListener("click", this.onAnyClick, true);
-      vue.events.off("humhub:file:created", this.onFileCreated);
-      vue.events.off("humhub:file:modified", this.onFileModified);
     },
     methods: {
       keyOf,
@@ -3235,47 +3290,6 @@
           vue.log.error(response, true);
         });
       },
-      onHandlerChosen() {
-        this.handlerLevel = { container: this.container, parentId: this.folderId };
-      },
-      /**
-       * Any file handler entry chosen on the page - the add menu's, or another field's (the
-       * comment form of the details panel) - ends an earlier choice of the add menu: what
-       * that handler creates is the other field's. Listened to in the capture phase, so the
-       * add menu's own entry claims the choice again afterwards (`onHandlerChosen`). The core's
-       * `UploadField` keeps its choice the same way.
-       */
-      onAnyClick(event) {
-        if (event.target instanceof Element && event.target.closest('a[data-action-process="file-handler"]')) {
-          this.handlerLevel = null;
-        }
-      },
-      /**
-       * Files what a file handler of the add menu created ("New spreadsheet") into the level
-       * it was chosen on. The handler announces the new platform file(s) on the global
-       * `humhub:file:created` event and leaves it to whoever asked to attach them - the
-       * browser did, so it does. An event no handler of this menu caused is not ours.
-       */
-      onFileCreated(event, ...files) {
-        const level = this.handlerLevel;
-        const guids = files.flat().map((file) => file && file.guid).filter(Boolean);
-        if (!level || !guids.length) {
-          return;
-        }
-        this.handlerLevel = null;
-        attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
-          this.reportErrors(response.errors);
-          if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
-            this.reload();
-          }
-        }).catch((response) => {
-          vue.log.error(response, true);
-        });
-      },
-      /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
-      onFileModified() {
-        this.reload();
-      },
       // --- drag & drop ------------------------------------------------------------
       /** Whether a drag carries desktop files rather than one of our own items. */
       isFileDrag(event) {
@@ -3358,12 +3372,12 @@
         "connect-url": $props.connectUrl,
         "settings-url": $props.settingsUrl,
         writable: $options.writable,
-        handlers: $props.global ? [] : $options.fileHandlers,
+        handlers: $props.global ? [] : _ctx.fileHandlers,
         filters: $options.activeFilters,
         "filter-values": $options.filterValues,
         onUpload: $options.pickFiles,
         onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true),
-        onHandler: $options.onHandlerChosen,
+        onHandler: _ctx.onHandlerChosen,
         onFilters: $options.onFilters
       }, null, 8, ["connect-url", "settings-url", "writable", "handlers", "filters", "filter-values", "onUpload", "onHandler", "onFilters"]),
       vue$1.createElementVNode("div", {
