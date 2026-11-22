@@ -1925,6 +1925,75 @@
     }, 8, ["show", "title"]);
   }
   const MoveDialog = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$3]]);
+  const detailsMixin = {
+    data() {
+      return {
+        // The item the details panel shows (`file:<id>`/`folder:<id>`), mirrored into the
+        // URL as `details` — see `detailsItem`.
+        detailsKey: new URLSearchParams(window.location.search).get("details") || null,
+        // The panel's tab, kept when another item's details are opened.
+        detailsTab: "info"
+      };
+    },
+    computed: {
+      /**
+       * The item the details panel shows: looked up among the rows loaded, so it follows a
+       * reload (an edit) and is gone with the item (a delete) or the level (navigating).
+       */
+      detailsItem() {
+        if (!this.detailsKey) {
+          return null;
+        }
+        return this.items.find((item) => (item.type === "file" || item.type === "folder") && keyOf(item) === this.detailsKey) || null;
+      },
+      /** Where the item of the details panel lies: a hit's own path, else the level open. */
+      detailsLocation() {
+        var _a, _b;
+        const location = this.detailsItem ? itemLocation(this.detailsItem) : null;
+        if (location) {
+          return location.label;
+        }
+        return [(_b = (_a = this.container) == null ? void 0 : _a.space) == null ? void 0 : _b.name, ...(this.path || []).map((crumb) => crumb.title)].filter(Boolean).join(" › ");
+      },
+      /**
+       * The like state the details' Discussion tab shows: none where the like module is off,
+       * or where nobody liked the item and the caller may not.
+       */
+      detailsLikeState() {
+        const state = this.detailsItem ? this.likeStates[this.detailsItem.recordId] : null;
+        return state && (state.canLike || state.total > 0) ? state : null;
+      }
+    },
+    methods: {
+      showDetails(item) {
+        this.detailsKey = keyOf(item);
+        this.mirrorDetails();
+        this.$nextTick(() => {
+          var _a;
+          return (_a = this.$refs.details) == null ? void 0 : _a.focus();
+        });
+      },
+      closeDetails() {
+        this.detailsKey = null;
+        this.mirrorDetails();
+      },
+      /** Writes `details` into the current history entry, so a reload or a copied link keeps it. */
+      mirrorDetails() {
+        const url = new URL(window.location.href);
+        if (this.detailsKey) {
+          url.searchParams.set("details", this.detailsKey);
+        } else {
+          url.searchParams.delete("details");
+        }
+        if (url.href === window.location.href) {
+          return;
+        }
+        const state = window.history.state;
+        const next = state && typeof state === "object" && typeof state.url === "string" ? { ...state, url: url.href } : state;
+        window.history.replaceState(next, "", url.pathname + url.search + url.hash);
+      }
+    }
+  };
   const SPACE_CRUMB = "space";
   const isSet = (value) => Array.isArray(value) ? value.length > 0 : value !== "" && value !== null && value !== void 0;
   const urlValue = (value) => Array.isArray(value) ? value.join(",") : String(value);
@@ -2030,75 +2099,6 @@
     }
     const current = new URLSearchParams(location.search);
     return Object.entries(page.params).every(([key, value]) => current.get(key) === value);
-  };
-  const detailsMixin = {
-    data() {
-      return {
-        // The item the details panel shows (`file:<id>`/`folder:<id>`), mirrored into the
-        // URL as `details` — see `detailsItem`.
-        detailsKey: new URLSearchParams(window.location.search).get("details") || null,
-        // The panel's tab, kept when another item's details are opened.
-        detailsTab: "info"
-      };
-    },
-    computed: {
-      /**
-       * The item the details panel shows: looked up among the rows loaded, so it follows a
-       * reload (an edit) and is gone with the item (a delete) or the level (navigating).
-       */
-      detailsItem() {
-        if (!this.detailsKey) {
-          return null;
-        }
-        return this.items.find((item) => (item.type === "file" || item.type === "folder") && keyOf(item) === this.detailsKey) || null;
-      },
-      /** Where the item of the details panel lies: a hit's own path, else the level open. */
-      detailsLocation() {
-        var _a, _b;
-        const location = this.detailsItem ? itemLocation(this.detailsItem) : null;
-        if (location) {
-          return location.label;
-        }
-        return [(_b = (_a = this.container) == null ? void 0 : _a.space) == null ? void 0 : _b.name, ...(this.path || []).map((crumb) => crumb.title)].filter(Boolean).join(" › ");
-      },
-      /**
-       * The like state the details' Discussion tab shows: none where the like module is off,
-       * or where nobody liked the item and the caller may not.
-       */
-      detailsLikeState() {
-        const state = this.detailsItem ? this.likeStates[this.detailsItem.recordId] : null;
-        return state && (state.canLike || state.total > 0) ? state : null;
-      }
-    },
-    methods: {
-      showDetails(item) {
-        this.detailsKey = keyOf(item);
-        this.mirrorDetails();
-        this.$nextTick(() => {
-          var _a;
-          return (_a = this.$refs.details) == null ? void 0 : _a.focus();
-        });
-      },
-      closeDetails() {
-        this.detailsKey = null;
-        this.mirrorDetails();
-      },
-      /** Writes `details` into the current history entry, so a reload or a copied link keeps it. */
-      mirrorDetails() {
-        const url = new URL(window.location.href);
-        if (this.detailsKey) {
-          url.searchParams.set("details", this.detailsKey);
-        } else {
-          url.searchParams.delete("details");
-        }
-        if (url.href === window.location.href) {
-          return;
-        }
-        const state = window.history.state;
-        const next = state && typeof state === "object" && typeof state.url === "string" ? { ...state, url: url.href } : state;
-        window.history.replaceState(next, "", url.pathname + url.search + url.hash);
-      }
-    }
   };
   const dragDropMixin = {
     data() {
@@ -2675,6 +2675,199 @@
       }
     }
   };
+  const levelMixin = {
+    data() {
+      return {
+        folder: this.listing.folder,
+        path: this.listing.path,
+        items: this.listing.results,
+        likeStates: this.listing.likeStates || {},
+        // The container the open level is of: `{ contentContainerId, space }`, `space` set on
+        // the global page only. `null` is the global page's top level. Every request goes to
+        // it; the space browser's never changes.
+        container: this.global ? this.space ? containerOf(this.space) : null : { contentContainerId: this.contentContainerId, space: null },
+        // Whether the user may write in the level shown: its payload's (see `writable`), the
+        // page's `canWrite` until a payload says.
+        levelCanWrite: typeof this.listing.canWrite === "boolean" ? this.listing.canWrite : this.canWrite,
+        // Whether the user may manage the files of the level shown, the same way.
+        levelCanManage: typeof this.listing.canManage === "boolean" ? this.listing.canManage : this.canManage,
+        /** What a new item of the level shown is visible to (`newItemVisibility`). */
+        levelNewItemVisibility: this.listing.newItemVisibility || "public",
+        // Whether the items are the filters' hits in the folder and its subfolders.
+        resultsMode: this.listing.resultsMode === true,
+        total: this.listing.total,
+        page: this.listing.page,
+        pages: this.listing.pages,
+        loading: false,
+        loadingMore: false,
+        // The level the tiles show, and which way the last change went (for the slide).
+        level: levelKey(this.global, this.global ? this.space ? containerOf(this.space) : null : null, this.listing.folder),
+        direction: "forward"
+      };
+    },
+    computed: {
+      /** The id of the level currently open — null at the top. */
+      folderId() {
+        return this.folder ? this.folder.id : null;
+      },
+      /** The global page's top level: a tile per space. */
+      isGlobalTop() {
+        return this.global && this.container === null;
+      },
+      /**
+       * Whether the user may write in the level shown: what the level's payload says
+       * (`canWrite`, see FolderListingService) — the space browser's page prop until one did —,
+       * never at the global page's top level.
+       */
+      writable() {
+        return this.container !== null && this.levelCanWrite;
+      },
+      /**
+       * Whether the user may move the items of the level shown: the right to manage its
+       * files (`canManage` of the level's payload) — the server's rule for a move.
+       */
+      movable() {
+        return this.writable && this.levelCanManage;
+      }
+    },
+    created() {
+      this.loadSeq = 0;
+      this.requested = { folderId: this.folderId, push: false, container: this.container };
+    },
+    beforeUnmount() {
+      this.loadSeq++;
+    },
+    methods: {
+      /** One page of a level: a space's (or the container's) or the global top level. */
+      fetchLevel(container, folderId, options) {
+        if (!container) {
+          return loadGlobalItems({ ...options, filters: this.levelFilters(null) });
+        }
+        const load = () => loadItems(container.contentContainerId, folderId, { ...options, filters: this.levelFilters(container) });
+        return this.global && isSet(this.query[TOPIC_KEY]) ? this.checkTopics(container).then(load) : load();
+      },
+      /** How deep a level is, for the direction the tiles slide in. */
+      depthOf(container, path) {
+        return (this.global && container ? 1 : 0) + (path || []).length;
+      },
+      applyPayload(payload, container = this.container) {
+        this.direction = this.depthOf(container, payload.path) >= this.depthOf(this.container, this.path) ? "forward" : "back";
+        this.container = container;
+        if (typeof payload.canWrite === "boolean") {
+          this.levelCanWrite = payload.canWrite;
+        }
+        if (typeof payload.canManage === "boolean") {
+          this.levelCanManage = payload.canManage;
+        }
+        if (payload.newItemVisibility) {
+          this.levelNewItemVisibility = payload.newItemVisibility;
+        }
+        this.level = levelKey(this.global, container, payload.folder);
+        this.folder = payload.folder;
+        this.path = payload.path;
+        this.items = payload.results;
+        this.resultsMode = payload.resultsMode === true;
+        this.likeStates = payload.likeStates || {};
+        this.sort = payload.sort || SORT_DEFAULT;
+        this.total = payload.total;
+        this.page = payload.page;
+        this.pages = payload.pages;
+        this.selection = [];
+        this.anchorKey = null;
+      },
+      /**
+       * Loads a level and shows it. Returns a promise that settles once it is shown (`true`),
+       * overtaken or failed (`false`/nothing); a later call overtakes an earlier one still on
+       * its way.
+       */
+      open(folderId, { push = true, container } = {}) {
+        const target = container === void 0 ? this.container : container;
+        const seq = ++this.loadSeq;
+        this.requested = { folderId, push, container: target };
+        this.loading = true;
+        this.loadingMore = false;
+        return this.fetchLevel(target, folderId, {
+          sort: this.sort,
+          pageSize: this.pageSize()
+        }).then((payload) => {
+          if (seq !== this.loadSeq) {
+            return false;
+          }
+          this.applyPayload(payload, target);
+          this.loading = false;
+          if (push && !this.urlNames(target, folderId)) {
+            this.detailsKey = null;
+            window.history.pushState({ cfiles: this.historyState(target, folderId) }, "", this.folderUrl(folderId));
+          }
+          return true;
+        }).catch((e) => {
+          if (seq !== this.loadSeq) {
+            return;
+          }
+          this.loading = false;
+          vue.log.error(e, true);
+        });
+      },
+      /** The level shown — or, while one is loading, the level on its way. */
+      targetFolderId() {
+        return this.loading ? this.requested.folderId : this.folderId;
+      },
+      /** The container of the level shown — or, while one is loading, of the one on its way. */
+      targetContainer() {
+        return this.loading ? this.requested.container : this.container;
+      },
+      /** Reloads the level shown — or the one still opening, keeping its history entry. */
+      reload() {
+        return this.loading ? this.open(this.requested.folderId, { push: this.requested.push, container: this.requested.container }) : this.open(this.folderId, { push: false });
+      },
+      /**
+       * Brings the level shown up to date where it stands — after an upload into it, which adds
+       * to the level rather than leaving it. Unlike `reload()` it fetches every page loaded so
+       * far (the new file may sort onto any of them) and keeps what the reader set up there:
+       * the further pages, the selection of the rows still there, the details. Like a load it
+       * overtakes a further page on its way and is overtaken by an `open()`.
+       *
+       * While a level is opening there is nothing to keep: that one is reloaded instead.
+       */
+      refresh() {
+        if (this.loading) {
+          return this.reload();
+        }
+        const seq = ++this.loadSeq;
+        this.loadingMore = false;
+        const pages = Array.from({ length: this.page || 1 }, (_, index) => index + 1);
+        return Promise.all(pages.map((page) => this.fetchLevel(this.container, this.folderId, {
+          sort: this.sort,
+          page,
+          pageSize: this.pageSize()
+        }))).then((payloads) => {
+          if (seq !== this.loadSeq) {
+            return false;
+          }
+          const shown = /* @__PURE__ */ new Set();
+          this.items = payloads.flatMap((payload) => payload.results).filter((row) => {
+            const key = keyOf(row);
+            return !shown.has(key) && shown.add(key);
+          });
+          this.likeStates = Object.assign({}, ...payloads.map((payload) => payload.likeStates || {}));
+          const last = payloads[payloads.length - 1];
+          this.total = last.total;
+          this.page = last.page;
+          this.pages = last.pages;
+          this.selection = this.selection.filter((key) => shown.has(key));
+          if (!shown.has(this.anchorKey)) {
+            this.anchorKey = null;
+          }
+          return true;
+        }).catch((e) => {
+          if (seq === this.loadSeq) {
+            vue.log.error(e, true);
+          }
+          return false;
+        });
+      }
+    }
+  };
   const navigationMixin = {
     computed: {
       rootUrl() {
@@ -2838,6 +3031,78 @@
         if (filtersChanged || sortChanged || target !== this.targetFolderId() || !sameContainer(container, this.targetContainer())) {
           this.open(target, { push: false, container });
         }
+      }
+    }
+  };
+  const PAGE_SIZES = { list: 50, tiles: 96 };
+  const pagingMixin = {
+    data() {
+      return {
+        // The payload's `view` is the stored preference; from here on the island owns it.
+        view: this.listing.view
+      };
+    },
+    computed: {
+      viewOptions() {
+        return [
+          { value: "tiles", icon: "layout-grid", label: vue.i18n.t("CfilesModule.base", "Tiles") },
+          { value: "list", icon: "list", label: vue.i18n.t("CfilesModule.base", "List") }
+        ];
+      },
+      viewLabel() {
+        return vue.i18n.t("CfilesModule.base", "View");
+      }
+    },
+    methods: {
+      /** The page the current view asks for. */
+      pageSize() {
+        return PAGE_SIZES[this.view] || PAGE_SIZES.list;
+      },
+      /**
+       * Switches display, remembers it and reloads with the new view's page size.
+       *
+       * The preference is stored on its own (`PATCH preferences`), fire-and-forget: failing
+       * to remember it is logged, the switch happens all the same.
+       */
+      setView(view) {
+        if (view === this.view) {
+          return;
+        }
+        this.view = view;
+        savePreferences({ view }).catch((e) => vue.log.error(e, true));
+        this.reload();
+      },
+      loadMore() {
+        if (this.loading || this.loadingMore || this.page >= this.pages) {
+          return;
+        }
+        this.loadingMore = true;
+        const seq = this.loadSeq;
+        const folderId = this.folderId;
+        const container = this.container;
+        const stale = () => seq !== this.loadSeq || folderId !== this.folderId || !sameContainer(container, this.container);
+        this.fetchLevel(container, folderId, {
+          sort: this.sort,
+          page: this.page + 1,
+          pageSize: this.pageSize()
+        }).then((payload) => {
+          if (stale()) {
+            return;
+          }
+          const shown = new Set(this.items.map(keyOf));
+          this.items = this.items.concat(payload.results.filter((row) => !shown.has(keyOf(row))));
+          this.likeStates = { ...this.likeStates, ...payload.likeStates || {} };
+          this.page = payload.page;
+          this.pages = payload.pages;
+          this.total = payload.total;
+          this.loadingMore = false;
+        }).catch((e) => {
+          if (stale()) {
+            return;
+          }
+          this.loadingMore = false;
+          vue.log.error(e, true);
+        });
       }
     }
   };
@@ -3093,10 +3358,9 @@
       }
     }
   };
-  const PAGE_SIZES = { list: 50, tiles: 96 };
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [navigationMixin, filtersMixin, detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
+    mixins: [levelMixin, pagingMixin, navigationMixin, filtersMixin, detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -3161,61 +3425,7 @@
       /** Whether the details show how often a file was downloaded (`Module::getDisplayDownloadCount()`). */
       showDownloadCount: { type: Boolean, default: false }
     },
-    data() {
-      return {
-        folder: this.listing.folder,
-        path: this.listing.path,
-        items: this.listing.results,
-        likeStates: this.listing.likeStates || {},
-        // The container the open level is of: `{ contentContainerId, space }`, `space` set on
-        // the global page only. `null` is the global page's top level. Every request goes to
-        // it; the space browser's never changes.
-        container: this.global ? this.space ? containerOf(this.space) : null : { contentContainerId: this.contentContainerId, space: null },
-        // Whether the user may write in the level shown: its payload's (see `writable`), the
-        // page's `canWrite` until a payload says.
-        levelCanWrite: typeof this.listing.canWrite === "boolean" ? this.listing.canWrite : this.canWrite,
-        // Whether the user may manage the files of the level shown, the same way.
-        levelCanManage: typeof this.listing.canManage === "boolean" ? this.listing.canManage : this.canManage,
-        /** What a new item of the level shown is visible to (`newItemVisibility`). */
-        levelNewItemVisibility: this.listing.newItemVisibility || "public",
-        // Whether the items are the filters' hits in the folder and its subfolders.
-        resultsMode: this.listing.resultsMode === true,
-        // The payload's `view` is the stored preference; from here on the island owns it.
-        view: this.listing.view,
-        total: this.listing.total,
-        page: this.listing.page,
-        pages: this.listing.pages,
-        loading: false,
-        loadingMore: false,
-        // The level the tiles show, and which way the last change went (for the slide).
-        level: levelKey(this.global, this.global ? this.space ? containerOf(this.space) : null : null, this.listing.folder),
-        direction: "forward"
-      };
-    },
     computed: {
-      /** The id of the level currently open — null at the top. */
-      folderId() {
-        return this.folder ? this.folder.id : null;
-      },
-      /** The global page's top level: a tile per space. */
-      isGlobalTop() {
-        return this.global && this.container === null;
-      },
-      /**
-       * Whether the user may write in the level shown: what the level's payload says
-       * (`canWrite`, see FolderListingService) — the space browser's page prop until one did —,
-       * never at the global page's top level.
-       */
-      writable() {
-        return this.container !== null && this.levelCanWrite;
-      },
-      /**
-       * Whether the user may move the items of the level shown: the right to manage its
-       * files (`canManage` of the level's payload) — the server's rule for a move.
-       */
-      movable() {
-        return this.writable && this.levelCanManage;
-      },
       /** What both views take; each view only what it declares. */
       viewProps() {
         const common = {
@@ -3233,206 +3443,12 @@
         };
         return this.view === "tiles" ? { ...common, level: this.level, direction: this.direction } : { ...common, canWrite: this.writable };
       },
-      viewOptions() {
-        return [
-          { value: "tiles", icon: "layout-grid", label: vue.i18n.t("CfilesModule.base", "Tiles") },
-          { value: "list", icon: "list", label: vue.i18n.t("CfilesModule.base", "List") }
-        ];
-      },
       rootLabel() {
         return vue.i18n.t("CfilesModule.base", "Files");
-      },
-      viewLabel() {
-        return vue.i18n.t("CfilesModule.base", "View");
       }
-    },
-    created() {
-      this.loadSeq = 0;
-      this.requested = { folderId: this.folderId, push: false, container: this.container };
-    },
-    beforeUnmount() {
-      this.loadSeq++;
     },
     methods: {
-      keyOf,
-      /** One page of a level: a space's (or the container's) or the global top level. */
-      fetchLevel(container, folderId, options) {
-        if (!container) {
-          return loadGlobalItems({ ...options, filters: this.levelFilters(null) });
-        }
-        const load = () => loadItems(container.contentContainerId, folderId, { ...options, filters: this.levelFilters(container) });
-        return this.global && isSet(this.query[TOPIC_KEY]) ? this.checkTopics(container).then(load) : load();
-      },
-      /** How deep a level is, for the direction the tiles slide in. */
-      depthOf(container, path) {
-        return (this.global && container ? 1 : 0) + (path || []).length;
-      },
-      applyPayload(payload, container = this.container) {
-        this.direction = this.depthOf(container, payload.path) >= this.depthOf(this.container, this.path) ? "forward" : "back";
-        this.container = container;
-        if (typeof payload.canWrite === "boolean") {
-          this.levelCanWrite = payload.canWrite;
-        }
-        if (typeof payload.canManage === "boolean") {
-          this.levelCanManage = payload.canManage;
-        }
-        if (payload.newItemVisibility) {
-          this.levelNewItemVisibility = payload.newItemVisibility;
-        }
-        this.level = levelKey(this.global, container, payload.folder);
-        this.folder = payload.folder;
-        this.path = payload.path;
-        this.items = payload.results;
-        this.resultsMode = payload.resultsMode === true;
-        this.likeStates = payload.likeStates || {};
-        this.sort = payload.sort || SORT_DEFAULT;
-        this.total = payload.total;
-        this.page = payload.page;
-        this.pages = payload.pages;
-        this.selection = [];
-        this.anchorKey = null;
-      },
-      /**
-       * Loads a level and shows it. Returns a promise that settles once it is shown (`true`),
-       * overtaken or failed (`false`/nothing); a later call overtakes an earlier one still on
-       * its way.
-       */
-      open(folderId, { push = true, container } = {}) {
-        const target = container === void 0 ? this.container : container;
-        const seq = ++this.loadSeq;
-        this.requested = { folderId, push, container: target };
-        this.loading = true;
-        this.loadingMore = false;
-        return this.fetchLevel(target, folderId, {
-          sort: this.sort,
-          pageSize: this.pageSize()
-        }).then((payload) => {
-          if (seq !== this.loadSeq) {
-            return false;
-          }
-          this.applyPayload(payload, target);
-          this.loading = false;
-          if (push && !this.urlNames(target, folderId)) {
-            this.detailsKey = null;
-            window.history.pushState({ cfiles: this.historyState(target, folderId) }, "", this.folderUrl(folderId));
-          }
-          return true;
-        }).catch((e) => {
-          if (seq !== this.loadSeq) {
-            return;
-          }
-          this.loading = false;
-          vue.log.error(e, true);
-        });
-      },
-      /** The level shown — or, while one is loading, the level on its way. */
-      targetFolderId() {
-        return this.loading ? this.requested.folderId : this.folderId;
-      },
-      /** The container of the level shown — or, while one is loading, of the one on its way. */
-      targetContainer() {
-        return this.loading ? this.requested.container : this.container;
-      },
-      /** Reloads the level shown — or the one still opening, keeping its history entry. */
-      reload() {
-        return this.loading ? this.open(this.requested.folderId, { push: this.requested.push, container: this.requested.container }) : this.open(this.folderId, { push: false });
-      },
-      /**
-       * Brings the level shown up to date where it stands — after an upload into it, which adds
-       * to the level rather than leaving it. Unlike `reload()` it fetches every page loaded so
-       * far (the new file may sort onto any of them) and keeps what the reader set up there:
-       * the further pages, the selection of the rows still there, the details. Like a load it
-       * overtakes a further page on its way and is overtaken by an `open()`.
-       *
-       * While a level is opening there is nothing to keep: that one is reloaded instead.
-       */
-      refresh() {
-        if (this.loading) {
-          return this.reload();
-        }
-        const seq = ++this.loadSeq;
-        this.loadingMore = false;
-        const pages = Array.from({ length: this.page || 1 }, (_, index) => index + 1);
-        return Promise.all(pages.map((page) => this.fetchLevel(this.container, this.folderId, {
-          sort: this.sort,
-          page,
-          pageSize: this.pageSize()
-        }))).then((payloads) => {
-          if (seq !== this.loadSeq) {
-            return false;
-          }
-          const shown = /* @__PURE__ */ new Set();
-          this.items = payloads.flatMap((payload) => payload.results).filter((row) => {
-            const key = keyOf(row);
-            return !shown.has(key) && shown.add(key);
-          });
-          this.likeStates = Object.assign({}, ...payloads.map((payload) => payload.likeStates || {}));
-          const last = payloads[payloads.length - 1];
-          this.total = last.total;
-          this.page = last.page;
-          this.pages = last.pages;
-          this.selection = this.selection.filter((key) => shown.has(key));
-          if (!shown.has(this.anchorKey)) {
-            this.anchorKey = null;
-          }
-          return true;
-        }).catch((e) => {
-          if (seq === this.loadSeq) {
-            vue.log.error(e, true);
-          }
-          return false;
-        });
-      },
-      /** The page the current view asks for. */
-      pageSize() {
-        return PAGE_SIZES[this.view] || PAGE_SIZES.list;
-      },
-      /**
-       * Switches display, remembers it and reloads with the new view's page size.
-       *
-       * The preference is stored on its own (`PATCH preferences`), fire-and-forget: failing
-       * to remember it is logged, the switch happens all the same.
-       */
-      setView(view) {
-        if (view === this.view) {
-          return;
-        }
-        this.view = view;
-        savePreferences({ view }).catch((e) => vue.log.error(e, true));
-        this.reload();
-      },
-      loadMore() {
-        if (this.loading || this.loadingMore || this.page >= this.pages) {
-          return;
-        }
-        this.loadingMore = true;
-        const seq = this.loadSeq;
-        const folderId = this.folderId;
-        const container = this.container;
-        const stale = () => seq !== this.loadSeq || folderId !== this.folderId || !sameContainer(container, this.container);
-        this.fetchLevel(container, folderId, {
-          sort: this.sort,
-          page: this.page + 1,
-          pageSize: this.pageSize()
-        }).then((payload) => {
-          if (stale()) {
-            return;
-          }
-          const shown = new Set(this.items.map(keyOf));
-          this.items = this.items.concat(payload.results.filter((row) => !shown.has(keyOf(row))));
-          this.likeStates = { ...this.likeStates, ...payload.likeStates || {} };
-          this.page = payload.page;
-          this.pages = payload.pages;
-          this.total = payload.total;
-          this.loadingMore = false;
-        }).catch((e) => {
-          if (stale()) {
-            return;
-          }
-          this.loadingMore = false;
-          vue.log.error(e, true);
-        });
-      }
+      keyOf
     }
   };
   const _hoisted_1$2 = { class: "cfiles-browser" };
@@ -3456,7 +3472,7 @@
       vue$1.createVNode(_component_BrowserHeader, {
         "connect-url": $props.connectUrl,
         "settings-url": $props.settingsUrl,
-        writable: $options.writable,
+        writable: _ctx.writable,
         handlers: $props.global ? [] : _ctx.fileHandlers,
         filters: _ctx.activeFilters,
         "filter-values": _ctx.filterValues,
@@ -3468,7 +3484,7 @@
       vue$1.createElementVNode("div", {
         class: vue$1.normalizeClass(["cfiles-browser-body", { "is-details-open": _ctx.detailsItem }])
       }, [
-        (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($options.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "card content-card p-2 cfiles-browser-card" }, _ctx.cardProps, vue$1.toHandlers(_ctx.cardListeners)), {
+        (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent(_ctx.isGlobalTop ? "div" : "DropZone"), vue$1.mergeProps({ class: "card content-card p-2 cfiles-browser-card" }, _ctx.cardProps, vue$1.toHandlers(_ctx.cardListeners)), {
           default: vue$1.withCtx(() => [
             vue$1.createVNode(_component_PathBar, {
               ref: "pathBar",
@@ -3490,16 +3506,16 @@
                   context: { items: _ctx.selectedItems }
                 }, null, 8, ["count", "entries", "context"]),
                 vue$1.createVNode(_component_ViewSwitch, {
-                  "model-value": $data.view,
-                  options: $options.viewOptions,
-                  label: $options.viewLabel,
-                  "onUpdate:modelValue": $options.setView
+                  "model-value": _ctx.view,
+                  options: _ctx.viewOptions,
+                  label: _ctx.viewLabel,
+                  "onUpdate:modelValue": _ctx.setView
                 }, null, 8, ["model-value", "options", "label", "onUpdate:modelValue"])
               ]),
               _: 1
             }, 8, ["path", "root-label", "root-url", "can-drop", "drop-target-id", "onNavigate", "onDragOver", "onDragLeave", "onDropOn"]),
-            $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString(_ctx.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
-            (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($data.view === "tiles" ? "FileTiles" : "ItemList"), vue$1.mergeProps($options.viewProps, {
+            _ctx.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString(_ctx.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
+            (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent(_ctx.view === "tiles" ? "FileTiles" : "ItemList"), vue$1.mergeProps($options.viewProps, {
               onOpen: _ctx.onOpen,
               onToggleSelect: _ctx.toggleSelect,
               onDragStart: _ctx.onDragStart,
@@ -3507,14 +3523,14 @@
               onDragOver: _ctx.onItemDragOver,
               onDragLeave: _ctx.onItemDragLeave,
               onDropOn: _ctx.onDropOnItem,
-              onLoadMore: $options.loadMore
+              onLoadMore: _ctx.loadMore
             }), {
               empty: vue$1.withCtx(() => [
                 vue$1.createVNode(_component_EmptyLevel, {
-                  results: $data.resultsMode,
-                  "global-top": $options.isGlobalTop,
-                  "in-folder": !!$data.folder,
-                  writable: $options.writable,
+                  results: _ctx.resultsMode,
+                  "global-top": _ctx.isGlobalTop,
+                  "in-folder": !!_ctx.folder,
+                  writable: _ctx.writable,
                   onReset: _ctx.resetFilters
                 }, null, 8, ["results", "global-top", "in-folder", "writable", "onReset"])
               ]),
@@ -3554,9 +3570,9 @@
           _ctx.showCreate ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
             key: 0,
             ref: "createForm",
-            "content-container-id": $data.container ? $data.container.contentContainerId : null,
-            "parent-folder-id": $options.folderId,
-            "default-visibility": $data.levelNewItemVisibility,
+            "content-container-id": _ctx.container ? _ctx.container.contentContainerId : null,
+            "parent-folder-id": _ctx.folderId,
+            "default-visibility": _ctx.levelNewItemVisibility,
             onSaved: _ctx.onCreated,
             onCancel: _cache[3] || (_cache[3] = ($event) => _ctx.showCreate = false)
           }, null, 8, ["content-container-id", "parent-folder-id", "default-visibility", "onSaved"])) : vue$1.createCommentVNode("", true)
@@ -3581,13 +3597,13 @@
         ]),
         _: 1
       }, 8, ["show", "title"]),
-      $data.container ? (vue$1.openBlock(), vue$1.createBlock(_component_MoveDialog, {
+      _ctx.container ? (vue$1.openBlock(), vue$1.createBlock(_component_MoveDialog, {
         key: 0,
         show: _ctx.showMove,
-        "content-container-id": $data.container.contentContainerId,
+        "content-container-id": _ctx.container.contentContainerId,
         items: _ctx.moveItemsList,
         mode: _ctx.transferMode,
-        "current-path": $data.path || [],
+        "current-path": _ctx.path || [],
         busy: _ctx.moveBusy,
         error: _ctx.moveError,
         onClose: _cache[9] || (_cache[9] = ($event) => _ctx.showMove = false),
