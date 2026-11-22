@@ -64,14 +64,13 @@
                     @load-more="loadMore"
                 >
                     <template #empty>
-                        <template v-if="resultsMode">
-                            <p class="mb-2"><strong>{{ noResultsTitle }}</strong></p>
-                            <button type="button" class="btn btn-light btn-sm" @click="resetFilters">{{ resetFiltersLabel }}</button>
-                        </template>
-                        <template v-else>
-                            <p class="mb-0"><strong>{{ emptyTitle }}</strong></p>
-                            <p class="mb-0">{{ emptyHint }}</p>
-                        </template>
+                        <EmptyLevel
+                            :results="resultsMode"
+                            :global-top="isGlobalTop"
+                            :in-folder="!!folder"
+                            :writable="writable"
+                            @reset="resetFilters"
+                        />
                     </template>
                 </component>
             </component>
@@ -226,6 +225,7 @@ import { events, getConfig, i18n, log, modal, status } from '@humhub/vue';
 import BrowserHeader from './browser/BrowserHeader.vue';
 import ConflictDialog from './browser/ConflictDialog.vue';
 import DetailsPanel from './browser/DetailsPanel.vue';
+import EmptyLevel from './browser/EmptyLevel.vue';
 import FileTiles from './browser/FileTiles.vue';
 import ItemList from './browser/ItemList.vue';
 import MoveDialog from './browser/MoveDialog.vue';
@@ -251,7 +251,7 @@ export const PAGE_SIZES = { list: 50, tiles: 96 };
 const SORT_DEFAULT = 'default';
 
 export default {
-    components: { BrowserHeader, ConflictDialog, DetailsPanel, FileTiles, ItemList, MoveDialog },
+    components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {
@@ -579,11 +579,6 @@ export default {
         refusedLabel() {
             return i18n.t('CfilesModule.base', 'You cannot upload files here');
         },
-        emptyTitle() {
-            return this.isGlobalTop
-                ? i18n.t('CfilesModule.base', 'You are not a member of a space with files yet.')
-                : i18n.t('CfilesModule.base', 'This folder is empty.');
-        },
         resultsLabel() {
             if (this.isGlobalTop) {
                 return i18n.t('CfilesModule.base', '{count, plural, one{# result} other{# results}} in your spaces', { count: this.total });
@@ -591,25 +586,6 @@ export default {
             return this.folder
                 ? i18n.t('CfilesModule.base', '{count, plural, one{# result} other{# results}} in this folder and its subfolders', { count: this.total })
                 : i18n.t('CfilesModule.base', '{count, plural, one{# result} other{# results}} in all files', { count: this.total });
-        },
-        noResultsTitle() {
-            if (this.isGlobalTop) {
-                return i18n.t('CfilesModule.base', 'No results in your spaces.');
-            }
-            return this.folder
-                ? i18n.t('CfilesModule.base', 'No results in this folder and its subfolders.')
-                : i18n.t('CfilesModule.base', 'No results in all files.');
-        },
-        resetFiltersLabel() {
-            return i18n.t('CfilesModule.base', 'Reset filters');
-        },
-        emptyHint() {
-            if (this.isGlobalTop) {
-                return '';
-            }
-            return this.writable
-                ? i18n.t('CfilesModule.base', 'Drop files here or use the buttons above.')
-                : i18n.t('CfilesModule.base', 'Unfortunately you have no permission to upload/edit files.');
         },
         createTitle() {
             return i18n.t('CfilesModule.base', 'Add folder');
