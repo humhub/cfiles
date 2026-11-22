@@ -13,7 +13,7 @@ Enhance your network's efficiency with the Files Module, a complete solution for
 - **Topics and Visibility:** Tag files and folders with topics, and keep them private or share them publicly — a folder passes its visibility on to its content.
 - **All Files at a Glance:** An optional page in the main navigation brings together the files of all your spaces.
 - **Works with Other Modules:** Create documents with the file handlers of other modules, and open files in their viewers and editors.
-- **WebDAV:** Connect the files of your spaces and your profile as a network drive in Finder, Windows Explorer or any WebDAV client (`/dav/files/`), signed in with a personal access token. Administrators can switch it off.
+- **WebDAV:** Connect the files of your spaces and your profile as a network drive in Finder, Windows Explorer or any WebDAV client (`/dav/files/`): "Connect as network drive" in the file browser shows the address and creates a password for the device. Administrators can switch it off.
 - **API:** Read and manage files through the HumHub API (`/api/v2/cfiles`), with the scopes `cfiles:read` and `cfiles:write`.
 
 ## Development

@@ -191,6 +191,7 @@ class GlobalController extends Controller
             'initialFilters' => $initialFilters,
             // The module's settings, where the page is switched on, for the admins.
             'settingsUrl' => Yii::$app->user->isAdmin() ? $this->module->getConfigUrl() : null,
+            'connectUrl' => $this->module->getDavConnectionUrl(),
         ];
     }
 

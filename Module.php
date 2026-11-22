@@ -10,6 +10,7 @@ use humhub\modules\content\components\ContentContainerActiveRecord;
 use humhub\modules\cfiles\models\FileSystemItem;
 use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\models\File;
+use humhub\modules\oauth\components\DeviceConnectionRegistry;
 use Yii;
 use yii\helpers\Url;
 
@@ -24,6 +25,11 @@ class Module extends ContentContainerModule
      * The OAuth scope a token needs to add, change, move and delete files and folders.
      */
     public const SCOPE_WRITE = 'cfiles:write';
+
+    /**
+     * The device connection of the network drive (`DeviceConnection`), see `Events`.
+     */
+    public const DAV_CONNECTION = 'cfiles-webdav';
 
     /**
      * @var int no effect: the core groups the new-content notifications of several uploaded files
@@ -183,6 +189,17 @@ class Module extends ContentContainerModule
     public function getEnableWebDav(): bool
     {
         return (bool)$this->settings->get('enableWebDav', true);
+    }
+
+    /**
+     * The dialog that connects the files as a network drive, for the signed-in user; null while
+     * it is not offered (WebDAV or personal access tokens switched off).
+     */
+    public function getDavConnectionUrl(): ?string
+    {
+        $user = Yii::$app->user->getIdentity();
+
+        return $user === null ? null : DeviceConnectionRegistry::find($user, self::DAV_CONNECTION)?->getUrl();
     }
 
     public function getContentHiddenGlobalDefault(): bool

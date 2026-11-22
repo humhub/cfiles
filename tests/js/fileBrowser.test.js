@@ -1631,6 +1631,16 @@ describe('CfilesFileBrowser', () => {
             expect(browser(topLevel()).find('.page-header .ti-settings').exists()).toBe(false);
         });
 
+        it('offers the network drive only when the page hands its dialog', () => {
+            const withLink = browser(topLevel(), { connectUrl: '/oauth/connect?id=cfiles-webdav' });
+            const button = withLink.find('.page-header [data-action-click="ui.modal.load"]');
+            expect(button.exists()).toBe(true);
+            expect(button.attributes('data-action-url')).toBe('/oauth/connect?id=cfiles-webdav');
+            expect(button.find('.ti-plug-connected').exists()).toBe(true);
+
+            expect(browser(topLevel()).find('.page-header .ti-plug-connected').exists()).toBe(false);
+        });
+
         it('titles the page', () => {
             expect(browser(topLevel()).find('.page-header-title').text()).toBe('Files');
         });

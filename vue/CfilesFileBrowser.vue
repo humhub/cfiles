@@ -2,6 +2,17 @@
     <div class="cfiles-browser">
         <PageHeader :title="titleLabel">
             <template #actions>
+                <!-- The core's dialog of the device connection (`DeviceConnection`): the address
+                     and a password for the device. -->
+                <a
+                    v-if="connectUrl"
+                    href="#"
+                    class="btn btn-light btn-icon-only"
+                    data-action-click="ui.modal.load"
+                    :data-action-url="connectUrl"
+                    :aria-label="connectLabel"
+                    :title="connectLabel"
+                ><i class="ti ti-plug-connected" aria-hidden="true"></i></a>
                 <a
                     v-if="settingsUrl"
                     :href="settingsUrl"
@@ -319,6 +330,11 @@ export default {
         initialFilters: { type: Object, default: () => ({}) },
         /** The container's cfiles settings page, or null for those who may not change them. */
         settingsUrl: { type: String, default: null },
+        /**
+         * The dialog that connects the files as a network drive (WebDAV), or null while it is
+         * not offered (`Module::getDavConnectionUrl()`).
+         */
+        connectUrl: { type: String, default: null },
     },
     data() {
         return {
@@ -582,6 +598,9 @@ export default {
         },
         settingsLabel() {
             return i18n.t('CfilesModule.base', 'Settings');
+        },
+        connectLabel() {
+            return i18n.t('CfilesModule.base', 'Connect as network drive');
         },
         dropLabel() {
             return i18n.t('CfilesModule.base', 'Drop files here to upload them');

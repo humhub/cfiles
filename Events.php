@@ -9,6 +9,9 @@ use humhub\modules\cfiles\services\DownloadCounterService;
 use humhub\modules\cfiles\services\IntegrityService;
 use humhub\modules\dav\components\Mount;
 use humhub\modules\dav\events\MountsEvent;
+use humhub\modules\dav\Module as DavModule;
+use humhub\modules\oauth\components\DeviceConnection;
+use humhub\modules\oauth\events\DeviceConnectionsEvent;
 use humhub\modules\file\models\File as BaseFile;
 use humhub\modules\oauth\events\ScopesEvent;
 use humhub\modules\oauth\models\Scope;
@@ -151,6 +154,31 @@ class Events
             Module::SCOPE_READ,
             Module::SCOPE_WRITE,
             static fn() => new FilesCollection($user),
+        );
+    }
+
+    /**
+     * The network drive: the address of the files and a password for the device, offered in
+     * the file browser ({@see Module::getDavConnectionUrl()}).
+     */
+    public static function onCollectDeviceConnections(DeviceConnectionsEvent $event): void
+    {
+        /** @var Module $module */
+        $module = Yii::$app->getModule('cfiles');
+        if (!$module->getEnableWebDav()) {
+            return;
+        }
+
+        $event->connections[] = new DeviceConnection(
+            Module::DAV_CONNECTION,
+            Yii::t('CfilesModule.base', 'Connect as network drive'),
+            Yii::t('CfilesModule.base', 'Work with the files of your spaces and your profile in Finder, Windows Explorer or any WebDAV client. Add a network drive there with these details.'),
+            Yii::t('CfilesModule.base', 'WebDAV – Files'),
+            [Module::SCOPE_READ, Module::SCOPE_WRITE],
+            [
+                Yii::t('CfilesModule.base', 'Address') => DavModule::instance()->getMountUrl(FilesCollection::NAME),
+                Yii::t('CfilesModule.base', 'Username') => $event->user->username,
+            ],
         );
     }
 }

@@ -253,6 +253,14 @@ class GlobalControllerTest extends HumHubDbTestCase
         $this->assertSame(200, Yii::$app->response->statusCode);
     }
 
+    public function testThePageLinksTheNetworkDrive()
+    {
+        $connectUrl = $this->props([])['connectUrl'];
+
+        $this->assertNotNull($connectUrl);
+        $this->assertSame($this->module()->getDavConnectionUrl(), $connectUrl);
+    }
+
     public function testOnlyAnAdminGetsTheSettings()
     {
         $this->assertNull($this->props([])['settingsUrl']);

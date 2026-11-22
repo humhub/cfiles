@@ -14,7 +14,9 @@ use humhub\modules\cfiles\models\Folder;
 use humhub\modules\cfiles\Module;
 use humhub\modules\cfiles\services\FolderContentService;
 use humhub\modules\content\models\Content;
+use humhub\modules\dav\Module as DavModule;
 use humhub\modules\dav\tests\codeception\_support\DavTestClient;
+use humhub\modules\oauth\components\DeviceConnectionRegistry;
 use humhub\modules\oauth\models\Grant;
 use humhub\modules\oauth\Module as OAuthModule;
 use humhub\modules\space\models\Space;
@@ -47,6 +49,7 @@ class DavTest extends HumHubDbTestCase
         OAuthModule::instance()->activeGrant = null;
         Grant::deleteAll();
         Yii::$app->getModule('cfiles')->settings->delete('enableWebDav');
+        OAuthModule::instance()->settings->delete('allowPersonalAccessTokens');
         parent::_after();
     }
 
@@ -114,9 +117,35 @@ class DavTest extends HumHubDbTestCase
         $this->assertFalse((bool)(new ConfigureForm())->enableWebDav);
     }
 
+    public function testTheFilesAreOfferedAsANetworkDrive()
+    {
+        $admin = User::findOne(['username' => 'Admin']);
+        $connection = DeviceConnectionRegistry::find($admin, Module::DAV_CONNECTION);
+
+        $this->assertNotNull($connection);
+        $this->assertSame([Module::SCOPE_READ, Module::SCOPE_WRITE], $connection->scopes);
+        $this->assertContains(DavModule::instance()->getMountUrl('files'), $connection->fields);
+        $this->assertContains($admin->username, $connection->fields);
+        $this->assertSame($connection->getUrl(), Yii::$app->getModule('cfiles')->getDavConnectionUrl());
+
+        $this->logout();
+        $this->assertNull(Yii::$app->getModule('cfiles')->getDavConnectionUrl());
+    }
+
+    public function testTheSwitchNeedsPersonalAccessTokens()
+    {
+        $this->assertTrue((new ConfigureForm())->canEnableWebDav());
+
+        OAuthModule::instance()->settings->set('allowPersonalAccessTokens', false);
+        $this->assertFalse((new ConfigureForm())->canEnableWebDav());
+    }
+
     public function testSwitchedOffTheFilesAreNotServed()
     {
         Yii::$app->getModule('cfiles')->settings->set('enableWebDav', false);
+
+        $this->assertNull(DeviceConnectionRegistry::find(User::findOne(['username' => 'Admin']), Module::DAV_CONNECTION));
+        $this->assertNull(Yii::$app->getModule('cfiles')->getDavConnectionUrl());
 
         $this->assertNotContains('/dav/files/', $this->hrefs($this->dav()->request('PROPFIND', '', ['Depth' => '1'])));
         $this->assertSame(404, $this->dav()->request('PROPFIND', 'files/space-1/', ['Depth' => '0'])->statusCode);

@@ -71,6 +71,7 @@ class BrowseController extends ContentContainerController
             'settingsUrl' => $this->canConfigure()
                 ? $this->contentContainer->createUrl('/cfiles/config-container')
                 : null,
+            'connectUrl' => $this->module->getDavConnectionUrl(),
         ]);
     }
 

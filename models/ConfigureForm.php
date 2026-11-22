@@ -4,6 +4,9 @@ namespace humhub\modules\cfiles\models;
 
 use Yii;
 use humhub\modules\cfiles\Module;
+use humhub\modules\oauth\Module as OAuthModule;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 /**
  * ConfigureForm defines the configurable fields.
@@ -67,9 +70,25 @@ class ConfigureForm extends \yii\base\Model
      */
     public function attributeHints()
     {
+        $webDav = Yii::t('CfilesModule.base', 'Users connect the files of their spaces and their profile as a network drive, with a password for each device (a personal access token).');
+        if (!$this->canEnableWebDav()) {
+            $webDav .= ' ' . Yii::t('CfilesModule.base', 'Requires personal access tokens, which are switched off under {link}.', [
+                'link' => Html::a(Yii::t('CfilesModule.base', 'Apps & API Access'), Url::to(['/oauth/admin/index'])),
+            ]);
+        }
+
         return [
-            'enableWebDav' => Yii::t('CfilesModule.base', 'Users connect the files of their spaces and their profile as a network drive, signed in with a personal access token.'),
+            // Hints are not encoded
+            'enableWebDav' => $webDav,
         ];
+    }
+
+    /**
+     * Whether WebDAV can work: a device signs in with a personal access token.
+     */
+    public function canEnableWebDav(): bool
+    {
+        return OAuthModule::instance()->allowsPersonalAccessTokens();
     }
 
     public function save(): bool

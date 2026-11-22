@@ -13,6 +13,7 @@ use humhub\widgets\VueComponent;
 /* @var $filters array the `FilterBar` definitions ({@see \humhub\modules\cfiles\components\FolderList::definitions()}) */
 /* @var $initialFilters array<string, string> the filter values the first page was built with, from the page URL */
 /* @var $settingsUrl string|null the container's cfiles settings page, or null for those who may not change them */
+/* @var $connectUrl string|null the dialog of the network drive, or null while it is not offered */
 
 ?>
 <?= VueComponent::widget([
@@ -33,5 +34,6 @@ use humhub\widgets\VueComponent;
         'filters' => $filters,
         'initialFilters' => $initialFilters,
         'settingsUrl' => $settingsUrl,
+        'connectUrl' => $connectUrl,
     ],
 ]) ?>
