@@ -2275,11 +2275,175 @@
     }
   };
   let uploadSeq = 0;
+  const uploadMixin = {
+    data() {
+      return {
+        // The names an upload found taken, while the user is asked about them (ConflictDialog).
+        conflicts: [],
+        // Placeholders for the files being uploaded into the open level.
+        uploads: [],
+        // Folders shown here that files are being uploaded into: key => { batch => progress }.
+        uploadTargets: {}
+      };
+    },
+    computed: {
+      /** The items with their grid key, the uploads in progress appended. */
+      displayItems() {
+        const items = this.items.map((item) => {
+          const key = keyOf(item);
+          const batches = this.uploadTargets[key];
+          return batches ? { ...item, key, uploading: true, progress: Math.min(...Object.values(batches)) } : { ...item, key };
+        });
+        const uploads = this.uploads.filter((upload) => {
+          var _a;
+          return upload.parent === this.folderId && upload.containerId === ((_a = this.container) == null ? void 0 : _a.contentContainerId);
+        });
+        return items.concat(uploads.map((upload) => ({ ...upload, key: keyOf(upload) })));
+      }
+    },
+    created() {
+      this.conflictAnswer = null;
+    },
+    methods: {
+      /** Opens the picker, for one type (`image/*`) when a handler asks for one. */
+      pickFiles(accept = null) {
+        const input = this.$refs.fileInput;
+        if (accept) {
+          input.setAttribute("accept", accept);
+        } else {
+          input.removeAttribute("accept");
+        }
+        input.click();
+      },
+      onFilesPicked(event) {
+        this.upload(event.target.files);
+        event.target.value = "";
+      },
+      /**
+       * Uploads a batch into `parentId` (the open level by default) — after asking about the
+       * names that are taken there: the user decides whether those are replaced (a new
+       * version), kept both (an indexed name) or skipped (see ConflictDialog).
+       */
+      upload(files, parentId = this.folderId, options = {}) {
+        var _a;
+        if (!files || !files.length || !this.writable) {
+          return Promise.resolve();
+        }
+        const list = Array.from(files);
+        const container = this.container;
+        const intoLevel = parentId === this.folderId;
+        options = { ...options, intoLevel, title: options.title ?? (intoLevel ? (_a = this.folder) == null ? void 0 : _a.title : null) };
+        return findConflicts(container.contentContainerId, parentId, list.map((file) => file.name)).then((conflicts) => {
+          if (!conflicts.length) {
+            return this.sendUpload(list, parentId, options, container);
+          }
+          return this.askConflicts(conflicts).then((choice) => {
+            if (choice === "replace" || choice === "keep") {
+              const replace = choice === "replace" ? conflicts.filter((conflict) => conflict.canReplace).map((conflict) => conflict.name) : [];
+              return this.sendUpload(list, parentId, options, container, replace);
+            }
+            const taken = new Set(conflicts.map((conflict) => conflict.name));
+            const rest = choice === "skip" ? list.filter((file) => !taken.has(file.name)) : [];
+            return rest.length ? this.sendUpload(rest, parentId, options, container) : void 0;
+          });
+        }).catch((response) => {
+          vue.log.error(response, true);
+        });
+      },
+      /**
+       * Asks the user about the names an upload found taken; settles with their choice —
+       * `replace`, `keep`, `skip` or `cancel`. A question still open is given up (`cancel`).
+       */
+      askConflicts(conflicts) {
+        this.settleConflicts("cancel");
+        return new Promise((resolve) => {
+          this.conflictAnswer = resolve;
+          this.conflicts = conflicts;
+        });
+      },
+      settleConflicts(choice) {
+        const answer = this.conflictAnswer;
+        this.conflictAnswer = null;
+        this.conflicts = [];
+        if (answer) {
+          answer(choice);
+        }
+      },
+      /**
+       * Sends an upload `upload()` settled; where it goes was captured there.
+       *
+       * Into the open level each file gets a placeholder after the items (kept with that
+       * level: `parent`); into a folder shown here (`targetKey`) that folder shows the
+       * progress instead. A batch into a level not open says where it went (`title`) once
+       * it is in. The level is brought up to date only when the upload shows on it — in place
+       * (`refresh()`), the selection, further pages and details kept — and the placeholders
+       * stay until the new rows are there.
+       */
+      sendUpload(files, parentId, { targetKey = null, title = null, intoLevel = false }, container, replace = []) {
+        const batch = ++uploadSeq;
+        const folderTitle = title;
+        const placeholders = intoLevel ? Array.from(files).map((file) => ({
+          type: "upload",
+          id: ++uploadSeq,
+          parent: parentId,
+          containerId: container.contentContainerId,
+          title: file.name,
+          uploading: true,
+          progress: 0,
+          icon: "file"
+        })) : [];
+        const ids = placeholders.map((upload) => upload.id);
+        const mine = (upload) => ids.includes(upload.id);
+        const progress = (percent) => {
+          if (intoLevel) {
+            this.uploads = this.uploads.map((upload) => mine(upload) ? { ...upload, progress: percent } : upload);
+          } else if (targetKey) {
+            this.uploadTargets = {
+              ...this.uploadTargets,
+              [targetKey]: { ...this.uploadTargets[targetKey], [batch]: percent }
+            };
+          }
+        };
+        const done = () => {
+          this.uploads = this.uploads.filter((upload) => !mine(upload));
+          if (targetKey && this.uploadTargets[targetKey]) {
+            const { [batch]: gone, ...others } = this.uploadTargets[targetKey];
+            const { [targetKey]: all, ...rest } = this.uploadTargets;
+            this.uploadTargets = Object.keys(others).length ? { ...rest, [targetKey]: others } : rest;
+          }
+        };
+        this.uploads = this.uploads.concat(placeholders);
+        progress(0);
+        return uploadFiles(container.contentContainerId, parentId, files, progress, replace).then((response) => {
+          var _a;
+          this.reportErrors(response.errors);
+          const here = sameContainer(container, this.targetContainer());
+          const open = here && parentId === this.targetFolderId();
+          const shown = open || here && targetKey !== null && this.items.some((item) => keyOf(item) === targetKey);
+          const count = (response.results || []).length;
+          if (!open && count) {
+            vue.status("success", vue.i18n.t("CfilesModule.base", "{count, plural, one{# file} other{# files}} uploaded to {folder}", {
+              count,
+              folder: folderTitle || ((_a = container.space) == null ? void 0 : _a.name) || this.rootLabel
+            }));
+          }
+          if (shown) {
+            this.refresh().then(done);
+          } else {
+            done();
+          }
+        }).catch((response) => {
+          done();
+          vue.log.error(response, true);
+        });
+      }
+    }
+  };
   const PAGE_SIZES = { list: 50, tiles: 96 };
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin],
+    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin, uploadMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2385,15 +2549,9 @@
         moveItemsList: [],
         moveBusy: false,
         moveError: null,
-        // The names an upload found taken, while the user is asked about them (ConflictDialog).
-        conflicts: [],
         // On the global page: which topic ids each space takes (its own and the global ones),
         // by content container id — `{ [id]: true|false }`, asked once per id and space.
         topicScopes: {},
-        // Placeholders for the files being uploaded into the open level.
-        uploads: [],
-        // Folders shown here that files are being uploaded into: key => { batch => progress }.
-        uploadTargets: {},
         // The item the last plain selection click was on, where a Shift range starts.
         anchorKey: null,
         // The level the tiles show, and which way the last change went (for the slide).
@@ -2450,19 +2608,6 @@
       },
       selectedItems() {
         return this.items.filter((item) => this.selection.indexOf(keyOf(item)) !== -1);
-      },
-      /** The items with their grid key, the uploads in progress appended. */
-      displayItems() {
-        const items = this.items.map((item) => {
-          const key = keyOf(item);
-          const batches = this.uploadTargets[key];
-          return batches ? { ...item, key, uploading: true, progress: Math.min(...Object.values(batches)) } : { ...item, key };
-        });
-        const uploads = this.uploads.filter((upload) => {
-          var _a;
-          return upload.parent === this.folderId && upload.containerId === ((_a = this.container) == null ? void 0 : _a.contentContainerId);
-        });
-        return items.concat(uploads.map((upload) => ({ ...upload, key: keyOf(upload) })));
       },
       /** What both views take; each view only what it declares. */
       viewProps() {
@@ -2548,7 +2693,6 @@
     },
     created() {
       this.loadSeq = 0;
-      this.conflictAnswer = null;
       this.requested = { folderId: this.folderId, push: false, container: this.container };
       this.openedAt = pageOf(window.location);
       if (this.urlNames(this.container, this.folderId)) {
@@ -3240,139 +3384,6 @@
         (errors || []).forEach((error) => {
           vue.status("error", errorText(error));
         });
-      },
-      // --- upload -----------------------------------------------------------------
-      /** Opens the picker, for one type (`image/*`) when a handler asks for one. */
-      pickFiles(accept = null) {
-        const input = this.$refs.fileInput;
-        if (accept) {
-          input.setAttribute("accept", accept);
-        } else {
-          input.removeAttribute("accept");
-        }
-        input.click();
-      },
-      onFilesPicked(event) {
-        this.upload(event.target.files);
-        event.target.value = "";
-      },
-      /**
-       * Uploads a batch into `parentId` (the open level by default) — after asking about the
-       * names that are taken there: the user decides whether those are replaced (a new
-       * version), kept both (an indexed name) or skipped (see ConflictDialog).
-       */
-      upload(files, parentId = this.folderId, options = {}) {
-        var _a;
-        if (!files || !files.length || !this.writable) {
-          return Promise.resolve();
-        }
-        const list = Array.from(files);
-        const container = this.container;
-        const intoLevel = parentId === this.folderId;
-        options = { ...options, intoLevel, title: options.title ?? (intoLevel ? (_a = this.folder) == null ? void 0 : _a.title : null) };
-        return findConflicts(container.contentContainerId, parentId, list.map((file) => file.name)).then((conflicts) => {
-          if (!conflicts.length) {
-            return this.sendUpload(list, parentId, options, container);
-          }
-          return this.askConflicts(conflicts).then((choice) => {
-            if (choice === "replace" || choice === "keep") {
-              const replace = choice === "replace" ? conflicts.filter((conflict) => conflict.canReplace).map((conflict) => conflict.name) : [];
-              return this.sendUpload(list, parentId, options, container, replace);
-            }
-            const taken = new Set(conflicts.map((conflict) => conflict.name));
-            const rest = choice === "skip" ? list.filter((file) => !taken.has(file.name)) : [];
-            return rest.length ? this.sendUpload(rest, parentId, options, container) : void 0;
-          });
-        }).catch((response) => {
-          vue.log.error(response, true);
-        });
-      },
-      /**
-       * Asks the user about the names an upload found taken; settles with their choice —
-       * `replace`, `keep`, `skip` or `cancel`. A question still open is given up (`cancel`).
-       */
-      askConflicts(conflicts) {
-        this.settleConflicts("cancel");
-        return new Promise((resolve) => {
-          this.conflictAnswer = resolve;
-          this.conflicts = conflicts;
-        });
-      },
-      settleConflicts(choice) {
-        const answer = this.conflictAnswer;
-        this.conflictAnswer = null;
-        this.conflicts = [];
-        if (answer) {
-          answer(choice);
-        }
-      },
-      /**
-       * Sends an upload `upload()` settled; where it goes was captured there.
-       *
-       * Into the open level each file gets a placeholder after the items (kept with that
-       * level: `parent`); into a folder shown here (`targetKey`) that folder shows the
-       * progress instead. A batch into a level not open says where it went (`title`) once
-       * it is in. The level is brought up to date only when the upload shows on it — in place
-       * (`refresh()`), the selection, further pages and details kept — and the placeholders
-       * stay until the new rows are there.
-       */
-      sendUpload(files, parentId, { targetKey = null, title = null, intoLevel = false }, container, replace = []) {
-        const batch = ++uploadSeq;
-        const folderTitle = title;
-        const placeholders = intoLevel ? Array.from(files).map((file) => ({
-          type: "upload",
-          id: ++uploadSeq,
-          parent: parentId,
-          containerId: container.contentContainerId,
-          title: file.name,
-          uploading: true,
-          progress: 0,
-          icon: "file"
-        })) : [];
-        const ids = placeholders.map((upload) => upload.id);
-        const mine = (upload) => ids.includes(upload.id);
-        const progress = (percent) => {
-          if (intoLevel) {
-            this.uploads = this.uploads.map((upload) => mine(upload) ? { ...upload, progress: percent } : upload);
-          } else if (targetKey) {
-            this.uploadTargets = {
-              ...this.uploadTargets,
-              [targetKey]: { ...this.uploadTargets[targetKey], [batch]: percent }
-            };
-          }
-        };
-        const done = () => {
-          this.uploads = this.uploads.filter((upload) => !mine(upload));
-          if (targetKey && this.uploadTargets[targetKey]) {
-            const { [batch]: gone, ...others } = this.uploadTargets[targetKey];
-            const { [targetKey]: all, ...rest } = this.uploadTargets;
-            this.uploadTargets = Object.keys(others).length ? { ...rest, [targetKey]: others } : rest;
-          }
-        };
-        this.uploads = this.uploads.concat(placeholders);
-        progress(0);
-        return uploadFiles(container.contentContainerId, parentId, files, progress, replace).then((response) => {
-          var _a;
-          this.reportErrors(response.errors);
-          const here = sameContainer(container, this.targetContainer());
-          const open = here && parentId === this.targetFolderId();
-          const shown = open || here && targetKey !== null && this.items.some((item) => keyOf(item) === targetKey);
-          const count = (response.results || []).length;
-          if (!open && count) {
-            vue.status("success", vue.i18n.t("CfilesModule.base", "{count, plural, one{# file} other{# files}} uploaded to {folder}", {
-              count,
-              folder: folderTitle || ((_a = container.space) == null ? void 0 : _a.name) || this.rootLabel
-            }));
-          }
-          if (shown) {
-            this.refresh().then(done);
-          } else {
-            done();
-          }
-        }).catch((response) => {
-          done();
-          vue.log.error(response, true);
-        });
       }
     }
   };
@@ -3401,7 +3412,7 @@
         handlers: $props.global ? [] : _ctx.fileHandlers,
         filters: $options.activeFilters,
         "filter-values": $options.filterValues,
-        onUpload: $options.pickFiles,
+        onUpload: _ctx.pickFiles,
         onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true),
         onHandler: _ctx.onHandlerChosen,
         onFilters: $options.onFilters
@@ -3483,7 +3494,7 @@
         type: "file",
         multiple: "",
         class: "d-none",
-        onChange: _cache[2] || (_cache[2] = (...args) => $options.onFilesPicked && $options.onFilesPicked(...args))
+        onChange: _cache[2] || (_cache[2] = (...args) => _ctx.onFilesPicked && _ctx.onFilesPicked(...args))
       }, null, 544),
       vue$1.createVNode(_component_UiModal, {
         show: $data.showCreate,
@@ -3535,10 +3546,10 @@
         onConfirm: _cache[10] || (_cache[10] = (id) => $data.transferMode === "copy" ? $options.copyTo(id, $data.moveItemsList) : $options.moveTo(id, $data.moveItemsList))
       }, null, 8, ["show", "content-container-id", "items", "mode", "current-path", "busy", "error"])) : vue$1.createCommentVNode("", true),
       vue$1.createVNode(_component_ConflictDialog, {
-        show: $data.conflicts.length > 0,
-        conflicts: $data.conflicts,
-        onResolve: $options.settleConflicts,
-        onCancel: _cache[11] || (_cache[11] = ($event) => $options.settleConflicts("cancel"))
+        show: _ctx.conflicts.length > 0,
+        conflicts: _ctx.conflicts,
+        onResolve: _ctx.settleConflicts,
+        onCancel: _cache[11] || (_cache[11] = ($event) => _ctx.settleConflicts("cancel"))
       }, null, 8, ["show", "conflicts", "onResolve"])
     ]);
   }
