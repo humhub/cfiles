@@ -2274,6 +2274,250 @@
       }
     }
   };
+  const itemActionsMixin = {
+    data() {
+      return {
+        showCreate: false,
+        showEdit: false,
+        editItem: null,
+        showMove: false,
+        /** What the folder dialog is open for: `move` or `copy`. */
+        transferMode: "move",
+        moveItemsList: [],
+        moveBusy: false,
+        moveError: null
+      };
+    },
+    computed: {
+      /**
+       * The container of the item being edited: the one open, or — a hit of the global page's
+       * results — the space its path starts with.
+       */
+      editContainerId() {
+        var _a, _b, _c, _d;
+        return ((_a = this.container) == null ? void 0 : _a.contentContainerId) ?? ((_d = (_c = (_b = this.editItem) == null ? void 0 : _b.path) == null ? void 0 : _c[0]) == null ? void 0 : _d.contentContainerId) ?? null;
+      },
+      createTitle() {
+        return vue.i18n.t("CfilesModule.base", "Add folder");
+      },
+      editTitle() {
+        return this.editItem && this.editItem.type === "folder" ? vue.i18n.t("CfilesModule.base", "Edit folder") : vue.i18n.t("CfilesModule.base", "Edit file");
+      }
+    },
+    mounted() {
+      this.openRequestedEdit();
+    },
+    methods: {
+      /**
+       * Puts the cursor in a dialog's first field once the dialog is actually open.
+       *
+       * The modal focuses its own dialog element first (so Escape and the tab ring work
+       * from the moment it appears), which is why this waits for `opened` rather than
+       * focusing on mount.
+       */
+      focusForm(ref) {
+        var _a;
+        (_a = this.$refs[ref]) == null ? void 0 : _a.focus();
+      },
+      /**
+       * Opens the edit dialog for the item a deep link asked for.
+       *
+       * Looked up among the rows already received, so a link to something that is not on
+       * this page — or no longer exists — simply opens the folder instead of failing.
+       */
+      openRequestedEdit() {
+        if (!this.editKey) {
+          return;
+        }
+        const match = this.items.find((item) => keyOf(item) === this.editKey);
+        if (match) {
+          this.openEdit(match);
+        }
+      },
+      // --- context menu ------------------------------------------------------------
+      /**
+       * The module's own entries. `ContentControls` merges them with what the server's
+       * `WallEntryControls` stack resolves and with anything a module registered
+       * client-side, so this list is only what cfiles itself contributes.
+       */
+      entriesFor(item) {
+        var _a;
+        const isFolder = item.type === "folder";
+        return [
+          {
+            id: "cfiles-details",
+            sortOrder: 5,
+            label: vue.i18n.t("CfilesModule.base", "Details"),
+            icon: "info-circle",
+            onClick: () => this.showDetails(item)
+          },
+          {
+            id: "cfiles-open",
+            sortOrder: 10,
+            label: isFolder ? vue.i18n.t("CfilesModule.base", "Open") : vue.i18n.t("CfilesModule.base", "Download"),
+            icon: isFolder ? "folder-open-filled" : "download",
+            url: isFolder ? this.folderUrl(item.id, ((_a = itemLocation(item)) == null ? void 0 : _a.space) ?? void 0) : item.downloadUrl || item.url,
+            onClick: isFolder ? () => this.onOpen(item) : void 0
+          },
+          {
+            id: "cfiles-edit",
+            sortOrder: 40,
+            label: vue.i18n.t("CfilesModule.base", "Edit"),
+            icon: "pencil",
+            condition: (context) => context.capabilities.canEdit === true,
+            onClick: () => this.openEdit(item)
+          },
+          {
+            id: "cfiles-move",
+            sortOrder: 50,
+            label: vue.i18n.t("CfilesModule.base", "Move"),
+            icon: "arrows-left-right",
+            // Not at the global page's top level: its hits lie in spaces of their own, and
+            // the move dialog and endpoint work in one container.
+            condition: (context) => this.movable && context.capabilities.canEdit === true,
+            onClick: () => this.openMove([item])
+          },
+          {
+            id: "cfiles-copy",
+            sortOrder: 55,
+            label: vue.i18n.t("CfilesModule.base", "Copy"),
+            icon: "copy",
+            // A copy is new content of the caller: reading the item and adding to the
+            // level is all it takes. Not at the global page's top level, as Move.
+            condition: () => this.writable,
+            onClick: () => this.openCopy([item])
+          },
+          {
+            id: "cfiles-delete",
+            sortOrder: 60,
+            label: vue.i18n.t("CfilesModule.base", "Delete"),
+            icon: "trash",
+            condition: (context) => context.capabilities.canDelete === true,
+            onClick: () => this.confirmDelete([item])
+          }
+        ];
+      },
+      // --- mutations ---------------------------------------------------------------
+      openEdit(item) {
+        this.editItem = item;
+        this.showEdit = true;
+      },
+      onCreated() {
+        this.showCreate = false;
+        this.reload();
+      },
+      onUpdated() {
+        this.showEdit = false;
+        this.editItem = null;
+        this.reload();
+      },
+      openMove(items) {
+        this.openFolderDialog(items, "move");
+      },
+      openCopy(items) {
+        this.openFolderDialog(items, "copy");
+      },
+      /** Opens the folder dialog for moving or copying (`mode`) the items. */
+      openFolderDialog(items, mode) {
+        if (!items.length) {
+          return;
+        }
+        this.transferMode = mode;
+        this.moveItemsList = items;
+        this.moveError = null;
+        this.showMove = true;
+      },
+      moveTo(targetFolderId, items) {
+        if (!items.length || items.every((item) => (item.parentFolderId ?? null) === targetFolderId)) {
+          this.showMove = false;
+          return;
+        }
+        this.moveBusy = true;
+        moveItems(this.container.contentContainerId, items, targetFolderId).then((response) => {
+          this.moveBusy = false;
+          this.showMove = false;
+          this.moveItemsList = [];
+          this.reportErrors(response.errors);
+          this.reload();
+        }).catch((response) => {
+          this.moveBusy = false;
+          const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
+          this.moveError = errors ? errorText(errors[0]) : vue.i18n.t("CfilesModule.base", "Could not move the item!");
+          if (!this.showMove) {
+            if (errors) {
+              this.reportErrors(errors);
+            } else {
+              vue.log.error(response, true);
+            }
+            this.reload();
+          }
+        });
+      },
+      /**
+       * Copies the items into the folder `parentFolderId` of the open container, null for its
+       * top level — also the level they are on, where the copies get indexed names.
+       */
+      copyTo(parentFolderId, items) {
+        if (!items.length) {
+          this.showMove = false;
+          return;
+        }
+        this.moveBusy = true;
+        copyItems(this.container.contentContainerId, items, parentFolderId).then((response) => {
+          this.moveBusy = false;
+          this.showMove = false;
+          this.moveItemsList = [];
+          this.reportErrors(response.errors);
+          vue.status("success", vue.i18n.t("CfilesModule.base", "{count, plural, one{# item} other{# items}} copied", {
+            count: (response.results || []).length
+          }));
+          this.reload();
+        }).catch((response) => {
+          this.moveBusy = false;
+          const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
+          this.moveError = errors ? errorText(errors[0]) : vue.i18n.t("CfilesModule.base", "Could not copy the item!");
+          if (!errors) {
+            vue.log.error(response);
+          }
+        });
+      },
+      confirmDelete(items) {
+        if (!items.length) {
+          return;
+        }
+        vue.modal.confirm({
+          header: vue.i18n.t("CfilesModule.base", "<strong>Confirm</strong> delete"),
+          body: vue.i18n.t("CfilesModule.base", "Do you really want to delete {count, plural, one{this item} other{these # items}} with all subcontent?", {
+            count: items.length
+          }),
+          confirmText: vue.i18n.t("CfilesModule.base", "Delete")
+        }).then((confirmed) => {
+          if (!confirmed) {
+            return;
+          }
+          deleteItems(items).then((response) => {
+            this.reportErrors(response.errors);
+            if ((response.results || []).some((deleted) => keyOf(deleted) === this.detailsKey)) {
+              this.closeDetails();
+            }
+            this.reload();
+          }).catch((response) => {
+            if (Array.isArray(response == null ? void 0 : response.errors)) {
+              this.reportErrors(response.errors);
+            } else {
+              vue.log.error(response, true);
+            }
+            this.reload();
+          });
+        });
+      },
+      reportErrors(errors) {
+        (errors || []).forEach((error) => {
+          vue.status("error", errorText(error));
+        });
+      }
+    }
+  };
   const selectionMixin = {
     data() {
       return {
@@ -2530,7 +2774,7 @@
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
     components: { BrowserHeader, ConflictDialog, DetailsPanel, EmptyLevel, FileTiles, ItemList, MoveDialog },
-    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin, selectionMixin, uploadMixin],
+    mixins: [detailsMixin, dragDropMixin, fileHandlersMixin, itemActionsMixin, selectionMixin, uploadMixin],
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2626,15 +2870,6 @@
         pages: this.listing.pages,
         loading: false,
         loadingMore: false,
-        showCreate: false,
-        showEdit: false,
-        editItem: null,
-        showMove: false,
-        /** What the folder dialog is open for: `move` or `copy`. */
-        transferMode: "move",
-        moveItemsList: [],
-        moveBusy: false,
-        moveError: null,
         // On the global page: which topic ids each space takes (its own and the global ones),
         // by content container id — `{ [id]: true|false }`, asked once per id and space.
         topicScopes: {},
@@ -2666,14 +2901,6 @@
        */
       movable() {
         return this.writable && this.levelCanManage;
-      },
-      /**
-       * The container of the item being edited: the one open, or — a hit of the global page's
-       * results — the space its path starts with.
-       */
-      editContainerId() {
-        var _a, _b, _c, _d;
-        return ((_a = this.container) == null ? void 0 : _a.contentContainerId) ?? ((_d = (_c = (_b = this.editItem) == null ? void 0 : _b.path) == null ? void 0 : _c[0]) == null ? void 0 : _d.contentContainerId) ?? null;
       },
       /**
        * The FilterBar definitions of the level shown: inside a space the space's own. The page
@@ -2741,12 +2968,6 @@
           return vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in your spaces", { count: this.total });
         }
         return this.folder ? vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in this folder and its subfolders", { count: this.total }) : vue.i18n.t("CfilesModule.base", "{count, plural, one{# result} other{# results}} in all files", { count: this.total });
-      },
-      createTitle() {
-        return vue.i18n.t("CfilesModule.base", "Add folder");
-      },
-      editTitle() {
-        return this.editItem && this.editItem.type === "folder" ? vue.i18n.t("CfilesModule.base", "Edit folder") : vue.i18n.t("CfilesModule.base", "Edit file");
       }
     },
     created() {
@@ -2764,7 +2985,6 @@
     mounted() {
       var _a, _b;
       window.addEventListener("popstate", this.onPopState);
-      this.openRequestedEdit();
       const urlFolderId = this.folderIdFromUrl();
       if (this.global) {
         const spaceId = this.spaceIdFromUrl();
@@ -2786,32 +3006,6 @@
     },
     methods: {
       keyOf,
-      /**
-       * Puts the cursor in a dialog's first field once the dialog is actually open.
-       *
-       * The modal focuses its own dialog element first (so Escape and the tab ring work
-       * from the moment it appears), which is why this waits for `opened` rather than
-       * focusing on mount.
-       */
-      focusForm(ref) {
-        var _a;
-        (_a = this.$refs[ref]) == null ? void 0 : _a.focus();
-      },
-      /**
-       * Opens the edit dialog for the item a deep link asked for.
-       *
-       * Looked up among the rows already received, so a link to something that is not on
-       * this page — or no longer exists — simply opens the folder instead of failing.
-       */
-      openRequestedEdit() {
-        if (!this.editKey) {
-          return;
-        }
-        const match = this.items.find((item) => keyOf(item) === this.editKey);
-        if (match) {
-          this.openEdit(match);
-        }
-      },
       /**
        * The page URL of a level, with the filters and the sort the bar shows — what the bar
        * writes into the URL itself, so a folder opened (or a link copied) keeps them.
@@ -3216,188 +3410,6 @@
           this.loadingMore = false;
           vue.log.error(e, true);
         });
-      },
-      // --- context menu ------------------------------------------------------------
-      /**
-       * The module's own entries. `ContentControls` merges them with what the server's
-       * `WallEntryControls` stack resolves and with anything a module registered
-       * client-side, so this list is only what cfiles itself contributes.
-       */
-      entriesFor(item) {
-        var _a;
-        const isFolder = item.type === "folder";
-        return [
-          {
-            id: "cfiles-details",
-            sortOrder: 5,
-            label: vue.i18n.t("CfilesModule.base", "Details"),
-            icon: "info-circle",
-            onClick: () => this.showDetails(item)
-          },
-          {
-            id: "cfiles-open",
-            sortOrder: 10,
-            label: isFolder ? vue.i18n.t("CfilesModule.base", "Open") : vue.i18n.t("CfilesModule.base", "Download"),
-            icon: isFolder ? "folder-open-filled" : "download",
-            url: isFolder ? this.folderUrl(item.id, ((_a = itemLocation(item)) == null ? void 0 : _a.space) ?? void 0) : item.downloadUrl || item.url,
-            onClick: isFolder ? () => this.onOpen(item) : void 0
-          },
-          {
-            id: "cfiles-edit",
-            sortOrder: 40,
-            label: vue.i18n.t("CfilesModule.base", "Edit"),
-            icon: "pencil",
-            condition: (context) => context.capabilities.canEdit === true,
-            onClick: () => this.openEdit(item)
-          },
-          {
-            id: "cfiles-move",
-            sortOrder: 50,
-            label: vue.i18n.t("CfilesModule.base", "Move"),
-            icon: "arrows-left-right",
-            // Not at the global page's top level: its hits lie in spaces of their own, and
-            // the move dialog and endpoint work in one container.
-            condition: (context) => this.movable && context.capabilities.canEdit === true,
-            onClick: () => this.openMove([item])
-          },
-          {
-            id: "cfiles-copy",
-            sortOrder: 55,
-            label: vue.i18n.t("CfilesModule.base", "Copy"),
-            icon: "copy",
-            // A copy is new content of the caller: reading the item and adding to the
-            // level is all it takes. Not at the global page's top level, as Move.
-            condition: () => this.writable,
-            onClick: () => this.openCopy([item])
-          },
-          {
-            id: "cfiles-delete",
-            sortOrder: 60,
-            label: vue.i18n.t("CfilesModule.base", "Delete"),
-            icon: "trash",
-            condition: (context) => context.capabilities.canDelete === true,
-            onClick: () => this.confirmDelete([item])
-          }
-        ];
-      },
-      // --- mutations ---------------------------------------------------------------
-      openEdit(item) {
-        this.editItem = item;
-        this.showEdit = true;
-      },
-      onCreated() {
-        this.showCreate = false;
-        this.reload();
-      },
-      onUpdated() {
-        this.showEdit = false;
-        this.editItem = null;
-        this.reload();
-      },
-      openMove(items) {
-        this.openFolderDialog(items, "move");
-      },
-      openCopy(items) {
-        this.openFolderDialog(items, "copy");
-      },
-      /** Opens the folder dialog for moving or copying (`mode`) the items. */
-      openFolderDialog(items, mode) {
-        if (!items.length) {
-          return;
-        }
-        this.transferMode = mode;
-        this.moveItemsList = items;
-        this.moveError = null;
-        this.showMove = true;
-      },
-      moveTo(targetFolderId, items) {
-        if (!items.length || items.every((item) => (item.parentFolderId ?? null) === targetFolderId)) {
-          this.showMove = false;
-          return;
-        }
-        this.moveBusy = true;
-        moveItems(this.container.contentContainerId, items, targetFolderId).then((response) => {
-          this.moveBusy = false;
-          this.showMove = false;
-          this.moveItemsList = [];
-          this.reportErrors(response.errors);
-          this.reload();
-        }).catch((response) => {
-          this.moveBusy = false;
-          const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
-          this.moveError = errors ? errorText(errors[0]) : vue.i18n.t("CfilesModule.base", "Could not move the item!");
-          if (!this.showMove) {
-            if (errors) {
-              this.reportErrors(errors);
-            } else {
-              vue.log.error(response, true);
-            }
-            this.reload();
-          }
-        });
-      },
-      /**
-       * Copies the items into the folder `parentFolderId` of the open container, null for its
-       * top level — also the level they are on, where the copies get indexed names.
-       */
-      copyTo(parentFolderId, items) {
-        if (!items.length) {
-          this.showMove = false;
-          return;
-        }
-        this.moveBusy = true;
-        copyItems(this.container.contentContainerId, items, parentFolderId).then((response) => {
-          this.moveBusy = false;
-          this.showMove = false;
-          this.moveItemsList = [];
-          this.reportErrors(response.errors);
-          vue.status("success", vue.i18n.t("CfilesModule.base", "{count, plural, one{# item} other{# items}} copied", {
-            count: (response.results || []).length
-          }));
-          this.reload();
-        }).catch((response) => {
-          this.moveBusy = false;
-          const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
-          this.moveError = errors ? errorText(errors[0]) : vue.i18n.t("CfilesModule.base", "Could not copy the item!");
-          if (!errors) {
-            vue.log.error(response);
-          }
-        });
-      },
-      confirmDelete(items) {
-        if (!items.length) {
-          return;
-        }
-        vue.modal.confirm({
-          header: vue.i18n.t("CfilesModule.base", "<strong>Confirm</strong> delete"),
-          body: vue.i18n.t("CfilesModule.base", "Do you really want to delete {count, plural, one{this item} other{these # items}} with all subcontent?", {
-            count: items.length
-          }),
-          confirmText: vue.i18n.t("CfilesModule.base", "Delete")
-        }).then((confirmed) => {
-          if (!confirmed) {
-            return;
-          }
-          deleteItems(items).then((response) => {
-            this.reportErrors(response.errors);
-            if ((response.results || []).some((deleted) => keyOf(deleted) === this.detailsKey)) {
-              this.closeDetails();
-            }
-            this.reload();
-          }).catch((response) => {
-            if (Array.isArray(response == null ? void 0 : response.errors)) {
-              this.reportErrors(response.errors);
-            } else {
-              vue.log.error(response, true);
-            }
-            this.reload();
-          });
-        });
-      },
-      reportErrors(errors) {
-        (errors || []).forEach((error) => {
-          vue.status("error", errorText(error));
-        });
       }
     }
   };
@@ -3427,7 +3439,7 @@
         filters: $options.activeFilters,
         "filter-values": $options.filterValues,
         onUpload: _ctx.pickFiles,
-        onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true),
+        onCreateFolder: _cache[0] || (_cache[0] = ($event) => _ctx.showCreate = true),
         onHandler: _ctx.onHandlerChosen,
         onFilters: $options.onFilters
       }, null, 8, ["connect-url", "settings-url", "writable", "handlers", "filters", "filter-values", "onUpload", "onHandler", "onFilters"]),
@@ -3511,53 +3523,53 @@
         onChange: _cache[2] || (_cache[2] = (...args) => _ctx.onFilesPicked && _ctx.onFilesPicked(...args))
       }, null, 544),
       vue$1.createVNode(_component_UiModal, {
-        show: $data.showCreate,
-        "onUpdate:show": _cache[4] || (_cache[4] = ($event) => $data.showCreate = $event),
-        title: $options.createTitle,
-        onOpened: _cache[5] || (_cache[5] = ($event) => $options.focusForm("createForm"))
+        show: _ctx.showCreate,
+        "onUpdate:show": _cache[4] || (_cache[4] = ($event) => _ctx.showCreate = $event),
+        title: _ctx.createTitle,
+        onOpened: _cache[5] || (_cache[5] = ($event) => _ctx.focusForm("createForm"))
       }, {
         default: vue$1.withCtx(() => [
-          $data.showCreate ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
+          _ctx.showCreate ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
             key: 0,
             ref: "createForm",
             "content-container-id": $data.container ? $data.container.contentContainerId : null,
             "parent-folder-id": $options.folderId,
             "default-visibility": $data.levelNewItemVisibility,
-            onSaved: $options.onCreated,
-            onCancel: _cache[3] || (_cache[3] = ($event) => $data.showCreate = false)
+            onSaved: _ctx.onCreated,
+            onCancel: _cache[3] || (_cache[3] = ($event) => _ctx.showCreate = false)
           }, null, 8, ["content-container-id", "parent-folder-id", "default-visibility", "onSaved"])) : vue$1.createCommentVNode("", true)
         ]),
         _: 1
       }, 8, ["show", "title"]),
       vue$1.createVNode(_component_UiModal, {
-        show: $data.showEdit,
-        "onUpdate:show": _cache[7] || (_cache[7] = ($event) => $data.showEdit = $event),
-        title: $options.editTitle,
-        onOpened: _cache[8] || (_cache[8] = ($event) => $options.focusForm("editForm"))
+        show: _ctx.showEdit,
+        "onUpdate:show": _cache[7] || (_cache[7] = ($event) => _ctx.showEdit = $event),
+        title: _ctx.editTitle,
+        onOpened: _cache[8] || (_cache[8] = ($event) => _ctx.focusForm("editForm"))
       }, {
         default: vue$1.withCtx(() => [
-          $data.showEdit ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
+          _ctx.showEdit ? (vue$1.openBlock(), vue$1.createBlock(_component_CfilesItemForm, {
             key: 0,
             ref: "editForm",
-            item: $data.editItem,
-            "content-container-id": $options.editContainerId,
-            onSaved: $options.onUpdated,
-            onCancel: _cache[6] || (_cache[6] = ($event) => $data.showEdit = false)
+            item: _ctx.editItem,
+            "content-container-id": _ctx.editContainerId,
+            onSaved: _ctx.onUpdated,
+            onCancel: _cache[6] || (_cache[6] = ($event) => _ctx.showEdit = false)
           }, null, 8, ["item", "content-container-id", "onSaved"])) : vue$1.createCommentVNode("", true)
         ]),
         _: 1
       }, 8, ["show", "title"]),
       $data.container ? (vue$1.openBlock(), vue$1.createBlock(_component_MoveDialog, {
         key: 0,
-        show: $data.showMove,
+        show: _ctx.showMove,
         "content-container-id": $data.container.contentContainerId,
-        items: $data.moveItemsList,
-        mode: $data.transferMode,
+        items: _ctx.moveItemsList,
+        mode: _ctx.transferMode,
         "current-path": $data.path || [],
-        busy: $data.moveBusy,
-        error: $data.moveError,
-        onClose: _cache[9] || (_cache[9] = ($event) => $data.showMove = false),
-        onConfirm: _cache[10] || (_cache[10] = (id) => $data.transferMode === "copy" ? $options.copyTo(id, $data.moveItemsList) : $options.moveTo(id, $data.moveItemsList))
+        busy: _ctx.moveBusy,
+        error: _ctx.moveError,
+        onClose: _cache[9] || (_cache[9] = ($event) => _ctx.showMove = false),
+        onConfirm: _cache[10] || (_cache[10] = (id) => _ctx.transferMode === "copy" ? _ctx.copyTo(id, _ctx.moveItemsList) : _ctx.moveTo(id, _ctx.moveItemsList))
       }, null, 8, ["show", "content-container-id", "items", "mode", "current-path", "busy", "error"])) : vue$1.createCommentVNode("", true),
       vue$1.createVNode(_component_ConflictDialog, {
         show: _ctx.conflicts.length > 0,
