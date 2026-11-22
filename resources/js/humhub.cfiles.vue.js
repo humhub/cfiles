@@ -13,7 +13,7 @@
     return target;
   };
   const UPLOAD_BY_TYPE_ACTION = "file.uploadByType";
-  const _sfc_main$a = {
+  const _sfc_main$b = {
     props: {
       /** The file handlers (`{label, icon, attributes}`, see the class docblock). */
       handlers: { type: Array, default: () => [] }
@@ -49,18 +49,18 @@
       }
     }
   };
-  const _hoisted_1$a = { class: "cfiles-add-menu" };
-  const _hoisted_2$9 = ["aria-label", "title"];
+  const _hoisted_1$b = { class: "cfiles-add-menu" };
+  const _hoisted_2$a = ["aria-label", "title"];
   const _hoisted_3$8 = ["aria-label", "title"];
   const _hoisted_4$7 = {
     key: 1,
     class: "dropdown"
   };
   const _hoisted_5$6 = ["aria-label", "title"];
-  const _hoisted_6$6 = { class: "dropdown-menu dropdown-menu-end" };
-  const _hoisted_7$4 = ["onClick"];
-  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$a, [
+  const _hoisted_6$5 = { class: "dropdown-menu dropdown-menu-end" };
+  const _hoisted_7$3 = ["onClick"];
+  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$b, [
       vue$1.createElementVNode("button", {
         type: "button",
         class: "btn btn-light btn-icon-only cfiles-add-folder",
@@ -72,7 +72,7 @@
           class: "ti ti-folder-plus",
           "aria-hidden": "true"
         }, null, -1)
-      ])], 8, _hoisted_2$9),
+      ])], 8, _hoisted_2$a),
       !$props.handlers.length ? (vue$1.openBlock(), vue$1.createElementBlock("button", {
         key: 0,
         type: "button",
@@ -100,7 +100,7 @@
             "aria-hidden": "true"
           }, null, -1)
         ])], 8, _hoisted_5$6),
-        vue$1.createElementVNode("ul", _hoisted_6$6, [
+        vue$1.createElementVNode("ul", _hoisted_6$5, [
           vue$1.createElementVNode("li", null, [
             vue$1.createElementVNode("a", {
               href: "#",
@@ -132,14 +132,98 @@
                   "aria-hidden": "true"
                 }, null, 2)) : vue$1.createCommentVNode("", true),
                 vue$1.createTextVNode(vue$1.toDisplayString(handler.label), 1)
-              ], 16, _hoisted_7$4)
+              ], 16, _hoisted_7$3)
             ]);
           }), 128))
         ])
       ]))
     ]);
   }
-  const AddMenu = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$a]]);
+  const AddMenu = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$b]]);
+  const _sfc_main$a = {
+    components: { AddMenu },
+    props: {
+      /** The network drive dialog (`DeviceConnection`), or null while it is not offered. */
+      connectUrl: { type: String, default: null },
+      /** The container's cfiles settings page, or null for those who may not change them. */
+      settingsUrl: { type: String, default: null },
+      /** Whether the user may add to the level shown: no `AddMenu` otherwise. */
+      writable: { type: Boolean, default: false },
+      /** The file handlers of the `AddMenu` (`{label, icon, attributes}`). */
+      handlers: { type: Array, default: () => [] },
+      /** The FilterBar definitions of the level shown; no bar without any. */
+      filters: { type: Array, default: () => [] },
+      /** The bar's values: the filters and the sort. */
+      filterValues: { type: Object, default: () => ({}) }
+    },
+    emits: ["upload", "create-folder", "handler", "filters"],
+    computed: {
+      titleLabel() {
+        return vue.i18n.t("CfilesModule.base", "Files");
+      },
+      settingsLabel() {
+        return vue.i18n.t("CfilesModule.base", "Settings");
+      },
+      connectLabel() {
+        return vue.i18n.t("CfilesModule.base", "Connect as network drive");
+      }
+    }
+  };
+  const _hoisted_1$a = ["data-action-url", "aria-label", "title"];
+  const _hoisted_2$9 = ["href", "aria-label", "title"];
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_AddMenu = vue$1.resolveComponent("AddMenu");
+    const _component_FilterBar = vue$1.resolveComponent("FilterBar");
+    const _component_PageHeader = vue$1.resolveComponent("PageHeader");
+    return vue$1.openBlock(), vue$1.createBlock(_component_PageHeader, { title: $options.titleLabel }, {
+      actions: vue$1.withCtx(() => [
+        $props.connectUrl ? (vue$1.openBlock(), vue$1.createElementBlock("a", {
+          key: 0,
+          href: "#",
+          class: "btn btn-light btn-icon-only",
+          "data-action-click": "ui.modal.load",
+          "data-action-url": $props.connectUrl,
+          "aria-label": $options.connectLabel,
+          title: $options.connectLabel
+        }, [..._cache[4] || (_cache[4] = [
+          vue$1.createElementVNode("i", {
+            class: "ti ti-plug-connected",
+            "aria-hidden": "true"
+          }, null, -1)
+        ])], 8, _hoisted_1$a)) : vue$1.createCommentVNode("", true),
+        $props.settingsUrl ? (vue$1.openBlock(), vue$1.createElementBlock("a", {
+          key: 1,
+          href: $props.settingsUrl,
+          class: "btn btn-light btn-icon-only",
+          "aria-label": $options.settingsLabel,
+          title: $options.settingsLabel
+        }, [..._cache[5] || (_cache[5] = [
+          vue$1.createElementVNode("i", {
+            class: "ti ti-settings",
+            "aria-hidden": "true"
+          }, null, -1)
+        ])], 8, _hoisted_2$9)) : vue$1.createCommentVNode("", true),
+        $props.writable ? (vue$1.openBlock(), vue$1.createBlock(_component_AddMenu, {
+          key: 2,
+          handlers: $props.handlers,
+          onUpload: _cache[0] || (_cache[0] = (accept) => _ctx.$emit("upload", accept)),
+          onCreateFolder: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("create-folder")),
+          onHandler: _cache[2] || (_cache[2] = ($event) => _ctx.$emit("handler"))
+        }, null, 8, ["handlers"])) : vue$1.createCommentVNode("", true)
+      ]),
+      default: vue$1.withCtx(() => [
+        $props.filters.length ? (vue$1.openBlock(), vue$1.createBlock(_component_FilterBar, {
+          key: 0,
+          filters: $props.filters,
+          "model-value": $props.filterValues,
+          "id-prefix": "cfiles-filter",
+          "onUpdate:modelValue": _cache[3] || (_cache[3] = (values) => _ctx.$emit("filters", values))
+        }, null, 8, ["filters", "model-value"])) : vue$1.createCommentVNode("", true)
+      ]),
+      _: 1
+    }, 8, ["title"]);
+  }
+  const BrowserHeader = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$a]]);
   const _sfc_main$9 = {
     props: {
       show: { type: Boolean, default: false },
@@ -428,8 +512,8 @@
   const _hoisted_3$6 = { class: "card-heading" };
   const _hoisted_4$6 = ["id"];
   const _hoisted_5$5 = { class: "card-header-actions" };
-  const _hoisted_6$5 = ["aria-label", "title"];
-  const _hoisted_7$3 = { class: "card-tabs" };
+  const _hoisted_6$4 = ["aria-label", "title"];
+  const _hoisted_7$2 = { class: "card-tabs" };
   const _hoisted_8$1 = ["aria-label"];
   const _hoisted_9$1 = ["aria-pressed", "data-tab", "onClick"];
   const _hoisted_10$1 = { class: "card-body" };
@@ -517,10 +601,10 @@
               class: "ti ti-x",
               "aria-hidden": "true"
             }, null, -1)
-          ])], 8, _hoisted_6$5)
+          ])], 8, _hoisted_6$4)
         ])
       ]),
-      vue$1.createElementVNode("div", _hoisted_7$3, [
+      vue$1.createElementVNode("div", _hoisted_7$2, [
         vue$1.createElementVNode("div", {
           class: "nav nav-pills nav-pills-secondary",
           role: "group",
@@ -842,8 +926,8 @@
     class: "cfiles-tile-doc"
   };
   const _hoisted_5$4 = { key: 0 };
-  const _hoisted_6$4 = ["href", "title", "onClick"];
-  const _hoisted_7$2 = ["aria-label"];
+  const _hoisted_6$3 = ["href", "title", "onClick"];
+  const _hoisted_7$1 = ["aria-label"];
   function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_SpaceImage = vue$1.resolveComponent("SpaceImage");
     const _component_ItemLocation = vue$1.resolveComponent("ItemLocation");
@@ -906,8 +990,8 @@
             class: "ti ti-lock ms-1 text-muted",
             role: "img",
             "aria-label": $options.privateLabel
-          }, null, 8, _hoisted_7$2)) : vue$1.createCommentVNode("", true)
-        ], 16, _hoisted_6$4))
+          }, null, 8, _hoisted_7$1)) : vue$1.createCommentVNode("", true)
+        ], 16, _hoisted_6$3))
       ]),
       meta: vue$1.withCtx(({ item }) => [
         vue$1.createTextVNode(vue$1.toDisplayString(item.type === "upload" ? (item.progress || 0) + "%" : $options.tileMeta(item)), 1),
@@ -1134,8 +1218,8 @@
   const _hoisted_3$3 = { class: "cfiles-row-body" };
   const _hoisted_4$3 = { class: "cfiles-row-name text-truncate" };
   const _hoisted_5$3 = { class: "progress cfiles-row-progress" };
-  const _hoisted_6$3 = ["aria-valuenow", "aria-label"];
-  const _hoisted_7$1 = { class: "cfiles-row-icon cfiles-row-space" };
+  const _hoisted_6$2 = ["aria-valuenow", "aria-label"];
+  const _hoisted_7 = { class: "cfiles-row-icon cfiles-row-space" };
   const _hoisted_8 = { class: "cfiles-row-body" };
   const _hoisted_9 = { class: "cfiles-row-name" };
   const _hoisted_10 = ["href"];
@@ -1191,11 +1275,11 @@
               "aria-valuemin": "0",
               "aria-valuemax": "100",
               "aria-label": $options.uploadingLabel
-            }, null, 12, _hoisted_6$3)
+            }, null, 12, _hoisted_6$2)
           ])
         ])
       ], 64)) : $options.isSpace ? (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 1 }, [
-        vue$1.createElementVNode("div", _hoisted_7$1, [
+        vue$1.createElementVNode("div", _hoisted_7, [
           _cache[11] || (_cache[11] = vue$1.createElementVNode("i", { class: "ti ti-folder-filled cfiles-icon-folder" }, null, -1)),
           vue$1.createVNode(_component_SpaceImage, vue$1.mergeProps({ class: "cfiles-row-badge" }, $options.spaceImageProps, {
             width: 16,
@@ -1475,7 +1559,7 @@
     key: 2,
     class: "text-center p-2"
   };
-  const _hoisted_6$2 = ["disabled"];
+  const _hoisted_6$1 = ["disabled"];
   function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_ItemRow = vue$1.resolveComponent("ItemRow");
     return vue$1.openBlock(), vue$1.createElementBlock("div", null, [
@@ -1514,7 +1598,7 @@
           class: "btn btn-light btn-sm",
           disabled: $props.loadingMore,
           onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("load-more"))
-        }, vue$1.toDisplayString($props.loadingMore ? $options.loadingLabel : $options.moreLabel), 9, _hoisted_6$2)
+        }, vue$1.toDisplayString($props.loadingMore ? $options.loadingLabel : $options.moreLabel), 9, _hoisted_6$1)
       ])) : vue$1.createCommentVNode("", true)
     ]);
   }
@@ -1721,7 +1805,7 @@
     key: 0,
     class: "text-danger mt-2 mb-0"
   };
-  const _hoisted_6$1 = ["disabled"];
+  const _hoisted_6 = ["disabled"];
   function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_UiModal = vue$1.resolveComponent("UiModal");
     return vue$1.openBlock(), vue$1.createBlock(_component_UiModal, {
@@ -1740,7 +1824,7 @@
           class: "btn btn-primary",
           disabled: $data.selectedId === void 0 || $props.busy,
           onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("confirm", $data.selectedId))
-        }, vue$1.toDisplayString($options.confirmLabel), 9, _hoisted_6$1)
+        }, vue$1.toDisplayString($options.confirmLabel), 9, _hoisted_6)
       ]),
       default: vue$1.withCtx(() => [
         vue$1.createElementVNode("p", {
@@ -1897,7 +1981,7 @@
   const PAGE_SIZES = { list: 50, tiles: 96 };
   const SORT_DEFAULT = "default";
   const _sfc_main$2 = {
-    components: { AddMenu, ConflictDialog, DetailsPanel, FileTiles, ItemList, MoveDialog },
+    components: { BrowserHeader, ConflictDialog, DetailsPanel, FileTiles, ItemList, MoveDialog },
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ["ActivityModule.base", "CfilesModule.base", "CommentModule.base", "base", "ContentModule.base", "LikeModule.base", "UserModule.base"],
     props: {
@@ -2200,20 +2284,11 @@
           { value: "list", icon: "list", label: vue.i18n.t("CfilesModule.base", "List") }
         ];
       },
-      titleLabel() {
-        return vue.i18n.t("CfilesModule.base", "Files");
-      },
       rootLabel() {
         return vue.i18n.t("CfilesModule.base", "Files");
       },
       viewLabel() {
         return vue.i18n.t("CfilesModule.base", "View");
-      },
-      settingsLabel() {
-        return vue.i18n.t("CfilesModule.base", "Settings");
-      },
-      connectLabel() {
-        return vue.i18n.t("CfilesModule.base", "Connect as network drive");
       },
       dropLabel() {
         return vue.i18n.t("CfilesModule.base", "Drop files here to upload them");
@@ -3216,20 +3291,16 @@
     }
   };
   const _hoisted_1$2 = { class: "cfiles-browser" };
-  const _hoisted_2$1 = ["data-action-url", "aria-label", "title"];
-  const _hoisted_3 = ["href", "aria-label", "title"];
-  const _hoisted_4 = {
+  const _hoisted_2$1 = {
     key: 0,
     class: "cfiles-results text-muted",
     role: "status"
   };
-  const _hoisted_5 = { class: "mb-2" };
-  const _hoisted_6 = { class: "mb-0" };
-  const _hoisted_7 = { class: "mb-0" };
+  const _hoisted_3 = { class: "mb-2" };
+  const _hoisted_4 = { class: "mb-0" };
+  const _hoisted_5 = { class: "mb-0" };
   function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_AddMenu = vue$1.resolveComponent("AddMenu");
-    const _component_FilterBar = vue$1.resolveComponent("FilterBar");
-    const _component_PageHeader = vue$1.resolveComponent("PageHeader");
+    const _component_BrowserHeader = vue$1.resolveComponent("BrowserHeader");
     const _component_SelectionMenu = vue$1.resolveComponent("SelectionMenu");
     const _component_ViewSwitch = vue$1.resolveComponent("ViewSwitch");
     const _component_PathBar = vue$1.resolveComponent("PathBar");
@@ -3239,53 +3310,18 @@
     const _component_MoveDialog = vue$1.resolveComponent("MoveDialog");
     const _component_ConflictDialog = vue$1.resolveComponent("ConflictDialog");
     return vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_1$2, [
-      vue$1.createVNode(_component_PageHeader, { title: $options.titleLabel }, {
-        actions: vue$1.withCtx(() => [
-          $props.connectUrl ? (vue$1.openBlock(), vue$1.createElementBlock("a", {
-            key: 0,
-            href: "#",
-            class: "btn btn-light btn-icon-only",
-            "data-action-click": "ui.modal.load",
-            "data-action-url": $props.connectUrl,
-            "aria-label": $options.connectLabel,
-            title: $options.connectLabel
-          }, [..._cache[17] || (_cache[17] = [
-            vue$1.createElementVNode("i", {
-              class: "ti ti-plug-connected",
-              "aria-hidden": "true"
-            }, null, -1)
-          ])], 8, _hoisted_2$1)) : vue$1.createCommentVNode("", true),
-          $props.settingsUrl ? (vue$1.openBlock(), vue$1.createElementBlock("a", {
-            key: 1,
-            href: $props.settingsUrl,
-            class: "btn btn-light btn-icon-only",
-            "aria-label": $options.settingsLabel,
-            title: $options.settingsLabel
-          }, [..._cache[18] || (_cache[18] = [
-            vue$1.createElementVNode("i", {
-              class: "ti ti-settings",
-              "aria-hidden": "true"
-            }, null, -1)
-          ])], 8, _hoisted_3)) : vue$1.createCommentVNode("", true),
-          $options.writable ? (vue$1.openBlock(), vue$1.createBlock(_component_AddMenu, {
-            key: 2,
-            handlers: $props.global ? [] : $options.fileHandlers,
-            onUpload: $options.pickFiles,
-            onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true),
-            onHandler: $options.onHandlerChosen
-          }, null, 8, ["handlers", "onUpload", "onHandler"])) : vue$1.createCommentVNode("", true)
-        ]),
-        default: vue$1.withCtx(() => [
-          $options.activeFilters.length ? (vue$1.openBlock(), vue$1.createBlock(_component_FilterBar, {
-            key: 0,
-            filters: $options.activeFilters,
-            "model-value": $options.filterValues,
-            "id-prefix": "cfiles-filter",
-            "onUpdate:modelValue": $options.onFilters
-          }, null, 8, ["filters", "model-value", "onUpdate:modelValue"])) : vue$1.createCommentVNode("", true)
-        ]),
-        _: 1
-      }, 8, ["title"]),
+      vue$1.createVNode(_component_BrowserHeader, {
+        "connect-url": $props.connectUrl,
+        "settings-url": $props.settingsUrl,
+        writable: $options.writable,
+        handlers: $props.global ? [] : $options.fileHandlers,
+        filters: $options.activeFilters,
+        "filter-values": $options.filterValues,
+        onUpload: $options.pickFiles,
+        onCreateFolder: _cache[0] || (_cache[0] = ($event) => $data.showCreate = true),
+        onHandler: $options.onHandlerChosen,
+        onFilters: $options.onFilters
+      }, null, 8, ["connect-url", "settings-url", "writable", "handlers", "filters", "filter-values", "onUpload", "onHandler", "onFilters"]),
       vue$1.createElementVNode("div", {
         class: vue$1.normalizeClass(["cfiles-browser-body", { "is-details-open": $options.detailsItem }])
       }, [
@@ -3323,7 +3359,7 @@
               ]),
               _: 1
             }, 8, ["path", "root-label", "root-url", "can-drop", "drop-target-id", "onNavigate", "onDropOn"]),
-            $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_4, vue$1.toDisplayString($options.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
+            $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_2$1, vue$1.toDisplayString($options.resultsLabel), 1)) : vue$1.createCommentVNode("", true),
             (vue$1.openBlock(), vue$1.createBlock(vue$1.resolveDynamicComponent($data.view === "tiles" ? "FileTiles" : "ItemList"), vue$1.mergeProps($options.viewProps, {
               onOpen: $options.onOpen,
               onToggleSelect: $options.toggleSelect,
@@ -3340,7 +3376,7 @@
             }), {
               empty: vue$1.withCtx(() => [
                 $data.resultsMode ? (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 0 }, [
-                  vue$1.createElementVNode("p", _hoisted_5, [
+                  vue$1.createElementVNode("p", _hoisted_3, [
                     vue$1.createElementVNode("strong", null, vue$1.toDisplayString($options.noResultsTitle), 1)
                   ]),
                   vue$1.createElementVNode("button", {
@@ -3349,10 +3385,10 @@
                     onClick: _cache[3] || (_cache[3] = (...args) => $options.resetFilters && $options.resetFilters(...args))
                   }, vue$1.toDisplayString($options.resetFiltersLabel), 1)
                 ], 64)) : (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 1 }, [
-                  vue$1.createElementVNode("p", _hoisted_6, [
+                  vue$1.createElementVNode("p", _hoisted_4, [
                     vue$1.createElementVNode("strong", null, vue$1.toDisplayString($options.emptyTitle), 1)
                   ]),
-                  vue$1.createElementVNode("p", _hoisted_7, vue$1.toDisplayString($options.emptyHint), 1)
+                  vue$1.createElementVNode("p", _hoisted_5, vue$1.toDisplayString($options.emptyHint), 1)
                 ], 64))
               ]),
               _: 1

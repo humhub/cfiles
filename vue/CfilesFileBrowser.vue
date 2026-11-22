@@ -1,44 +1,20 @@
 <template>
     <div class="cfiles-browser">
-        <PageHeader :title="titleLabel">
-            <template #actions>
-                <!-- The core's dialog of the device connection (`DeviceConnection`): the address
-                     and a password for the device. -->
-                <a
-                    v-if="connectUrl"
-                    href="#"
-                    class="btn btn-light btn-icon-only"
-                    data-action-click="ui.modal.load"
-                    :data-action-url="connectUrl"
-                    :aria-label="connectLabel"
-                    :title="connectLabel"
-                ><i class="ti ti-plug-connected" aria-hidden="true"></i></a>
-                <a
-                    v-if="settingsUrl"
-                    :href="settingsUrl"
-                    class="btn btn-light btn-icon-only"
-                    :aria-label="settingsLabel"
-                    :title="settingsLabel"
-                ><i class="ti ti-settings" aria-hidden="true"></i></a>
-                <!-- The handlers are the page's (core JS config), built for its request, whose URL
-                     names the space they create in: the global page's names none, and a handler
-                     would create its document in the wrong place, so it offers none. -->
-                <AddMenu
-                    v-if="writable"
-                    :handlers="global ? [] : fileHandlers"
-                    @upload="pickFiles"
-                    @create-folder="showCreate = true"
-                    @handler="onHandlerChosen"
-                />
-            </template>
-            <FilterBar
-                v-if="activeFilters.length"
-                :filters="activeFilters"
-                :model-value="filterValues"
-                id-prefix="cfiles-filter"
-                @update:model-value="onFilters"
-            />
-        </PageHeader>
+        <!-- The handlers are the page's (core JS config), built for its request, whose URL names
+             the space they create in: the global page's names none, and a handler would create
+             its document in the wrong place, so it offers none. -->
+        <BrowserHeader
+            :connect-url="connectUrl"
+            :settings-url="settingsUrl"
+            :writable="writable"
+            :handlers="global ? [] : fileHandlers"
+            :filters="activeFilters"
+            :filter-values="filterValues"
+            @upload="pickFiles"
+            @create-folder="showCreate = true"
+            @handler="onHandlerChosen"
+            @filters="onFilters"
+        />
 
         <div class="cfiles-browser-body" :class="{ 'is-details-open': detailsItem }">
             <!-- The global top level holds spaces, not files: nothing to upload into. -->
@@ -227,8 +203,8 @@
  *
  * ## Layout
  *
- * Built on the core's item-browser kit: a `PageHeader` (title, the settings link, the
- * `AddMenu`) with a `FilterBar` (the filters and the sort), and below it a `DropZone` card
+ * Built on the core's item-browser kit: a `PageHeader` (`BrowserHeader`: title, the settings
+ * link, the `AddMenu`) with a `FilterBar` (the filters and the sort), and below it a `DropZone` card
  * holding the `PathBar` (with the `SelectionMenu` and the `ViewSwitch` at its end) and the open
  * level as `FileTiles` or as an `ItemList`. Both views speak the same event vocabulary, so selection (Shift ranges
  * included), drop targets and uploads are resolved here, once, for either.
@@ -247,7 +223,7 @@
  * refreshed in place, not reloaded: the selection, the further pages and the details stay.
  */
 import { events, getConfig, i18n, log, modal, status } from '@humhub/vue';
-import AddMenu from './browser/AddMenu.vue';
+import BrowserHeader from './browser/BrowserHeader.vue';
 import ConflictDialog from './browser/ConflictDialog.vue';
 import DetailsPanel from './browser/DetailsPanel.vue';
 import FileTiles from './browser/FileTiles.vue';
@@ -275,7 +251,7 @@ export const PAGE_SIZES = { list: 50, tiles: 96 };
 const SORT_DEFAULT = 'default';
 
 export default {
-    components: { AddMenu, ConflictDialog, DetailsPanel, FileTiles, ItemList, MoveDialog },
+    components: { BrowserHeader, ConflictDialog, DetailsPanel, FileTiles, ItemList, MoveDialog },
     // A top-level island declares what its whole subtree needs, not only its own messages.
     i18nCategories: ['ActivityModule.base', 'CfilesModule.base', 'CommentModule.base', 'base', 'ContentModule.base', 'LikeModule.base', 'UserModule.base'],
     props: {
@@ -591,20 +567,11 @@ export default {
                 { value: 'list', icon: 'list', label: i18n.t('CfilesModule.base', 'List') },
             ];
         },
-        titleLabel() {
-            return i18n.t('CfilesModule.base', 'Files');
-        },
         rootLabel() {
             return i18n.t('CfilesModule.base', 'Files');
         },
         viewLabel() {
             return i18n.t('CfilesModule.base', 'View');
-        },
-        settingsLabel() {
-            return i18n.t('CfilesModule.base', 'Settings');
-        },
-        connectLabel() {
-            return i18n.t('CfilesModule.base', 'Connect as network drive');
         },
         dropLabel() {
             return i18n.t('CfilesModule.base', 'Drop files here to upload them');
