@@ -3,16 +3,17 @@
  * items — the dialogs' state, the requests and what they report — and the menu of one item
  * that offers it (`entriesFor`).
  *
- * Each of them changes the level shown, which is reloaded once the request is in. The batch
- * endpoints answer per item (`{results, errors}`): what could not be done is reported item by
- * item (`reportErrors()`), or in the folder dialog when nothing could.
+ * Each of them changes the level shown, which is brought up to date once the request is in
+ * (`refresh()`): the further pages loaded, the selection of the rows still there and the
+ * details stay. The batch endpoints answer per item (`{results, errors}`): what could not be
+ * done is reported item by item (`reportErrors()`), or in the folder dialog when nothing could.
  *
  * A stream entry's Edit control links to the browser with the item (`editKey`) rather than
  * loading an edit form of its own: the browser owns that dialog, and one form beats two
  * (`openRequestedEdit()`).
  *
  * A mixin of the island, see its docblock. Uses the level shown (`items`, `container`,
- * `writable`, `movable`, `reload()`), the details (`detailsKey`, `showDetails()`,
+ * `writable`, `movable`, `refresh()`), the details (`detailsKey`, `showDetails()`,
  * `closeDetails()`), `folderUrl()` and `onOpen()`; the template holds the dialogs.
  */
 import { i18n, log, modal, status } from '@humhub/vue';
@@ -156,12 +157,12 @@ export default {
         },
         onCreated() {
             this.showCreate = false;
-            this.reload();
+            this.refresh();
         },
         onUpdated() {
             this.showEdit = false;
             this.editItem = null;
-            this.reload();
+            this.refresh();
         },
         openMove(items) {
             this.openFolderDialog(items, 'move');
@@ -194,21 +195,21 @@ export default {
                 this.showMove = false;
                 this.moveItemsList = [];
                 this.reportErrors(response.errors);
-                this.reload();
+                this.refresh();
             }).catch((response) => {
                 this.moveBusy = false;
                 // Nothing moved: the reasons per item, or a request that failed as a whole.
                 const errors = Array.isArray(response?.errors) ? response.errors : null;
                 this.moveError = errors ? errorText(errors[0]) : i18n.t('CfilesModule.base', 'Could not move the item!');
                 if (!this.showMove) {
-                    // A dragged move has no dialog to show the error in; the reload puts back
+                    // A dragged move has no dialog to show the error in; the refresh puts back
                     // whatever did not move after all.
                     if (errors) {
                         this.reportErrors(errors);
                     } else {
                         log.error(response, true);
                     }
-                    this.reload();
+                    this.refresh();
                 }
             });
         },
@@ -232,7 +233,7 @@ export default {
                 status('success', i18n.t('CfilesModule.base', '{count, plural, one{# item} other{# items}} copied', {
                     count: (response.results || []).length,
                 }));
-                this.reload();
+                this.refresh();
             }).catch((response) => {
                 this.moveBusy = false;
                 // Nothing copied: the reasons per item, or a request that failed as a whole.
@@ -264,7 +265,7 @@ export default {
                     if ((response.results || []).some((deleted) => keyOf(deleted) === this.detailsKey)) {
                         this.closeDetails();
                     }
-                    this.reload();
+                    this.refresh();
                 }).catch((response) => {
                     if (Array.isArray(response?.errors)) {
                         this.reportErrors(response.errors);
@@ -272,7 +273,7 @@ export default {
                         log.error(response, true);
                     }
                     // Part of the selection may be gone even so.
-                    this.reload();
+                    this.refresh();
                 });
             });
         },

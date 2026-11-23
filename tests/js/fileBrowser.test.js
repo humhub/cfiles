@@ -699,6 +699,54 @@ describe('CfilesFileBrowser', () => {
     // Went through a hand-rolled XMLHttpRequest once, which silently failed every upload: the
     // CSRF token comes from Yii's ajax prefilter on the platform client, and there is no
     // csrf-token meta tag on a HumHub page to read it from.
+    describe('after a change in the level shown', () => {
+        const page1 = () => [folderRow(), fileRow()];
+        const brief = () => fileRow({ id: 22, contentId: 202, recordId: 1202, title: 'Brief.pdf' });
+        const notes = () => fileRow({ id: 24, contentId: 204, recordId: 1204, title: 'Notizen.pdf' });
+        // Two pages; the second holds what `secondPage()` returns at the time.
+        const serve = (secondPage) => {
+            globalThis.humhubStubs.client.get = vi.fn((url) => Promise.resolve(url.includes('page=2')
+                ? topLevel(secondPage(), { page: 2, pages: 2, total: 2 + secondPage().length })
+                : topLevel(page1(), { pages: 2, total: 2 + secondPage().length })));
+        };
+        const twoPages = async (secondPage) => {
+            serve(secondPage);
+            const wrapper = browser(topLevel(page1(), { pages: 2, total: 4 }));
+            wrapper.vm.loadMore();
+            await flushPromises();
+            return wrapper;
+        };
+
+        it('keeps the further pages and the details after an edit', async () => {
+            const wrapper = await twoPages(() => [brief(), notes()]);
+            await wrapper.findAll('.cfiles-row')[2].findAll('.dropdown-item')
+                .find((i) => i.text() === 'Details').trigger('click');
+
+            wrapper.vm.onUpdated();
+            await flushPromises();
+
+            expect(wrapper.vm.page).toBe(2);
+            expect(wrapper.find('.cfiles-details').text()).toContain('Brief.pdf');
+        });
+
+        it('keeps the further pages and the selection of the rows still there after a move', async () => {
+            let second = [brief(), notes()];
+            const wrapper = await twoPages(() => second);
+            wrapper.vm.toggleSelect(brief());
+            wrapper.vm.toggleSelect(notes());
+            globalThis.humhubStubs.client.post = vi.fn(() => {
+                second = [notes()];
+                return Promise.resolve({ results: [brief()], errors: [] });
+            });
+
+            wrapper.vm.moveTo(11, [brief()]);
+            await flushPromises();
+
+            expect(wrapper.vm.page).toBe(2);
+            expect(wrapper.vm.selection).toEqual(['file:24']);
+        });
+    });
+
     describe('upload', () => {
         it('posts the whole batch through the platform client', async () => {
             const wrapper = browser(topLevel());

@@ -2262,7 +2262,7 @@
         attachFiles(level.container.contentContainerId, level.parentId, guids).then((response) => {
           this.reportErrors(response.errors);
           if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
-            this.reload();
+            this.refresh();
           }
         }).catch((response) => {
           vue.log.error(response, true);
@@ -2270,7 +2270,7 @@
       },
       /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
       onFileModified() {
-        this.reload();
+        this.refresh();
       }
     }
   };
@@ -2561,12 +2561,12 @@
       },
       onCreated() {
         this.showCreate = false;
-        this.reload();
+        this.refresh();
       },
       onUpdated() {
         this.showEdit = false;
         this.editItem = null;
-        this.reload();
+        this.refresh();
       },
       openMove(items) {
         this.openFolderDialog(items, "move");
@@ -2595,7 +2595,7 @@
           this.showMove = false;
           this.moveItemsList = [];
           this.reportErrors(response.errors);
-          this.reload();
+          this.refresh();
         }).catch((response) => {
           this.moveBusy = false;
           const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
@@ -2606,7 +2606,7 @@
             } else {
               vue.log.error(response, true);
             }
-            this.reload();
+            this.refresh();
           }
         });
       },
@@ -2628,7 +2628,7 @@
           vue.status("success", vue.i18n.t("CfilesModule.base", "{count, plural, one{# item} other{# items}} copied", {
             count: (response.results || []).length
           }));
-          this.reload();
+          this.refresh();
         }).catch((response) => {
           this.moveBusy = false;
           const errors = Array.isArray(response == null ? void 0 : response.errors) ? response.errors : null;
@@ -2657,14 +2657,14 @@
             if ((response.results || []).some((deleted) => keyOf(deleted) === this.detailsKey)) {
               this.closeDetails();
             }
-            this.reload();
+            this.refresh();
           }).catch((response) => {
             if (Array.isArray(response == null ? void 0 : response.errors)) {
               this.reportErrors(response.errors);
             } else {
               vue.log.error(response, true);
             }
-            this.reload();
+            this.refresh();
           });
         });
       },

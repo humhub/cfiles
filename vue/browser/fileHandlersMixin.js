@@ -9,7 +9,7 @@
  * field's.
  *
  * A mixin of the island, see its docblock. Uses the level shown (`container`, `folderId`, the
- * level on its way: `targetContainer()`, `targetFolderId()`, `reload()`) and `reportErrors()`.
+ * level on its way: `targetContainer()`, `targetFolderId()`, `refresh()`) and `reportErrors()`.
  */
 import { events, getConfig, log } from '@humhub/vue';
 import { attachFiles } from './api';
@@ -79,7 +79,7 @@ export default {
                 this.reportErrors(response.errors);
 
                 if (sameContainer(level.container, this.targetContainer()) && level.parentId === this.targetFolderId()) {
-                    this.reload();
+                    this.refresh();
                 }
             }).catch((response) => {
                 log.error(response, true);
@@ -87,7 +87,7 @@ export default {
         },
         /** A file edited through a handler (e.g. saved in an office editor) may show changed. */
         onFileModified() {
-            this.reload();
+            this.refresh();
         },
     },
 };
