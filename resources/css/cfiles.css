@@ -24,7 +24,7 @@
     --hh-cfiles-hover-bg: var(--bs-accent-bg-subtle);
     --hh-cfiles-hover-border-color: var(--bs-accent);
     --hh-cfiles-selected-bg: rgba(var(--bs-accent-rgb), .1);
-    --hh-cfiles-meta-font-size: .875em;
+    --hh-cfiles-meta-font-size: var(--hh-font-size-meta);
     --hh-cfiles-name-font-weight: 600;
     /* A tile's glyph fills the core tile's thumb (`$tile-thumb-height`). */
     --hh-cfiles-tile-glyph-size: 100px;
@@ -124,7 +124,7 @@
 .cfiles-details-facts > dt {
     padding-inline-end: calc(var(--hh-cfiles-gap) * .5);
     color: var(--hh-cfiles-muted);
-    font-weight: normal;
+    font-weight: 400;
 }
 
 .cfiles-details-facts > dd {
@@ -309,7 +309,7 @@
 
 /* An upload has no checkbox yet; where the other rows have one, it keeps their icon column. */
 .cfiles-list:has(.cfiles-row-select) > .cfiles-row.is-uploading {
-    padding-left: calc(var(--bs-list-group-item-padding-x) + 18px + var(--hh-cfiles-gap) * .5); /* the themed 18px box */
+    padding-left: calc(var(--bs-list-group-item-padding-x) + 1.25rem + var(--hh-cfiles-gap) * .5); /* the themed 20px box */
 }
 
 /* Name and meta line, taking the row's free width; `min-width: 0` lets their text truncate
@@ -357,7 +357,7 @@
     --bs-progress-bg: rgba(var(--bs-accent-rgb), .2);
     --bs-progress-bar-bg: var(--bs-accent);
 
-    margin-top: .375rem;
+    margin-top: .25rem;
 }
 
 .cfiles-row-select,

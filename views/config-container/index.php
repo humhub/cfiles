@@ -8,11 +8,11 @@ use humhub\widgets\form\ContentHiddenCheckbox;
 /* @var $model ConfigureForm */
 ?>
 
-<div class="panel panel-default">
+<div class="card content-card">
 
-    <div class="panel-heading"><?= Yii::t('CfilesModule.base', '<strong>Files</strong> module configuration'); ?></div>
+    <div class="card-header"><div class="card-title"><?= Yii::t('CfilesModule.base', '<strong>Files</strong> module configuration'); ?></div></div>
 
-    <div class="panel-body">
+    <div class="card-body">
         <?php $form = ActiveForm::begin(['id' => 'configure-form']); ?>
 
         <?= $form->field($model, 'contentHiddenDefault')->widget(ContentHiddenCheckbox::class, [
