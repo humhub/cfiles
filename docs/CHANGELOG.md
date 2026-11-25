@@ -3,6 +3,7 @@ Changelog
 
 1.0.0 - Unreleased
 ------------------
+- Fix: The file browser's hidden file picker has a name (WAVE "Missing form label")
 - Enh: Cards instead of Bootstrap 3 panels, sizes in rem and the text styles of the core 1.20 (humhub/humhub#8777)
 - Enh: Colour tokens of the core 1.20 instead of the deprecated ones (humhub/humhub#8707)
 - Enh: Rebuilt the file browser as a Vue.js island on the new core HTTP API (`/api/v2/cfiles`). The module no longer renders any of the browser server-side; folder navigation happens without a page load, and the URL (`?fid=`) is unchanged, so existing links keep working.

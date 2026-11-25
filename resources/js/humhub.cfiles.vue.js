@@ -51,7 +51,7 @@
   };
   const _hoisted_1$c = { class: "cfiles-add-menu" };
   const _hoisted_2$b = ["aria-label", "title"];
-  const _hoisted_3$8 = ["aria-label", "title"];
+  const _hoisted_3$9 = ["aria-label", "title"];
   const _hoisted_4$6 = {
     key: 1,
     class: "dropdown"
@@ -85,7 +85,7 @@
           class: "ti ti-upload",
           "aria-hidden": "true"
         }, null, -1)
-      ])], 8, _hoisted_3$8)) : (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_4$6, [
+      ])], 8, _hoisted_3$9)) : (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_4$6, [
         vue$1.createElementVNode("button", {
           type: "button",
           class: "btn btn-accent btn-icon-only",
@@ -267,7 +267,7 @@
     key: 0,
     class: "cfiles-conflict-note text-muted"
   };
-  const _hoisted_3$7 = {
+  const _hoisted_3$8 = {
     key: 0,
     class: "text-muted small mb-0"
   };
@@ -313,7 +313,7 @@
             ]);
           }), 128))
         ]),
-        $options.replaceable ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_3$7, vue$1.toDisplayString($options.versionNote), 1)) : vue$1.createCommentVNode("", true)
+        $options.replaceable ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_3$8, vue$1.toDisplayString($options.versionNote), 1)) : vue$1.createCommentVNode("", true)
       ]),
       _: 1
     }, 8, ["show", "title"]);
@@ -509,7 +509,7 @@
   };
   const _hoisted_1$9 = ["aria-labelledby"];
   const _hoisted_2$8 = { class: "card-header" };
-  const _hoisted_3$6 = { class: "card-heading" };
+  const _hoisted_3$7 = { class: "card-heading" };
   const _hoisted_4$5 = ["id"];
   const _hoisted_5$4 = { class: "card-header-actions" };
   const _hoisted_6$4 = ["aria-label", "title"];
@@ -581,7 +581,7 @@
       "aria-labelledby": $options.headingId
     }, [
       vue$1.createElementVNode("div", _hoisted_2$8, [
-        vue$1.createElementVNode("div", _hoisted_3$6, [
+        vue$1.createElementVNode("div", _hoisted_3$7, [
           vue$1.createElementVNode("h2", {
             id: $options.headingId,
             ref: "heading",
@@ -804,7 +804,7 @@
   };
   const _hoisted_1$8 = { class: "mb-2" };
   const _hoisted_2$7 = { class: "mb-0" };
-  const _hoisted_3$5 = { class: "mb-0" };
+  const _hoisted_3$6 = { class: "mb-0" };
   function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
     return $props.results ? (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 0 }, [
       vue$1.createElementVNode("p", _hoisted_1$8, [
@@ -819,7 +819,7 @@
       vue$1.createElementVNode("p", _hoisted_2$7, [
         vue$1.createElementVNode("strong", null, vue$1.toDisplayString($options.emptyTitle), 1)
       ]),
-      vue$1.createElementVNode("p", _hoisted_3$5, vue$1.toDisplayString($options.emptyHint), 1)
+      vue$1.createElementVNode("p", _hoisted_3$6, vue$1.toDisplayString($options.emptyHint), 1)
     ], 64));
   }
   const EmptyLevel = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$8]]);
@@ -846,7 +846,7 @@
   };
   const _hoisted_1$7 = ["href", "title", "aria-label"];
   const _hoisted_2$6 = ["title"];
-  const _hoisted_3$4 = ["href", "aria-label"];
+  const _hoisted_3$5 = ["href", "aria-label"];
   const _hoisted_4$4 = ["href", "aria-label"];
   function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     return !$props.location.space ? (vue$1.openBlock(), vue$1.createElementBlock("a", {
@@ -869,7 +869,7 @@
         "aria-label": $options.openLabel($props.location.space.title),
         draggable: "false",
         onClick: _cache[1] || (_cache[1] = ($event) => $options.follow($props.location.space, $event))
-      }, vue$1.toDisplayString($props.location.space.title), 9, _hoisted_3$4),
+      }, vue$1.toDisplayString($props.location.space.title), 9, _hoisted_3$5),
       $props.location.folder ? (vue$1.openBlock(), vue$1.createElementBlock(vue$1.Fragment, { key: 0 }, [
         _cache[3] || (_cache[3] = vue$1.createTextVNode(" › ", -1)),
         vue$1.createElementVNode("a", {
@@ -974,7 +974,7 @@
     key: 1,
     class: "ti ti-folder-filled cfiles-tile-folder"
   };
-  const _hoisted_3$3 = ["src"];
+  const _hoisted_3$4 = ["src"];
   const _hoisted_4$3 = {
     key: 3,
     class: "cfiles-tile-doc"
@@ -1023,7 +1023,7 @@
           alt: "",
           draggable: "false",
           class: "cfiles-tile-image"
-        }, null, 8, _hoisted_3$3)) : (vue$1.openBlock(), vue$1.createElementBlock("span", _hoisted_4$3, [
+        }, null, 8, _hoisted_3$4)) : (vue$1.openBlock(), vue$1.createElementBlock("span", _hoisted_4$3, [
           vue$1.createElementVNode("i", {
             class: vue$1.normalizeClass("ti " + $options.fileIcon(item))
           }, null, 2)
@@ -1269,7 +1269,7 @@
   };
   const _hoisted_1$5 = ["draggable"];
   const _hoisted_2$4 = { class: "cfiles-row-icon" };
-  const _hoisted_3$2 = { class: "cfiles-row-body" };
+  const _hoisted_3$3 = { class: "cfiles-row-body" };
   const _hoisted_4$2 = { class: "cfiles-row-name text-truncate" };
   const _hoisted_5$2 = { class: "progress cfiles-row-progress" };
   const _hoisted_6$2 = ["aria-valuenow", "aria-label"];
@@ -1318,7 +1318,7 @@
             "aria-hidden": "true"
           }, null, 2)
         ]),
-        vue$1.createElementVNode("div", _hoisted_3$2, [
+        vue$1.createElementVNode("div", _hoisted_3$3, [
           vue$1.createElementVNode("div", _hoisted_4$2, vue$1.toDisplayString($options.displayTitle), 1),
           vue$1.createElementVNode("div", _hoisted_5$2, [
             vue$1.createElementVNode("div", {
@@ -1607,7 +1607,7 @@
     key: 1,
     class: "cfiles-empty text-center text-muted p-4"
   };
-  const _hoisted_3$1 = { class: "mb-0" };
+  const _hoisted_3$2 = { class: "mb-0" };
   const _hoisted_4$1 = { class: "mb-0" };
   const _hoisted_5$1 = {
     key: 2,
@@ -1640,7 +1640,7 @@
         }), 128))
       ])) : !$props.loading ? (vue$1.openBlock(), vue$1.createElementBlock("div", _hoisted_2$3, [
         vue$1.renderSlot(_ctx.$slots, "empty", {}, () => [
-          vue$1.createElementVNode("p", _hoisted_3$1, [
+          vue$1.createElementVNode("p", _hoisted_3$2, [
             vue$1.createElementVNode("strong", null, vue$1.toDisplayString($options.emptyTitle), 1)
           ]),
           vue$1.createElementVNode("p", _hoisted_4$1, vue$1.toDisplayString($options.emptyHint), 1)
@@ -1853,7 +1853,7 @@
   };
   const _hoisted_1$3 = ["id"];
   const _hoisted_2$2 = ["aria-labelledby"];
-  const _hoisted_3 = ["aria-level", "aria-selected", "aria-expanded", "tabindex", "onClick", "onFocus", "onKeydown"];
+  const _hoisted_3$1 = ["aria-level", "aria-selected", "aria-expanded", "tabindex", "onClick", "onFocus", "onKeydown"];
   const _hoisted_4 = ["onClick"];
   const _hoisted_5 = {
     key: 0,
@@ -1916,7 +1916,7 @@
                 "aria-hidden": "true"
               }, null, -1)),
               vue$1.createTextVNode(" " + vue$1.toDisplayString(node.isTop ? $options.rootLabel : node.title), 1)
-            ], 46, _hoisted_3);
+            ], 46, _hoisted_3$1);
           }), 128))
         ], 8, _hoisted_2$2),
         $props.error ? (vue$1.openBlock(), vue$1.createElementBlock("p", _hoisted_5, vue$1.toDisplayString($props.error), 1)) : vue$1.createCommentVNode("", true)
@@ -3458,6 +3458,10 @@
       },
       rootLabel() {
         return vue.i18n.t("CfilesModule.base", "Files");
+      },
+      /** The hidden picker's name, for checkers that also look at hidden fields (WAVE). */
+      uploadLabel() {
+        return vue.i18n.t("CfilesModule.base", "Upload files");
       }
     },
     methods: {
@@ -3470,6 +3474,7 @@
     class: "cfiles-results text-muted",
     role: "status"
   };
+  const _hoisted_3 = ["aria-label"];
   function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_BrowserHeader = vue$1.resolveComponent("BrowserHeader");
     const _component_SelectionMenu = vue$1.resolveComponent("SelectionMenu");
@@ -3571,8 +3576,9 @@
         type: "file",
         multiple: "",
         class: "d-none",
+        "aria-label": $options.uploadLabel,
         onChange: _cache[2] || (_cache[2] = (...args) => _ctx.onFilesPicked && _ctx.onFilesPicked(...args))
-      }, null, 544),
+      }, null, 40, _hoisted_3),
       vue$1.createVNode(_component_UiModal, {
         show: _ctx.showCreate,
         "onUpdate:show": _cache[4] || (_cache[4] = ($event) => _ctx.showCreate = $event),

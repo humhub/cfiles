@@ -99,6 +99,12 @@ describe('CfilesFileBrowser', () => {
             expect(wrapper.find('.cfiles-list').exists()).toBe(false);
             expect(wrapper.find('.cfiles-empty').exists()).toBe(true);
         });
+
+        it('names its hidden file picker, which accessibility checkers inspect too', () => {
+            const wrapper = browser(topLevel());
+
+            expect(wrapper.find('input[type="file"]').attributes('aria-label')).toBe('Upload files');
+        });
     });
 
     describe('navigation', () => {

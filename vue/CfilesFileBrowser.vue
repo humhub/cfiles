@@ -94,6 +94,7 @@
             type="file"
             multiple
             class="d-none"
+            :aria-label="uploadLabel"
             @change="onFilesPicked"
         />
 
@@ -304,6 +305,10 @@ export default {
         },
         rootLabel() {
             return i18n.t('CfilesModule.base', 'Files');
+        },
+        /** The hidden picker's name, for checkers that also look at hidden fields (WAVE). */
+        uploadLabel() {
+            return i18n.t('CfilesModule.base', 'Upload files');
         },
     },
     methods: {
